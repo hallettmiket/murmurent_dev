@@ -169,7 +169,9 @@ npx -y lavish-axi outputs/teacher/explainer_<YYYY-MM-DD>_<n>.html
 npx -y lavish-axi poll outputs/teacher/explainer_<YYYY-MM-DD>_<n>.html
 ```
 
-Tell it to leave the poll in the foreground and not kill it; you'll be re-dispatched with what comes back. **Where the `lavish` skill and these rules disagree, these rules win** — it is written for general artifacts and doesn't know murmurent's rails:
+**Tell it to run the poll as a tracked background job, not in the foreground.** This is the step that gets dropped, and dropping it is what strands a page: the open command returns instantly and looks like success, while `poll` blocks by design and is therefore indistinguishable from a hang. A main session told to hold it in the foreground skips or kills it, the browser shows *"Your agent is not listening"*, and the reader's annotations queue up with nobody on the other end. Name the mechanism explicitly — in Claude Code, a `Bash` call with `run_in_background: true` keeps running across turns and re-invokes the session when it returns, which is exactly the harness-tracked wake path the `lavish` rules require. Never `nohup`, `&`, or `disown`; those have no callback and are what the rule forbids. You'll be re-dispatched with what comes back.
+
+**Where the `lavish` skill and these rules disagree, these rules win** — it is written for general artifacts and doesn't know murmurent's rails:
 
 - **Never `lavish-axi share`, or tell the user to.** It publishes to `ht-ml.app`, third-party, **public by default**. Your pages carry reasoning about a project's data; the rails don't stop at the browser. Sending a page somewhere is the reader's explicit call, not a step in your loop.
 - **No CDN**, whatever it recommends — inline everything and write your own small `<style>` block.

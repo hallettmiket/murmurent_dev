@@ -121,15 +121,32 @@ alone or it cannot, and "cannot" is a `Gap` (see the Feynman test in
 
 ## 6. Review — hand the lesson to lavish
 
-Run these yourself; you are in the user's session, so blocking is fine:
+Run these yourself — you are in the user's session, which is the whole reason the loop
+survives here and cannot survive inside the [`teacher`](../../agents/teacher.md) subagent:
 
 ```
 npx -y lavish-axi outputs/teacher/courses/<course_slug>/lessons/lesson_<n>.html
-npx -y lavish-axi poll outputs/teacher/courses/<course_slug>/lessons/lesson_<n>.html
+npx -y lavish-axi poll  outputs/teacher/courses/<course_slug>/lessons/lesson_<n>.html
 ```
 
-`poll` blocks until they act and returns annotations and quiz answers on stdout. **Leave it
-in the foreground; never kill it.**
+`poll` blocks until they act and returns annotations and quiz answers on stdout. **Run it as a
+tracked background job, not in the foreground; never kill it.** In Claude Code that is a `Bash`
+call with `run_in_background: true`, which keeps running across turns and re-invokes you when
+feedback arrives — the harness-tracked wake path the `lavish` rules require. You are allowed to
+block here, but you should not: a foreground poll freezes the learner's whole session while they
+read, so they cannot ask you anything except through the page. Background keeps the session
+usable and the loop alive at the same time. Never `nohup`, `&`, or `disown` — no callback.
+
+**Both input channels come back through this one poll**, and the learner does not have to choose
+between them: an element annotation (carrying the exact text range that failed) and a free-typed
+message in the Conversation panel arrive together as separate prompts in one response. Reply into
+the panel with `--agent-reply "<message>"` on the next poll, so the conversation reads as a
+conversation rather than a series of silent page edits.
+
+**After a revision, re-open and re-poll the new file.** A Lavish session is keyed to its exact
+file path, so writing `lesson_<n+1>.html` leaves the browser showing the old lesson until you open
+the new one. Versioning up is still correct — never edit a shipped lesson in place — but the
+re-open is part of the same step, not an afterthought.
 
 Two kinds of feedback come back, and they mean different things:
 
