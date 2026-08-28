@@ -125,6 +125,9 @@ replies once and cannot hold a back-and-forth.
 
 ## Linked references (loaded on-demand)
 
+- [`docs/edid_resources.md`](docs/edid_resources.md) — the EDID resource pool the
+  [`conscience`](agents/conscience.md) cites from: five domains, each with its own
+  *flag this / suggest that* directive, plus an ingestion backlog the bookworm owns.
 - [`docs/oracle-workflow.md`](docs/oracle-workflow.md) — personal vs lab Oracle, publish flow, MCP search.
 - [`docs/obsidian-layout.md`](docs/obsidian-layout.md) — vault-side conventions + cross-reference to vault's own `CLAUDE.md` and `maps-legends/`.
 - [`docs/vscode-workflow.md`](docs/vscode-workflow.md) — launcher, 4-quadrant layout, agent reporter, tmux copy-paste.
