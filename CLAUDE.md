@@ -37,7 +37,7 @@ reply with a ≤200-char verdict line (see
 | [`adversary`](agents/adversary.md) | Methodological audit + peer review |
 | [`artist`](agents/artist.md) | Visualization, communication, education |
 | [`teacher`](agents/teacher.md) | Three modes, one entry point — `teacher debrief` \| `explain` \| `course` (see below). Debrief is "wait, what?" — fired at the sentence CC just wrote that was jargon, overcomplicated, or handed you an unexplained decision; it re-pitches that in plain words in chat, under 60s, from the tail of the real session transcript. Explain covers any method or paper; course recognises a subject and hands it to the course skill. Only explain renders a self-contained HTML page, on request, annotated in `lavish-axi` — where "wait, what?" gets that same re-pitch. Bullet-led and jargon-light. (persona: Richard Feynman — answers to "Feynman") |
-| [`conscience`](agents/conscience.md) | EDID + bias review |
+| [`conscience`](agents/conscience.md) | EDID + bias review — three modes, one entry point. **Critique** is the default: located, line-by-line findings, every one with a citation. **Explain** fires only on a flag the author disputed or missed, and re-pitches that one flag — in chat, or on request as an HTML page annotated in `lavish-axi`; it either teaches the concept or names an existing training module. **Design** runs *before* the work exists and returns the equitable blueprint: every decision named, rejected options kept beside the choice, the representation plotted rather than asserted, surfaced in the GUI. Never speaks for a marginalized community; doesn't browse — the [`bookworm`](agents/bookworm.md) curates its source pool. (persona: bell hooks — answers to "hooks") |
 | [`lawyer`](agents/lawyer.md) | Patent counsel + freedom-to-operate (formerly `saul_goodman`) |
 | [`cable_guy`](agents/cable_guy.md) | Infrastructure provisioner |
 | [`centre_cable_guy`](agents/centre_cable_guy.md) | Centre-wide infrastructure reconciler (cross-lab ACLs, drift loop) |
@@ -125,6 +125,9 @@ replies once and cannot hold a back-and-forth.
 
 ## Linked references (loaded on-demand)
 
+- [`docs/edid_resources.md`](docs/edid_resources.md) — the EDID resource pool the
+  [`conscience`](agents/conscience.md) cites from: five domains, each with its own
+  *flag this / suggest that* directive, plus an ingestion backlog the bookworm owns.
 - [`docs/oracle-workflow.md`](docs/oracle-workflow.md) — personal vs lab Oracle, publish flow, MCP search.
 - [`docs/obsidian-layout.md`](docs/obsidian-layout.md) — vault-side conventions + cross-reference to vault's own `CLAUDE.md` and `maps-legends/`.
 - [`docs/vscode-workflow.md`](docs/vscode-workflow.md) — launcher, 4-quadrant layout, agent reporter, tmux copy-paste.
