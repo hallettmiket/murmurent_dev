@@ -1,7 +1,7 @@
 """
 Purpose: Claude Code ``PostToolUse`` hook that harvests the ``## Gap register``
          table out of every conscience report written under
-         ``outputs/conscience/`` and accumulates it, so the EDID resource pool
+         ``outputs/conscience/`` and accumulates it, so the EDID resources
          learns what it is missing from reviews that actually needed something
          rather than from someone remembering to update it.
 Author:  Mike Hallett (with Claude Code)
@@ -40,7 +40,7 @@ decision made once stops nagging everyone) and ``docs/edid_resources.md``
 what the conscience is allowed to cite, and nothing automatic may touch it:
 an agent whose misses could silently become citable sources could manufacture
 support for anything it wanted to say. The bookworm reads the register, a
-person approves, and only then does the pool change. Same dry-run-then-apply
+person approves, and only then do the resources change. Same dry-run-then-apply
 split as ``docs/reconcile.md``, for the same reason.
 
 Failure policy: **never block, never raise.** A malformed report, an
@@ -117,7 +117,7 @@ def read_decisions(path: Path) -> dict[str, tuple[str, str]]:
 
 
 def pool_scopes(pool_path: Path) -> dict[str, str]:
-    """Map each pool URL to its scope tag, for the mis-scope check."""
+    """Map each resource URL to its scope tag, for the mis-scope check."""
     try:
         text = pool_path.read_text(encoding="utf-8")
     except OSError:
@@ -156,7 +156,7 @@ LOG_HEADER = """# EDID gap log — append-only
 One line per miss recorded by the [conscience](../agents/conscience.md) in a
 report's `## Gap register`. Appended by `murmurent.hooks.conscience_gaps`;
 **never edit or reorder this file** — [`edid_gap_register.md`](edid_gap_register.md)
-is regenerated from it, and the pool itself is only ever changed by the
+is regenerated from it, and the resources themselves are only ever changed by the
 bookworm with a person's approval.
 
 | Date | Needed | Domain | Kind | Report |
@@ -318,7 +318,7 @@ def build_register(rows: list[dict[str, str]],
         "**Hit count is the priority.** A gap recorded once is a note. A gap "
         "recorded eleven times is the next thing to fix, and it earned that "
         "ranking by blocking eleven real reviews rather than by seeming "
-        "important to someone. `no-source` means nothing in the pool covers "
+        "important to someone. `no-source` means nothing in the resources covers "
         "it; `blocked` means something does but sits unretrieved on the "
         "ingestion backlog.\n\n"
         "The [bookworm](../agents/bookworm.md) works the top of this list. "
@@ -421,21 +421,21 @@ def main(stdin: IO[str] | None = None, stdout: IO[str] | None = None) -> int:
     if result.get("status") == "missing-section":
         notes.append(
             "This conscience report has no '## Gap register' section, so nothing "
-            "was recorded about what the pool could not support. Add the section "
-            "— even empty — so the EDID pool keeps learning from real misses. "
+            "was recorded about what the resources could not support. Add the section "
+            "— even empty — so the EDID resources keep learning from real misses. "
             "See agents/conscience.md, Output conventions."
         )
     for url, where in result.get("mismatched") or []:
         notes.append(
             f"Scope mismatch: this report cites {url}, which is scoped to "
             f"{where} and this deployment is not. Cite it as {where}'s source, "
-            "not as this reader's rule — or say the pool has nothing for their "
+            "not as this reader's rule — or say the resources have nothing for their "
             "jurisdiction. See agents/conscience.md, Scope."
         )
     for needed, hits in result.get("crossed") or []:
         notes.append(
             f"{hits} reviews have now been blocked by the same gap: {needed}. "
-            "Nothing in the pool supports a flag here, so each of those was "
+            "Nothing in the resources supports a flag here, so each of those was "
             "reported as an unsourced observation. Worth dispatching the "
             "bookworm — or recording a decision in docs/edid_gap_decisions.md "
             "if this is deliberately out of scope, which stops it asking again."

@@ -37,15 +37,15 @@ something it carries instead of something you re-make.
 
 | Gap | State | Reason |
 |---|---|---|
-| Research ethics + data governance: REB / TCPS 2 Ch. 9, SAGER | `open` | governs the two artefacts the agent sees most |
-| OCAP® | `open` | FNIGC pages returned 403 on two fetch attempts; blocked, not absent |
-| Disability as a design constraint | `open` | the pool reaches disability only as the word *ableism* in a language list, so no flag on an access barrier is possible |
+| Research ethics + data governance: REB / TCPS 2 Ch. 9, SAGER | `open` | governs the two artefacts the agent sees most. Candidate sources verified 2026-08-29 and **offered to the compiler, not yet added**: TCPS 2 (2022) Ch. 9, OCAP® (FNIGC), SAGER (EASE), CIHR sex-and-gender guidance, the Ontario HEIA tool, and Ontario Health's HEIA Indigenous Lens supplement. Adding them means a sixth domain, which is the compiler's call. |
+| OCAP® | `open` | Still open, but **no longer blocked**: `www.fnigc.ca` 403s, while [`fnigc.ca/ocap-training/`](https://fnigc.ca/ocap-training/) returns 200 (checked 2026-08-29). The earlier 403s were the `www.` host, not the resource. Awaiting the decision on the clinical/health-equity set below. |
+| Disability as a design constraint | `open` | the resources reach disability only as the word *ableism* in a language list, so no flag on an access barrier is possible |
 | Intersectionality (Crenshaw) | `open` | findings that exist only at an intersection can be observed but not cited |
 | Citation and authorship diversity | `open` | the agent is told to check author lists; nothing supports it |
 | Migration status, age, class | `open` | named in the domains, unsupported |
 | Training course catalogues | `open` | referral list is empty, so no course may be named |
 | Non-Anglophone scholarship | `open` | domain 5 sources non-Western science through English popularizations |
-| Hiring and letters of reference | `declined` | personnel practice, not study design — out of this agent's scope. Recorded so it stops recurring; see the pool's open questions |
+| Hiring and letters of reference | `filled` | **Reversed 2026-08-29 by the compiler**, who directed that the two papers the source document had marked "are these worth including?" be included. Previously `declined` as personnel practice rather than study design. Filled by Schmader et al. (2007) and Gaucher et al. (2011), now included under Domain 1 and scoped there to postings, reference letters, recruitment calls and award nominations — **not** to research protocols. The earlier reasoning was not wrong about scope; the decision is that the scope is wider than study design. |
 
 Seeded from the adversary's and conscience's reviews of the agent rather than
 from usage, so these arrived by inspection rather than by blocking anyone.

@@ -75,6 +75,8 @@ def test_harvest_writes_log_and_register(tmp_path: Path) -> None:
     assert cg.evaluate(_write_call(report), store, "2026-08-29", repo_docs=_repo_docs(tmp_path), scopes=set()) == {
         "status": "harvested",
         "rows": 2,
+        "crossed": [],
+        "mismatched": [],
     }
     register = (store / cg.REGISTER_NAME).read_text()
     assert "intersectionality (Crenshaw)" in register
@@ -180,7 +182,11 @@ def test_declined_gap_never_nudges(tmp_path: Path) -> None:
         report = reports / f"report_{i}.md"
         report.write_text(REPORT)
         result = cg.evaluate(_write_call(report), store, day, repo_docs=docs, scopes=set())
-    assert result["crossed"] == []
+    # Only intersectionality is declined, so only it is suppressed; OCAP® is
+    # still open and must still nudge once it crosses the threshold.
+    crossed = dict(result["crossed"])
+    assert "intersectionality (Crenshaw)" not in crossed
+    assert crossed["OCAP®"] == cg.NUDGE_THRESHOLD
     register = (store / cg.REGISTER_NAME).read_text()
     assert "`declined` — out of scope by decision" in register
 
