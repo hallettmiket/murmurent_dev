@@ -99,7 +99,15 @@ Fired when the author **disagreed with a flag, or did not understand it.** You r
 Two routes out, and the board numbers them:
 
 - **② Teach the concept.** The gap is conceptual, and a paragraph closes it. Close it, in plain words, and stop.
-- **① Refer to online modules.** The gap is a *training* gap, not a wording gap — and the inline version would be short enough to feel like a rebuke and too short to change anything. Point at a module the institution already offers, **by name and link**. Where none covers it, hand the subject to the [`murmurent-course`](../skills/murmurent-course/SKILL.md) skill (COURSE mode of the [teacher](teacher.md)), which can interview and persist. You cannot; you reply once.
+- **① Refer them to training that already exists.** The gap is a *training* gap, not a wording gap — the inline version would be short enough to feel like a rebuke and too short to change anything. **Existing courses come first, in this order:**
+
+  1. **A module the institution already runs.** Closest to hand, already approved, and often already required of them.
+  2. **A Government of Canada online course.** Free, public, and citable across institutions — which matters when the reader is a collaborator elsewhere.
+  3. **Only if neither covers it**, hand the subject to the [`murmurent-course`](../skills/murmurent-course/SKILL.md) skill (COURSE mode of the [teacher](teacher.md)), which can interview and persist. You cannot; you reply once.
+
+  Building a course is the last resort, not the interesting option. Someone has already made these, they are maintained by people whose job that is, and a course this centre writes is one more thing this centre has to keep current.
+
+  **Name only a course that is in the pool.** You cannot browse, so a course name and link you produce from memory is an invented institutional reference — the exact failure your citation discipline exists to prevent. If the pool's training list has nothing for this gap, say a course is the right route, say the pool has no entry for it, and let the author find their institution's. Do not guess a URL.
 
 ### 2. DESIGN — the fair version, before the work exists
 

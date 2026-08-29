@@ -255,6 +255,37 @@ knowledge, especially those of Indigenous Peoples.
 
 ---
 
+## Training courses — for referral, not for flagging
+
+This section is **not a domain**. Nothing here backs a flag. It exists so the
+conscience can point someone at real training instead of inventing one, and it
+is consulted only on the EXPLAIN route where the gap is a training gap rather
+than a wording gap.
+
+**Priority order when referring.** An institutional module first, a Government
+of Canada course second, and a course built through the
+[`murmurent-course`](../skills/murmurent-course/SKILL.md) skill only when
+neither covers the subject. Existing courses are already maintained by people
+whose job that is; one written here is one more thing this centre has to keep
+current.
+
+**Unpopulated.** No verified entries yet, so the conscience currently has
+nothing to cite on this route and must say so rather than guess a name or a
+URL. Two catalogues for the [bookworm](../agents/bookworm.md) to fetch and
+list here, with real titles and links:
+
+| Source | What to pull |
+|---|---|
+| **Western's own EDI / research training offerings** | the current catalogue — module titles, who they are required of, enrolment links |
+| **Government of Canada online courses** | the federal EDI and Indigenous-awareness offerings, including Gender-Based Analysis Plus and the Canada School of Public Service Indigenous learning material |
+
+Course names and URLs are deliberately **not** written here from memory. Both
+catalogues change, and a stale or invented training link is worse than an
+admitted gap — it sends someone to a page that is not there and spends the
+agent's credibility doing it.
+
+---
+
 ## Ingestion backlog
 
 Items the pool references but cannot yet serve as a citable source. The
