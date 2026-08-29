@@ -343,6 +343,43 @@ def repo_upgrade_cmd(path: str | None, all_repos: bool,
         all_agents=all_agents))
 
 
+@repo_group.group("private", help="Keep a repo out of the inventory entirely — "
+                                  "your own work, not the lab's.")
+def repo_private_group() -> None:
+    pass
+
+
+@repo_private_group.command(
+    "list",
+    help="Show this machine's private repos.",
+)
+def repo_private_list_cmd() -> None:
+    from .commands import repo_cmd as _repo_cmd
+    raise SystemExit(_repo_cmd.cmd_private_list())
+
+
+@repo_private_group.command(
+    "add",
+    help="Mark PATTERN private: never scanned, never listed in the dashboard, "
+         "never published. PATTERN is a repo name (cmwim_website) or a glob "
+         "over paths (~/personal/*). The clone itself is not touched.",
+)
+@click.argument("pattern")
+def repo_private_add_cmd(pattern: str) -> None:
+    from .commands import repo_cmd as _repo_cmd
+    raise SystemExit(_repo_cmd.cmd_private_add(pattern))
+
+
+@repo_private_group.command(
+    "remove",
+    help="Un-mark PATTERN, so the repo is inventoried again.",
+)
+@click.argument("pattern")
+def repo_private_remove_cmd(pattern: str) -> None:
+    from .commands import repo_cmd as _repo_cmd
+    raise SystemExit(_repo_cmd.cmd_private_remove(pattern))
+
+
 # ---------------------------------------------------------------------------
 # group
 # ---------------------------------------------------------------------------
