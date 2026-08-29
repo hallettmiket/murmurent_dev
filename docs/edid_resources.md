@@ -61,6 +61,32 @@ own. That is the same instruction the agent already has about not treating
 what it supports holds anywhere. Where that is uncertain, tag it rather than
 letting silence make the claim.
 
+## Source tags — what a flag may rest on
+
+Scope says *where* a source applies. These say *what weight it carries.* The
+conscience is told every flag rests on a guideline, a regulation, a
+peer-reviewed finding, or a reference guide — and a good deal of this pool is
+none of those.
+
+| Tag | What it is | May a flag rest on it? |
+|---|---|---|
+| *(untagged)* | a guideline, regulation, peer-reviewed finding, or reference guide | **yes** |
+| `[context]` | background — encyclopaedia entries, journalism, commercial and hobby blogs, third-party explainers | **no.** Read it for orientation; never cite it as a flag's authority. An author who is told their grant is biased on the authority of a supplement retailer's blog is right to dismiss the finding, and the whole review with it |
+| `[voice]` | a first-person or community-authored account — someone speaking from their own life, or a community publishing about itself | **yes, for what it is an account of.** Not a general finding, and not a substitute for a guideline |
+
+**`[voice]` is not a weaker tier — for one kind of claim it is the strongest
+thing here.** The whole point of routing knowledge through a community's own
+account rather than synthesizing one is that the account outranks any
+third-party description of the same thing. A recorded talk by an Indigenous
+biochemist about being an Indigenous biochemist is better evidence of that
+experience than a peer-reviewed paper about Indigenous biochemists. What it is
+not is evidence about anyone else.
+
+**`[context]` is the honest label for material kept because it is useful, not
+because it is authoritative.** Removing it would cost real orientation value;
+letting it back a flag would cost the agent its credibility the first time an
+author checked a citation.
+
 ## The five domains
 
 The source document groups these as **EDI** on its own, then **Decolonization**
@@ -116,7 +142,7 @@ design, dataset, cohort, curriculum, or piece of writing. Also suggest
 replacements of such flagged language by using inclusive terms.
 
 - [Western's Inclusive Language Guide (2025)](https://www.edi.uwo.ca/img/pdfs/Inclusive%20Language%20Guide%202025.pdf) `[binds UWO]`
-- [Words and phrases you may want to think twice about using](https://www.cbc.ca/news/canada/ottawa/words-and-phrases-commonly-used-offensive-english-language-1.6252274) — CBC News `[from CA]`
+- [Words and phrases you may want to think twice about using](https://www.cbc.ca/news/canada/ottawa/words-and-phrases-commonly-used-offensive-english-language-1.6252274) — CBC News `[from CA]` `[context]`
 - [APA Inclusive Language Guide](https://www.apa.org/about/apa/equity-diversity-inclusion/) — *the ODT link carries a truncated text fragment; base URL used here* `[from US]`
 - [Inclusive Naming Initiative — word lists](https://inclusivenaming.org/word-lists/)
 
@@ -157,24 +183,24 @@ representative sampling, as needed.
 
 - [Pulling Together: Foundations Guide](https://opentextbc.ca/indigenizationfoundations/) — BCcampus, CC BY-NC `[from BC]`
 - [Pulling Together: A Guide for Researchers](https://opentextbc.ca/indigenizationresearchers/) — **the most directly applicable of the series for this centre's work** `[from BC]`
-- Kevin Lamoureux (2022). [A Beginner's Guide to Decolonization](https://www.youtube.com/watch?v=GFUwnMHN_T8) — TEDxSurrey `VID`
-- Nikki Sanchez (2019). [Decolonization Is for Everyone](https://www.youtube.com/watch?v=QP9x1NnCWNY) — TEDxSFU `VID`
+- Kevin Lamoureux (2022). [A Beginner's Guide to Decolonization](https://www.youtube.com/watch?v=GFUwnMHN_T8) — TEDxSurrey `VID` `[voice]`
+- Nikki Sanchez (2019). [Decolonization Is for Everyone](https://www.youtube.com/watch?v=QP9x1NnCWNY) — TEDxSFU `VID` `[voice]`
 - [Indigenous Teaching and Learning Resources](https://teaching.uwo.ca/teaching/indigenous-tl-resources.html) — Western CTL ([intro](https://www.youtube.com/watch?v=nEpOKH0_W7M)); [Module 1 — Decolonize the Academy](https://www.youtube.com/watch?v=tMZibUhVMy8) `VID` `[from UWO]`
 
 *Epistemic / knowledge justice*
 
-- [Decolonizing Knowledge: A Guide](https://www.numberanalytics.com/blog/decolonizing-knowledge-eurocentrism-guide)
+- [Decolonizing Knowledge: A Guide](https://www.numberanalytics.com/blog/decolonizing-knowledge-eurocentrism-guide) `[context]`
 - [Knowledge Justice in the Helping Professions](https://ecampusontario.pressbooks.pub/epistemicjusticeoer/) — eCampusOntario `[from CA-ON]`
 - [Library Curriculum as Epistemic Justice](https://cjal.ca/index.php/capal/article/view/40964/32219)
-- [Is science objective or subjective?](https://www.clrn.org/is-science-objective-or-subjective/) — California Learning Resource Network ⚠️ *captcha-gated; submit PDF to the pool* `[from US]`
+- [Is science objective or subjective?](https://www.clrn.org/is-science-objective-or-subjective/) — California Learning Resource Network ⚠️ *captcha-gated; submit PDF to the pool* `[from US]` `[context]`
 - Visvanathan, S. (2009). [The Search for Cognitive Justice](https://www.india-seminar.com/2009/597/597_shiv_visvanathan.htm) — *Seminar* 597, freely accessible. The primary source: Visvanathan coined "cognitive justice" in *A Carnival for Science: Essays on Science, Technology and Development* (1997) and this essay is his own restatement of it — the right of different forms of knowledge to co-exist, pushed past mere tolerance toward active recognition of the need for diversity. **Distinct from epistemic justice above**: epistemic justice is about the standing of individual knowers; cognitive justice is about the standing of whole knowledge systems (added 2026-08-29, bookworm).
-- Visvanathan, S. [Cognitive Justice](https://www.ted.com/talks/dr_shiv_visvanathan_cognitive_justice) — TEDxSIBMBengaluru `VID`. A shorter spoken restatement of the same argument (added 2026-08-29, bookworm).
+- Visvanathan, S. [Cognitive Justice](https://www.ted.com/talks/dr_shiv_visvanathan_cognitive_justice) — TEDxSIBMBengaluru `VID`. A shorter spoken restatement of the same argument (added 2026-08-29, bookworm). `[voice]`
 
 *Decolonizing science and the biosciences*
 
 - [Why we need to decolonize the biosciences curriculum](https://portlandpress.com/biochemist/article/46/2/26/234197/Why-we-need-to-decolonize-the-biosciences) — *The Biochemist*
 - [Decolonizing and diversifying the biosciences curriculum — a practical guide to getting started](https://portlandpress.com/biochemist/article/46/2/33/234195/Decolonizing-and-diversifying-the-biosciences)
-- [Decolonise science — time to end another imperial era](https://theconversation.com/decolonise-science-time-to-end-another-imperial-era-89189)
+- [Decolonise science — time to end another imperial era](https://theconversation.com/decolonise-science-time-to-end-another-imperial-era-89189) `[context]`
 - [Why scientific knowledge needs to be decolonised](https://i2insights.org/2024/07/02/decolonising-scientific-knowledge/)
 - [Decolonizing Science: Undoing the Colonial and Racist Hegemony of Western Science](https://journals.sfu.ca/jmde/index.php/jmde_1/article/view/785/679)
 - [Concrete Ways to Decolonize Science](https://acme-journal.org/index.php/acme/article/download/1707/1441/6547) (PDF)
@@ -198,7 +224,7 @@ representative sampling, as needed.
 - [Decolonial research methodology: an assessment of the challenge to established practice](https://www.tandfonline.com/doi/full/10.1080/13645579.2024.2357558)
 - [Addressing the need for indigenous and decolonized quantitative research methods in Canada](https://www.sciencedirect.com/science/article/pii/S2352827321001749)
 - [Decolonizing Research: A Primer](https://waapihk.com/2025/02/03/decolonizing-research/) — Waapihk Research `[from CA]`
-- [The role of research and knowledge creation in decolonization](https://www.openaccessgovernment.org/article/the-role-of-research-and-knowledge-creation-in-decolonization/193566/)
+- [The role of research and knowledge creation in decolonization](https://www.openaccessgovernment.org/article/the-role-of-research-and-knowledge-creation-in-decolonization/193566/) `[context]`
 - Thomas, D.S. (2022). [Applying One Dish, One Spoon as an Indigenous research methodology](https://journals.sagepub.com/doi/pdf/10.1177/11771801221087864) — *AlterNative* 18(1):84–93. A Haudenosaunee (Onondawaga/Seneca, Six Nations of the Grand River) researcher adapts the Haudenosaunee–Anishinaabe Dish With One Spoon treaty into a research methodology, applied with Oji-Cree/Anishinaabe (Matawa) communities in Northern Ontario. **Ontario-specific and Haudenosaunee-authored** — added 2026-08-29 (bookworm) to sit beside this domain's otherwise BC-centred Indigenous material, not replace it; see also Domain 4, *Nations, territories & treaties*. `[from CA-ON]`
 
 *Colonialism in the biosciences — eugenics, bioprospecting, sampling bias*
@@ -230,22 +256,22 @@ them in scientific research and teaching spaces.
 *Ways of knowing*
 
 - [What are Indigenous and Western Ways of Knowing?](https://www.criaw-icref.ca/images/userfiles/files/Fact%20Sheet%202%20EN%20FINAL.pdf) — CRIAW fact sheet `[from CA]`
-- [Indigenous Worldviews vs Western Worldviews](https://www.ictinc.ca/blog/indigenous-worldviews-vs-western-worldviews)
-- [Two-Eyed Seeing](https://www.2eyedseeing.ca/about-5) (*Etuaptmumk*) — **linking, not integrating**. Given by Mi'kmaw Elder **Albert Marshall** (Moose Clan) together with Elder **Murdena Marshall** (1942–2018; Muin/Bear Clan, clan mother), both of Eskasoni First Nation, Mi'kmaw Nation, in Unama'ki (Cape Breton), NS; Albert brought the principle forward in 2004. Attribution verified 2026-08-29 (bookworm) against two sources — the naming credit had been missing from this entry, which is exactly the kind of asymmetry this domain exists to catch (this pool otherwise names four Black and Latin American writers by name; the Mi'kmaw Elder who gave this concept had not been): Bartlett, C., Marshall, M. & Marshall, A. (2012). [Two-Eyed Seeing and other lessons learned within a co-learning journey](https://iaac-aeic.gc.ca/050/documents/p80156/132968E.pdf) — *J. Environ. Stud. Sci.* 2:331–340 (freely readable PDF via a Canadian federal impact-assessment public record); and Roher, S.I.G., Yu, Z., Martin, D.H. & Benoit, A.C. (2021). [How is Etuaptmumk/Two-Eyed Seeing characterized in Indigenous health research? A scoping review](https://pmc.ncbi.nlm.nih.gov/articles/PMC8291645/) — *PLOS ONE* 16(7):e0254612, open access, which supplies the Mi'kmaw name *Etuaptmumk* and confirms the same attribution independently. `[from CA]`
+- [Indigenous Worldviews vs Western Worldviews](https://www.ictinc.ca/blog/indigenous-worldviews-vs-western-worldviews) `[context]`
+- [Two-Eyed Seeing](https://www.2eyedseeing.ca/about-5) (*Etuaptmumk*) — **linking, not integrating**. Given by Mi'kmaw Elder **Albert Marshall** (Moose Clan) together with Elder **Murdena Marshall** (1942–2018; Muin/Bear Clan, clan mother), both of Eskasoni First Nation, Mi'kmaw Nation, in Unama'ki (Cape Breton), NS; Albert brought the principle forward in 2004. Attribution verified 2026-08-29 (bookworm) against two sources — the naming credit had been missing from this entry, which is exactly the kind of asymmetry this domain exists to catch (this pool otherwise names four Black and Latin American writers by name; the Mi'kmaw Elder who gave this concept had not been): Bartlett, C., Marshall, M. & Marshall, A. (2012). [Two-Eyed Seeing and other lessons learned within a co-learning journey](https://iaac-aeic.gc.ca/050/documents/p80156/132968E.pdf) — *J. Environ. Stud. Sci.* 2:331–340 (freely readable PDF via a Canadian federal impact-assessment public record); and Roher, S.I.G., Yu, Z., Martin, D.H. & Benoit, A.C. (2021). [How is Etuaptmumk/Two-Eyed Seeing characterized in Indigenous health research? A scoping review](https://pmc.ncbi.nlm.nih.gov/articles/PMC8291645/) — *PLOS ONE* 16(7):e0254612, open access, which supplies the Mi'kmaw name *Etuaptmumk* and confirms the same attribution independently. `[from CA]` `[voice]`
 - [An Analysis of Western, Feminist and Aboriginal Science Using the Medicine Wheel of the Plains Indians](https://iportal.usask.ca/docs/Native_studies_review/v11/issue2/pp89-102.pdf)
 
 *Nations, territories & treaties — added 2026-08-29, bookworm. This pool had no geographic content at all before this: no nations, no territories, no treaties named. That gap matters because everything else Indigenous-related in this domain and in §3 is overwhelmingly British Columbian (FNESC, BCcampus, Pass The Feather) while Western sits on Anishinaabek, Haudenosaunee, Lūnaapéewak and Chonnonton territory — treating the BC material as a universal standing reference is exactly the pan-Indigenous flattening this agent exists to catch.*
 
-- [Native-Land.ca](https://native-land.ca/) — interactive map of Indigenous nations, territories, treaties and languages worldwide. **Use as orientation, not as authority — Native Land Digital says so itself.** Its own FAQ states its maps "are not official sources," are "meant for educational and reference purposes only and should not be used for legal claims, land disputes, or governmental decision-making," and that its process is community-sourced (Elder knowledge weighted highest, plus at least two further confirmations from communities, scholars, or historical records) rather than a peer-reviewed or governmental determination — the organization describes the map as an incomplete, continuously-revised work in progress and has been criticized for occasionally flattening or mislabelling nations. Cite it as a starting point for "whose land is this," never as a boundary ruling.
+- [Native-Land.ca](https://native-land.ca/) — interactive map of Indigenous nations, territories, treaties and languages worldwide. **Use as orientation, not as authority — Native Land Digital says so itself.** Its own FAQ states its maps "are not official sources," are "meant for educational and reference purposes only and should not be used for legal claims, land disputes, or governmental decision-making," and that its process is community-sourced (Elder knowledge weighted highest, plus at least two further confirmations from communities, scholars, or historical records) rather than a peer-reviewed or governmental determination — the organization describes the map as an incomplete, continuously-revised work in progress and has been criticized for occasionally flattening or mislabelling nations. Cite it as a starting point for "whose land is this," never as a boundary ruling. `[voice]`
 - Thomas, D.S. (2022). *Applying One Dish, One Spoon as an Indigenous research methodology* — see Domain 3, *Research methodology*, for the full citation. Placed here as the Ontario/Haudenosaunee–Anishinaabe counterweight this subgroup's BC-heavy neighbours elsewhere in the pool have been missing: it names the Dish With One Spoon treaty between the Haudenosaunee and Anishinaabe specifically, and works through what it means to do research across that boundary rather than treating "Indigenous" as one undifferentiated research relationship.
 
 *Pedagogy*
 
 - [Explore Indigenous teaching strategies](https://teachingkb.mcgill.ca/tlk/explore-indigenous-teaching-strategies) — McGill
-- [Teaching Through the Four Rs of Indigenous Education](https://learningbird.com/teaching-through-the-four-rs-of-indigenous-education/)
-- [First Peoples Principles of Learning](https://www.fnesc.ca/first-peoples-principles-of-learning/) — FNESC `[from BC]`
-- [Tapping Into the Power of Learning Circles](https://trainingmag.com/tapping-into-the-power-of-learning-circles/)
-- [Sharing Circles](https://passthefeather.ca/sharing-circles/?v=3e8d115eb4b3) — Pass The Feather
+- [Teaching Through the Four Rs of Indigenous Education](https://learningbird.com/teaching-through-the-four-rs-of-indigenous-education/) `[context]`
+- [First Peoples Principles of Learning](https://www.fnesc.ca/first-peoples-principles-of-learning/) — FNESC `[from BC]` `[voice]`
+- [Tapping Into the Power of Learning Circles](https://trainingmag.com/tapping-into-the-power-of-learning-circles/) `[context]`
+- [Sharing Circles](https://passthefeather.ca/sharing-circles/?v=3e8d115eb4b3) — Pass The Feather `[voice]`
 - [Storyhouse at Western](https://uwo.ca/fhs/research/kmb/storyhouse/index.html) `[from UWO]`
 - [Module 2 — Toward a Decolonizing Pedagogy](https://www.youtube.com/watch?v=kCmmRUhZL1s) `VID`
 - [Module 3 — Students, Indigeneity and Experience in Universities](https://www.youtube.com/watch?v=yF0MtL64h5A) `VID`
@@ -285,28 +311,28 @@ knowledge, especially those of Indigenous Peoples.
 
 - [Science in Greece: from the age of Hippocrates to the age of the genome](https://faseb.onlinelibrary.wiley.com/doi/epdf/10.1096/fj.06-1002ufm) ⚠️ *bot-monitored; submit PDF to the pool*
 - Traditional ancient Egyptian medicine: A review — *ScienceDirect* ⚠️ *the ODT holds an expired signed S3 link; needs a stable DOI. Bot-monitored; submit PDF to the pool*
-- [History of Biochemistry](https://www.bioexplorer.net/history_of_biology/biochemistry/) — Bio Explorer
-- [History of biochemistry](https://en.wikipedia.org/wiki/History_of_biochemistry) — Wikipedia
-- [History and Biochemistry of Fermented Foods](https://rockedu.rockefeller.edu/component/biochemistry-fermented-foods/) — Rockefeller
-- [The History of Fermentation: From Ancient Times to Today](https://spicestoryteller.com/the-history-of-fermentation-from-ancient-times-to-today/)
+- [History of Biochemistry](https://www.bioexplorer.net/history_of_biology/biochemistry/) — Bio Explorer `[context]`
+- [History of biochemistry](https://en.wikipedia.org/wiki/History_of_biochemistry) — Wikipedia `[context]`
+- [History and Biochemistry of Fermented Foods](https://rockedu.rockefeller.edu/component/biochemistry-fermented-foods/) — Rockefeller `[context]`
+- [The History of Fermentation: From Ancient Times to Today](https://spicestoryteller.com/the-history-of-fermentation-from-ancient-times-to-today/) `[context]`
 - [Evolution of Food Fermentation Processes and the Use of Multi-Omics](https://www.mdpi.com/2304-8158/10/11/2861)
-- [Latin America Science: The Long View](https://nacla.org/latin-america-science-long-view/) — NACLA
+- [Latin America Science: The Long View](https://nacla.org/latin-america-science-long-view/) — NACLA `[context]`
 
 *Indigenous knowledge, and its misappropriation*
 
-- Dr. Dustin King (SFU). [My Journey as an Indigenous Biochemist](https://www.youtube.com/watch?v=P3RH4Km2c-w) `VID`
-- [Nine Native American Breweries Paving the Path for Beer](https://beerisforeveryone.com/nine-native-american-breweries/)
-- [10 Native American Inventions Commonly Used Today](https://www.history.com/articles/native-american-inventions)
+- Dr. Dustin King (SFU). [My Journey as an Indigenous Biochemist](https://www.youtube.com/watch?v=P3RH4Km2c-w) `VID` `[voice]`
+- [Nine Native American Breweries Paving the Path for Beer](https://beerisforeveryone.com/nine-native-american-breweries/) `[context]`
+- [10 Native American Inventions Commonly Used Today](https://www.history.com/articles/native-american-inventions) `[context]`
 - How Indigenous knowledge advances modern science and technology — *The Conversation* ⚠️ *the ODT link is a bare text fragment with no article path; needs re-finding*
-- [Sordid Medicine Shows Exploited Indigenous Cures](https://www.mcgill.ca/oss/article/medical-history/sordid-medicine-shows-exploited-indigenous-cures) — McGill OSS
+- [Sordid Medicine Shows Exploited Indigenous Cures](https://www.mcgill.ca/oss/article/medical-history/sordid-medicine-shows-exploited-indigenous-cures) — McGill OSS `[context]`
 
 *Unrecognized contributors*
 
-- [Nobel Prizes Overlook Black Scientists Because of This Quiet Bias](https://www.scientificamerican.com/article/nobel-prizes-overlook-black-scientists-because-of-this-quiet-bias/) — *Scientific American*
+- [Nobel Prizes Overlook Black Scientists Because of This Quiet Bias](https://www.scientificamerican.com/article/nobel-prizes-overlook-black-scientists-because-of-this-quiet-bias/) — *Scientific American* `[context]`
 - [ASBMB — a history of Black scientists (PDF)](https://www.asbmb.org/getmedia/6d7cc98e-3d30-4c57-9bbc-edb5f7f31a57/asbmb-history-black-scientists.pdf)
-- [Timeline of women in science](https://en.wikipedia.org/wiki/Timeline_of_women_in_science) — Wikipedia
-- [List of female scientists before the 20th century](https://en.wikipedia.org/wiki/List_of_female_scientists_before_the_20th_century) — Wikipedia
-- [15 Pioneering Female Scientists](https://1md.org/blogs/health-stories/top-female-scientists-1md)
+- [Timeline of women in science](https://en.wikipedia.org/wiki/Timeline_of_women_in_science) — Wikipedia `[context]`
+- [List of female scientists before the 20th century](https://en.wikipedia.org/wiki/List_of_female_scientists_before_the_20th_century) — Wikipedia `[context]`
+- [15 Pioneering Female Scientists](https://1md.org/blogs/health-stories/top-female-scientists-1md) `[context]`
 - [Maud L. Menten, MD PhD](https://www.cdnmedhall.ca/laureates/maudmenten) — Canadian Medical Hall of Fame `[from CA]`
 - [MENTEN, MAUD LEONORA](https://www.biographi.ca/en/bio/menten_maud_leonora_18E.html) — Dictionary of Canadian Biography `[from CA]`
 - [Dr. Maud L. Menten Memorial Lecture Series](https://www.schulich.uwo.ca/biochem/about_us/seminars/menten_lectures.html) — Western Biochemistry `[from UWO]`
