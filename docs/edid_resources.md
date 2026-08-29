@@ -11,6 +11,16 @@ and transcribed here 2026-08-28. Section descriptions and the *How to
 use these* directives are the compiler's own words, lightly de-hyphenated
 from the ODT; nothing was added to them.
 
+**Community-authored public education comes first.** This pool exists so the
+conscience routes knowledge about a community through that community's own
+account rather than synthesizing one. Where a community has published material
+to educate the public — FNESC's First Peoples Principles of Learning, Pass The
+Feather, Native Land Digital, the Two-Eyed Seeing site — prefer it over a
+third-party description of the same thing, and say who authored it. Where the
+pool has only an outside account, mark it, so the agent knows it is citing a
+description rather than a source. The [bookworm](../agents/bookworm.md) should
+weight community-authored material above commentary when filling any gap.
+
 **Regional by design.** The pool is deliberately Canadian, Ontarian, and
 Western-specific — tri-agency funder guidance (NSERC, SSHRC/NFRF),
 Western's own Inclusive Language and Allyship guides, FNESC, CRIAW. REB
