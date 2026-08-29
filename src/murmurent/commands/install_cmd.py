@@ -87,8 +87,8 @@ HOOK_REGISTRATIONS: list[dict[str, Any]] = [
     },
     {
         # Harvests the "## Gap register" table out of conscience reports under
-        # outputs/conscience/ into docs/edid_gap_log.md (append-only) and
-        # regenerates docs/edid_gap_register.md, so the EDID pool learns what
+        # outputs/conscience/ into ~/.murmurent/edid_gaps/ (append-only, per member) and
+        # regenerates a local ranked register, so the EDID pool learns what
         # it is missing from reviews that needed something rather than from
         # someone remembering. Never writes docs/edid_resources.md — only the
         # bookworm, with a person's approval, changes what may be cited.

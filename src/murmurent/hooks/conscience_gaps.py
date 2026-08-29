@@ -10,15 +10,31 @@ Input:   PostToolUse tool-call JSON on stdin (CC hook contract).
 Output:  Empty stdout on the quiet path; ``hookSpecificOutput`` with
          ``additionalContext`` when a report arrives with no gap register.
 
-Two files, and the split is the safety property:
+Storage is **local by default**, and that is a privacy property, not a
+convenience. Gap text is free prose the agent wrote about whatever document it
+just reviewed — "no source on consent framing for incarcerated participants"
+names someone's study. The murmurent repo is public, so nothing is written
+there:
 
-  ``docs/edid_gap_log.md``       append-only ledger, one line per recorded
-                                 miss. Never rewritten, so a bad parse can
-                                 add noise but can never destroy history.
-  ``docs/edid_gap_register.md``  derived view — deduplicated, hit-counted,
-                                 ranked. Regenerated in full from the ledger
-                                 every time, so it has no merge state to get
-                                 wrong.
+  ``~/.murmurent/edid_gaps/gap_log.md``       append-only ledger, one line per
+                                              miss. Never rewritten, so a bad
+                                              parse adds noise but can never
+                                              destroy history.
+  ``~/.murmurent/edid_gaps/gap_register.md``  derived view — deduplicated,
+                                              hit-counted, ranked. Regenerated
+                                              in full from the ledger, so it
+                                              has no merge state to get wrong.
+
+Sharing a gap centre-wide is a deliberate promote step a person performs, and
+that step is where someone reads the text before it becomes public — the same
+shape as personal Oracle versus Lab Oracle. The cost is real and worth naming:
+hit counts only aggregate across the centre for gaps somebody promoted, so the
+ranking is partial by construction.
+
+Two files in the repo are **read, never written**:
+``docs/edid_gap_decisions.md`` (gaps filled or declined centre-wide, so a
+decision made once stops nagging everyone) and ``docs/edid_resources.md``
+(scope tags, for the mis-scope check).
 
 **This hook never writes to** ``docs/edid_resources.md``. That file decides
 what the conscience is allowed to cite, and nothing automatic may touch it:
@@ -47,9 +63,93 @@ REPORT_DIR_PARTS = ("outputs", "conscience")
 GAP_HEADING = re.compile(r"^\s*#{1,6}\s*gap register\b", re.IGNORECASE)
 ANY_HEADING = re.compile(r"^\s*#{1,6}\s+")
 SEPARATOR_ROW = re.compile(r"^\s*\|[\s:|-]+\|\s*$")
-LOG_NAME = "edid_gap_log.md"
-REGISTER_NAME = "edid_gap_register.md"
-VALID_KINDS = frozenset({"no-source", "blocked"})
+LOG_NAME = "gap_log.md"
+REGISTER_NAME = "gap_register.md"
+DECISIONS_NAME = "edid_gap_decisions.md"
+POOL_NAME = "edid_resources.md"
+VALID_KINDS = frozenset({"no-source", "no-source (regional)", "blocked"})
+NUDGE_THRESHOLD = 3
+SCOPE_TAG = re.compile(r"`\[(binds|from) ([^\]]+)\]`")
+MD_LINK = re.compile(r"\((https?://[^)\s]+)\)")
+
+
+def local_store() -> Path:
+    """Where a member's own gap ledger lives. Never the public repo."""
+    import os
+    base = os.environ.get("MURMURENT_HOME")
+    root = Path(base).expanduser() if base else Path("~/.murmurent").expanduser()
+    return root / "edid_gaps"
+
+
+def deployment_scopes() -> set[str]:
+    """Scopes that bind this deployment, e.g. {"UWO", "CA"}.
+
+    Empty means unconfigured, and the mis-scope check stays silent rather than
+    guessing — warning every citation would train the reader to ignore it.
+    """
+    import os
+    raw = os.environ.get("MURMURENT_EDID_SCOPE", "")
+    return {s.strip() for s in raw.split(",") if s.strip()}
+
+
+def read_decisions(path: Path) -> dict[str, tuple[str, str]]:
+    """Centre-wide gap decisions: key -> (state, reason).
+
+    ``filled`` and ``declined`` both stop a gap counting. A gap somebody
+    decided against must stop nudging, or the nudges get tuned out and the
+    whole loop dies quietly.
+    """
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError:
+        return {}
+    out: dict[str, tuple[str, str]] = {}
+    for line in text.splitlines():
+        if not line.strip().startswith("|") or SEPARATOR_ROW.match(line):
+            continue
+        cells = _split_row(line)
+        if len(cells) < 3 or cells[1].strip().lower() in {"state", ""}:
+            continue
+        state = cells[1].strip().strip("`").lower()
+        if state in {"filled", "declined"}:
+            out[_norm_key(cells[0])] = (state, cells[2].strip())
+    return out
+
+
+def pool_scopes(pool_path: Path) -> dict[str, str]:
+    """Map each pool URL to its scope tag, for the mis-scope check."""
+    try:
+        text = pool_path.read_text(encoding="utf-8")
+    except OSError:
+        return {}
+    out: dict[str, str] = {}
+    for line in text.splitlines():
+        tag = SCOPE_TAG.search(line)
+        if not tag:
+            continue
+        for url in MD_LINK.findall(line):
+            out[url] = tag.group(2)
+    return out
+
+
+def scope_mismatches(report_text: str, pool_path: Path,
+                     scopes: set[str]) -> list[tuple[str, str]]:
+    """Citations in the report that are scoped somewhere this reader is not.
+
+    This catches the failure the agent cannot catch in itself. A missing source
+    fails honestly — it says it cannot cite anything. A mis-scoped one is a
+    confident wrong answer wearing a legitimate-looking citation, and neither
+    party notices.
+    """
+    if not scopes:
+        return []
+    tagged = pool_scopes(pool_path)
+    hits: list[tuple[str, str]] = []
+    for url in set(MD_LINK.findall(report_text)):
+        where = tagged.get(url)
+        if where and where not in scopes:
+            hits.append((url, where))
+    return sorted(hits)
 
 LOG_HEADER = """# EDID gap log — append-only
 
@@ -167,7 +267,8 @@ def read_log(log_path: Path) -> list[dict[str, str]]:
     return rows
 
 
-def build_register(rows: list[dict[str, str]]) -> str:
+def build_register(rows: list[dict[str, str]],
+                   decisions: dict[str, tuple[str, str]] | None = None) -> str:
     """Render the derived register: deduplicated, hit-counted, ranked."""
     tally: dict[str, dict[str, Any]] = {}
     for row in rows:
@@ -187,13 +288,22 @@ def build_register(rows: list[dict[str, str]]) -> str:
         entry["kinds"].add(row["kind"])
         entry["last"] = max(entry["last"], row["date"])
         entry["first"] = min(entry["first"], row["date"])
-    ranked = sorted(tally.values(), key=lambda e: (-e["hits"], e["needed"].lower()))
+    decisions = decisions or {}
+    for key, entry in tally.items():
+        state, reason = decisions.get(key, ("open", ""))
+        entry["state"] = state
+        entry["reason"] = reason
+    ranked = sorted(
+        tally.values(),
+        key=lambda e: (e["state"] != "open", -e["hits"], e["needed"].lower()),
+    )
     body = "\n".join(
-        "| {hits} | {needed} | {domains} | {kinds} | {first} | {last} |".format(
+        "| {hits} | {needed} | {domains} | {kinds} | {state} | {first} | {last} |".format(
             hits=e["hits"],
             needed=e["needed"],
             domains=", ".join(sorted(d for d in e["domains"] if d)) or "—",
             kinds=", ".join(f"`{k}`" for k in sorted(e["kinds"])),
+            state=f"`{e['state']}`" + (f" — {e['reason']}" if e["reason"] else ""),
             first=e["first"],
             last=e["last"],
         )
@@ -215,30 +325,61 @@ def build_register(rows: list[dict[str, str]]) -> str:
         "Nothing here is citable, and nothing becomes citable without a "
         "person approving its entry into "
         "[`edid_resources.md`](edid_resources.md).\n\n"
-        "| Hits | Needed | Domain | Kind | First seen | Last seen |\n"
-        "|---|---|---|---|---|---|\n"
+        "A gap marked `filled` or `declined` in "
+        "[`edid_gap_decisions.md`](edid_gap_decisions.md) sinks to the bottom "
+        "and stops nudging. A decision taken once should not have to be taken "
+        "again every time the gap recurs — that is how a nudge becomes noise "
+        "and then becomes ignored.\n\n"
+        "| Hits | Needed | Domain | Kind | State | First seen | Last seen |\n"
+        "|---|---|---|---|---|---|---|\n"
         f"{body}\n"
     )
 
 
-def harvest(report_path: Path, docs_dir: Path, today: str) -> dict[str, Any]:
-    """Read one report, append its gaps, regenerate the register."""
+def harvest(report_path: Path, store: Path, repo_docs: Path, today: str,
+            scopes: set[str] | None = None) -> dict[str, Any]:
+    """Read one report: append its gaps, regenerate the register, check scope."""
     try:
         text = report_path.read_text(encoding="utf-8")
     except OSError:
         return {"status": "unreadable"}
+    mismatched = scope_mismatches(
+        text, repo_docs / POOL_NAME,
+        deployment_scopes() if scopes is None else scopes,
+    )
     rows, found = parse_gap_register(text)
     if not found:
-        return {"status": "missing-section"}
-    log_path = docs_dir / LOG_NAME
+        return {"status": "missing-section", "mismatched": mismatched}
+    store.mkdir(parents=True, exist_ok=True)
+    log_path = store / LOG_NAME
     append_to_log(log_path, rows, report_path.name, today)
-    register = build_register(read_log(log_path))
-    (docs_dir / REGISTER_NAME).write_text(register, encoding="utf-8")
-    return {"status": "harvested", "rows": len(rows)}
+    decisions = read_decisions(repo_docs / DECISIONS_NAME)
+    all_rows = read_log(log_path)
+    (store / REGISTER_NAME).write_text(
+        build_register(all_rows, decisions), encoding="utf-8")
+
+    # Threshold: speak only for an OPEN gap this report just pushed over the
+    # line. Below it, silence — a nudge on every run is one nobody reads.
+    counts: dict[str, int] = {}
+    for row in all_rows:
+        counts[_norm_key(row["needed"])] = counts.get(_norm_key(row["needed"]), 0) + 1
+    crossed = [
+        (r["needed"], counts[_norm_key(r["needed"])])
+        for r in rows
+        if counts.get(_norm_key(r["needed"]), 0) >= NUDGE_THRESHOLD
+        and decisions.get(_norm_key(r["needed"]), ("open", ""))[0] == "open"
+    ]
+    return {
+        "status": "harvested",
+        "rows": len(rows),
+        "crossed": crossed,
+        "mismatched": mismatched,
+    }
 
 
-def evaluate(payload: dict[str, Any], docs_dir: Path | None = None,
-             today: str | None = None) -> dict[str, Any]:
+def evaluate(payload: dict[str, Any], store: Path | None = None,
+             today: str | None = None, repo_docs: Path | None = None,
+             scopes: set[str] | None = None) -> dict[str, Any]:
     """Decide what, if anything, this tool call means for the gap register."""
     tool = payload.get("tool_name") or payload.get("tool") or ""
     if tool not in {"Write", "Edit", "NotebookEdit"}:
@@ -249,10 +390,16 @@ def evaluate(payload: dict[str, Any], docs_dir: Path | None = None,
     target = str(args.get("file_path") or "")
     if not _is_conscience_report(target):
         return {"status": "skip"}
-    if docs_dir is None:
+    if repo_docs is None:
         from ..core.repo import murmurent_repo_root
-        docs_dir = murmurent_repo_root() / "docs"
-    return harvest(Path(target), Path(docs_dir), today or date.today().isoformat())
+        repo_docs = murmurent_repo_root() / "docs"
+    return harvest(
+        Path(target),
+        Path(store) if store is not None else local_store(),
+        Path(repo_docs),
+        today or date.today().isoformat(),
+        scopes,
+    )
 
 
 def main(stdin: IO[str] | None = None, stdout: IO[str] | None = None) -> int:
@@ -270,17 +417,34 @@ def main(stdin: IO[str] | None = None, stdout: IO[str] | None = None) -> int:
         result = evaluate(call if isinstance(call, dict) else {})
     except Exception:  # noqa: BLE001 - a hook must never break the session
         return 0
+    notes: list[str] = []
     if result.get("status") == "missing-section":
+        notes.append(
+            "This conscience report has no '## Gap register' section, so nothing "
+            "was recorded about what the pool could not support. Add the section "
+            "— even empty — so the EDID pool keeps learning from real misses. "
+            "See agents/conscience.md, Output conventions."
+        )
+    for url, where in result.get("mismatched") or []:
+        notes.append(
+            f"Scope mismatch: this report cites {url}, which is scoped to "
+            f"{where} and this deployment is not. Cite it as {where}'s source, "
+            "not as this reader's rule — or say the pool has nothing for their "
+            "jurisdiction. See agents/conscience.md, Scope."
+        )
+    for needed, hits in result.get("crossed") or []:
+        notes.append(
+            f"{hits} reviews have now been blocked by the same gap: {needed}. "
+            "Nothing in the pool supports a flag here, so each of those was "
+            "reported as an unsourced observation. Worth dispatching the "
+            "bookworm — or recording a decision in docs/edid_gap_decisions.md "
+            "if this is deliberately out of scope, which stops it asking again."
+        )
+    if notes:
         dst.write(json.dumps({
             "hookSpecificOutput": {
                 "hookEventName": "PostToolUse",
-                "additionalContext": (
-                    "This conscience report has no '## Gap register' section, so "
-                    "nothing was recorded about what the pool could not support. "
-                    "Add the section — even empty — so the EDID pool keeps "
-                    "learning from real misses. See agents/conscience.md, "
-                    "Output conventions."
-                ),
+                "additionalContext": "\n\n".join(notes),
             },
         }))
     return 0

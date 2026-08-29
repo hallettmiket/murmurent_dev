@@ -378,30 +378,27 @@ agent's credibility doing it.
 
 ## Gap register — what reviews actually needed and could not cite
 
-**The live register is [`edid_gap_register.md`](edid_gap_register.md).** It is
-generated, ranked by hit count, and deliberately not reproduced here — a second
-copy would go stale the moment one gap was filled, and a stale list of gaps is
-worse than none.
+**The centre-wide list is [`edid_gap_decisions.md`](edid_gap_decisions.md)**,
+with each promoted gap marked `open`, `filled`, or `declined`.
 
-How it fills, without anyone remembering to fill it: the
-[conscience](../agents/conscience.md) ends every report with its own gap table
-— what it needed, which domain, and whether the pool had nothing (`no-source`)
-or had something it could not retrieve (`blocked`). The
-`murmurent.hooks.conscience_gaps` hook fires when that report is written,
-appends each row to [`edid_gap_log.md`](edid_gap_log.md), and regenerates the
-register. **Hit count is the priority**: a gap recorded once is a note, one
-recorded eleven times is the next job, and it earned that by blocking eleven
-real reviews.
+**Recording happens locally.** The [conscience](../agents/conscience.md) ends
+every report with its own gap table; the `murmurent.hooks.conscience_gaps` hook
+appends those rows to `~/.murmurent/edid_gaps/gap_log.md` on that member's own
+machine and regenerates a ranked register beside it. Nothing is written to this
+repo, because this repo is public and gap text describes whatever document was
+just reviewed. Promotion to the centre-wide list is a person's deliberate step.
 
-**Nothing automatic touches this file.** The hook writes only the log and the
-generated register — neither of which is citable. The
-[bookworm](../agents/bookworm.md) works the top of the register and a person
-approves before anything becomes a source here. Same dry-run-then-apply split
-as [`docs/reconcile.md`](reconcile.md), for the same reason: a process that
-silently rewrites shared state is worse than a gap that stays visible.
+**Hit count sets priority**, and the nudge is deliberately quiet: it says
+nothing until the same gap has blocked three reviews, and nothing at all for a
+gap already marked `filled` or `declined`. A nudge that fires every time is one
+people learn to skip.
 
-The register's first rows were seeded from the agent's own reviews rather than
-from usage, so their counts start at one.
+**Nothing automatic touches this file.** The hook writes only a local ledger and
+a local summary, neither of which is citable. The
+[bookworm](../agents/bookworm.md) works the promoted list and a person approves
+before anything becomes a source here — the same dry-run-then-apply split
+[`docs/reconcile.md`](reconcile.md) uses, and for the same reason: a process
+that silently rewrites shared state is worse than a gap that stays visible.
 
 ## Ingestion backlog
 
