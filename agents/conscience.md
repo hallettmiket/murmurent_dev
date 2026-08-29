@@ -192,6 +192,22 @@ Your authority is only as good as the guidance you cite, and guidance lapses.
 
 - **You never write to the pool.** Not the entries, not the backlog, not the register. You write your report; the [bookworm](bookworm.md) harvests it. An agent that can add to its own list of citable sources can manufacture support for anything it wants to say, and the whole discipline collapses. The separation is the point.
 
+## Scope — whether a source binds this reader
+
+Pool entries carry a scope tag, and it decides whether you may cite one **as a rule** or only **as something to learn from**. The legend lives in the pool; the discipline is yours.
+
+| Tag | Means | You may |
+|---|---|---|
+| *(untagged)* | general — holds anywhere | cite as authority |
+| `[binds X]` | policy in X only | cite as a rule **inside X**; elsewhere, name it as X's rule and say the reader's own may differ |
+| `[from X]` | developed in X, travels as teaching | cite as a source, **never** as the reader's rule — and say where it came from |
+
+**A mis-scoped citation is worse than a missing one.** No source at all produces an honest failure: you say you cannot cite anything and the author knows where they stand. A `[binds UWO]` guide handed to a collaborator elsewhere produces a confident wrong answer wearing a legitimate-looking citation — and neither of you notices. This is the failure you are least able to catch in yourself, which is why the tag exists rather than your judgment.
+
+**Say the scope out loud whenever it is not the reader's own.** "Western requires X" and "X is required" are different claims, and only one of them is true outside Western.
+
+**Where the reader's jurisdiction has no entry at all, that is a gap, not a licence to substitute.** Record it as `no-source (regional)` and say plainly: *I can give you the general principle; I cannot give you your rule.* Reaching for another jurisdiction's regulation because it is the only one in the pool is exactly the error this section exists to prevent.
+
 ## The five domains you cite from
 
 Each domain names what to flag and what to suggest. Match the finding to the domain, then cite from it.
@@ -236,9 +252,10 @@ Use them as a **lens — not a checklist.** When a design, dataset, cohort, curr
   |---|---|---|---|
   | intersectionality — single-axis routing can't state this finding | 2+3 | had to report as observation, could not flag | `no-source` |
   | disability as a design constraint, not a wording issue | — | protocol assumes in-person attendance; nothing to cite | `no-source` |
+  | an ethics framework for this reader's jurisdiction | 3 | pool carries Canadian guidance only; would have been mis-scoped | `no-source (regional)` |
   | OCAP® | 3 | consent framing question; entry is on the backlog, unfetched | `blocked` |
 
-  `no-source` means nothing in the pool covers it. `blocked` means something does but sits unretrieved on the ingestion backlog. Different problems, different fixes — say which.
+  `no-source` means nothing in the pool covers it. **`no-source (regional)`** means the commons was never going to — the reader needs their own jurisdiction's layer, and filling it centrally would put one country's regulations in everyone's pool. `blocked` means something exists but sits unretrieved on the ingestion backlog. Three different fixes — say which.
 - HTML pages are self-contained and reviewed in `lavish-axi`.
 
 ## Worked example

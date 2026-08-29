@@ -33,6 +33,34 @@ pool on a scheduled sweep, not when someone remembers. The compiler's
 open question — whether a Tier-2 layer of regional/jurisdictional
 websites is necessary alongside Zotero — is still open.
 
+## Scope tags — what binds you and what merely informs you
+
+Every entry is one of three things, and the difference decides whether you may
+cite it **as a rule** or only **as a source to learn from**.
+
+| Tag | Means | The conscience may |
+|---|---|---|
+| *(untagged)* | **general** — the finding it supports holds anywhere. Sex and gender as non-binary, decolonial theory, cognitive justice, inclusive-language principle, citation practice | cite it as authority anywhere |
+| `[binds X]` | **policy in X, and nowhere else.** A funder's requirement, an institution's own guide, an ethics regime | cite it as a rule only inside X. Elsewhere: name it as X's rule and say the reader's own may differ |
+| `[from X]` | **developed in X, teaches something that travels.** Another jurisdiction's guide, another nation's protocol, another university's material | cite it as a source, never as the reader's rule — and say where it came from |
+
+**Why the middle row matters most.** A missing source produces an honest
+failure: the agent says it cannot cite anything and you know where you stand. A
+mis-scoped one produces a confident wrong answer — one university's house style
+handed to a collaborator elsewhere as though it were a requirement, with a
+citation that looks entirely legitimate. That is the harder failure to catch,
+and it is why the tag exists.
+
+**`[from X]` is not a warning label.** Most of this pool's Indigenous pedagogy
+material carries it, and it is good material. It says: learn from it, name whose
+it is, and do not present one nation's or one province's practice as the reader's
+own. That is the same instruction the agent already has about not treating
+"Indigenous Peoples" as one people, applied to the reading list.
+
+**Untagged is a claim, not a default.** Leaving an entry untagged asserts that
+what it supports holds anywhere. Where that is uncertain, tag it rather than
+letting silence make the claim.
+
 ## The five domains
 
 The source document groups these as **EDI** on its own, then **Decolonization**
@@ -65,8 +93,8 @@ compiler.)*
 - [10.1007/s10508-025-03331-y](https://doi.org/10.1007/s10508-025-03331-y) — compiler's note: *"i like this article because it describes how we should move away from a binary perspective on describing sex/gender, and what some consequences of not doing so can be. It kind of describes the fluidity of the concepts."*
 - [10.2471/BLT.22.289310](https://doi.org/10.2471/BLT.22.289310)
 - [10.1016/j.ejim.2025.01.030](https://doi.org/10.1016/j.ejim.2025.01.030)
-- [NSERC guide on integrating equity, diversity and inclusion considerations in research](https://nserc-crsng.canada.ca/en/nserc-guide-integrating-equity-diversity-and-inclusion-considerations-research)
-- [New Frontiers in Research Fund — Best Practices in Equity, Diversity and Inclusion in Research (SSHRC)](https://sshrc-crsh.canada.ca/funding-financement/nfrf-fnfr/edi-eng.aspx)
+- [NSERC guide on integrating equity, diversity and inclusion considerations in research](https://nserc-crsng.canada.ca/en/nserc-guide-integrating-equity-diversity-and-inclusion-considerations-research) `[binds CA]`
+- [New Frontiers in Research Fund — Best Practices in Equity, Diversity and Inclusion in Research (SSHRC)](https://sshrc-crsh.canada.ca/funding-financement/nfrf-fnfr/edi-eng.aspx) `[binds CA]`
 
 **Marked "are these worth including?" — not yet in the pool:**
 
@@ -87,15 +115,15 @@ terms to use instead.
 design, dataset, cohort, curriculum, or piece of writing. Also suggest
 replacements of such flagged language by using inclusive terms.
 
-- [Western's Inclusive Language Guide (2025)](https://www.edi.uwo.ca/img/pdfs/Inclusive%20Language%20Guide%202025.pdf)
-- [Words and phrases you may want to think twice about using](https://www.cbc.ca/news/canada/ottawa/words-and-phrases-commonly-used-offensive-english-language-1.6252274) — CBC News
-- [APA Inclusive Language Guide](https://www.apa.org/about/apa/equity-diversity-inclusion/) — *the ODT link carries a truncated text fragment; base URL used here*
+- [Western's Inclusive Language Guide (2025)](https://www.edi.uwo.ca/img/pdfs/Inclusive%20Language%20Guide%202025.pdf) `[binds UWO]`
+- [Words and phrases you may want to think twice about using](https://www.cbc.ca/news/canada/ottawa/words-and-phrases-commonly-used-offensive-english-language-1.6252274) — CBC News `[from CA]`
+- [APA Inclusive Language Guide](https://www.apa.org/about/apa/equity-diversity-inclusion/) — *the ODT link carries a truncated text fragment; base URL used here* `[from US]`
 - [Inclusive Naming Initiative — word lists](https://inclusivenaming.org/word-lists/)
 
 *Decolonial terminology and etymology — added 2026-08-29, bookworm*
 
-- Atekpe, F. & Shafiei, S. *The Glossary of Decolonial Language, Vol. 1*. [PDF](https://discovery.ucl.ac.uk/id/eprint/10201138/1/Atekpe%20&%20Shafiei_The%20Glossary%20of%20Decolonial%20Language_report_VoR.pdf) — UCL Bartlett School of Architecture / Bartlett Faculty of the Built Environment (UCL Discovery institutional repository). Each entry traces a term back to its Western etymological root before offering a decolonial reading — terms plus origins, not just terms. *Scoped to the built environment (its worked example: 100% of a 234-term architectural-language sample had Western etymological roots); the method generalizes even where the domain doesn't. UK/UCL-authored — swap for a locally-scoped equivalent where one exists.*
-- [Racial Equity Tools — Glossary](https://www.racialequitytools.org/glossary) — pairs terms (colonization, settler colonialism, "white" as a legal-colonial category, land back, diaspora) with the historical origin of each, not just a definition. US-produced nonprofit resource, not an academic press, but term etymology is not jurisdiction-bound the way funder/REB guidance is — flagged here as the broader companion to the UCL glossary above.
+- Atekpe, F. & Shafiei, S. *The Glossary of Decolonial Language, Vol. 1*. [PDF](https://discovery.ucl.ac.uk/id/eprint/10201138/1/Atekpe%20&%20Shafiei_The%20Glossary%20of%20Decolonial%20Language_report_VoR.pdf) — UCL Bartlett School of Architecture / Bartlett Faculty of the Built Environment (UCL Discovery institutional repository). Each entry traces a term back to its Western etymological root before offering a decolonial reading — terms plus origins, not just terms. *Scoped to the built environment (its worked example: 100% of a 234-term architectural-language sample had Western etymological roots); the method generalizes even where the domain doesn't. UK/UCL-authored — swap for a locally-scoped equivalent where one exists.* `[from UK]`
+- [Racial Equity Tools — Glossary](https://www.racialequitytools.org/glossary) — pairs terms (colonization, settler colonialism, "white" as a legal-colonial category, land back, diaspora) with the historical origin of each, not just a definition. US-produced nonprofit resource, not an academic press, but term etymology is not jurisdiction-bound the way funder/REB guidance is — flagged here as the broader companion to the UCL glossary above. `[from US]`
 
 *Colonial, military & racialized language in science and technical writing — added 2026-08-29, bookworm*
 
@@ -127,18 +155,18 @@ representative sampling, as needed.
 
 *Foundations*
 
-- [Pulling Together: Foundations Guide](https://opentextbc.ca/indigenizationfoundations/) — BCcampus, CC BY-NC
-- [Pulling Together: A Guide for Researchers](https://opentextbc.ca/indigenizationresearchers/) — **the most directly applicable of the series for this centre's work**
+- [Pulling Together: Foundations Guide](https://opentextbc.ca/indigenizationfoundations/) — BCcampus, CC BY-NC `[from BC]`
+- [Pulling Together: A Guide for Researchers](https://opentextbc.ca/indigenizationresearchers/) — **the most directly applicable of the series for this centre's work** `[from BC]`
 - Kevin Lamoureux (2022). [A Beginner's Guide to Decolonization](https://www.youtube.com/watch?v=GFUwnMHN_T8) — TEDxSurrey `VID`
 - Nikki Sanchez (2019). [Decolonization Is for Everyone](https://www.youtube.com/watch?v=QP9x1NnCWNY) — TEDxSFU `VID`
-- [Indigenous Teaching and Learning Resources](https://teaching.uwo.ca/teaching/indigenous-tl-resources.html) — Western CTL ([intro](https://www.youtube.com/watch?v=nEpOKH0_W7M)); [Module 1 — Decolonize the Academy](https://www.youtube.com/watch?v=tMZibUhVMy8) `VID`
+- [Indigenous Teaching and Learning Resources](https://teaching.uwo.ca/teaching/indigenous-tl-resources.html) — Western CTL ([intro](https://www.youtube.com/watch?v=nEpOKH0_W7M)); [Module 1 — Decolonize the Academy](https://www.youtube.com/watch?v=tMZibUhVMy8) `VID` `[from UWO]`
 
 *Epistemic / knowledge justice*
 
 - [Decolonizing Knowledge: A Guide](https://www.numberanalytics.com/blog/decolonizing-knowledge-eurocentrism-guide)
-- [Knowledge Justice in the Helping Professions](https://ecampusontario.pressbooks.pub/epistemicjusticeoer/) — eCampusOntario
+- [Knowledge Justice in the Helping Professions](https://ecampusontario.pressbooks.pub/epistemicjusticeoer/) — eCampusOntario `[from CA-ON]`
 - [Library Curriculum as Epistemic Justice](https://cjal.ca/index.php/capal/article/view/40964/32219)
-- [Is science objective or subjective?](https://www.clrn.org/is-science-objective-or-subjective/) — California Learning Resource Network ⚠️ *captcha-gated; submit PDF to the pool*
+- [Is science objective or subjective?](https://www.clrn.org/is-science-objective-or-subjective/) — California Learning Resource Network ⚠️ *captcha-gated; submit PDF to the pool* `[from US]`
 - Visvanathan, S. (2009). [The Search for Cognitive Justice](https://www.india-seminar.com/2009/597/597_shiv_visvanathan.htm) — *Seminar* 597, freely accessible. The primary source: Visvanathan coined "cognitive justice" in *A Carnival for Science: Essays on Science, Technology and Development* (1997) and this essay is his own restatement of it — the right of different forms of knowledge to co-exist, pushed past mere tolerance toward active recognition of the need for diversity. **Distinct from epistemic justice above**: epistemic justice is about the standing of individual knowers; cognitive justice is about the standing of whole knowledge systems (added 2026-08-29, bookworm).
 - Visvanathan, S. [Cognitive Justice](https://www.ted.com/talks/dr_shiv_visvanathan_cognitive_justice) — TEDxSIBMBengaluru `VID`. A shorter spoken restatement of the same argument (added 2026-08-29, bookworm).
 
@@ -154,28 +182,28 @@ representative sampling, as needed.
 
 *Curriculum and programme practice*
 
-- [How to Decolonise the STEM Curriculum: A Practical Guide](https://science-engineering.ed.ac.uk/equality-diversity-hub/what-are-we-doing/how-to-decolonise-the-stem-curriculum-a-practical-guide) — Edinburgh
+- [How to Decolonise the STEM Curriculum: A Practical Guide](https://science-engineering.ed.ac.uk/equality-diversity-hub/what-are-we-doing/how-to-decolonise-the-stem-curriculum-a-practical-guide) — Edinburgh `[from UK]`
 - [Decolonizing the Undergraduate Chemistry Curriculum: An Account of How to Start](https://pubs.acs.org/doi/10.1021/acs.jchemed.1c00397)
 - ["Decolonizing" Curriculum and Pedagogy: A Comparative Review Across Disciplines and Global Higher Education Contexts](https://journals.sagepub.com/doi/full/10.3102/00346543211042423) ⚠️ *captcha-gated; submit PDF to the pool*
-- [Keele Manifesto for Decolonising the Curriculum](https://www.keele.ac.uk/equalitydiversity/equalityframeworksandactivities/equalityawardsandreports/equalityawards/raceequalitycharter/keeledecolonisingthecurriculumnetwork/)
+- [Keele Manifesto for Decolonising the Curriculum](https://www.keele.ac.uk/equalitydiversity/equalityframeworksandactivities/equalityawardsandreports/equalityawards/raceequalitycharter/keeledecolonisingthecurriculumnetwork/) `[from UK]`
 - [100 Ways: Indigenizing & Decolonizing Academic Programs](https://journals.library.ualberta.ca/aps/index.php/aps/en/article/view/27455/pdf)
 - [Decolonizing Pedagogy and Promoting Student Well-Being](https://murmurations.cloud/index.php/pub/article/view/235/133)
 - [Mapping Approaches to Decolonizing and Indigenizing the Curriculum at Canadian Universities](https://www.jstor.org/stable/48767657) — JSTOR
 - [Scientist Spotlight Homework Assignments Shift Students' Stereotypes of Scientists](https://www.lifescied.org/doi/10.1187/cbe.16-01-0002) — *CBE—Life Sciences Education*
-- [Intercultural Teaching Competence in the Disciplines (2017)](https://teaching.uwo.ca/pdf/research/Intercultural_Teaching_Competence_in_the-Disciplines-2017.pdf) — Western
+- [Intercultural Teaching Competence in the Disciplines (2017)](https://teaching.uwo.ca/pdf/research/Intercultural_Teaching_Competence_in_the-Disciplines-2017.pdf) — Western `[from UWO]`
 - [Transforming regional higher education: the decolonising role of Indigenous-inspired universities in Latin America](https://www.sciencedirect.com/science/article/pii/S0883035525002046)
 
 *Research methodology*
 
 - [Decolonial research methodology: an assessment of the challenge to established practice](https://www.tandfonline.com/doi/full/10.1080/13645579.2024.2357558)
 - [Addressing the need for indigenous and decolonized quantitative research methods in Canada](https://www.sciencedirect.com/science/article/pii/S2352827321001749)
-- [Decolonizing Research: A Primer](https://waapihk.com/2025/02/03/decolonizing-research/) — Waapihk Research
+- [Decolonizing Research: A Primer](https://waapihk.com/2025/02/03/decolonizing-research/) — Waapihk Research `[from CA]`
 - [The role of research and knowledge creation in decolonization](https://www.openaccessgovernment.org/article/the-role-of-research-and-knowledge-creation-in-decolonization/193566/)
-- Thomas, D.S. (2022). [Applying One Dish, One Spoon as an Indigenous research methodology](https://journals.sagepub.com/doi/pdf/10.1177/11771801221087864) — *AlterNative* 18(1):84–93. A Haudenosaunee (Onondawaga/Seneca, Six Nations of the Grand River) researcher adapts the Haudenosaunee–Anishinaabe Dish With One Spoon treaty into a research methodology, applied with Oji-Cree/Anishinaabe (Matawa) communities in Northern Ontario. **Ontario-specific and Haudenosaunee-authored** — added 2026-08-29 (bookworm) to sit beside this domain's otherwise BC-centred Indigenous material, not replace it; see also Domain 4, *Nations, territories & treaties*.
+- Thomas, D.S. (2022). [Applying One Dish, One Spoon as an Indigenous research methodology](https://journals.sagepub.com/doi/pdf/10.1177/11771801221087864) — *AlterNative* 18(1):84–93. A Haudenosaunee (Onondawaga/Seneca, Six Nations of the Grand River) researcher adapts the Haudenosaunee–Anishinaabe Dish With One Spoon treaty into a research methodology, applied with Oji-Cree/Anishinaabe (Matawa) communities in Northern Ontario. **Ontario-specific and Haudenosaunee-authored** — added 2026-08-29 (bookworm) to sit beside this domain's otherwise BC-centred Indigenous material, not replace it; see also Domain 4, *Nations, territories & treaties*. `[from CA-ON]`
 
 *Colonialism in the biosciences — eugenics, bioprospecting, sampling bias*
 
-- [The Meaning of Eugenics: Historical and Present-Day Discussions of Eugenics and Scientific Racism](https://www.genome.gov/event-calendar/the-meaning-of-eugenics-historical-and-present-day-discussions-of-eugenics-and-scientific-racism) — NHGRI ([video playlist](https://www.youtube.com/playlist?list=PL1ay9ko4A8snIErzVBH9NnHlcPc6Xt9hm) `VID`)
+- [The Meaning of Eugenics: Historical and Present-Day Discussions of Eugenics and Scientific Racism](https://www.genome.gov/event-calendar/the-meaning-of-eugenics-historical-and-present-day-discussions-of-eugenics-and-scientific-racism) — NHGRI ([video playlist](https://www.youtube.com/playlist?list=PL1ay9ko4A8snIErzVBH9NnHlcPc6Xt9hm) `VID`) `[from US]`
 - [GWAS Diversity Monitor](https://gwasdiversitymonitor.com/) — **the empirical citation for ancestry sampling bias in genomics**
 
 ## 4. Decolonial perspectives, knowledge, and pedagogy
@@ -201,9 +229,9 @@ them in scientific research and teaching spaces.
 
 *Ways of knowing*
 
-- [What are Indigenous and Western Ways of Knowing?](https://www.criaw-icref.ca/images/userfiles/files/Fact%20Sheet%202%20EN%20FINAL.pdf) — CRIAW fact sheet
+- [What are Indigenous and Western Ways of Knowing?](https://www.criaw-icref.ca/images/userfiles/files/Fact%20Sheet%202%20EN%20FINAL.pdf) — CRIAW fact sheet `[from CA]`
 - [Indigenous Worldviews vs Western Worldviews](https://www.ictinc.ca/blog/indigenous-worldviews-vs-western-worldviews)
-- [Two-Eyed Seeing](https://www.2eyedseeing.ca/about-5) (*Etuaptmumk*) — **linking, not integrating**. Given by Mi'kmaw Elder **Albert Marshall** (Moose Clan) together with Elder **Murdena Marshall** (1942–2018; Muin/Bear Clan, clan mother), both of Eskasoni First Nation, Mi'kmaw Nation, in Unama'ki (Cape Breton), NS; Albert brought the principle forward in 2004. Attribution verified 2026-08-29 (bookworm) against two sources — the naming credit had been missing from this entry, which is exactly the kind of asymmetry this domain exists to catch (this pool otherwise names four Black and Latin American writers by name; the Mi'kmaw Elder who gave this concept had not been): Bartlett, C., Marshall, M. & Marshall, A. (2012). [Two-Eyed Seeing and other lessons learned within a co-learning journey](https://iaac-aeic.gc.ca/050/documents/p80156/132968E.pdf) — *J. Environ. Stud. Sci.* 2:331–340 (freely readable PDF via a Canadian federal impact-assessment public record); and Roher, S.I.G., Yu, Z., Martin, D.H. & Benoit, A.C. (2021). [How is Etuaptmumk/Two-Eyed Seeing characterized in Indigenous health research? A scoping review](https://pmc.ncbi.nlm.nih.gov/articles/PMC8291645/) — *PLOS ONE* 16(7):e0254612, open access, which supplies the Mi'kmaw name *Etuaptmumk* and confirms the same attribution independently.
+- [Two-Eyed Seeing](https://www.2eyedseeing.ca/about-5) (*Etuaptmumk*) — **linking, not integrating**. Given by Mi'kmaw Elder **Albert Marshall** (Moose Clan) together with Elder **Murdena Marshall** (1942–2018; Muin/Bear Clan, clan mother), both of Eskasoni First Nation, Mi'kmaw Nation, in Unama'ki (Cape Breton), NS; Albert brought the principle forward in 2004. Attribution verified 2026-08-29 (bookworm) against two sources — the naming credit had been missing from this entry, which is exactly the kind of asymmetry this domain exists to catch (this pool otherwise names four Black and Latin American writers by name; the Mi'kmaw Elder who gave this concept had not been): Bartlett, C., Marshall, M. & Marshall, A. (2012). [Two-Eyed Seeing and other lessons learned within a co-learning journey](https://iaac-aeic.gc.ca/050/documents/p80156/132968E.pdf) — *J. Environ. Stud. Sci.* 2:331–340 (freely readable PDF via a Canadian federal impact-assessment public record); and Roher, S.I.G., Yu, Z., Martin, D.H. & Benoit, A.C. (2021). [How is Etuaptmumk/Two-Eyed Seeing characterized in Indigenous health research? A scoping review](https://pmc.ncbi.nlm.nih.gov/articles/PMC8291645/) — *PLOS ONE* 16(7):e0254612, open access, which supplies the Mi'kmaw name *Etuaptmumk* and confirms the same attribution independently. `[from CA]`
 - [An Analysis of Western, Feminist and Aboriginal Science Using the Medicine Wheel of the Plains Indians](https://iportal.usask.ca/docs/Native_studies_review/v11/issue2/pp89-102.pdf)
 
 *Nations, territories & treaties — added 2026-08-29, bookworm. This pool had no geographic content at all before this: no nations, no territories, no treaties named. That gap matters because everything else Indigenous-related in this domain and in §3 is overwhelmingly British Columbian (FNESC, BCcampus, Pass The Feather) while Western sits on Anishinaabek, Haudenosaunee, Lūnaapéewak and Chonnonton territory — treating the BC material as a universal standing reference is exactly the pan-Indigenous flattening this agent exists to catch.*
@@ -215,18 +243,18 @@ them in scientific research and teaching spaces.
 
 - [Explore Indigenous teaching strategies](https://teachingkb.mcgill.ca/tlk/explore-indigenous-teaching-strategies) — McGill
 - [Teaching Through the Four Rs of Indigenous Education](https://learningbird.com/teaching-through-the-four-rs-of-indigenous-education/)
-- [First Peoples Principles of Learning](https://www.fnesc.ca/first-peoples-principles-of-learning/) — FNESC
+- [First Peoples Principles of Learning](https://www.fnesc.ca/first-peoples-principles-of-learning/) — FNESC `[from BC]`
 - [Tapping Into the Power of Learning Circles](https://trainingmag.com/tapping-into-the-power-of-learning-circles/)
 - [Sharing Circles](https://passthefeather.ca/sharing-circles/?v=3e8d115eb4b3) — Pass The Feather
-- [Storyhouse at Western](https://uwo.ca/fhs/research/kmb/storyhouse/index.html)
+- [Storyhouse at Western](https://uwo.ca/fhs/research/kmb/storyhouse/index.html) `[from UWO]`
 - [Module 2 — Toward a Decolonizing Pedagogy](https://www.youtube.com/watch?v=kCmmRUhZL1s) `VID`
 - [Module 3 — Students, Indigeneity and Experience in Universities](https://www.youtube.com/watch?v=yF0MtL64h5A) `VID`
 
 *Allyship — the three guides*
 
-- [Indigenous Allyship at Western](https://indigenous.uwo.ca/allyship/index.html) · [Western Guide Towards Indigenous Allyship (PDF)](https://indigenous.uwo.ca/assets/docs/pdf/Western-Guide-Towards-Indigenous-Allyship.pdf)
-- [Western Research Allyship Guide (PDF)](https://www.uwo.ca/research/doc/support/resources/Western_Research_Allyship_Guide.pdf)
-- [Guide for Working with Indigenous Students (PDF)](https://teaching.uwo.ca/pdf/teaching/Guide-for-Working-with-Indigenous-Students.pdf)
+- [Indigenous Allyship at Western](https://indigenous.uwo.ca/allyship/index.html) · [Western Guide Towards Indigenous Allyship (PDF)](https://indigenous.uwo.ca/assets/docs/pdf/Western-Guide-Towards-Indigenous-Allyship.pdf) `[binds UWO]`
+- [Western Research Allyship Guide (PDF)](https://www.uwo.ca/research/doc/support/resources/Western_Research_Allyship_Guide.pdf) `[binds UWO]`
+- [Guide for Working with Indigenous Students (PDF)](https://teaching.uwo.ca/pdf/teaching/Guide-for-Working-with-Indigenous-Students.pdf) `[from UWO]`
 
 ## 5. Inclusion of voices in science
 
@@ -279,9 +307,9 @@ knowledge, especially those of Indigenous Peoples.
 - [Timeline of women in science](https://en.wikipedia.org/wiki/Timeline_of_women_in_science) — Wikipedia
 - [List of female scientists before the 20th century](https://en.wikipedia.org/wiki/List_of_female_scientists_before_the_20th_century) — Wikipedia
 - [15 Pioneering Female Scientists](https://1md.org/blogs/health-stories/top-female-scientists-1md)
-- [Maud L. Menten, MD PhD](https://www.cdnmedhall.ca/laureates/maudmenten) — Canadian Medical Hall of Fame
-- [MENTEN, MAUD LEONORA](https://www.biographi.ca/en/bio/menten_maud_leonora_18E.html) — Dictionary of Canadian Biography
-- [Dr. Maud L. Menten Memorial Lecture Series](https://www.schulich.uwo.ca/biochem/about_us/seminars/menten_lectures.html) — Western Biochemistry
+- [Maud L. Menten, MD PhD](https://www.cdnmedhall.ca/laureates/maudmenten) — Canadian Medical Hall of Fame `[from CA]`
+- [MENTEN, MAUD LEONORA](https://www.biographi.ca/en/bio/menten_maud_leonora_18E.html) — Dictionary of Canadian Biography `[from CA]`
+- [Dr. Maud L. Menten Memorial Lecture Series](https://www.schulich.uwo.ca/biochem/about_us/seminars/menten_lectures.html) — Western Biochemistry `[from UWO]`
 
 ---
 
