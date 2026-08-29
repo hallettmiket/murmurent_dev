@@ -262,25 +262,31 @@ conscience can point someone at real training instead of inventing one, and it
 is consulted only on the EXPLAIN route where the gap is a training gap rather
 than a wording gap.
 
-**Priority order when referring.** An institutional module first, a Government
-of Canada course second, and a course built through the
-[`murmurent-course`](../skills/murmurent-course/SKILL.md) skill only when
-neither covers the subject. Existing courses are already maintained by people
-whose job that is; one written here is one more thing this centre has to keep
-current.
+**The agent states the principle; this file holds the list.** `conscience.md`
+says only *prefer a course that already exists over building one, and name
+only a course that is in the pool.* Which courses exist, who provides them,
+and which are free or required is local to wherever the agent is deployed —
+so it lives here, alongside the rest of this pool's regional content, and not
+in the agent.
 
 **Unpopulated.** No verified entries yet, so the conscience currently has
 nothing to cite on this route and must say so rather than guess a name or a
-URL. Two catalogues for the [bookworm](../agents/bookworm.md) to fetch and
-list here, with real titles and links:
+URL.
 
-| Source | What to pull |
+For this deployment — Western, Ontario, Canada — the catalogues for the
+[bookworm](../agents/bookworm.md) to fetch and list here are the university's
+own EDI and research training offerings, and the openly available federal
+ones (Gender-Based Analysis Plus; the Canada School of Public Service
+Indigenous learning material). A deployment elsewhere replaces both rows with
+its own; nothing in the agent assumes a country.
+
+| Tier | What to pull |
 |---|---|
-| **Western's own EDI / research training offerings** | the current catalogue — module titles, who they are required of, enrolment links |
-| **Government of Canada online courses** | the federal EDI and Indigenous-awareness offerings, including Gender-Based Analysis Plus and the Canada School of Public Service Indigenous learning material |
+| **Training the reader can already take** | the deploying institution's catalogue, plus anything their funder or jurisdiction requires — titles, who it is required of, enrolment links |
+| **Openly available training** | courses reachable by a collaborator at any institution, maintained by a body outside this centre |
 
-Course names and URLs are deliberately **not** written here from memory. Both
-catalogues change, and a stale or invented training link is worse than an
+Course names and URLs are deliberately **not** written here from memory.
+Catalogues change, and a stale or invented training link is worse than an
 admitted gap — it sends someone to a page that is not there and spends the
 agent's credibility doing it.
 
