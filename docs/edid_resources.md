@@ -322,6 +322,42 @@ agent's credibility doing it.
 
 ---
 
+## Gap register — what reviews actually needed and could not cite
+
+**This is the pool's to-do list, and it is written by use rather than by
+memory.** The [conscience](../agents/conscience.md) ends every report with its
+own gap register: what it needed, which domain it belonged in, and whether the
+pool had nothing (`no-source`) or had something it could not retrieve
+(`blocked`). The [bookworm](../agents/bookworm.md) harvests those on its sweep
+and tallies them here.
+
+**Hit count is the priority.** A gap recorded once is a note. A gap recorded
+eleven times is the next thing to fix, and it earned that ranking by blocking
+eleven real reviews rather than by seeming important to someone. That is the
+whole reason this table exists instead of a wishlist.
+
+**The conscience never writes here.** It writes its own report and nothing
+else. An agent that could add to its own list of citable sources could
+manufacture support for anything, so the bookworm mediates and a person
+approves before an entry becomes citable — the same dry-run-then-apply split
+[`docs/reconcile.md`](reconcile.md) uses, and for the same reason: an
+automatic process that silently rewrites shared state is worse than a gap that
+stays visible.
+
+| Needed | Domain | Kind | Hits | Status |
+|---|---|---|---|---|
+| Research ethics + data governance: REB / TCPS 2 Ch. 9, SAGER | 1, 3 | `no-source` | — | open — governs the two artefacts the agent sees most |
+| OCAP® | 3 | `blocked` | — | open — FNIGC pages returned 403 on two fetch attempts |
+| **Disability as a design constraint** | — | `no-source` | — | open — the pool reaches disability only as the word *ableism* in a language list, so no flag on an access barrier is possible |
+| Intersectionality (Crenshaw) | cross-domain | `no-source` | — | open — findings that exist only at an intersection can be observed but not cited |
+| Citation and authorship diversity | 3 | `no-source` | — | open — the agent is told to check author lists; nothing supports it |
+| Migration status, age, class | 1, 3 | `no-source` | — | open — named in the domains, unsupported |
+| Training course catalogues | referral | `no-source` | — | open — referral list is empty, so no course may be named |
+| Non-Anglophone scholarship | 5 | `no-source` | — | open — domain 5 sources non-Western science through English popularizations |
+
+Hit counts are blank because harvesting has not run yet; the rows above were
+seeded from the agent's own reviews rather than from usage.
+
 ## Ingestion backlog
 
 Items the pool references but cannot yet serve as a citable source. The
