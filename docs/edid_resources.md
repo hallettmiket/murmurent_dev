@@ -143,7 +143,7 @@ replacements of such flagged language by using inclusive terms.
 
 - [Western's Inclusive Language Guide (2025)](https://www.edi.uwo.ca/img/pdfs/Inclusive%20Language%20Guide%202025.pdf) `[binds UWO]`
 - [Words and phrases you may want to think twice about using](https://www.cbc.ca/news/canada/ottawa/words-and-phrases-commonly-used-offensive-english-language-1.6252274) — CBC News `[from CA]` `[context]`
-- [APA Inclusive Language Guide](https://www.apa.org/about/apa/equity-diversity-inclusion/) — *the ODT link carries a truncated text fragment; base URL used here* `[from US]`
+- [APA Inclusive Language Guide](https://www.apa.org/about/apa/equity-diversity-inclusion/) `[from US]` ⚠️ *on the ingestion backlog — the source link was a truncated text fragment and the canonical page is unconfirmed. **Not citable** until the bookworm verifies it.*
 - [Inclusive Naming Initiative — word lists](https://inclusivenaming.org/word-lists/)
 
 *Decolonial terminology and etymology — added 2026-08-29, bookworm*
