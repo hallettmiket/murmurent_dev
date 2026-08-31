@@ -30,7 +30,7 @@ The course lives in `./outputs/teacher/courses/<course_slug>/`:
 
 ```
 MISSION.md                # why they want this — the concrete goal, not the topic
-RESOURCES.md              # vetted sources, cited
+RESOURCES.md              # vetted sources, cited — reading AND watching, in separate sections
 lessons/lesson_<n>.html   # self-contained; <n> versions up, never overwritten
 reference/*.html          # cheat sheets, glossaries — things they will re-open
 learning-records/record_<n>.md
@@ -76,6 +76,24 @@ you.
 knowledge is exactly the failure this design exists to avoid. Do not substitute a
 confident summary for a source.
 
+### Source the *visual* material too, in the same pass
+
+**Ask the bookworm for videos, animations, and interactive explainers, not only papers.**
+For anything with a standard teaching visual — a distribution, a sum of squares, a
+survival curve, a confusion matrix — a four-minute animation routinely beats the best page
+you will write, because it moves and your page does not. Finding that out *after* you have
+written the lesson is finding out too late.
+
+Record them in `RESOURCES.md` under their own **Watch** heading, separate from the reading,
+each with what the bookworm actually fetched: exact title, channel/author, duration, fetch
+date, **the one concept it nails**, and **where it stops short of the mission**. Never write
+a field the bookworm did not report, and never write a URL nobody fetched — a fabricated
+video link is indistinguishable from a citation and a learner has no way to tell.
+
+**A media list that is only URLs is a failure.** The bridge from a general-audience
+explainer to *this learner's specific problem* is the part only the course can write, and
+the "where it stops short" line is where you write it.
+
 ## 3. Pick the next topic
 
 From `MISSION.md` plus the learning records, choose the smallest next thing that moves
@@ -96,8 +114,47 @@ inline CSS/JS only with no CDN, body content only, and theme-aware via both
 `prefers-color-scheme` and `data-theme`. Keep one look across a course's lessons; a learner
 should recognise them.
 
-Structure, per teacher's output conventions: plain-bullet punchline → detail → "this would
-have come out differently if X" → transferable takeaway → **quiz**.
+Structure, per teacher's output conventions: plain-bullet punchline → detail, carrying its
+figures inline where the argument needs them → "this would have come out differently if X" →
+transferable takeaway → **quiz**.
+
+### Every lesson carries a picture, or you argue why it does not
+
+Follow the teacher's [Visuals](../../agents/teacher.md#visuals--reuse-before-you-draw)
+doctrine — a visual is owed whenever something changes over a range, is spatial or geometric,
+or is a comparison with more than two arms — and **try the three ways in its order, cheapest
+first**:
+
+1. **Show a real image.** Most concepts with a standard teaching visual already have a good
+   one. Find it, check the licence, inline it as a `data:` URI (never hotlink — a remote
+   `<img>` breaks offline opening *and* tells a third party who is reading the lesson), and
+   caption it with what to notice. Attribute it next to the image.
+2. **Assign a video**, per the section below.
+3. **Draw it only if neither works, or if interaction is the point.** A slider the learner
+   drags is the one thing no image or video can do, so reach for it when the concept has a
+   knob — but do not hand-roll an SVG of something that already exists as a photograph.
+
+Constraints are the same as the prose: inline only, no CDN, theme-aware, no meaning carried
+in colour alone, and a caption that says what to *notice* rather than what the figure *is*.
+A figure whose content comes from the project's real numbers is not yours — hand it to the
+[`artist`](../../agents/artist.md). Illustrative numbers you made up are yours, and get
+labelled as invented on the figure itself.
+
+### If a video explains it better, lead with the video
+
+**Do not compete with a good explainer to keep the lesson self-sufficient.** A learner who
+understands variance in four minutes from a stranger has understood variance, and that is the
+entire objective. Competing costs them the concept and costs you the session.
+
+- **Put it before the section it prepares**, with an instruction: *"watch this first (4 min),
+  then read below."* A link in a trailing further-reading list will not be opened.
+- **Say what it does not cover**, and make that gap the lesson's actual subject. The video
+  does the general case; you do the part that touches the mission. That division is a better
+  lesson than either half alone.
+- **Reproduce the `RESOURCES.md` record exactly** — do not garnish a title with a channel or
+  duration nobody fetched.
+- **A concept whose whole content is in a public video does not need a lesson.** Assign the
+  video, write the bridge, and spend the session on the thing that has no explainer.
 
 The quiz is the point, not decoration. Three to five questions, **mechanism not recall**,
 every distractor a plausible wrong mental model carrying a one-line explanation of what
@@ -110,6 +167,9 @@ Cite sources inline, and name the one primary source to go read.
 Dispatch [`teacher`](../../agents/teacher.md) with the lesson and its sources:
 
 > Read this lesson and the sources it rests on, then explain the mechanism back to me.
+> Say separately whether each figure carries its own weight — what it teaches that the
+> sentence above it did not — and whether any passage would be better served by a visual
+> it does not have.
 
 **This is the one step you cannot do for yourself.** You wrote the lesson, so its reasoning
 is in your context — you cannot read it the way the learner will. A subagent's isolated
@@ -179,6 +239,12 @@ needed walked through, what they annotated as unclear, and what to open with nex
 "can state that the coefficient is a slope difference, but reconstructs the reference group
 wrong" tells the next session exactly what to do.
 
+**Record which medium landed, not only which concept.** If they said a video explained
+something better than the lesson did, write that down as a finding about *this course* —
+name the concept, and note that the next lesson on anything shaped like it should lead with
+the visual. That is the single most actionable thing a learner can tell you, and it is
+invisible to a quiz.
+
 ## 8. Later sessions — open with retrieval, not with content
 
 The spacing is what makes this beat re-reading the paper. Before teaching anything new, ask
@@ -213,6 +279,9 @@ the oracle is institutional memory. Don't conflate them.
 
 - **Not a lesson generator.** No mission, no lessons. If the interview has not happened,
   it happens first.
-- **Not a substitute for the sources.** Every lesson points at something to read.
+- **Not a substitute for the sources.** Every lesson points at something to read — and,
+  where one exists, something to watch.
+- **Not in competition with a good explainer.** If four minutes of someone else's animation
+  beats the page you were about to write, assign the animation and write the bridge.
 - **Not a replacement for `teacher`.** For one thing to understand right now — a paper, a
   decision, what a session just did — dispatch the agent and skip all of this.

@@ -217,3 +217,56 @@ def cmd_upgrade(*, path: str | None, all_repos: bool,
             if p.status == "fail":
                 rc = 1
     return rc
+
+
+# ---------------------------------------------------------------------------
+# private — keep a repo out of the inventory entirely
+# ---------------------------------------------------------------------------
+
+
+def cmd_private_list() -> int:
+    """Print this machine's private-repo patterns."""
+    patterns = _inv.load_exclusions()
+    if not patterns:
+        click.echo("No private repos. Every git clone under the scan dirs is "
+                   "inventoried.")
+        click.echo(f"Add one with: murmurent repo private add <name-or-glob>")
+        return 0
+    click.echo(f"Private repos ({_inv.EXCLUDE_FILE}) — never inventoried, "
+               "never published:")
+    for pat in patterns:
+        click.echo(f"  {pat}")
+    return 0
+
+
+def cmd_private_add(pattern: str) -> int:
+    """Mark PATTERN private and drop it from the cached report.
+
+    Rewrites the cached inventory in place as well as adding the pattern,
+    so the repo disappears immediately rather than at the next weekly
+    scan — a privacy setting that takes a week to apply is not one.
+    """
+    try:
+        patterns = _inv.add_exclusion(pattern)
+    except ValueError as exc:
+        click.echo(f"✗ {exc}", err=True)
+        return 2
+    dropped = _inv.purge_excluded_from_cache()
+    click.echo(f"✓ {pattern} is private — excluded from the repo inventory.")
+    if dropped:
+        click.echo(f"  Removed {dropped} cached row(s); the clone itself is untouched.")
+    click.echo(f"  {len(patterns)} pattern(s) in {_inv.EXCLUDE_FILE}")
+    return 0
+
+
+def cmd_private_remove(pattern: str) -> int:
+    """Un-mark PATTERN, so the repo is inventoried again."""
+    before = _inv.load_exclusions()
+    if pattern.strip() not in before:
+        click.echo(f"✗ {pattern!r} is not in the private list.", err=True)
+        return 2
+    patterns = _inv.remove_exclusion(pattern)
+    click.echo(f"✓ {pattern} is no longer private — it returns on the next scan "
+               "(or hit Refresh in the dashboard).")
+    click.echo(f"  {len(patterns)} pattern(s) remain.")
+    return 0

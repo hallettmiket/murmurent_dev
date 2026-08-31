@@ -85,6 +85,19 @@ HOOK_REGISTRATIONS: list[dict[str, Any]] = [
         "env": {},
         "label": "murmurent-audit",
     },
+    {
+        # Harvests the "## Gap register" table out of conscience reports under
+        # outputs/conscience/ into ~/.murmurent/edid_gaps/ (append-only, per member) and
+        # regenerates a local ranked register, so the EDID pool learns what
+        # it is missing from reviews that needed something rather than from
+        # someone remembering. Never writes docs/edid_resources.md — only the
+        # bookworm, with a person's approval, changes what may be cited.
+        "event": "PostToolUse",
+        "matcher": "Write|Edit|NotebookEdit",
+        "module": "murmurent.hooks.conscience_gaps",
+        "env": {},
+        "label": "murmurent-conscience-gaps",
+    },
 ]
 
 MCP_REGISTRATIONS: dict[str, dict[str, Any]] = {
