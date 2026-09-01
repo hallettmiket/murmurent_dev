@@ -59,6 +59,11 @@ ship:
   - docs/edid_pdfs/               # conscience reads local full texts here
   - docs/conscience_persona.md    # agents/conscience.md links it as the argument
 
+  # --- resolved by the PI, 2026-09-01 -----------------------------------
+  - docs/murmurent_public/        # hub scaffolding; directory.tsv is a placeholder row only
+  - assets/mustang_logo.jpg       # acknowledges where the software was built
+  - docs/assets/logos/            # same; not a claim that murmurent is Western-only
+
 withhold:
   # --- internal planning, already marked internal in mkdocs exclude_docs ---
   - docs/backlog.md
@@ -69,6 +74,9 @@ withhold:
   - docs/implementation_prompt_phase_4_mcp_hooks.md
   - docs/implementation_prompt_phase_5_dashboard_tutorial.md
   - docs/cores_smoke_runbook.md
+  - docs/cores_plan.md            # PI 2026-09-01; see the 8 docstrings below
+  - tests/                        # PI 2026-09-01: not shipped
+  - release/                      # the release tooling itself is a dev-repo concern
   - docs/designer_dashboard/      # hi-fi mockups, wireframes, HANDOFF.md
   - docs/diagrams/README.md
 
@@ -90,49 +98,38 @@ withhold:
   - assets/Untitled Bibliography.rtf
 
 decide:
-  # Real judgement calls. The checker treats these as UNRESOLVED and fails
-  # until each is moved into ship or withhold by a person.
-
-  - path: tests/
-    id: DECIDE-1
-    question: >
-      Ship the 194 test files? For a research tool they are evidence the thing
-      works and they help outside contributors. They also reference internal
-      fixtures and paths. Shipping is the default above; overrule if unwanted.
+  # The checker treats these as UNRESOLVED and fails until a person moves each
+  # into ship or withhold.
 
   - path: CLAUDE.md
     id: DECIDE-2
     question: >
-      CLAUDE.md is how a Claude Code session learns what murmurent is, so the
-      public release probably needs one. The current file names internal repos
-      (/data/lab_vm, the lab_mgmt naming, the manuscript repo). Likely a
-      released variant rather than a straight copy or a deletion.
+      Still open. A released variant is needed, not a copy and not a deletion:
+      a Claude Code session needs a CLAUDE.md to know what murmurent is, but
+      the current file is tied to one GitHub owner and names the private
+      manuscript repo. See release/CLAUDE_md_audit.md for the eight specific
+      problems and the proposed fix for each.
 
-  - path: docs/cores_plan.md
-    id: DECIDE-3
-    question: >
-      Marked internal in mkdocs exclude_docs, but eight source files cite it in
-      docstrings as the schema reference (contract.py, services.py,
-      registrar.py, invoices.py, calendar_google.py, security_tier2.py,
-      service_requests.py, server.py). Withholding leaves eight dangling
-      references in shipped code. Ship it, or strip the citations.
+resolved:
+  # Kept as a record of what was decided and by whom, so the next person does
+  # not re-litigate it.
+  - DECIDE-1  tests/                  -> withhold   (PI, 2026-09-01)
+  - DECIDE-3  docs/cores_plan.md      -> withhold   (PI, 2026-09-01)
+  - DECIDE-4  docs/murmurent_public/  -> ship       (PI, 2026-09-01; directory.tsv is a placeholder)
+  - DECIDE-5  assets/mustang_logo.jpg -> ship       (PI, 2026-09-01)
+  - DECIDE-6  docs/assets/logos/      -> ship       (PI, 2026-09-01)
 
-  - path: docs/murmurent_public/
-    id: DECIDE-4
-    question: >
-      Hub scaffolding: install-murmurent.sh, the join scripts, and
-      join/directory.tsv. Excluded from the rendered site. Check whether
-      directory.tsv carries real institution entries before shipping.
-
-  - path: assets/mustang_logo.jpg
-    id: DECIDE-5
-    question: Western mascot. Institution-specific branding, see DECIDE-6.
-
-  - path: docs/assets/logos/
-    id: DECIDE-6
-    question: >
-      Schulich_horizontal_CMYK.png, western_longWhite.png, lab-logo-hi-res.jpg.
-      CLAUDE.md's own rule is that deployments stay institution-agnostic and
-      never hardcode a university. These are Western/Schulich marks in the
-      default docs theme, which another centre would inherit. Replace with
-      neutral placeholders, or accept that the reference deployment is branded.
+dangling:
+  # Shipping files that cite a withheld path. Each leaves a broken reference in
+  # the release. Listed so the export fixes them rather than discovering them
+  # in public.
+  - "src/*.py x8: 'docs/cores_plan.md' cited as the schema reference in
+     docstrings (contract, services, registrar, invoices, calendar_google,
+     security_tier2, service_requests, server). Drop the path from the
+     docstring and keep the prose."
+  - "docs/lab_mgmt.md: links docs/cores_plan.md."
+  - "docs/keyring.md:152: links the two withheld keyring test runbooks."
+  - "CLAUDE.md:7: 'Full vision' links assets/chair_renewal_1.3.pdf, a grant
+     document that does not ship."
+  - "scripts/bootstrap.sh:123 mentions docs/designer_dashboard/ in a comment
+     that already says it is not shipped. No action needed."
