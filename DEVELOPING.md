@@ -115,12 +115,28 @@ After it is set up, installation for users becomes:
 uv tool install murmurent
 ```
 
-**Note:** that installs the CLI only. The commons — `agents/`, `rules/`,
-`skills/` — are not inside the wheel, so a PyPI install still needs
-`scripts/setup.sh` from a clone to wire them into `~/.claude/`. Making
-`uv tool install murmurent` sufficient on its own would mean shipping the
-commons as package data and teaching `murmurent install` to materialise them.
-Worth doing; not done yet.
+That is a **complete** install as of 2026.9.3. The wheel force-includes the
+commons under `murmurent/commons/`, `core/commons.py` finds them, and
+`murmurent install` wires them into `~/.claude/`. No clone, no `curl | bash`.
+
+A clone always wins over the packaged copy, by content rather than by name, so
+editing an agent here takes effect immediately and an empty directory left by a
+failed clone cannot leave someone with no agents.
+
+**Before a release, verify this by hand** — the cheap tests in
+`tests/test_packaged_commons.py` guard the packaging config, but only a real
+install exercises the whole path:
+
+```bash
+uv build --out-dir /tmp/d
+FAKE=$(mktemp -d)
+HOME=$FAKE PATH="$FAKE/.local/bin:$PATH" uv tool install --python 3.12 /tmp/d/*.whl
+HOME=$FAKE PATH="$FAKE/.local/bin:$PATH" murmurent install
+ls $FAKE/.claude/agents/ $FAKE/.claude/rules/ $FAKE/.claude/skills/
+```
+
+Expect 14 agents, 5 rules, 6 skills, a linked `CLAUDE.md`, and no broken
+symlinks.
 
 ## The one-line install, and testing it
 
