@@ -17,6 +17,11 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 
 ## [Unreleased]
 
+## [2026.9.0] — 2026-09-01
+
+**First public release.** Development moves to `murmurent_dev`; this repo now
+carries released versions only, one commit per release.
+
 ### Added
 - **`murmurent keyring`** — distribute a centre's shared secrets (the Slack token,
   and later the onboarding age key) across a principal's machines via per-machine
@@ -27,6 +32,24 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
   `murmurent reconcile`. Introduces a `.keyring/` store under `lab_info`. Design
   and runbooks in [`docs/keyring.md`](docs/keyring.md) /
   [`docs/keyring_deploy.md`](docs/keyring_deploy.md).
+- **`rules/local/`** — a deployment layer for facts true of one centre only
+  (its own private repos, Slack IDs, local conventions). `scripts/setup.sh`
+  symlinks these alongside the shared rules when the directory exists; a clone
+  without one simply skips it.
+
+### Changed
+- `CLAUDE.md` is institution-agnostic: no hardcoded university, GitHub owner
+  written as `<owner>`, and no reference to any one centre's private repos.
+- `rules/slack.md` carries the posting protocol only. The channel, workspace
+  and bot are deployment facts and belong in `rules/local/`.
+
+### Fixed
+- **Slack notifications no longer default to one lab's channel.**
+  `dashboard/slack_notify.py` and `commands/reconcile_cmd.py` each hardcoded a
+  channel ID as the last-resort destination for every notification, so any
+  installation would have posted there. Both now resolve from
+  `MURMURENT_SLACK_DEFAULT_CHANNEL` / `MURMURENT_SLACK_INFRA_CHANNEL` or
+  `~/.config/murmurent/`, and decline to post when unset.
 
 ## [2026.7.0] — 2026-07-16
 
