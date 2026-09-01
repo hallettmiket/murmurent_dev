@@ -212,7 +212,7 @@ def remove_exclusion(pattern: str) -> tuple[str, ...]:
 def is_murmurent_infra_repo(name: str) -> bool:
     """True for murmurent's OWN repos — the commons clone (``murmurent``) and the
     ``murmurent_*`` family (``murmurent_lab_mgmt_<lab>``, ``murmurent_vault``,
-    ``murmurent_public``, ``murmurent_manuscript``, …). These are murmurent
+    ``murmurent_public``, ``murmurent_dev``, …). These are murmurent
     infrastructure, not project working repos: they must never be "made ready"
     (a repo can't adopt itself; a lab-mgmt clone is governance, not a project).
     The dashboard flags them and disables their make-ready button (#41 pt 5)."""

@@ -2232,7 +2232,7 @@ def update_collaboration(
 # centre registrar drives these via /api/registrar/core/<name>/...
 # endpoints; the storage layer is the per-core lab-mgmt dir at
 # <lab_info_root>/cores/<name>/lab-mgmt/members/. See
-# docs/cores_plan.md §11 (Phase 1) for the rollout context.
+# the cores rollout design notes §11 (Phase 1) for the rollout context.
 # ---------------------------------------------------------------------------
 
 

@@ -11,7 +11,7 @@ given calendar month, groups by requesting lab, and writes:
     <lab>.md                  # human-readable per-lab invoice
     summary.md                # totals + flags across all labs
 
-Per the plan (docs/cores_plan.md §7): murmurent is a billing-data
+Per the plan (the cores rollout design notes §7): murmurent is a billing-data
 *producer*, not a billing system. A human routes the artifacts to
 Western's actual finance system (Path 1 today; CSV shape designed
 for Path 2 upload-to-expense-tool migration).

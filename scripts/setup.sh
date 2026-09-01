@@ -116,6 +116,27 @@ if [[ -d "$RULES_SRC" ]]; then
       rules_created=$((rules_created + 1))
     fi
   done
+  # Deployment-specific rules (a centre's own Slack IDs, private repos, local
+  # conventions) live in rules/local/ and are NOT part of the public release.
+  # A public clone simply has no such directory and skips this block.
+  if [[ -d "$RULES_SRC/local" ]]; then
+    for src in "$RULES_SRC"/local/*.md; do
+      [[ -f "$src" ]] || continue
+      name="$(basename "$src")"
+      dest="$CC_DIR/rules/$name"
+      if [[ -L "$dest" ]]; then
+        ln -sfn "$src" "$dest"
+        ok "re-pointed rules/$name → murmurent (local)"
+      elif [[ -f "$dest" ]]; then
+        warn "preserved user-authored rules/$name (not a symlink)"
+        rules_preserved=$((rules_preserved + 1))
+      else
+        ln -sfn "$src" "$dest"
+        ok "created rules/$name → murmurent (local)"
+        rules_created=$((rules_created + 1))
+      fi
+    done
+  fi
   echo "  -- created $rules_created new rules, preserved $rules_preserved user files."
 else
   warn "no rules/ dir in murmurent — skipping"

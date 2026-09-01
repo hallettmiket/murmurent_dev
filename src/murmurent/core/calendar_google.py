@@ -8,7 +8,7 @@ Input: Per-core OAuth credentials at
 Output: Calendar event ID + html link that the booking endpoint
         stitches into the RequestSummary's BookingSlot.
 
-Design (Phase 3c of the cores rollout — docs/cores_plan.md §5c):
+Design (Phase 3c of the cores rollout — the cores rollout design notes §5c):
 
   - Identity: the core *leader*'s calendar holds the events. Gary
     runs the one-time OAuth flow on his machine; the refresh token

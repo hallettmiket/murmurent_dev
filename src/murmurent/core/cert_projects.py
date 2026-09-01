@@ -61,7 +61,7 @@ CLINICAL_EXTRA_FIELDS: tuple[str, ...] = ("reb_number", "reb_expires", "data_res
 class RepoRef:
     """One repo belonging to a project. A project may have several — e.g. a code
     repo plus a manuscript repo (Overleaf-synced), the way ``murmurent`` and
-    ``murmurent_manuscript`` pair up. ``host="local"`` means this machine at
+    ``<project>_manuscript`` pair up. ``host="local"`` means this machine at
     ``path``; a remote host name means the tree is at ``remote_path`` on that host
     and ``path`` is a local pointer."""
 

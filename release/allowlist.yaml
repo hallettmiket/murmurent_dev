@@ -1,0 +1,130 @@
+# Release allowlist for the public murmurent repo
+#
+# Nothing reaches the public repo unless a rule here says it may. A path that
+# matches no rule is an ERROR, not a default-ship and not a default-drop:
+# `python3 release/check_allowlist.py` fails, and the release stops until a
+# person classifies it.
+#
+# That is deliberate. A denylist of "things not to publish" ships the next
+# internal file someone adds, silently, because nothing about it is wrong.
+# This repo's own rule, from inhibition's docs/how_this_project_breaks.md:
+# "Name what passes, never what fails. An allowlist refuses a value nobody
+# anticipated; a denylist admits it."
+#
+# Prefixes ending in / match a whole subtree. Everything else is an exact path.
+
+ship:
+  # --- the system itself -----------------------------------------------
+  - agents/                 # the commons; the public release is these
+  - rules/                  # auto-loaded hard rules
+  - skills/                 # user-invocable slash commands
+  - src/                    # the murmurent package
+  - scripts/                # setup.sh, bootstrap.sh, install helpers
+  - templates/              # scaffolding written into new repos
+  - instruments/            # instrument descriptors
+  - tests/                  # see DECIDE-1
+  - .github/                # issue template + docs workflow
+
+  # --- packaging and site ----------------------------------------------
+  - pyproject.toml
+  - uv.lock
+  - mkdocs.yml              # NOTE: its exclude_docs list must be kept in step
+  - overrides/              # mkdocs theme overrides
+  - .gitignore
+  - Open Dashboard.command
+
+  # --- front matter ------------------------------------------------------
+  - README.md
+  - LICENSE                 # Apache-2.0, already in place
+  - CHANGELOG.md
+  - CODE_OF_CONDUCT.md
+  - TUTORIAL.md
+  - TROUBLESHOOTING.md
+  - CLAUDE.md               # genericised 2026-09-01; deployment facts moved to rules/local/
+
+  # --- branding actually used by the app --------------------------------
+  - assets/murmurent_app_icon.png
+  - assets/murmurent_app_icon.py
+  - assets/murmurent_uniform_wordmark.html
+
+  # --- documentation ------------------------------------------------------
+  # The 53 pages in the mkdocs nav, plus the four below that the runtime
+  # needs. Everything else under docs/ is named in `withhold` or `decide`.
+  - docs/                   # subtree, minus the withhold entries under it
+
+  # --- EDID material: looks internal, is a runtime dependency -----------
+  # Verified against the code before classifying; do not "tidy" these away.
+  - docs/edid_resources.md        # agents/conscience.md reads it before flagging
+  - docs/edid_gap_decisions.md    # hooks/conscience_gaps.py: DECISIONS_NAME
+  - docs/edid_pdfs/               # conscience reads local full texts here
+  - docs/conscience_persona.md    # agents/conscience.md links it as the argument
+
+  # --- resolved by the PI, 2026-09-01 -----------------------------------
+  - docs/murmurent_public/        # hub scaffolding; directory.tsv is a placeholder row only
+  - assets/mustang_logo.jpg       # acknowledges where the software was built
+  - docs/assets/logos/            # same; not a claim that murmurent is Western-only
+
+withhold:
+  # --- internal planning, already marked internal in mkdocs exclude_docs ---
+  - docs/backlog.md
+  - docs/implementation_prompt.md
+  - docs/implementation_prompt_phase_1_foundation.md
+  - docs/implementation_prompt_phase_2_project_experiment.md
+  - docs/implementation_prompt_phase_3_push_sea.md
+  - docs/implementation_prompt_phase_4_mcp_hooks.md
+  - docs/implementation_prompt_phase_5_dashboard_tutorial.md
+  - docs/cores_smoke_runbook.md
+  - docs/cores_plan.md            # PI 2026-09-01; see the 8 docstrings below
+  - tests/                        # PI 2026-09-01: not shipped
+  - release/                      # the release tooling itself is a dev-repo concern
+  - rules/local/                  # a centre's own rules: private repos, Slack IDs, local
+                                  # conventions. setup.sh links these when present; a
+                                  # public clone has no such directory and skips them.
+  - docs/designer_dashboard/      # hi-fi mockups, wireframes, HANDOFF.md
+  - docs/diagrams/README.md
+
+  # --- internal test runbooks (not in the nav, no runtime use) ----------
+  - docs/keyring_server_test.md
+  - docs/keyring_two_laptop_test.md
+
+  # --- agent working artefacts ------------------------------------------
+  - outputs/                # bookworm scratch, incl. the project-rename research
+
+  # --- per-machine config, not portable ----------------------------------
+  - .claude/                # contains /Users/mth/... paths and chair_renewal refs
+  - .vscode/
+
+  # --- institutional and grant documents, must not ship ------------------
+  - assets/chair_renewal_1.3.pdf
+  - assets/2026_Schulich_WRC_Performance_Report_Template_19Mar2026_V1.docx
+  - assets/2026_Schulich_WRC_Research_Program_Template_19Mar2026_V1.docx
+  - assets/Untitled Bibliography.rtf
+
+decide: []   # all resolved
+
+resolved:
+  # Kept as a record of what was decided and by whom, so the next person does
+  # not re-litigate it.
+  - DECIDE-1  tests/                  -> withhold   (PI, 2026-09-01)
+  - DECIDE-3  docs/cores_plan.md      -> withhold   (PI, 2026-09-01)
+  - DECIDE-4  docs/murmurent_public/  -> ship       (PI, 2026-09-01; directory.tsv is a placeholder)
+  - DECIDE-5  assets/mustang_logo.jpg -> ship       (PI, 2026-09-01)
+  - DECIDE-6  docs/assets/logos/      -> ship       (PI, 2026-09-01)
+  - DECIDE-2  CLAUDE.md               -> ship       (2026-09-01, after genericising; see
+              CLAUDE_md_audit.md. rules/manuscript.md and the deployment half of
+              rules/slack.md moved to rules/local/, which is withheld.)
+
+dangling:
+  # Shipping files that cite a withheld path. Each leaves a broken reference in
+  # the release. Listed so the export fixes them rather than discovering them
+  # in public.
+  - "src/*.py x8: 'docs/cores_plan.md' cited as the schema reference in
+     docstrings (contract, services, registrar, invoices, calendar_google,
+     security_tier2, service_requests, server). Drop the path from the
+     docstring and keep the prose."
+  - "docs/lab_mgmt.md: links docs/cores_plan.md."
+  - "docs/keyring.md:152: links the two withheld keyring test runbooks."
+  - "CLAUDE.md:7: 'Full vision' links assets/chair_renewal_1.3.pdf, a grant
+     document that does not ship."
+  - "scripts/bootstrap.sh:123 mentions docs/designer_dashboard/ in a comment
+     that already says it is not shipped. No action needed."

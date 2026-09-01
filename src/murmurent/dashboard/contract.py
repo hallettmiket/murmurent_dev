@@ -543,7 +543,7 @@ class LabSettings(BaseModel):
     # Slack wiring the registrar/`group-slack-setup` recorded in lab.md.
     slack_workspace: str = ""                  # workspace id, e.g. TDUD7D20Y
     slack_invite_url: str = ""                 # shareable join link
-    # Phase 0 of the cores rollout (docs/cores_plan.md §3): distinguishes
+    # Phase 0 of the cores rollout (the cores rollout design notes §3): distinguishes
     # a research lab from a service core. The Pydantic field stays
     # ``pi_handle`` but the dashboard renders the label as "Leader" when
     # ``kind=core``. Cores live at lab_mgmt/cores/<core>/core.md with the

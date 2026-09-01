@@ -261,8 +261,7 @@ belong in `lab_mgmt`. Inter-lab relations belong in `lab_info`.
   machine, including the `~/repos/murmurent_lab_mgmt_<lab>` clone.
 - [`docs/group_level.md`](group_level.md): the broader design
   document for group-scope Murmurent operations.
-- [`docs/cores_plan.md`](https://github.com/hallettmiket/murmurent/blob/main/docs/cores_plan.md) §4: how a core's own
-  `lab_mgmt` (yes, cores have one too, parallel to labs) mounts
-  inside `~/.murmurent/lab_info/cores/<core>/lab-mgmt/`.
+- A core's own `lab_mgmt` (yes, cores have one too, parallel to labs)
+  mounts inside `~/.murmurent/lab_info/cores/<core>/lab-mgmt/`.
 - [`agents/cable_guy.md`](https://github.com/hallettmiket/murmurent/blob/main/agents/cable_guy.md): the per-lab
   cable_guy that owns most of the read/write surface on this repo.

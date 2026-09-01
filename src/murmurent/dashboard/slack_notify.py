@@ -29,15 +29,39 @@ _SLACK_API_MEMBERS = "https://slack.com/api/conversations.members"
 _SLACK_API_LOOKUP_BY_EMAIL = "https://slack.com/api/users.lookupByEmail"
 _TOKEN_FILE = Path("~/.config/murmurent/slack-token").expanduser()
 
-# Fallback channel IDs. ``_CHAN_DEFAULT`` is the LAST-RESORT channel for
-# wigamig-generated notifications when no specific project/group channel
-# applies. In a live centre it is superseded at send time by the private
-# mayor↔CC channel (see ``_default_channel`` / ``_route`` below): #claude-test
-# is only used during development or before ``centre-slack-setup`` has run.
-# History: #claude-code (C0ANNQ1U5EZ) → #claude-test (C0B3D9DS6SE) on 2026-05-12.
-_CHAN_DEFAULT = "C0B3D9DS6SE"
+# Fallback channel IDs, resolved per deployment. ``_CHAN_DEFAULT`` is the
+# LAST-RESORT channel for murmurent-generated notifications when no specific
+# project/group channel applies. In a live centre it is superseded at send time
+# by the private mayor<->CC channel (see ``_default_channel`` / ``_route``).
+#
+# These MUST NOT carry a hardcoded ID. They used to, and the ID was one lab's
+# own dev channel, which meant every installation anywhere defaulted to posting
+# into that lab's Slack. Resolution order is env, then config file, then empty;
+# empty is handled by ``_route`` and by the send path, which declines to post
+# rather than guessing a destination.
+
+
+def _configured_channel(env_var: str, filename: str) -> str:
+    """A deployment's channel ID, or "" when it has not configured one."""
+    import os
+
+    val = (os.environ.get(env_var) or "").strip()
+    if val:
+        return val
+    path = Path(f"~/.config/murmurent/{filename}").expanduser()
+    try:
+        return path.read_text(encoding="utf-8").strip()
+    except OSError:
+        return ""
+
+
+_CHAN_DEFAULT = _configured_channel(
+    "MURMURENT_SLACK_DEFAULT_CHANNEL", "slack-default-channel"
+)
 _CHAN_CLAUDE_CODE = _CHAN_DEFAULT  # back-compat alias for older callers
-_CHAN_LAB_INFRA = "CDWPTRQ86"
+_CHAN_LAB_INFRA = _configured_channel(
+    "MURMURENT_SLACK_INFRA_CHANNEL", "slack-infra-channel"
+)
 
 
 def _default_channel() -> str:
