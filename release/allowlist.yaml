@@ -77,6 +77,7 @@ withhold:
   - docs/cores_plan.md            # PI 2026-09-01; see the 8 docstrings below
   - tests/                        # PI 2026-09-01: not shipped
   - release/                      # the release tooling itself is a dev-repo concern
+  - DEVELOPING.md                 # how to work on murmurent; meaningless in a release
   - rules/local/                  # a centre's own rules: private repos, Slack IDs, local
                                   # conventions. setup.sh links these when present; a
                                   # public clone has no such directory and skips them.
