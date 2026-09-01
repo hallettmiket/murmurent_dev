@@ -31,12 +31,14 @@ vocabulary:
 | `security_guard` | `Clear / Concerns / Blocked — <one-line why>` |
 | `adversary` | `Pass / Questions / Reject — <one-line why>` |
 | `oracle` | `Found / Not found / Unsure — <one-line what>` |
+| `lab_oracle` | `Found / Not found / Unsure — <one-line what, naming the publisher>` |
 | `bookworm` | `Found N sources — <one-line summary>` |
 | `blacksmith` | `Done / Failed / Partial — <one-line what>` |
 | `artist` | `Rendered / Skipped / Failed — <one-line what>` |
 | `conscience` | `OK / Flagged — <one-line concern>` |
 | `lawyer` | `Clear / Conflict / Unknown — <one-line on patent landscape>` |
 | `cable_guy` | `Provisioned / Skipped / Failed — <one-line on what>` |
+| `centre_cable_guy` | `Reconciled / Drift / BLOCKED — <one-line on what changed or what is blocking>` |
 | `registrar` | `Recorded / Conflict / Skipped — <one-line on what>` |
 | `judge` | `Presented / Split / Insufficient — <one-line on the combined result>` |
 | `teacher` | `Explained / Gap — <one-line on what was/wasn't understood>` |
@@ -53,6 +55,15 @@ Clear — no world-writable or sensitive-readable files in scope.
 
 Verdict: CLEAR
 ```
+
+## Adding an agent
+
+**This table must list every agent in [`agents/`](../agents/).** It went two
+agents out of date (`centre_cable_guy`, `lab_oracle`) because nothing tied the
+two together: both agents declared their verdicts in their own files, so
+nothing was broken and nothing complained. If you add an agent, add its row
+here in the same commit, and take the vocabulary from the agent's own
+`MANDATORY OUTPUT RULE` line rather than inventing one that looks plausible.
 
 ## When in doubt
 
