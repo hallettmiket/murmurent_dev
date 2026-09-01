@@ -56,10 +56,14 @@ Auto-loaded into every CC session via `~/.claude/rules/`:
 - [`rules/data-storage.md`](rules/data-storage.md) — the `immutable/`
   directory is read-only and `append_only/` is append-only (data lives under
   `$MURMURENT_DATA_ROOT`; legacy `raw/`/`refined/` and `MURMURENT_LAB_VM_ROOT`
-  stay recognized during the transition). Enforced by [`raw_guard`](src/murmurent/hooks/raw_guard.py)
-  + [`protected_paths`](src/murmurent/hooks/protected_paths.py) hooks (delete +
-  overwrite under immutable/append_only are blocked at the hook layer, not just
-  by convention).
+  stay recognized during the transition). Upheld for agents by the
+  [`raw_guard`](src/murmurent/hooks/raw_guard.py) +
+  [`protected_paths`](src/murmurent/hooks/protected_paths.py) hooks, which
+  refuse deletes and overwrites under immutable/append_only **from inside a
+  Claude Code session**. This is a guardrail, not a security perimeter: the
+  hooks are per-user and inert in a plain shell, in a script run outside a
+  session, and for any member who has not installed them. The trees themselves
+  are group-writable on disk.
 - [`rules/project-structure.md`](rules/project-structure.md) —
   `~/repos/<project>/{exp,src,obsolete,data}`, snake_case, integer-versioned files.
 - [`rules/oracle_schema.md`](rules/oracle_schema.md) — every Oracle

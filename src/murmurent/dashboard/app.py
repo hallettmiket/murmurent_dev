@@ -263,7 +263,7 @@ def _banner(member: str, role: str | None = None) -> None:
         who = f"<span class='who'>logged in as <code>@{member}</code>{role_chip}</span>"
     st.html(
         f"""
-        <div class="wigamig-banner">
+        <div class="murmurent-banner">
           <span class="lab">Hallett Lab</span>
           <span class="sep">|</span>
           <span class="uwo">Western University &middot; Department of Biochemistry</span>
@@ -277,9 +277,9 @@ def _footer() -> None:
     """Slim footer: lab + Western contact line. No land ack here."""
     st.html(
         """
-        <div class="wigamig-footer">
+        <div class="murmurent-footer">
           Hallett Lab &middot; Department of Biochemistry &middot;
-          Schulich School of Dentristy and Medicine &middot;
+          Schulich School of Medicine &amp; Dentistry &middot;
           Western University, London, ON, Canada
           &middot;
           <a href="https://hallettmiket.github.io" target="_blank">hallettmiket.github.io</a>
@@ -292,7 +292,7 @@ def _home_land_ack() -> None:
     """Render the land acknowledgement on the home page only."""
     st.html(
         """
-        <div class="wigamig-land-ack">
+        <div class="murmurent-land-ack">
           <strong>Land Acknowledgement.</strong>
           We acknowledge that Western University is located on the
           traditional territories of the Anishinaabek, Haudenosaunee,
@@ -325,6 +325,11 @@ def _render_login_screen(initial: str) -> None:
             _save_user(handle)
         st.query_params["user"] = handle.strip().lstrip("@")
         st.rerun()
+    # Issue #127. The sign-in form is a few lines tall, so the slim footer's
+    # top margin alone left it floating in the middle of an otherwise empty
+    # page. A spacer here rather than a global flex rule on the block
+    # container, so no other section's layout can be disturbed by it.
+    st.html('<div style="min-height: 34vh" aria-hidden="true"></div>')
 
 
 def _sidebar(current: str) -> None:
@@ -414,7 +419,7 @@ def _nav_grid(snap: dashboard.DashboardSnapshot) -> None:
                 if st.button(label, key=f"nav_{key}"):
                     _go(key)
                     st.rerun()
-                st.html(f"<div class='wigamig-nav-caption'>{caption}</div>")
+                st.html(f"<div class='murmurent-nav-caption'>{caption}</div>")
 
 
 def _inventory_caption(inv: dict) -> str:
@@ -708,9 +713,9 @@ def main() -> None:  # pragma: no cover - rendered live
             st.caption(snap.full_name)
         st.html(
             f"<div>"
-            f"<span class='wigamig-tag'>{snap.role}</span>"
-            f"<span class='wigamig-tag muted'>status: {snap.member_status}</span>"
-            f"<span class='wigamig-tag tiger'>generated {snap.generated_at}</span>"
+            f"<span class='murmurent-tag'>{snap.role}</span>"
+            f"<span class='murmurent-tag muted'>status: {snap.member_status}</span>"
+            f"<span class='murmurent-tag tiger'>generated {snap.generated_at}</span>"
             f"</div>"
         )
         _nav_grid(snap)
