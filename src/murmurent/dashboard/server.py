@@ -4324,7 +4324,7 @@ def create_app() -> FastAPI:
     ) -> dict:
         """Minimal data payload for the Core Dashboard at /core.
 
-        Per docs/cores_plan.md §10 — Phase 1 ships the shell with
+        Per the cores rollout design notes §10 — Phase 1 ships the shell with
         ``identity`` + ``members`` panels. Later phases (2-5) add
         services, requests, calendar, deliverables, invoices.
 
@@ -4417,7 +4417,7 @@ def create_app() -> FastAPI:
         user: str = Query("", description="Actor handle; falls back to $MURMURENT_USER."),
     ) -> dict:
         """List a core's service catalog. Phase 2b of the cores rollout
-        (docs/cores_plan.md §11). Readable by any authenticated murmurent
+        (the cores rollout design notes §11). Readable by any authenticated murmurent
         member — a service catalog is the core's outward face; gating
         view is the wrong default. Mutation goes through the editor
         endpoints in Phase 2c."""
@@ -5868,7 +5868,7 @@ def create_app() -> FastAPI:
         """Add a service to the core's catalog. Gated to core leader OR
         registrar. Body matches the ServiceSummary fields (slug, name,
         capability, mode, equipment, fee, prerequisites, …).
-        Phase 2c of the cores rollout (docs/cores_plan.md §11)."""
+        Phase 2c of the cores rollout (the cores rollout design notes §11)."""
         from ..core import services as _svc
         from . import slack_notify as _notify
         actor = _require_core_admin(core, user)
@@ -8091,7 +8091,7 @@ def create_app() -> FastAPI:
             """Phase 1 core-leader dashboard — analogue of /dashboard
             for a service core. Gated server-side by /api/core/dashboard
             (the page calls it; non-core-leaders get a 403 + empty
-            render). Per docs/cores_plan.md §10.
+            render). Per the cores rollout design notes §10.
             """
             return _html_page("core.html")
 

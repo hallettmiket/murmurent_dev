@@ -40,7 +40,7 @@ ship:
   - CODE_OF_CONDUCT.md
   - TUTORIAL.md
   - TROUBLESHOOTING.md
-  - CLAUDE.md               # see DECIDE-2
+  - CLAUDE.md               # genericised 2026-09-01; deployment facts moved to rules/local/
 
   # --- branding actually used by the app --------------------------------
   - assets/murmurent_app_icon.png
@@ -77,6 +77,9 @@ withhold:
   - docs/cores_plan.md            # PI 2026-09-01; see the 8 docstrings below
   - tests/                        # PI 2026-09-01: not shipped
   - release/                      # the release tooling itself is a dev-repo concern
+  - rules/local/                  # a centre's own rules: private repos, Slack IDs, local
+                                  # conventions. setup.sh links these when present; a
+                                  # public clone has no such directory and skips them.
   - docs/designer_dashboard/      # hi-fi mockups, wireframes, HANDOFF.md
   - docs/diagrams/README.md
 
@@ -97,18 +100,7 @@ withhold:
   - assets/2026_Schulich_WRC_Research_Program_Template_19Mar2026_V1.docx
   - assets/Untitled Bibliography.rtf
 
-decide:
-  # The checker treats these as UNRESOLVED and fails until a person moves each
-  # into ship or withhold.
-
-  - path: CLAUDE.md
-    id: DECIDE-2
-    question: >
-      Still open. A released variant is needed, not a copy and not a deletion:
-      a Claude Code session needs a CLAUDE.md to know what murmurent is, but
-      the current file is tied to one GitHub owner and names the private
-      manuscript repo. See release/CLAUDE_md_audit.md for the eight specific
-      problems and the proposed fix for each.
+decide: []   # all resolved
 
 resolved:
   # Kept as a record of what was decided and by whom, so the next person does
@@ -118,6 +110,9 @@ resolved:
   - DECIDE-4  docs/murmurent_public/  -> ship       (PI, 2026-09-01; directory.tsv is a placeholder)
   - DECIDE-5  assets/mustang_logo.jpg -> ship       (PI, 2026-09-01)
   - DECIDE-6  docs/assets/logos/      -> ship       (PI, 2026-09-01)
+  - DECIDE-2  CLAUDE.md               -> ship       (2026-09-01, after genericising; see
+              CLAUDE_md_audit.md. rules/manuscript.md and the deployment half of
+              rules/slack.md moved to rules/local/, which is withheld.)
 
 dangling:
   # Shipping files that cite a withheld path. Each leaves a broken reference in

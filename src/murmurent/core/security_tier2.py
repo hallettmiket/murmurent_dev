@@ -132,7 +132,7 @@ def consume_snapshot(snapshot_dir: Path, *, host: str,
         ))
 
     # ----- ACL diffs (per-core raw + refined) ------------------------------
-    # Phase 1c of the cores rollout (docs/cores_plan.md §11). The Phase
+    # Phase 1c of the cores rollout (the cores rollout design notes §11). The Phase
     # 1c snapshot script (v7+) emits acls_core_<core>_<kind>.txt per
     # core present on the lab server. Reuse the existing diff_raw /
     # diff_refined functions, but emit findings with CORE- rule

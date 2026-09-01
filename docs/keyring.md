@@ -149,5 +149,3 @@ machine is lost at once, only the **offline root-CA backup** recovers the centre
 ## See also
 
 - [`docs/keyring_deploy.md`](keyring_deploy.md) — production deployment runbook.
-- `docs/keyring_server_test.md`, `docs/keyring_two_laptop_test.md` — end-to-end
-  validation on a second machine, with a full install and per-step error notes.

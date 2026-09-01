@@ -1,11 +1,11 @@
-# Murmurent — agentic AI village for Western's Bioconvergence Centre
+# Murmurent — an agentic AI village for a research centre
 
 Murmurent is shared agentic-AI infrastructure that lets research groups
 work independently, pool agents and data when collaboration benefits
 them, and accumulate institutional knowledge across every project.
 
-Full vision: [`assets/chair_renewal_1.3.pdf`](assets/chair_renewal_1.3.pdf)
-(§ "Proposed Research Program"). TL;DR:
+An overview is in [`docs/index.md`](docs/index.md) and
+[`docs/overview.md`](docs/overview.md). In short:
 
 - **Choreography, not orchestration.** Each group runs its own
   documented workflow using the shared agents and rules, and retains
@@ -71,10 +71,14 @@ Auto-loaded into every CC session via `~/.claude/rules/`:
 - [`rules/headline_first.md`](rules/headline_first.md) — every agent's
   final reply leads with a ≤200-char verdict.
 - [`rules/slack.md`](rules/slack.md) — Slack-posting protocol (after
-  every `git push`, post to `#claude-test`).
-- [`rules/manuscript.md`](rules/manuscript.md) — the manuscript is
-  Overleaf-synced; **`git pull` `~/repos/murmurent_manuscript` before
-  editing it**, no feature branches, don't compile locally.
+  every `git push`, post to the group's own channel). Which channel,
+  workspace and bot is a deployment fact and lives in `rules/local/`.
+
+**Deployment-specific rules.** A centre may add its own rules under
+`rules/local/`, which `scripts/setup.sh` symlinks alongside the shared
+ones when the directory exists. That is where private repos, Slack IDs
+and local conventions belong, so that nothing tied to one centre reaches
+another. A fresh clone has no `rules/local/` and simply skips it.
 
 ## User-invocable skills (the commons)
 
@@ -86,7 +90,7 @@ command available in any murmurent-bootstrapped CC session.
 |---|---|
 | [`/murmurent-push`](skills/murmurent-push/SKILL.md) | Murmurent-aware stage/commit/push: skips per-machine + secret-shaped files, refuses large files that belong in `append_only/`, never touches the data root's `immutable/`\|`append_only/` (or legacy `raw/`\|`refined/`), posts a Slack release note. Use instead of generic `/commit-push` for any **murmurent-ready** repo (`.murmurent.yaml`, or a legacy `CHARTER.md` bootstrap). |
 | [`/murmurent-project-push`](skills/murmurent-project-push/SKILL.md) | Project-WIDE commit/push: backs up **every** repo a project owns (via `murmurent project push`), running the `/murmurent-push` pre-flight per repo (secret scan, secret-shaped names, governed-data + large-file guards). A repo that fails is blocked, the rest proceed; one plain-language summary + one Slack note to the project channel. Use to "back up my whole project". |
-| [`/murmurent-admin`](skills/murmurent-admin/SKILL.md) | Prime context before admin-level (centre / mayor / registrar / join / provisioning) work: reloads murmurent's purpose from the manuscript + code, pins Obsidian maps-legends and CC guidance to the top, enforces the manuscript pull-first rule. |
+| [`/murmurent-admin`](skills/murmurent-admin/SKILL.md) | Prime context before admin-level (centre / mayor / registrar / join / provisioning) work: reloads murmurent's purpose from the code and docs, and pins Obsidian maps-legends and CC guidance to the top. A centre with its own reference documents adds them via `rules/local/`. |
 | [`/murmurent-reset`](skills/murmurent-reset/SKILL.md) | Back up, then reset this machine's murmurent state to a fresh start (so `centre-init` is first-run again). Tiered `centre`/`install`/`full`; always tarballs `~/.murmurent` first; credentials + other-project installs are protected behind explicit `--nuke` flags; `--dry-run` previews. Use for a clean slate / fresh copy from the repo. |
 | [`/murmurent-onboard`](skills/murmurent-onboard/SKILL.md) | Mayor/registrar helper: process an incoming **encrypted** join-request email end to end — decrypt + file it, show who's asking, then (on explicit OK) approve + provision (lab/core Slack channel, GitHub repo, FS ACLs) or decline. Approval reads the Slack token from env **or** the `~/.config` file so the channel is created without exporting anything. |
 | [`/murmurent-course`](skills/murmurent-course/SKILL.md) | **COURSE mode of the [`teacher`](agents/teacher.md)** — reached by typing `teacher course <subject>`, not by the slash command. Teaches a subject across **multiple sessions** using a course directory as stateful memory: interviews for the mission, sources it through the [`bookworm`](agents/bookworm.md), writes self-contained HTML lessons the learner annotates in `lavish-axi`, and keeps learning records so it never re-teaches what they've demonstrated. Sources **watching as well as reading** — every lesson carries a drawn figure, and where a public explainer beats the page, it assigns the video and writes the bridge instead of competing. Runs in the main session — a subagent can neither interview nor persist. |
@@ -165,16 +169,23 @@ replies once and cannot hold a back-and-forth.
 
 ## Related repos + the public hub
 
-Murmurent spans three repos plus a global onboarding hub. Name them
-precisely; keep every deployment institution-agnostic (drive names off a
-centre's `unique_name`, never a hardcoded university).
+A murmurent deployment spans this repo plus a global onboarding hub, and
+each group adds a governance repo of its own. Name them precisely, and
+keep every deployment institution-agnostic: drive names off a centre's
+`unique_name`, never a hardcoded university or GitHub owner.
+
+`<owner>` below is whoever hosts the deployment. Only the first two rows
+name a fixed location, because they are the repos everyone clones.
 
 | Repo | Purpose |
 |---|---|
-| [`hallettmiket/murmurent`](https://github.com/hallettmiket/murmurent) | this repo (**public**) — agents, rules, hooks, MCP servers, CLI, dashboard. Clone this to install murmurent / bootstrap a centre. |
-| `hallettmiket/murmurent_manuscript` | the paper (private; Overleaf-synced — see [`rules/manuscript.md`](rules/manuscript.md)) |
-| `hallettmiket/murmurent_lab_mgmt_<lab>` | per-group governance repo (private), one per lab/core — canonical name, see [`docs/lab_mgmt.md`](docs/lab_mgmt.md) |
+| [`hallettmiket/murmurent`](https://github.com/hallettmiket/murmurent) | **this repo** (public) — agents, rules, hooks, MCP servers, CLI, dashboard. Clone this to install murmurent or bootstrap a centre. |
 | [`hallettmiket/murmurent_public`](https://github.com/hallettmiket/murmurent_public) | global onboarding hub: institution directory + GitHub-issue join intake (no netnames / server paths). Novice-facing README kept trivial; maintainer/mayor setup lives in [`docs/hub_setup.md`](docs/hub_setup.md). |
+| `<owner>/murmurent_lab_mgmt_<lab>` | per-group governance repo (private), one per lab/core — canonical name, see [`docs/lab_mgmt.md`](docs/lab_mgmt.md) |
+| `<owner>/<choreography>` | a choreography: one recurring multi-actor workflow, with its own repo, decision log and data |
+
+A centre with further repos of its own (a manuscript, a grant, internal
+notes) records them in `rules/local/`, not here.
 
 ## Quick setup
 

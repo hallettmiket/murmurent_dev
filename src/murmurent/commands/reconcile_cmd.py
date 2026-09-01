@@ -25,7 +25,10 @@ from rich.table import Table
 from ..core import reconcile as _rec
 
 
-SLACK_CHANNEL_ID = "C0B3D9DS6SE"  # #claude-test (per rules/slack.md)
+# Resolved per deployment, never hardcoded: see dashboard.slack_notify.
+# Empty when the centre has not configured one, in which case the caller
+# should not post rather than post somewhere arbitrary.
+from ..dashboard.slack_notify import _CHAN_DEFAULT as SLACK_CHANNEL_ID  # noqa: E402
 
 
 def cmd_reconcile(*, apply: bool, slack_body: bool) -> int:

@@ -20,7 +20,7 @@ services, change fees) flows through the registrar / core-leader
 HTTP endpoints (added in Phase 2c) so each change leaves an audit-log
 commit and a Slack notification.
 
-Schema reference: ``docs/cores_plan.md §5a``.
+Schema reference: ``the cores rollout design notes §5a``.
 """
 
 from __future__ import annotations
@@ -51,7 +51,7 @@ class ServiceFee:
 class ServiceSummary:
     """One service in a core's catalog.
 
-    Field names follow the schema in ``docs/cores_plan.md §5a``. Optional
+    Field names follow the schema in ``the cores rollout design notes §5a``. Optional
     fields default to None / empty container so a freshly-scaffolded
     service file doesn't need every section to render.
     """

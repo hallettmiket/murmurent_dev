@@ -1,11 +1,11 @@
 ---
 name: murmurent-admin
-description: Prime context before admin-level (centre / mayor / registrar) work on murmurent. Reloads murmurent's purpose from the manuscript and code, pins the Obsidian maps/legends and Claude-Code guidance to the top of context, and enforces the manuscript pull-first rule. Use before designing or changing the administrative layer, the mayor/centre bootstrap, the join flow, or provisioning.
+description: Prime context before admin-level (centre / mayor / registrar) work on murmurent. Reloads murmurent's purpose from the code and docs, pins the Obsidian maps/legends and Claude-Code guidance to the top of context, and honours any further reference documents the centre names in rules/local/. Use before designing or changing the administrative layer, the mayor/centre bootstrap, the join flow, or provisioning.
 user_invocable: true
 ---
 
 Murmurent is a large, multi-repo system whose *purpose* and *administrative
-architecture* live as much in the manuscript as in the code. Before doing
+architecture* live as much in the design docs as in the code. Before doing
 admin-level work — the centre/mayor bootstrap, the registrar, the join
 flow, provisioning, or the install story for a new institution — reload
 that context so you act from murmurent's actual design, not a half-remembered
@@ -21,21 +21,20 @@ Read these first so they anchor the rest of the session:
 2. **How to use Claude Code here** — the top-level `CLAUDE.md` of this repo
    (agents, hard rules, skills) and `docs/vscode-workflow.md`.
 
-## 1. Reload murmurent's purpose from the manuscript
+## 1. Reload murmurent's purpose from the docs
 
-The manuscript is the authoritative description of what murmurent is and how
-the administrative layer is meant to work (it uses **registrar /
-receptionist / accountant / centre-level security guard**; note there is
-**no "mayor" agent** — "mayor" is a *human bootstrap role* only).
+The administrative layer uses **registrar / receptionist / accountant /
+centre-level security guard**; note there is **no "mayor" agent** — "mayor"
+is a *human bootstrap role* only.
 
-- Repo: `~/repos/murmurent_manuscript`, remote
-  `git@github.com:hallettmiket/murmurent_manuscript.git`, single source
-  `main-article.tex`. Read the "Beyond the individual" / Results section on
-  the centre, cores, labs, commons, and the twelve reference agents.
-- **If your task will modify the manuscript, `git -C
-  ~/repos/murmurent_manuscript pull` FIRST** (it's synced with Overleaf via
-  GitHub — see `rules/manuscript.md`). Overleaf edits are authoritative on
-  conflict; no feature branches; do not compile locally.
+- Start from [`docs/centre_overview.md`](../../docs/centre_overview.md),
+  [`docs/overview.md`](../../docs/overview.md) and
+  [`docs/group_level.md`](../../docs/group_level.md): the centre, cores, labs,
+  the commons and the reference agents.
+- **A centre may hold further authoritative documents of its own** (a paper, a
+  grant, internal design notes). Those are deployment facts, so they are named
+  in `rules/local/` rather than here. If `rules/local/` exists, read what it
+  names first, and follow any pull-first or write rules it states.
 
 ## 2. Read the code before proposing changes
 
@@ -57,9 +56,9 @@ precisely when you reference them:
 | Repo | Purpose |
 |---|---|
 | `github.com/hallettmiket/murmurent` | reference implementation (**public**): agents, rules, hooks, MCP servers, CLI, dashboard. This is what a new mayor clones to bootstrap a centre. |
-| `github.com/hallettmiket/murmurent_manuscript` | the paper (private; Overleaf-synced) |
-| `github.com/hallettmiket/lab_mgmt` | per-group governance repo (private; registry + lab Oracle publish gateway) |
-| `github.com/hallettmiket/murmurent_public` *(planned — Phase 2)* | global onboarding hub for self-service join. **Not yet created**; onboarding is the phase after the admin level. |
+| `<owner>/murmurent_lab_mgmt_<lab>` | per-group governance repo (private; registry + lab Oracle publish gateway) |
+| `github.com/hallettmiket/murmurent_public` | global onboarding hub for self-service join |
+| anything else the centre owns | named in `rules/local/`, not here |
 
 ## 4. Then act
 
