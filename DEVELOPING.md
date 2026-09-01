@@ -32,6 +32,18 @@ murmurent install --hooks               # register hooks + MCP servers
 in this clone changes what every Claude Code session on this machine loads. That
 is the point, and it is also why a careless edit here is felt immediately.
 
+**Check which commons you are actually reading**, especially if you also have
+murmurent installed from PyPI:
+
+```bash
+python3 -c "from murmurent.core.commons import commons_root, commons_source; print(commons_source(), commons_root())"
+```
+
+It should print `clone` and the path to this clone. If it prints `package`, the
+CLI is reading the copy inside the wheel and your edits will do nothing.
+The editable install above normally prevents that; `export MURMURENT_COMMONS_ROOT=$PWD`
+forces it.
+
 Do **not** run `scripts/bootstrap.sh` for development: it clones the *public*
 repo, which has no history and no tests.
 

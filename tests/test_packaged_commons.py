@@ -84,6 +84,8 @@ def test_commons_root_prefers_a_clone_over_the_packaged_copy(tmp_path, monkeypat
     (clone / "agents" / "oracle.md").write_text("x", encoding="utf-8")
 
     monkeypatch.delenv("MURMURENT_COMMONS_ROOT", raising=False)
+    # Neutralise the real editable clone this test suite runs from.
+    monkeypatch.setattr(commons, "editable_clone_root", lambda: tmp_path / "nope")
     monkeypatch.setattr(commons, "murmurent_repo_root", lambda: clone)
     assert commons.commons_root() == clone
     assert commons.commons_source() == "clone"
@@ -108,6 +110,37 @@ def test_an_empty_clone_dir_does_not_beat_the_packaged_copy(tmp_path, monkeypatc
     (packaged / "agents" / "oracle.md").write_text("x", encoding="utf-8")
 
     monkeypatch.delenv("MURMURENT_COMMONS_ROOT", raising=False)
+    monkeypatch.setattr(commons, "editable_clone_root", lambda: tmp_path / "nope")
     monkeypatch.setattr(commons, "murmurent_repo_root", lambda: empty)
     monkeypatch.setattr(commons, "packaged_commons_root", lambda: packaged)
     assert commons.commons_root() == packaged
+
+
+def test_an_editable_clone_is_found_at_any_path(tmp_path, monkeypatch):
+    """A dev clone need not sit at the hardcoded ~/repos/murmurent.
+
+    DEVELOPING.md tells developers to clone `murmurent_dev` to
+    `~/repos/murmurent_dev`. Before this, `commons_root()` only consulted
+    `~/repos/murmurent`, so such a clone lost to the PACKAGED copy: the
+    developer edits an agent and nothing changes, with no error anywhere.
+    """
+    from murmurent.core import commons
+
+    editable = tmp_path / "repos" / "murmurent_dev"
+    for d in ("agents", "rules", "skills"):
+        (editable / d).mkdir(parents=True)
+    (editable / "agents" / "oracle.md").write_text("x", encoding="utf-8")
+
+    packaged = tmp_path / "site-packages" / "murmurent" / "commons"
+    for d in ("agents", "rules", "skills"):
+        (packaged / d).mkdir(parents=True)
+    (packaged / "agents" / "oracle.md").write_text("y", encoding="utf-8")
+
+    monkeypatch.delenv("MURMURENT_COMMONS_ROOT", raising=False)
+    monkeypatch.setattr(commons, "editable_clone_root", lambda: editable)
+    monkeypatch.setattr(commons, "packaged_commons_root", lambda: packaged)
+    monkeypatch.setattr(commons, "murmurent_repo_root", lambda: tmp_path / "nope")
+
+    assert commons.commons_root() == editable, (
+        "an editable clone must win over the packaged copy, whatever it is called"
+    )
