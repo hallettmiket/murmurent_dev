@@ -29,6 +29,40 @@ records and documentation. Its data lives under the centre's governed data root
 and is not public, so installing a choreography gives you the method, not the
 results.
 
+### Releasing a choreography: the written substrate ships
+
+**A choreography's decision records and its failure catalogue are part of the
+published result, not internal notes. They ship.** This is the opposite of the
+rule for murmurent itself, and the difference is deliberate.
+
+For murmurent, build notes are process: planning documents, phase prompts and
+backlogs describe how the software got made, which nobody installing it needs.
+They are withheld.
+
+For a choreography, the written substrate **is** the science. The decision log
+records what was decided, by whom, on what evidence, and what was withdrawn
+when the evidence moved. The failure catalogue records every defect found and
+how it was caught. A reader who cannot see those cannot check the method, and
+for *Dance with Inhibition* they are quoted directly as evidence in the
+manuscript's appendix: one table is a census of `decisions/`, two more are
+computed from `how_this_project_breaks.md`. Withhold them and those tables
+become unverifiable.
+
+So for a choreography release:
+
+| ships | withheld |
+|---|---|
+| `decisions/`, the failure catalogue, the README, the code, configs, tests | live working state (a "state of the project" document), publication audits, manuscript-change lists, handover and retrospective notes |
+
+The line is **evidence for the method versus notes about the writing**. A
+document that supports a claim in the record ships. A document that tracks what
+the authors were doing this month does not, because it goes stale and was never
+part of the result.
+
+What must not ship, in either case: server paths, account names, channel and
+token IDs, and anything under the governed data root. Data is not part of a
+choreography release at all.
+
 ### Declaring a choreography
 
 A repository is only installed as a choreography if it says it is one, in a
