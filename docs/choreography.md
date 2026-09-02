@@ -8,6 +8,60 @@ A **choreography** is a documented multi-actor pattern: a recipe for how
 several people, and the agents they run, work together, in what order,
 producing what artefacts. A choreography runs in one of two modes.
 
+## Getting a choreography
+
+A choreography lives in its own repository. To install one you need its URL:
+
+```bash
+murmurent choreography install https://github.com/<owner>/<repo>.git
+```
+
+That clones it under your repos root, prints what the choreography says about
+itself, tells you whether any agent it needs is missing from your commons, and
+makes the clone murmurent-ready. Add `--no-adopt` to look before committing to
+it.
+
+`murmurent choreography list` reads a public index of published choreographies.
+The index is not published yet, so for now install from a URL.
+
+**Data is never included.** A choreography repository carries code, decision
+records and documentation. Its data lives under the centre's governed data root
+and is not public, so installing a choreography gives you the method, not the
+results.
+
+### Declaring a choreography
+
+A repository is only installed as a choreography if it says it is one, in a
+`.murmurent.yaml` at its root:
+
+```yaml
+kind: choreography
+name: inhibition
+title: Dance with Inhibition
+summary: >
+  Four independent approaches generate candidate covalent and non-covalent
+  Pin1 inhibitors, are judged against one shared control, and are combined
+  by the judge.
+mode: compositional
+target: Pin1 (PPIase, Cys113)
+approaches: [t1_de_novo, t2_atra_crem, t3_reinvent, t4_combinatorial]
+agents: [blacksmith, adversary, bookworm, artist, judge, lawyer]
+data:
+  root_subdir: inhibition
+  scale: ~54k molecules docked and ranked
+requires:
+  murmurent: ">=2026.9.0"
+  gpu: true
+```
+
+A repository without this file is refused, with a pointer to
+`murmurent repo adopt` for adopting it as an ordinary repo instead. Guessing
+would mean treating any cloned repository as a choreography.
+
+**Everything a reader is shown comes from this file, never from the index.** An
+index carrying its own copies of titles and summaries would drift, and a stale
+entry advertises a choreography as something it is not.
+
 ## Two modes
 
 - **Coordination mode**: an administrative pattern that sequences people,

@@ -17,6 +17,22 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 
 ## [Unreleased]
 
+## [2026.9.5] — 2026-09-02
+
+### Added
+- **`murmurent choreography install <git-url>`** — clone a choreography, read
+  what it says about itself, report any agent it needs that this machine has
+  not got, and make it murmurent-ready. Thin by design: it hands the clone to
+  the existing `repo adopt` path rather than re-implementing readiness.
+- **`murmurent choreography list`** — read the public index. The index is not
+  published yet, so it says so and points at the URL route instead of failing.
+- **A choreography declares itself** in `.murmurent.yaml` with
+  `kind: choreography`. A repository that does not is refused, with a pointer
+  to `murmurent repo adopt`: treating any cloned repository as a choreography
+  would install arbitrary code as one.
+- `docs/choreography.md` documents discovery and installation, which it did not
+  mention at all.
+
 ## [2026.9.4] — 2026-09-01
 
 ### Fixed
