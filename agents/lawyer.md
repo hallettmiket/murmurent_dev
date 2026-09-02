@@ -365,7 +365,7 @@ Work **down** the tiers and **stop at the stop rule**.
 
 | Source | Reach it with | Why it is first |
 |---|---|---|
-| **PubChem REST** | `curl` — name → CID → CAS + InChIKey | Identifiers you are handed are **often wrong**. Verify before searching, or you will run a flawless search on the wrong molecule. |
+| **PubChem REST** | `curl` — name → CID → CAS + InChIKey | An identifier that is wrong **fails silently**: the search succeeds, cites real patents, and describes a different molecule. One lookup rules that out; nothing downstream can. |
 
 ### Tier 1 — primary
 
@@ -500,12 +500,25 @@ get requested again and again; this turns that into one fetch each, forever.
 maintenance-fee state and pending-application scope are not. Re-check those every
 time and mark them `inferred` unless you saw the office record.
 
-### Search them in parallel — across hosts, never within one
+### Concurrency, and the one source you hold back
 
-The databases are unrelated services with independent rate limits, so query them
-**concurrently**, not one after another. One `Bash` call, background each `curl`,
-`wait` for all of them. Measured on three hosts: **1.1s parallel vs 3.3s
-sequential**, with identical payloads and no extra blocking.
+This refines the tier order above; it does not compete with it. The rule is
+**parallel across what is free, sequential before what is metered.**
+
+**Round one — fire these together**, because none of them punish you: the USPTO
+grant record, PatentScope, PubChem, and EPO OPS if it is credentialed. They are
+unrelated services with independent limits, so fanning them out costs nothing.
+Measured on three hosts: **1.1s concurrent vs 3.3s one-after-another**, identical
+payloads, no extra blocking.
+
+**Then check the stop rule.** Most referrals end here — you have claim text and a
+search result, and you can name the claim type of everything that reaches the
+intended act.
+
+**Round two — only if round one left a gap:** Google Patents, one query for the
+specific thing still missing, usually derived legal status or a non-US claim. It
+is the only source here with an exhaustible budget, so it is spent last and
+often not at all. Do not put it in the opening volley.
 
 ```bash
 UA="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36"
@@ -522,12 +535,13 @@ range, which costs every other member their access too. When a source blocks you
 record it as unreached, use the alternates in the table, and — if you need that
 source routinely — get a credential for the authorised interface.
 
-**The one rule: parallel ACROSS hosts, serial WITHIN a host.** Fanning three
-different services at once costs them nothing. Firing ten requests at Google
-Patents at once is what gets you blocked — and its block is *durable*, not a
-momentary throttle: once you are `503`, you stay `503` for the rest of the job,
-sequential requests included. So batch one query per host per round, and if you
-need many patents from Google Patents, space them and accept it may not finish.
+**Within a host, always serial.** Fanning the free services at once costs them
+nothing, because they are unrelated and independently limited. Firing ten
+requests at one host is what gets you blocked — and Google Patents' block is
+*durable*, not a momentary throttle: once you are `503`, you stay `503` for the
+rest of the job, sequential requests included. One query per host per round; if
+you need many patents from Google Patents, space them and accept it may not
+finish.
 
 Never let a slow or blocked source hold the others hostage. If one host fails,
 report it as unreached and answer from the rest — a partial answer that names its
@@ -663,7 +677,7 @@ database you never queried is the single worst thing you can hand a project
 about to spend money — it is `Unknown`, not `Clear`.
 
 ## Search strategy
-- Fan the databases out in parallel (see above) before you start reading any of them — the reading is where your time actually goes
+- Fan the free sources out concurrently (see above) before you start reading any of them — the reading is where your time actually goes. Google Patents is not in that volley; it is the fallback for what the others could not answer
 - Start with the molecule/gene/protein name and common synonyms, trade names, and identifiers (CAS, IUPAC, UniProt, gene symbol)
 - Search both patent titles/abstracts and full-text claims
 - Cross-reference hits across multiple databases to confirm coverage
