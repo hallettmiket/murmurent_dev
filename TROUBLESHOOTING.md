@@ -135,6 +135,12 @@ If you don't have access to the private repos, run
 
 ## Still stuck?
 
-File a smoke-test issue with the template at
-[.github/ISSUE_TEMPLATE/smoke_test.md](.github/ISSUE_TEMPLATE/smoke_test.md).
-Include the exact command, the error output, and what you expected.
+Open an issue on **[`murmurent_dev`](https://github.com/hallettmiket/murmurent_dev/issues)**.
+The release repo has issues turned off, because the discussion belongs where the
+work happens. Use the
+[bug report template](.github/ISSUE_TEMPLATE/bug_report.md); it asks for the
+exact command, the error output, what you expected, and `murmurent doctor`.
+
+Running the five-day smoke test? Use
+[`smoke_test.md`](.github/ISSUE_TEMPLATE/smoke_test.md) instead, since it is
+keyed to the tutorial's personas and days.

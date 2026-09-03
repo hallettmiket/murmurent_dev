@@ -305,4 +305,4 @@ The next steps are as follows:
 
 ## Authors
 
-Mike Hallett &mdash; michael.hallett@example.edu
+Mike Hallett &mdash; michael.hallett@uwo.ca
