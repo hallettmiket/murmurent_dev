@@ -97,5 +97,17 @@ git tag -f "$TAG"
 git push -q origin main
 git push -q -f origin "$TAG"
 say "pushed ${TAG} — dev SHA ${DEV_SHA}"
+
+# The docs workflow on the public repo is path-filtered (docs/**), and a
+# squashed release commit replacing the whole tree does not reliably fire it.
+# Ask for the build explicitly, so the documentation site follows the release.
+PUBLIC_SLUG="$(printf '%s' "$PUBLIC_URL" | sed -E 's#^(https://github.com/|git@github.com:)##; s#\.git$##')"
+if command -v gh >/dev/null 2>&1; then
+  if gh workflow run docs.yml --repo "$PUBLIC_SLUG" --ref main >/dev/null 2>&1; then
+    say "asked $PUBLIC_SLUG to rebuild the documentation site"
+  else
+    printf '  \033[33m!\033[0m could not trigger the docs workflow on %s; run: gh workflow run docs.yml --repo %s\n' "$PUBLIC_SLUG" "$PUBLIC_SLUG"
+  fi
+fi
 echo
 echo "Record this in the release notes:  dev ${DEV_SHA}"

@@ -66,8 +66,9 @@ def test_agent_list_runs() -> None:
 
 
 def test_stub_commands_emit_v1_message() -> None:
+    """``doctor`` is real now (see test_doctor.py); ``offboard`` is still a stub."""
     runner = CliRunner()
-    result = runner.invoke(cli, ["doctor"])
+    result = runner.invoke(cli, ["offboard", "--member", "@member_a"])
     assert result.exit_code == 0
     assert "not yet implemented" in result.output
 

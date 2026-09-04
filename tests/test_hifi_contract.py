@@ -57,7 +57,7 @@ def world(monkeypatch, tmp_path):
         "the_pi": (
             "lab: hallett\n"
             "contact:\n"
-            "  email: michael.hallett@example.edu\n"
+            "  email: the_pi@example.edu\n"
             "  orcid: 0000-0001-6738-6786\n"
             "location:\n"
             "  office: MSB-360\n"
@@ -326,7 +326,7 @@ def test_pi_identity_reads_only_the_pi_own_profile(world):
     """The PI block shows the PI's *own* frontmatter (the_pi set email + orcid
     + office in the fixture); nothing comes from a hardcoded default."""
     resp = snapshot.build_response("allie", today=_dt.date(2026, 5, 8))
-    assert resp.pi.contact.email == "michael.hallett@example.edu"
+    assert resp.pi.contact.email == "the_pi@example.edu"
     assert resp.pi.contact.orcid == "0000-0001-6738-6786"
     assert resp.pi.location.office == "MSB-360"
 

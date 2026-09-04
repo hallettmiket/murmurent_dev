@@ -47,6 +47,36 @@ forces it.
 Do **not** run `scripts/bootstrap.sh` for development: it clones the *public*
 repo, which has no history and no tests.
 
+### Upgrading a development clone
+
+```bash
+cd ~/repos/murmurent_dev && git pull
+uv tool install --python 3.12 --reinstall -e .   # only needed when pyproject.toml changed
+bash scripts/setup.sh                             # new agents, rules, skills; removes links to retired ones
+murmurent doctor
+murmurent repo upgrade --all
+```
+
+Run the reinstall through `uv`, or through the interpreter murmurent actually
+runs under (`murmurent doctor` prints it). The `pip` on your PATH is often a
+different Python, a conda `base` for instance, and then the reinstall either
+lands in the wrong interpreter or stops with
+`Package 'murmurent' requires a different Python`.
+
+**Clones made before 2026-09-01** point their `origin` at the release
+repository, which was rewritten to one commit per release when the two repos
+were split. `git pull` in such a clone fails with unrelated histories. The
+doctor's `clone` check detects this (full history, release remote) and prints
+the fix:
+
+```bash
+git remote set-url origin git@github.com:hallettmiket/murmurent_dev.git
+git pull
+```
+
+Keep the directory where it is. `~/.claude/` and every ready repo symlink into
+it by absolute path, and an editable install finds the commons at any path.
+
 ### Deployment-specific rules: `rules/local/`
 
 `rules/` holds the rules that are true for every centre and ship publicly.

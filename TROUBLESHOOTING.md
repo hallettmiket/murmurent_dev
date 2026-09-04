@@ -12,6 +12,37 @@ uv run murmurent <args>
 uv pip install -e ~/repos/murmurent
 ```
 
+## `Package 'murmurent' requires a different Python`
+
+`pip install -e .` was run with a `pip` that belongs to an older Python than the
+one murmurent runs under (a conda `base` at 3.11 while murmurent lives in a
+3.12+ environment, for example). `murmurent doctor` shows which interpreter
+runs murmurent and warns when PATH puts another one first. Reinstall through
+uv, which uses its own interpreter:
+
+```bash
+uv tool install --python 3.12 --reinstall -e ~/repos/murmurent
+```
+
+or through the interpreter the doctor names:
+
+```bash
+<that-python> -m pip install -e ~/repos/murmurent
+```
+
+## `git pull` in `~/repos/murmurent` fails with unrelated histories
+
+The clone has full development history but its `origin` is the release
+repository, which carries one commit per release. Clones made before the
+two repositories were split (2026-09-01) are in this state. `murmurent doctor`
+reports it under `clone`; the fix is to point the clone at the development
+repository:
+
+```bash
+git -C ~/repos/murmurent remote set-url origin git@github.com:hallettmiket/murmurent_dev.git
+git -C ~/repos/murmurent pull
+```
+
 ## Hooks don't fire in Claude Code
 
 1. Did you run `murmurent install --hooks`? Check `~/.claude/settings.json` —

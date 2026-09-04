@@ -17,6 +17,49 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 
 ## [Unreleased]
 
+## [2026.9.7] — 2026-09-04
+
+### Fixed
+- **The author email in README was still the placeholder on the release
+  repository.** The development repository had it right since 2026.9.6, and no
+  release had gone out since, so the public page never changed. This release
+  carries it, and the test fixture that used a real name with the placeholder
+  domain now uses `@the_pi`.
+- **README links go to the documentation website**
+  (<https://hallettmiket.github.io/murmurent/>) instead of to the raw
+  Markdown under `docs/` on GitHub. The public site itself had never built: its
+  strict MkDocs build failed on 2026-09-01 over relative `agents/` links that
+  were fixed in development on 2026-09-02 and ship here for the first time.
+  `release/make_release.sh` now asks the public repository to rebuild the docs
+  after every push, since a squashed release commit does not reliably trigger
+  the path-filtered workflow on its own.
+
+### Added
+- **`murmurent doctor` is real.** It checks the Python version, whether the
+  `pip` and `python` on PATH belong to the interpreter murmurent runs under,
+  the agent/rule/skill links in `~/.claude/` (dangling ones included), the
+  registered hooks and the interpreter they call, and whether a clone's
+  `origin` can still `git pull`. Each failure prints the one command that
+  fixes it. Every check corresponds to a way a real install went wrong
+  silently: a `pip install -e .` from a conda `base` shell refused with
+  "requires a different Python"; a development clone left pointing at the
+  release repository after the split; a symlink to an agent that had left the
+  commons.
+- **Initializing a directory is documented from the status check down.**
+  README, `docs/setup.md` and `docs/ready_vs_projects.md` now open with
+  `murmurent repo status` and a verdict table (plain folder, plain clone,
+  ready-but-old, ready), so nothing assumes the directory is or is not already
+  ready. README and `docs/setup.md` gain an **Upgrading** section;
+  `DEVELOPING.md` gains one for a development clone.
+
+### Changed
+- `murmurent setup` and `scripts/setup.sh` remove symlinks in `~/.claude/`
+  that point into the commons at a file that no longer exists (an agent
+  retired from the commons). Links into a personal vault or anywhere else are
+  left as they are.
+- `murmurent repo adopt` on a folder without `.git/` now says to run
+  `git init` first, instead of only reporting that it is not a working tree.
+
 ## [2026.9.6] — 2026-09-04
 
 ### Added

@@ -88,9 +88,14 @@ def onboard_cmd(group: str, profile: str) -> None:
     _stub()
 
 
-@cli.command("doctor", help="Verify the local install is healthy.")
+@cli.command(
+    "doctor",
+    help="Check the local install (Python, PATH, commons links, hooks, clone remote) "
+         "and print the one command that fixes each problem found. Exit 1 if anything failed.",
+)
 def doctor_cmd() -> None:
-    _stub()
+    from .commands import doctor_cmd as _doctor
+    raise SystemExit(_doctor.cmd_doctor())
 
 
 @cli.command("offboard", help="PI-only mirror of onboard.")
