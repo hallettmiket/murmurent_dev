@@ -17,6 +17,28 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 
 ## [Unreleased]
 
+## [2026.9.6] — 2026-09-04
+
+### Added
+- **The public choreography index is published**, which was the third piece of
+  #136 and was waiting on a choreography having a public release. It lives at
+  `choreographies.tsv` in `murmurent_public` and carries **locations only**:
+  one `name<TAB>git_url` row, no titles or summaries, because everything a
+  reader is shown is read from the choreography's own `.murmurent.yaml` and a
+  second copy would drift. First entry: `inhibition`
+  ([tt8804/inhibition_public](https://github.com/tt8804/inhibition_public)).
+- **`murmurent choreography install <name>`** now resolves a published
+  choreography's name through that index. A bare name used to be refused
+  outright, which left `list` showing things that could not then be installed
+  the way they were named.
+
+### Changed
+- Every failure to read the index now names the URL route, not only the 404
+  case. Offline, or inside one lab with a choreography that was never
+  published, the index is not needed and should not be in the way.
+- An index row with a name but no URL is dropped rather than listed, so a
+  half-filled row can never be offered as something to install.
+
 ## [2026.9.5] — 2026-09-02
 
 ### Added

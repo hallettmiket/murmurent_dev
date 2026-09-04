@@ -2199,7 +2199,7 @@ def choreography_group() -> None:
 
 @choreography_group.command(
     "install",
-    help="Clone a choreography from a git URL and make it murmurent-ready.")
+    help="Clone a choreography by name or git URL and make it murmurent-ready.")
 @click.argument("source")
 @click.option("--dest", default=None, type=click.Path(),
               help="Where to clone it (default: <repos root>/<repo name>).")
@@ -2207,11 +2207,16 @@ def choreography_group() -> None:
 @click.option("--lab", default="", help="Lab to adopt it under.")
 @click.option("--no-adopt", "no_adopt", is_flag=True,
               help="Clone and describe it, but do not make it murmurent-ready.")
+@click.option("--index-url", "index_url", default=None,
+              help="Override the index location (mostly for tests).")
 def choreography_install(source: str, dest: str | None, branch: str,
-                         lab: str, no_adopt: bool) -> None:
+                         lab: str, no_adopt: bool,
+                         index_url: str | None) -> None:
+    """SOURCE is a published choreography's name, or any git URL."""
     from .commands import choreography_install_cmd as _ci
+    kwargs = {"index_url": index_url} if index_url else {}
     raise SystemExit(_ci.cmd_install(source=source, dest=dest, branch=branch,
-                                     lab=lab, adopt=not no_adopt))
+                                     lab=lab, adopt=not no_adopt, **kwargs))
 
 
 @choreography_group.command(

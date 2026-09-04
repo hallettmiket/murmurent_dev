@@ -12,6 +12,11 @@ existing ``core.adopt.adopt_clone`` path rather than re-implementing readiness.
 Everything shown to the user comes from the choreography's own
 ``.murmurent.yaml``, never from the index, so a description cannot drift away
 from the repo it describes.
+
+The index is now published, so ``install`` also accepts a bare name and looks
+the location up. A git URL still works and still needs no index: the index is a
+convenience for finding a published choreography, never a gatekeeper standing
+between someone and a repository they can already name.
 """
 
 from __future__ import annotations
@@ -35,6 +40,77 @@ INDEX_URL = (
     "https://raw.githubusercontent.com/hallettmiket/murmurent_public/main/"
     "choreographies.tsv"
 )
+
+
+#: Appended to every index failure: the index is a convenience, and the route
+#: that does not need it is always available.
+_URL_ROUTE = (
+    "\nYou can install from a repository URL instead, which needs no index:\n"
+    "  murmurent choreography install https://github.com/<owner>/<repo>.git"
+)
+
+
+class IndexUnavailable(RuntimeError):
+    """The index could not be read. The message is meant for a person."""
+
+
+def _fetch_index(index_url: str, timeout: float) -> list[tuple[str, str]]:
+    """Return the index's ``(name, url)`` rows.
+
+    Locations only, by design: see this module's header. A row with no URL is
+    dropped rather than reported, so a half-filled row cannot be installed.
+    """
+    import urllib.error
+    import urllib.request
+
+    try:
+        with urllib.request.urlopen(index_url, timeout=timeout) as fh:  # noqa: S310
+            text = fh.read().decode("utf-8")
+    except urllib.error.HTTPError as exc:
+        if exc.code == 404:
+            raise IndexUnavailable(
+                f"there is no choreography index at\n  {index_url}{_URL_ROUTE}"
+            ) from exc
+        raise IndexUnavailable(f"could not read the index ({exc}).{_URL_ROUTE}") from exc
+    except (urllib.error.URLError, TimeoutError) as exc:
+        # Offline, or the hub is down. Either way the URL route still works and
+        # needs nothing from the network but the repository itself, so say so
+        # rather than leaving someone stuck behind a directory they do not need.
+        raise IndexUnavailable(f"could not reach the index ({exc}).{_URL_ROUTE}") from exc
+
+    rows: list[tuple[str, str]] = []
+    for line in text.splitlines():
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        parts = line.split("\t")
+        name = parts[0].strip()
+        url = parts[1].strip() if len(parts) > 1 else ""
+        if name and url:
+            rows.append((name, url))
+    return rows
+
+
+def _resolve_name(name: str, *, index_url: str, timeout: float) -> str:
+    """Turn a published choreography's name into its git URL.
+
+    A name that is not in the index is refused with the names that are, rather
+    than guessed at: installing the wrong repository because its name was close
+    is worse than being told to look at the list.
+    """
+    rows = _fetch_index(index_url, timeout)
+    for known, url in rows:
+        if known == name:
+            return url
+    if not rows:
+        raise IndexUnavailable(
+            f"the index at {index_url} lists no choreographies, so '{name}' "
+            f"cannot be resolved.{_URL_ROUTE}"
+        )
+    names = " ".join(n for n, _ in rows)
+    raise IndexUnavailable(
+        f"'{name}' is not in the public index. Published: {names}\n"
+        "Or pass the repository URL directly."
+    )
 
 
 def _render(info: ChoreographyInfo, *, indent: str = "  ") -> None:
@@ -63,17 +139,21 @@ def _render(info: ChoreographyInfo, *, indent: str = "  ") -> None:
 
 
 def cmd_install(*, source: str, dest: str | None, branch: str,
-                lab: str, adopt: bool) -> int:
-    """Clone a choreography and make it murmurent-ready."""
+                lab: str, adopt: bool, index_url: str = INDEX_URL,
+                timeout: float = 10.0) -> int:
+    """Clone a choreography and make it murmurent-ready.
+
+    ``source`` is either a git URL or the name of a published choreography,
+    which is looked up in the public index.
+    """
     if "/" not in source and ":" not in source:
-        click.echo(
-            f"'{source}' is not a git URL.\n"
-            "Installing by name needs the public index, which is not published "
-            "yet (issue #136). Pass the repository URL instead, e.g.\n"
-            "  murmurent choreography install https://github.com/<owner>/<repo>.git",
-            err=True,
-        )
-        return 2
+        try:
+            url = _resolve_name(source, index_url=index_url, timeout=timeout)
+        except IndexUnavailable as exc:
+            click.echo(f"x {exc}", err=True)
+            return 2
+        click.echo(f"+ {source} -> {url} (from the public index)")
+        source = url
 
     try:
         clone = clone_choreography(source, dest=Path(dest) if dest else None,
@@ -129,44 +209,25 @@ def cmd_install(*, source: str, dest: str | None, branch: str,
 def cmd_list(*, index_url: str = INDEX_URL, timeout: float = 10.0) -> int:
     """List choreographies from the public index.
 
-    Reads each repo's own metadata, so nothing here can contradict the repo.
+    Names and locations only. The description of each one is read from its own
+    repository at install time, so nothing printed here can contradict it.
     """
-    import urllib.error
-    import urllib.request
-
     try:
-        with urllib.request.urlopen(index_url, timeout=timeout) as fh:  # noqa: S310
-            text = fh.read().decode("utf-8")
-    except urllib.error.HTTPError as exc:
-        if exc.code == 404:
-            click.echo(
-                "No public choreography index yet (issue #136).\n"
-                "Install directly from a repository URL:\n"
-                "  murmurent choreography install https://github.com/<owner>/<repo>.git"
-            )
-            return 0
-        click.echo(f"x could not read the index ({exc}).", err=True)
-        return 1
-    except (urllib.error.URLError, TimeoutError) as exc:
-        click.echo(f"x could not reach the index ({exc}).", err=True)
+        rows = _fetch_index(index_url, timeout)
+    except IndexUnavailable as exc:
+        click.echo(f"x {exc}", err=True)
         return 1
 
-    rows = [
-        line.split("\t")
-        for line in text.splitlines()
-        if line.strip() and not line.lstrip().startswith("#")
-    ]
     if not rows:
         click.echo("The index is empty.")
         return 0
 
     click.echo(f"{len(rows)} choreograph{'y' if len(rows) == 1 else 'ies'}:\n")
-    for row in rows:
-        name = row[0].strip()
-        url = row[1].strip() if len(row) > 1 else ""
+    for name, url in rows:
         click.echo(f"  {name}\n    {url}")
     click.echo(
-        "\nDescriptions come from each repository's own .murmurent.yaml.\n"
-        "Install one with:  murmurent choreography install <url>"
+        "\nDescriptions come from each repository's own .murmurent.yaml, read "
+        "when you install.\nInstall one with:  murmurent choreography install "
+        f"{rows[0][0]}"
     )
     return 0

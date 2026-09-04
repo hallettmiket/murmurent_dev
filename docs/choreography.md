@@ -10,19 +10,37 @@ producing what artefacts. A choreography runs in one of two modes.
 
 ## Getting a choreography
 
-A choreography lives in its own repository. To install one you need its URL:
+A choreography lives in its own repository. Published ones are in a public
+index, so you can find one by name:
+
+```bash
+murmurent choreography list                  # what is published
+murmurent choreography install inhibition    # by name, via the index
+```
+
+A git URL works too, and needs no index at all:
 
 ```bash
 murmurent choreography install https://github.com/<owner>/<repo>.git
 ```
 
-That clones it under your repos root, prints what the choreography says about
-itself, tells you whether any agent it needs is missing from your commons, and
-makes the clone murmurent-ready. Add `--no-adopt` to look before committing to
-it.
+Either way it clones under your repos root, prints what the choreography says
+about itself, tells you whether any agent it needs is missing from your commons,
+and makes the clone murmurent-ready. Add `--no-adopt` to look before committing
+to it.
 
-`murmurent choreography list` reads a public index of published choreographies.
-The index is not published yet, so for now install from a URL.
+**The index carries locations only** ([`choreographies.tsv`][index] in the
+public hub: one `name<TAB>git_url` row per choreography). It holds no titles,
+summaries or counts, because everything you are shown is read from the
+choreography's own `.murmurent.yaml` at install time and a second copy here
+would drift. The index is a convenience for *finding* one, never a gate in
+front of it: every failure to read it says so and names the URL route, so being
+offline, or working inside one lab on a choreography that was never published,
+costs nothing.
+
+To publish yours, declare it (below), then open a pull request adding one row.
+
+[index]: https://github.com/hallettmiket/murmurent_public/blob/main/choreographies.tsv
 
 **Data is never included.** A choreography repository carries code, decision
 records and documentation. Its data lives under the centre's governed data root

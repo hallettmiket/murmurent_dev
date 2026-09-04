@@ -141,3 +141,75 @@ def test_missing_agents_are_reported_not_installed(tmp_path, monkeypatch):
 
     info = cr.ChoreographyInfo(name="x", agents=["blacksmith", "adversary", "judge"])
     assert cr.missing_agents(info) == ["adversary"]
+
+
+# ---------------------------------------------------------------------------
+# the public index (#136, third piece): locations only, and install-by-name
+# ---------------------------------------------------------------------------
+
+INDEX = """\
+# comments and blank lines are skipped
+
+inhibition\thttps://github.com/tt8804/inhibition_public.git
+half_a_row
+"""
+
+
+def _index_url(tmp_path, text=INDEX):
+    p = tmp_path / "choreographies.tsv"
+    p.write_text(text, encoding="utf-8")
+    return p.as_uri()
+
+
+def test_index_rows_are_name_and_url(tmp_path):
+    from murmurent.commands import choreography_install_cmd as ci
+
+    rows = ci._fetch_index(_index_url(tmp_path), 5.0)
+    assert rows == [("inhibition",
+                     "https://github.com/tt8804/inhibition_public.git")]
+
+
+def test_a_row_with_no_url_is_dropped_not_offered(tmp_path):
+    """A half-filled row must not become something the user can try to install."""
+    from murmurent.commands import choreography_install_cmd as ci
+
+    with pytest.raises(ci.IndexUnavailable, match="not in the public index"):
+        ci._resolve_name("half_a_row", index_url=_index_url(tmp_path),
+                         timeout=5.0)
+
+
+def test_install_by_name_resolves_through_the_index(tmp_path):
+    from murmurent.commands import choreography_install_cmd as ci
+
+    url = ci._resolve_name("inhibition", index_url=_index_url(tmp_path),
+                           timeout=5.0)
+    assert url == "https://github.com/tt8804/inhibition_public.git"
+
+
+def test_an_unknown_name_lists_the_known_ones_rather_than_guessing(tmp_path):
+    """Installing a repo because its name was close is worse than being told."""
+    from murmurent.commands import choreography_install_cmd as ci
+
+    with pytest.raises(ci.IndexUnavailable, match="Published: inhibition"):
+        ci._resolve_name("inhibiton", index_url=_index_url(tmp_path),
+                         timeout=5.0)
+
+
+def test_a_missing_index_still_points_at_the_url_route(tmp_path):
+    from murmurent.commands import choreography_install_cmd as ci
+
+    missing = (tmp_path / "nope.tsv").as_uri()
+    with pytest.raises(ci.IndexUnavailable, match="repository URL"):
+        ci._fetch_index(missing, 5.0)
+
+
+def test_a_git_url_never_touches_the_index(tmp_path):
+    """The index is a convenience for finding one, not a gate in front of it."""
+    from murmurent.commands import choreography_install_cmd as ci
+
+    src = _git_repo(tmp_path / "src", {cr.MARKER: MARKER})
+    rc = ci.cmd_install(source=str(src), dest=str(tmp_path / "out"), branch="",
+                        lab="", adopt=False,
+                        index_url="http://127.0.0.1:1/unreachable.tsv")
+    assert rc == 0
+    assert (tmp_path / "out" / cr.MARKER).is_file()
