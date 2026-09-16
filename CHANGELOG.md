@@ -17,6 +17,22 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 
 ## [Unreleased]
 
+### Changed
+- **The development README is rewritten for its actual readers** — biomedical
+  scientists, not software engineers. The previous version stated true things
+  with no context and no gloss ("`setup.sh` symlinks rather than copies…", "how
+  to confirm you are reading this clone's commons and not a packaged copy"), and
+  used headings that were engineer shorthand ("How a change gets in", "Before
+  you push", "Cutting a release"). Sections are now named as the reader's own
+  question and explain why before what: *I changed something. How do I make it
+  part of Murmurent?*, *Publishing a new version for everyone to download*,
+  *Which README to edit*. Every Murmurent-specific term — the commons, the
+  publishable-files list, a branch, a pull request, a test — gets a
+  one-sentence definition where it first appears.
+  Removed: *Exercising Murmurent without real people*, which answered a question
+  nobody asked, and the test-suite pass/fail statistics from one machine, which
+  no reader could act on.
+
 ### Fixed
 - **`repo adopt` and `repo upgrade` now resolve the commons the way the rest of
   the CLI does** (`core.commons.commons_root()` instead of the hardcoded
