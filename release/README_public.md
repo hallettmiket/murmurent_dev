@@ -95,26 +95,38 @@ uv tool install --python 3.12 --reinstall -e .
 murmurent install
 ```
 
-Run `murmurent install` **bare**, as above. Bare, it does both halves of the
-wiring: links agents, rules and skills into `~/.claude/` (so a new agent is
-picked up) and then registers the hooks and MCP servers. `murmurent install
---hooks` deliberately does only the second, so it is the wrong command after an
-upgrade that added an agent. `murmurent setup` is the first half on its own.
+Run `murmurent install` **bare**, as above. Bare, it does the whole job: links
+agents, rules and skills into `~/.claude/`, registers the hooks and MCP servers,
+and re-links every Murmurent-ready directory on the machine. `murmurent install
+--hooks` deliberately does only the hooks, so it is the wrong command after an
+upgrade. `murmurent setup` is the `~/.claude/` step on its own.
 
-**Half two — your ready repositories**, and a check that half one landed:
+**Half two happens by itself.** `murmurent install` finishes by re-linking
+every Murmurent-ready directory on the machine, so the upgrade reaches the
+repositories you actually work in rather than stopping at `~/.claude/`. Then:
 
 ```bash
 murmurent doctor                 # confirms the upgrade landed
-murmurent repo upgrade --all     # brings every Murmurent-ready directory up to the new release
 ```
 
-`murmurent repo upgrade --all` walks every ready repository under `~/repos/`,
-migrates its marker, re-links its agents and re-stamps the version it was
-bootstrapped by. Run it after every upgrade — it is idempotent, so running it
-when nothing changed costs a second and does nothing. For one repository, name
-it: `murmurent repo upgrade ~/repos/<directory>`. Add `--all-agents` to pick up
-agents that did not exist when you adopted it; without that flag, the
-repository keeps exactly the agents it already had.
+You can still run it yourself — `murmurent repo upgrade --all`, or
+`murmurent repo upgrade ~/repos/<directory>` for one. It is idempotent, so
+running it when nothing changed costs a second and does nothing.
+
+**One thing an upgrade deliberately does not do: add new agents to your
+repositories.** If a release introduces an agent, your existing repositories
+keep exactly the roster they already had, because which agents a repository
+carries is your choice and not something an upgrade should make for you. You
+find out about the new one the next time you open Claude Code in that
+repository, which tells you:
+
+```
+- 2 commons agent(s) are not linked into this repo: teacher, lawyer.
+- fix: murmurent repo upgrade /home/you/repos/x1 --all-agents
+```
+
+Run that when you want them, and the notice stops. It does not appear when
+your repository is current, so it means something when it does.
 
 **What needs no command at all.** Agent, rule and skill *text* reaches you the
 moment it changes, because `~/.claude/` and each ready repository hold
@@ -128,9 +140,10 @@ So after `git pull` on a clone, or `uv tool upgrade` from PyPI:
 | What changed upstream | What you run |
 |---|---|
 | the wording of an agent, rule or skill | nothing — it is already live |
-| a new agent, rule or skill was added | `murmurent install` (bare — not `--hooks`), then `murmurent repo upgrade --all --all-agents` |
+| a new agent, rule or skill was added | `murmurent install` (bare — not `--hooks`) wires it into `~/.claude/`; `murmurent repo upgrade --all --all-agents` opts your repositories in |
+| an agent was retired or renamed | `murmurent install` — it prunes the dangling link |
 | Python code, the CLI, the dashboard | `uv tool install --python 3.12 --reinstall -e .` (clone) or `uv tool upgrade murmurent` (PyPI) |
-| the version, or the `.murmurent.yaml` format | `murmurent repo upgrade --all` |
+| the version, or the `.murmurent.yaml` format | `murmurent install` covers it |
 | you are not sure | all of them, in the order above — each is idempotent |
 
 Use `uv` for the reinstall. It installs into the interpreter Murmurent already

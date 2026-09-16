@@ -56,35 +56,38 @@ forces it.
 Do **not** run `scripts/bootstrap.sh` for development: it clones the *public*
 repo, which has no history and no tests.
 
-### Two commons resolvers, and the one that is wrong
+### One commons, and how it is resolved
 
-There are two answers in the codebase to "where is the commons?", and they
-disagree on a machine that has both clones:
+`core.commons.commons_root()` is the single answer to "where is the commons?",
+and the rule it implements is **the clone you installed is the clone your repos
+follow**:
 
-| Resolver | Answer | Used by |
-|---|---|---|
-| `core.commons.commons_root()` | the clone you are running from, by content | `murmurent setup`, `install`, `doctor` |
-| `core.repo.murmurent_repo_root()` | `~/repos/murmurent`, or `$MURMURENT_REPO_ROOT` | `repo adopt`, `repo upgrade` |
+1. `$MURMURENT_COMMONS_ROOT`, an explicit override.
+2. The clone this package runs from, when installed `-e`. So a clone at
+   `~/repos/murmurent_dev` — which is where this file tells you to put one — is
+   found, not just the conventional path.
+3. `~/repos/murmurent`, **if it actually contains a commons**. Checked by
+   content, so an empty directory left by a failed clone cannot out-rank the
+   packaged copy and leave someone with no agents.
+4. The copy inside the installed wheel.
 
-So `murmurent doctor` can report, correctly, that it reads the commons from
-`~/repos/murmurent_dev`, while `murmurent repo adopt` symlinks that repo's
-`.claude/agents/` into `~/repos/murmurent` — the release clone. Your edit to an
-agent is then live in `~/.claude/agents/` and invisible in the adopted repo, and
-nothing says so. On a machine with no `~/repos/murmurent` at all, the links are
-skipped with a yellow row instead.
+A clone always beats the packaged copy, because editing an agent and seeing no
+effect is the worst failure this could have.
 
-Until the resolvers are reconciled, export the override when you adopt or
-upgrade anything:
+`repo adopt` and `repo upgrade` used to be the exception, resolving through
+`core.repo.murmurent_repo_root()` — hardcoded `~/repos/murmurent`. On a machine
+holding both clones the two disagreed, and the symptom was silent: `doctor`
+reported the commons coming from `murmurent_dev` while a repo adopted a moment
+earlier was linked into `~/repos/murmurent`, so an agent you edited here was
+live in `~/.claude/agents/` and absent from that repo. Fixed; the
+`$MURMURENT_REPO_ROOT` workaround that used to be necessary is not any more, and
+`tests/test_readiness_drift.py` fails if the two resolvers diverge again.
+
+To see which commons a repo follows, ask it:
 
 ```bash
-export MURMURENT_REPO_ROOT=~/repos/murmurent_dev
+murmurent repo status ~/repos/<repo>     # prints "follows commons <path>"
 ```
-
-Verify with `readlink ~/repos/<repo>/.claude/agents/adversary.md`, which should
-name this clone. **This is a defect, not a convention** — `repo adopt` should
-fall back to `commons_root()` rather than to a hardcoded sibling path. It is
-recorded here rather than fixed in passing because changing it moves where every
-adopted repo's links point, for everyone, and that deserves its own change.
 
 ### Upgrading a development clone
 

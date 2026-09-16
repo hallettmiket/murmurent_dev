@@ -17,6 +17,47 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 
 ## [Unreleased]
 
+### Fixed
+- **`repo adopt` and `repo upgrade` now resolve the commons the way the rest of
+  the CLI does** (`core.commons.commons_root()` instead of the hardcoded
+  `~/repos/murmurent` in `core.repo.murmurent_repo_root()`). On a machine
+  holding both a release clone and a development one the two disagreed, so
+  `murmurent doctor` truthfully reported reading the commons from
+  `murmurent_dev` while a repo adopted seconds earlier was linked into
+  `~/repos/murmurent`: an agent edited in the clone under development was live
+  in `~/.claude/agents/` and silently absent from the repo. The rule is now one
+  rule everywhere — *the clone you installed is the clone your repos follow* —
+  and the `$MURMURENT_REPO_ROOT` workaround is no longer needed.
+- **`murmurent repo status` prints which commons a repo follows**, and flags a
+  repo following a different one. Previously discoverable only by running
+  `readlink` on a symlink by hand.
+
+### Added
+- **A murmurent-ready repo now says when its wiring has fallen behind**, through
+  the existing `UserPromptSubmit` hook (`hooks/context_inject.py`), so it
+  appears the moment you start working rather than requiring you to go and ask.
+  It reports the two states that are both actionable and otherwise silent:
+  commons agents this repo has no link to (the shape a newly added agent takes,
+  since nothing retro-fits links), and links resolving into a different commons.
+  Keyed on the `.murmurent.yaml` marker rather than on a CHARTER, so it covers
+  every ready repo and not only project repos.
+  **Deliberately not reported:** a `bootstrap_version` that merely differs from
+  the running version. `repo_ready.needs_upgrade` is true after every release,
+  including one that changed nothing for the repo, so notifying on it would put
+  a line in front of the user on every prompt after every upgrade and teach them
+  to ignore the notice.
+- **Bare `murmurent install` now finishes by re-linking every murmurent-ready
+  repo on the machine**, so an upgrade reaches the repos people work in instead
+  of stopping at `~/.claude/`. `--hooks` is unchanged (hooks only). It re-links
+  the roster each repo already chose and does **not** add agents new in the
+  release: that changes what a repo is, and the readiness notice above plus
+  `repo upgrade --all-agents` makes it an opt-in.
+  The automatic pass is restricted to repos that already carry a marker. The
+  first run of it on a real machine stamped a marker and a `.vscode/` onto a
+  years-old repo whose only bootstrap was a legacy `CHARTER.md` — turning an
+  upgrade into an adoption and leaving untracked files in a repo whose owner had
+  asked for nothing. A hand-typed `repo upgrade --all` still migrates those.
+
 ### Added
 - **Both READMEs now cover making a directory Murmurent-ready and keeping it
   current**, which neither said completely. The ready-a-directory section states
