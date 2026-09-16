@@ -1,377 +1,220 @@
-# Murmurent
+# Murmurent — development repository
 
-Shared agentic-AI infrastructure for academic researchers, labs cores and research centers. 
-It lets research groups work independently, pool agents and data when collaboration helps, and
-accumulate institutional knowledge across every project. **Documentation: <https://hallettmiket.github.io/murmurent/>** (install,
-getting-started vignettes, the agents, labs and centres, the CLI manual).
-[`CLAUDE.md`](CLAUDE.md) is the architectural overview Claude Code itself loads.
+**You are in `murmurent_dev`.** This is where Murmurent is built: all history,
+every issue and pull request, the test suite, and the release machinery. It is
+not what users install.
 
-Murmurent can be used as a standalone agentic AI OS environment, as a means to integrate
-members of the same lab, or as a means of integrating labs and core facilities across
-a centre or University.
+| I want to… | Go to |
+|---|---|
+| **use** Murmurent | [`hallettmiket/murmurent`](https://github.com/hallettmiket/murmurent) — the release repo, or `uv tool install murmurent` |
+| **read** the docs | <https://hallettmiket.github.io/murmurent/> |
+| **report** a bug or ask for a feature | [issues here](https://github.com/hallettmiket/murmurent_dev/issues) — the release repo has issues turned off |
+| **work on** Murmurent | keep reading, then [`DEVELOPING.md`](DEVELOPING.md) |
 
-> **Stuck on any step below?** Once you've installed [Claude Code](https://claude.com/claude-code),
-> you can just *ask it*. Murmurent wires its own docs and CLI into Claude Code, so
-> "walk me through installing Murmurent", "did my install work?", or "how do I
-> issue a member card?" all work — Claude Code can run many of these steps for you.
+Murmurent is shared agentic-AI infrastructure for researchers, labs, cores and
+research centres: it lets groups work independently, pool agents and data when
+collaboration helps, and accumulate institutional knowledge across projects.
+[`CLAUDE.md`](CLAUDE.md) is the architectural overview Claude Code itself loads
+at the start of every session in this repo — read it first, because the agents
+you are editing are written against it.
 
-## [Everyone] Download Murmurent
-
-Two ways in. Both end up in the same place; pick one.
-
-### A. From PyPI (recommended)
-
-Nothing to clone, and you never pipe a script into your shell. If you don't
-have [uv](https://docs.astral.sh/uv/) yet, install it first — one line:
-
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh     # skip if you have uv
-```
-
-Then:
-
-```bash
-uv tool install murmurent
-murmurent install
-```
-
-If your shell can't find `murmurent` afterwards, close and reopen your terminal
-(uv puts it in `~/.local/bin`).
-
-### B. One command
-
-Only needs `git`. This one installs uv for you if it's missing:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/hallettmiket/murmurent/main/scripts/bootstrap.sh | bash
-```
-
-To read the installer before running it, clone the repo first and run
-`scripts/bootstrap.sh` from inside it.
-
-Either way you need **Python 3.12 or newer**; uv downloads one automatically if
-your system hasn't got it, so you don't need to install Python yourself.
-
-This installs the `murmurent` command, wires the shared agents/rules/skills into `~/.claude/`, and
-registers the data-governance hooks. On your first run it mints your **identity
-key** (your unique ID). Then set your personal info — `murmurent whoami` shows your
-handle + key.
-
-### Check the install, any time
-
-```bash
-murmurent doctor
-```
-
-It checks the Python version, that `pip` and `python` on your PATH belong to the
-same interpreter Murmurent runs under, the agent/rule/skill links in `~/.claude/`,
-the registered hooks, and (for a clone) that `git pull` will work. Every problem
-it finds comes with the one command that fixes it.
-
-### Upgrading
-
-Installed from PyPI:
-
-```bash
-uv tool upgrade murmurent
-murmurent install
-```
-
-Installed from a clone:
-
-```bash
-cd ~/repos/murmurent && git pull
-uv tool install --python 3.12 --reinstall -e .
-murmurent install
-```
-
-Then, either way:
-
-```bash
-murmurent doctor                 # confirms the upgrade landed
-murmurent repo upgrade --all     # brings every Murmurent-ready directory up to the new release
-```
-
-Use `uv` for the reinstall. It installs into the interpreter Murmurent already
-runs under. The `pip` on your PATH can belong to a different Python (a conda
-`base` environment, for example), and then it either installs into the wrong
-place or stops with `Package 'murmurent' requires a different Python`.
-
-
-## Two repositories: which one am I looking at?
+## The three repositories
 
 | | |
 |---|---|
-| [**`murmurent`**](https://github.com/hallettmiket/murmurent) | **Releases.** One commit per release, no development history. This is what you install, and what the instructions above clone. |
-| [**`murmurent_dev`**](https://github.com/hallettmiket/murmurent_dev) | **Development.** All history, issues, pull requests and design discussion. Has a `DEVELOPING.md` the release does not. |
-| [**`murmurent_public`**](https://github.com/hallettmiket/murmurent_public) | **The public directory.** The list of every institution running Murmurent and how to join it, and the **index of all published choreographies** ([`choreographies.tsv`](https://github.com/hallettmiket/murmurent_public/blob/main/choreographies.tsv)): the shared workflows you can install by name with `murmurent choreography list` and `murmurent choreography install <name>`. |
+| [**`murmurent_dev`**](https://github.com/hallettmiket/murmurent_dev) | **Development. You are here.** Full history, issues, PRs, `tests/`, `release/`, `DEVELOPING.md`, and this deployment's own `rules/local/`. |
+| [**`murmurent`**](https://github.com/hallettmiket/murmurent) | **Releases.** One squashed commit per release, no development history, issues disabled. Built from a tag here by [`release/make_release.sh`](release/make_release.sh) and published to PyPI from there. |
+| [**`murmurent_public`**](https://github.com/hallettmiket/murmurent_public) | **The public directory.** Every institution running Murmurent, how to join it, and the index of published choreographies. |
 
-The first two share this README, so the quickest way to tell them apart is the
-file list: if you can see `DEVELOPING.md` and a `tests/` directory, you are in
-`murmurent_dev`.
+Code flows one way — dev to release, and only at a release. **Nothing is ever
+committed directly to the release repo**, and nothing develops against it: it
+has no tests and no history to bisect.
 
-- **Using murmurent?** Install from either the PyPI or the one-command route
-  above; both give you the latest release.
-- **Reporting a bug or asking for a feature?**
-  [Open an issue on `murmurent_dev`](https://github.com/hallettmiket/murmurent_dev/issues).
-  The release repo has issues turned off, because the discussion belongs where
-  the work happens.
-- **Working on murmurent itself?** Clone `murmurent_dev` and read its
-  [`DEVELOPING.md`](https://github.com/hallettmiket/murmurent_dev/blob/main/DEVELOPING.md):
-  dev setup, what `rules/local/` is for, the pre-push checks, and how a release
-  is cut. **Do not** develop against the release repo — it has no tests and no
-  history.
+## Get set up
 
-
-## [Everyone] Set up your identity
+You need `git`, [Claude Code](https://claude.com/claude-code), and
+[uv](https://docs.astral.sh/uv/) (which fetches Python 3.12 for you if your
+system has none).
 
 ```bash
-murmurent init          # sets your handle, name, email, official handle, GitHub, Slack (choose member / PI / mayor)
+git clone git@github.com:hallettmiket/murmurent_dev.git ~/repos/murmurent_dev
+cd ~/repos/murmurent_dev
+uv tool install --python 3.12 -e .      # editable: your edits take effect at once
+bash scripts/setup.sh                   # symlink agents/ rules/ skills/ into ~/.claude/
+murmurent install --hooks               # register the hooks + MCP servers
+murmurent doctor                        # every problem it prints comes with its fix
 ```
 
-The `init` records who you are: your handle/name/email/official (institutional)
-handle/GitHub/Slack; everything else builds on it, whether or not you ever
-join a lab/core. 
-You have a choice to be either (i) a user (termed a 'member'), (ii) a PI who leads 
-a lab or core facility, or (iii) a mayor who runs a centre (which consists of multiple labs
-and cores). You have to specify one of these three options during the `init` procedure.
+`setup.sh` **symlinks** rather than copies, so editing an agent or a rule in
+this clone changes what every Claude Code session on this machine loads. That is
+the point, and also why a careless edit here is felt immediately.
 
-You're ready to run Murmurent locally. Several vignettes can help get you started
-[Getting started](https://hallettmiket.github.io/murmurent/getting_started/).
+Two things to know before you trust your first edit, both written up in
+[`DEVELOPING.md`](DEVELOPING.md): how to confirm you are reading this clone's
+commons and not a packaged copy, and why `rules/local/` exists. Do **not** run
+`scripts/bootstrap.sh` to develop — it clones the release repo.
 
+## Where things are
 
-## [Everyone] Initialize a directory for Murmurent
+| Path | What lives there |
+|---|---|
+| [`agents/`](agents/) | The 14 commons agents, one Markdown file each. The public release essentially *is* this directory. Each must lead its final reply with a ≤200-char verdict ([`rules/headline_first.md`](rules/headline_first.md)), and adding one means adding its row to that rule and to [`CLAUDE.md`](CLAUDE.md) in the same commit. |
+| [`rules/`](rules/) | The five hard rules auto-loaded into every session. `rules/local/` is this deployment's own and never ships. |
+| [`skills/`](skills/) | The six user-invocable slash commands (`SKILL.md` per directory). |
+| [`src/murmurent/`](src/murmurent/) | The Python package. `cli.py` is the entry point; `commands/` one module per CLI command group, `core/` the model and logic, `dashboard/` the FastAPI dashboard, `hooks/` the Claude Code hooks that enforce the data-governance rules, `mcp/` the MCP servers. |
+| [`scripts/`](scripts/) | `setup.sh`, `bootstrap.sh`, launchers, and the `seed_*.py` demo-data scripts. |
+| [`templates/`](templates/), [`instruments/`](instruments/) | Scaffolding written into new repos; instrument descriptors. |
+| [`tests/`](tests/) | 161 test modules, ~2350 tests. `tests/agent_eval/cases/` holds agent-behaviour cases. Withheld from the release. |
+| [`release/`](release/) | The release machinery: [`allowlist.yaml`](release/allowlist.yaml), [`check_allowlist.py`](release/check_allowlist.py), [`make_release.sh`](release/make_release.sh), and [`README_public.md`](release/README_public.md) — the user-facing README. Withheld from the release. |
+| [`docs/`](docs/) | The MkDocs site published at the URL above. |
 
-Murmurent works inside a **repository**: a directory tracked by git, kept under
-`~/repos/`. Making a directory **Murmurent-ready** wires the shared agents and
-rules into it, so Claude Code sessions opened there can use them. The same
-procedure covers a brand-new folder, a repository you have worked in for years,
-and one that an older Murmurent release set up. Start by asking, because the
-answer decides the step:
+## How a change gets in
+
+1. **An issue first**, for anything a user would notice. The templates are
+   under [`.github/ISSUE_TEMPLATE/`](.github/ISSUE_TEMPLATE/) (bug, feature,
+   smoke-test finding).
+2. **A branch**, named for what it does: `feat/…`, `fix/…`, `docs/…`, and
+   `fix/<issue-number>-<slug>` when it closes one. Never commit to `main`.
+3. **Write it, with a test.** Match the style of the code around you;
+   [`docs/style/code-style.md`](docs/style/code-style.md) and
+   [`docs/style/documentation.md`](docs/style/documentation.md) are the
+   written-down version (type hints, `pathlib`, script headers, `black` and
+   `isort` before committing).
+4. **Classify any file you add** in [`release/allowlist.yaml`](release/allowlist.yaml),
+   **in the same commit that adds it.** A path matching no rule stops the next
+   release on purpose: a path nobody classified is a decision nobody made.
+5. **Run the checks** (below) before you push.
+6. **Open the PR** against `main`:
+   ```bash
+   gh pr create --fill --base main
+   ```
+   Describe what changed and why, and say what you ran. If the change touches
+   shared code or data, the [`security_guard`](agents/security_guard.md) agent
+   is meant to see it; methodological changes go past the
+   [`adversary`](agents/adversary.md). Both run inside Claude Code — they are
+   not CI jobs.
+7. **Merge to `main`** once it is reviewed. `main` is what a release is cut
+   from, so it is expected to be releasable at any time.
+
+## Before you push
 
 ```bash
-murmurent repo status ~/repos/<directory>
+uv run --python 3.12 --extra dev pytest -q     # the suite
+python3 release/check_allowlist.py             # every tracked file classified
 ```
 
-| Verdict | What it means | Do this |
-|---|---|---|
-| `not a git repo` | a plain folder | `git -C ~/repos/<directory> init`, then the next row |
-| `plain clone` or `partial` | git, and Murmurent has never set it up | `murmurent repo adopt ~/repos/<directory>` |
-| `ready`, bootstrapped by an older version | ready, and newer agents are missing | `murmurent repo upgrade ~/repos/<directory> --all-agents` |
-| `ready`, current version | finished | open Claude Code in it |
-
-Adopting writes a `.murmurent.yaml` marker and a `.claude/agents/` folder of
-symlinks into the commons, and leaves every other file as it was. Commit both,
-so each clone of the repository is ready as well. `murmurent repo list` shows
-the verdict for every repository on the machine, and `murmurent repo upgrade
---all` upgrades all of them at once. Details, and how ready repositories are
-attached to a project: [Making a repo Murmurent-ready](https://hallettmiket.github.io/murmurent/ready_vs_projects/).
-
-
-## Federating individuals, groups and centres 
-
-Murmurent allows members to join labs or cores, and it allows labs/cores to join centres. 
-This is based on cryptographic identity cards that establish your identity and "right to belong".
-
-## [Members] If you are a member of a lab whose PI already uses murmurent
-
-You need a **membership ID** (a signed identity certificate) from your PI
-to include you in the lab or core. You need to be in the Slack workspace of your
-PI. You will also need the official name of your lab or core.
-
-1. Request your ID:
-   ```bash
-   murmurent enroll --group <your-lab> --out enroll.json
-   ```
-   Send the output file `enroll.json` to your PI —
-   DM it to them directly on Slack.
-2. The PI then runs `murmurent issue-member-card` against
-   your request. Murmurent will DM the signed bundle
-   back to you.
-3. Save what you received as a file (e.g. `bundle.json`). It looks like this
-   (trimmed):
-   ```json
-   {
-     "member_card": {
-       "payload": {"subject": {"handle": "@allie", "fingerprint": "SHA256:jo8Aqfe6In..."}, "group": "xia_lab"},
-       "signature": "..."
-     },
-     "pi_card": {
-       "payload": {"subject": {"handle": "@yxia266", "pubkey": "ed25519:Rgmuqeen5X3lW4pFV8GHVFafw0ozSxGk+uUeLC279Fw="}},
-       "signature": "..."
-     }
-   }
-   ```
-   The **trust root** is that `pubkey` value inside `pi_card` —
-   `ed25519:Rgmuqeen5X3lW4pFV8GHVFafw0ozSxGk+uUeLC279Fw=`. It's a short
-   string.
-   Confirm that trust-root value with your PI out-of-band
-   (in person or by phone, not the same Slack message).
-   You must pass it explicitly in the `import-card` command next:
-   ```bash
-   murmurent import-card bundle.json --trust-root ed25519:Rgmuqeen5X3lW4pFV8GHVFafw0ozSxGk+uUeLC279Fw=
-   ```
-   
-4. Confirm it worked — you don't need to keep the output:
-   ```bash
-   murmurent whoami        # now lists your group and role
-   ```
-   `import-card` stores the verified card locally, so from now on Murmurent
-   knows you're a member of the lab. 
-
-5. Clone your lab's governance repository. Your card proves *who you are*;
-   the roster of everyone else — and the lab's projects, compliance records,
-   and shared Oracle — lives in a separate private repository that every
-   member holds a read-only clone of. Ask your PI for its name, then:
-   ```bash
-   git clone git@github.com:<org>/murmurent_lab_mgmt_<lab>.git \
-       ~/repos/murmurent_lab_mgmt_<lab>
-   murmurent member list   # should now show the whole lab, not just you
-   ```
-   Without this clone, `murmurent member list` and the dashboard's members
-   panel have nothing to read and will tell you so. Keep it current with
-   `git pull` (or the dashboard's **update** button); the PI pushes roster
-   changes there. See [The lab-mgmt repo](https://hallettmiket.github.io/murmurent/lab_mgmt/).
-
-
-## [PIs] If you are a PI of a lab or core ...
-
-Once you have completed your `init`, you need to set up some infrastructure 
-for your members.
-
-1. Connect your lab's Slack. This lets member IDs travel by DM instead
-   of by hand:
-   ```bash
-   murmurent group-slack-setup <your-lab>
-   ```
-   Full details regarding creating the Slack app with security scopes, etc.:
-   [Group Slack setup](https://hallettmiket.github.io/murmurent/group_slack_setup/).
-2. Accept members by issuing them IDs. A member runs `murmurent enroll
-   --group <your-lab>` and gets instructions to send you the resulting
-   request (e.g. a Slack DM). Once you have it:
-   ```bash
-   murmurent issue-member-card <their-request> --group <your-lab>
-   ```
-   This automatically DMs the signed bundle back to the member — pass
-   `--dm <slack_user_id>` if you already know their Slack id, or `--no-dm`
-   to skip Slack and just print the bundle. The member finishes
-   with `murmurent import-card <bundle> --trust-root <your-trust-root>`.
-
-Full identity flow (enroll → issue → import → revoke): [Membership IDs and the trust chain](https://hallettmiket.github.io/murmurent/identity/).
-
-
-## [PIs] If you are a PI registering your lab or core with an existing centre
-
-If you want to join an existing Murmurent centre, you send the centre's mayor 
-an **encrypted join request**, and they send
-you back a signed **PI ID**. Now:
-
-1. Find your centre in the public **implementations directory** —
-   [`murmurent_public`](https://github.com/hallettmiket/murmurent_public) lists
-   every institution running Murmurent, the address to send join requests to, and
-   the public key your request is encrypted to. If your institution isn't listed,
-   it may not run Murmurent yet.
-2. Run the join script. It asks a few questions, encrypts your request to your
-   centre's key, and opens your email app ready to send:
-   ```sh
-   curl -fsSL -O https://raw.githubusercontent.com/hallettmiket/murmurent_public/main/join/murmurent-join.sh
-   sh murmurent-join.sh
-   ```
-   The request is encrypted to your centre's Mayor — only they can read it,
-   and nothing about you is posted publicly. Press **Send**. 
-3. Once the mayor approves, they send your **PI ID** back for you to import:
-   ```bash
-   murmurent import-card <bundle> --trust-root <centre-trust-root>
-   ```
-   Confirm the trust-root value with the mayor
-   out-of-band before you rely on it. 
-
-Once you hold your PI ID, you are your lab's certificate authority.
-
-
-
-## [Mayors] If you want to establish a new Murmurent centre at your institution as the Mayor...
-
-You'll need:
-
-- **[Claude Code](https://claude.com/claude-code)** — installed and logged in once (OAuth).
-- **[GitHub CLI `gh`](https://cli.github.com/)**, authenticated (`gh auth login`) —
-  for the centre's GitHub org/repos.
-- **[uv](https://docs.astral.sh/uv/)** — the installer adds it if missing.
-
-You bootstrap a new centre with 
-```bash
-murmurent centre-init
-```
-and become its founding registrar — see the details below.
-Only `--name` and `--institution` are required; everything else
-is optional and can be filled in later from the dashboard or with
-`murmurent centre-set`. A fully-worked example:
+Run pytest **through `uv`**, not through a bare `python3 -m pytest`. The
+`python3` on your PATH is often a conda `base` — it is below the 3.12 floor and
+has none of the runtime dependencies, so the suite collects with dozens of
+`ModuleNotFoundError`s that look like real breakage and are not. Targeted runs
+take the same prefix:
 
 ```bash
-murmurent centre-init \
-  --name "Example Bioconvergence Centre" \
-  --institution "Example University" \
-  --mayor @the_mayor \
-  --unique-name example \
-  --join-email murmurent-join@example.edu \
-  --slack-workspace T0EXAMPLE \
-  --github-org centre-example \
-  --public-hub github.com/hallettmiket/murmurent_public#example \
-  --server-host lab-server.example.edu \
-  --server-account murmurent \
-  --cc-install-path /opt/claude \
-  --mayor-root /mayor/example \
-  --obsidian-vault /mayor/obsidian \
-  --raw-root /data/example/raw \
-  --refined-root /data/example/refined
-murmurent centre-status      # confirms you are the founding registrar
+uv run --python 3.12 --extra dev pytest -q tests/test_release_hygiene.py
 ```
 
-Each parameter, with an example:
+Two of these tests exist to stop a specific class of mistake, so read their
+docstrings before you work around them:
+[`tests/test_release_hygiene.py`](tests/test_release_hygiene.py) fails if a
+shipping file names a private repo, a grant document or a Slack ID, and
+[`tests/test_packaged_commons.py`](tests/test_packaged_commons.py) guards the
+packaging that puts the commons inside the wheel.
 
-| Flag | What it is | Example |
-|---|---|---|
-| `--name` *(required)* | Display name of the centre | `"Example Bioconvergence Centre"` |
-| `--institution` *(required)* | Hosting institution | `"Example University"` |
-| `--mayor` | Your `@handle` (defaults to `$MURMURENT_USER`, then the OS user) | `@the_mayor` |
-| `--unique-name` | Short, institution-agnostic id — drives repo / Slack / group names | `example` |
-| `--join-email` | Public address PIs send join requests to (listed in the directory) | `murmurent-join@example.edu` |
-| `--slack-workspace` | Your Slack workspace / team id (the `T…` id) | `T0EXAMPLE` |
-| `--github-org` | The centre's GitHub org / dedicated account | `centre-example` |
-| `--public-hub` | Global onboarding hub + this centre's label | `github.com/hallettmiket/murmurent_public#example` |
-| `--server-host` | The always-online, ssh-gated murmurent server | `lab-server.example.edu` |
-| `--server-account` | SSH login account on that server | `murmurent` |
-| `--cc-install-path` | Where Claude Code lives on the server | `/opt/claude` |
-| `--mayor-root` | High-level mayor dir (mirrorable to GitHub) | `/mayor/example` |
-| `--obsidian-vault` | Centre-level Obsidian / markdown pool | `/mayor/obsidian` |
-| `--raw-root` | Centre `raw/` root on the data server | `/data/example/raw` |
-| `--refined-root` | Centre `refined/` root on the data server | `/data/example/refined` |
+A handful of tests are sensitive to the machine they run on rather than to the
+code: they pick up whatever `code` binary is on your PATH, your git identity, or
+a missing `age`. On an unmodified `main` in September 2026 this machine saw 4
+failed / 2315 passed / 38 skipped. **Record your own baseline on a clean `main`
+before assuming a failure is yours** — and when you do fix one of these, fix it
+by removing the environment dependency, not by skipping the test.
 
-`--data-server` is a legacy alias of `--server-host`. Add `--no-prompt` for
-scripted / server runs, and `--no-sentinel` when running under `sudo` or in CI.
+## Exercising Murmurent without real people
 
-### Make your centre joinable
+Most of what the CLI does is irreversible-looking (mints keys, writes
+`~/.murmurent/`, creates GitHub repos and Slack channels). Three ways to work
+on it safely:
 
-We cannot assume
-that prospective members already belong to the Centre's Slack workspace.
-The next steps are as follows:
+- **A scratch `HOME`**, which is how the release verification in
+  [`DEVELOPING.md`](DEVELOPING.md) works: `HOME=$(mktemp -d)` in front of the
+  command leaves your real `~/.claude/` and `~/.murmurent/` untouched.
+- **The [`/murmurent-reset`](skills/murmurent-reset/SKILL.md) skill**, which
+  tarballs `~/.murmurent` and then resets this machine to a first-run state, so
+  `centre-init` can be exercised again. It has a `--dry-run`.
+- **The seed scripts** — `scripts/seed_two_labs.py`, `seed_tutorial.py`,
+  `seed_fake_users.py` — which populate fake labs, members, projects and
+  certifications so the dashboard has something to show. Read the header of the
+  one you run first: they write into real paths (`~/repos/lab_mgmt`,
+  `~/.murmurent/lab_info/`) and `seed_two_labs.py` wipes what it reseeds.
 
-1. Encryption key for join requests. `centre-init` generates an `age` keypair
-   automatically so that PIs can encrypt their join requests to it; recreate with
-   `murmurent centre-age-keygen`.
-2. Root signing key (the identity CA). `murmurent centre-root-keygen` — signs PI
-   IDs + the revocation list. Back it up offline (see
-   [The centre root key](https://hallettmiket.github.io/murmurent/centre_root_key/)).
-3. List your centre in the implementations directory: `murmurent centre-hub-publish`
-   clones [`murmurent_public`](https://github.com/hallettmiket/murmurent_public),
-   writes your directory row, and publishes your signing key + revocation list
-   so members can verify IDs. It prints a `git push` for you to run.
-4. Set up Slack. Create a `murmurent-<unique-name>` workspace + bot token and
-   smoke-test with `murmurent centre-slack-smoke`. Guide:
-   [Centre Slack setup](https://hallettmiket.github.io/murmurent/slack_setup/).
+The member / PI / mayor onboarding flows themselves — `enroll`,
+`issue-member-card`, `import-card`, `centre-init` — are documented for the
+people who run them in
+[`release/README_public.md`](release/README_public.md) and on the
+[docs site](https://hallettmiket.github.io/murmurent/identity/). You need them
+to *test* the identity chain; you do not need to have joined a centre to
+develop here.
 
+## Cutting a release
 
-## Authors
+Full procedure, with the PyPI trusted-publishing setup and the manual
+pre-release checks: [`DEVELOPING.md`](DEVELOPING.md). In outline:
+
+1. Bump the CalVer version in `src/murmurent/__init__.py` — the single source of
+   truth ([`docs/versioning.md`](docs/versioning.md) says when to bump).
+2. Update [`CHANGELOG.md`](CHANGELOG.md).
+3. Update [`release/README_public.md`](release/README_public.md) if the release
+   changes anything a user does — **before** tagging, because the export reads
+   the README from the tag.
+4. Commit and tag here: `git tag -a v2026.9.9 -m "…" && git push origin v2026.9.9`.
+5. Export the release tree:
+   ```bash
+   bash release/make_release.sh v2026.9.9 https://github.com/hallettmiket/murmurent.git --dry-run
+   bash release/make_release.sh v2026.9.9 https://github.com/hallettmiket/murmurent.git
+   ```
+   It refuses to run unless the allowlist classifies every tracked file and no
+   shipping file names a deployment fact. It prints the **dev SHA** — put that
+   in the GitHub Release notes, because two repos means two tags for one version
+   and that line is the only thing tying a release back to the commit it came
+   from.
+6. Create the Release on the public repo. Publishing it triggers
+   [`.github/workflows/publish.yml`](.github/workflows/publish.yml) there, which
+   uploads to PyPI via trusted publishing.
+
+## The two READMEs
+
+This file is the development repository's landing page and **does not ship**.
+The user-facing README lives at
+[`release/README_public.md`](release/README_public.md) and `make_release.sh`
+copies it to `README.md` in the release tree — which also makes it the PyPI
+project page, via `readme = "README.md"` in
+[`pyproject.toml`](pyproject.toml).
+
+So: **install instructions, identity flows and centre setup are edited in
+`release/README_public.md`. Developer instructions are edited here.** Neither
+one is a copy of the other, and a README edited in the release repo is
+overwritten by the next release.
+
+## Documentation site
+
+[`docs/`](docs/) is built with MkDocs Material and published to GitHub Pages by
+[`.github/workflows/docs.yml`](.github/workflows/docs.yml) on any push to `main`
+that touches `docs/**` or `mkdocs.yml`. That workflow ships, so it runs in **both**
+repositories: this repo publishes a pre-release preview of the site, and the
+release repo publishes the site users read at
+<https://hallettmiket.github.io/murmurent/>. Build it locally before pushing doc
+changes — the workflow runs `--strict`, so one broken link fails it:
+
+```bash
+uv run --python 3.12 --extra docs mkdocs build --strict
+uv run --python 3.12 --extra docs mkdocs serve      # live preview
+```
+
+A page must be in the `nav:` of [`mkdocs.yml`](mkdocs.yml) or in its
+`exclude_docs:` list; keep `exclude_docs` in step with the withheld entries in
+the release allowlist.
+
+## Conduct, licence, authors
+
+By participating you agree to the [Code of Conduct](CODE_OF_CONDUCT.md).
+Murmurent is Apache-2.0 ([`LICENSE`](LICENSE)).
 
 Mike Hallett &mdash; michael.hallett@uwo.ca

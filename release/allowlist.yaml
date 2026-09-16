@@ -34,7 +34,9 @@ ship:
   - Open Dashboard.command
 
   # --- front matter ------------------------------------------------------
-  - README.md
+  # README.md is NOT here: the dev repo's README is for developers. The
+  # user-facing one is `release_readme` at the bottom of this file, copied
+  # into the release tree as README.md.
   - LICENSE                 # Apache-2.0, already in place
   - CHANGELOG.md
   - CODE_OF_CONDUCT.md
@@ -78,6 +80,8 @@ withhold:
   - tests/                        # PI 2026-09-01: not shipped
   - release/                      # the release tooling itself is a dev-repo concern
   - DEVELOPING.md                 # how to work on murmurent; meaningless in a release
+  - README.md                     # the DEV repo's landing page: repo map, PR flow, release
+                                  # steps. The release gets `release_readme` instead.
   - rules/local/                  # a centre's own rules: private repos, Slack IDs, local
                                   # conventions. setup.sh links these when present; a
                                   # public clone has no such directory and skips them.
@@ -114,6 +118,15 @@ resolved:
   - DECIDE-2  CLAUDE.md               -> ship       (2026-09-01, after genericising; see
               CLAUDE_md_audit.md. rules/manuscript.md and the deployment half of
               rules/slack.md moved to rules/local/, which is withheld.)
+
+# The user-facing README. `release/` is withheld as a subtree, so this file does
+# not ship at its own path; make_release.sh copies it into the release tree AS
+# README.md, which is also the PyPI project page (pyproject `readme =`).
+#
+# Two READMEs rather than one because the two repos have different readers. A
+# single shared README made the development repo's landing page a set of install
+# instructions for software you do not install from it.
+release_readme: release/README_public.md
 
 dangling:
   # Shipping files that cite a withheld path. Each leaves a broken reference in
