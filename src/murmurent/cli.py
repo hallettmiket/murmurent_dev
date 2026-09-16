@@ -63,17 +63,36 @@ def cli(ctx: click.Context) -> None:
 )
 @click.option("--no-backup", is_flag=True, help="Skip the .bak copy of settings.json.")
 def install_command(hooks: bool, settings_path: Path | None, no_backup: bool) -> None:
-    """Bare ``murmurent install`` is the whole install: wire the commons, then
-    register the hooks. It used to say "not yet implemented in v1", which left
-    the obvious command as a dead end and made a clone plus setup.sh the only
-    way in. ``--hooks`` still means hooks only, so existing callers and
-    scripts/bootstrap.sh are unaffected."""
+    """Bare ``murmurent install`` is the whole install: wire the commons,
+    register the hooks, then re-link every murmurent-ready repo on the machine.
+    It used to say "not yet implemented in v1", which left the obvious command
+    as a dead end and made a clone plus setup.sh the only way in. ``--hooks``
+    still means hooks only, so existing callers and scripts/bootstrap.sh are
+    unaffected.
+
+    The third step is what makes an UPGRADE complete rather than half-done.
+    Agent, rule and skill text reaches a ready repo by itself, because its
+    ``.claude/agents/`` holds symlinks; what does not is a marker whose schema
+    moved, or links into a commons that is no longer the installed one. Leaving
+    that to a command the user has to know about meant an upgrade silently
+    landed everywhere except the repos they actually work in.
+
+    It re-links the roster each repo already chose; it does NOT add agents that
+    are new in this release. Adding an agent to a repo changes what that repo
+    is, and an install should not make that choice on the user's behalf — the
+    readiness notice in ``hooks.context_inject`` tells them a new agent exists,
+    and ``repo upgrade --all-agents`` opts in.
+    """
     if not hooks:
         rc = setup_cmd.cmd_setup(show_next_step=False)
         if rc != 0:
             raise SystemExit(rc)
         click.echo()
     install_cmd.cmd_install(hooks=True, settings_path=settings_path, backup=not no_backup)
+    if not hooks:
+        from .commands import repo_cmd as _repo_cmd
+        _repo_cmd.cmd_upgrade(path=None, all_repos=True, add_agents_csv=None,
+                              all_agents=False, quiet=True, marker_only=True)
 
 
 @cli.command("setup", help="Wire the murmurent commons (agents, rules, skills) into ~/.claude/.")

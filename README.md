@@ -1,211 +1,400 @@
 # Murmurent — development repository
 
-**You are in `murmurent_dev`.** This is where Murmurent is built and contains the entire build  history,
- issues and pull requests, the test suite, and the release machinery. 
+This is where Murmurent is written. **If you want to *use* Murmurent, you're in
+the wrong place** — go to
+[hallettmiket/murmurent](https://github.com/hallettmiket/murmurent), which has
+the installation instructions, or read the
+[documentation](https://hallettmiket.github.io/murmurent/).
 
-| I want to… | Go to |
+Murmurent is shared AI infrastructure for research groups: a set of agents,
+rules and workflows that a lab, a core facility or a whole research centre can
+use in common, so that groups can work independently but pool their agents,
+their data and their accumulated knowledge when it helps.
+
+| I want to… | Where to go |
 |---|---|
-| **use** Murmurent | [`hallettmiket/murmurent`](https://github.com/hallettmiket/murmurent) — the release repo, or `uv tool install murmurent` |
-| **read** the docs | <https://hallettmiket.github.io/murmurent/> |
-| **report** a bug or ask for a feature | [issues here](https://github.com/hallettmiket/murmurent_dev/issues) — the release repo has issues turned off |
-| **work on** Murmurent | keep reading, then [`DEVELOPING.md`](DEVELOPING.md) |
+| install and use Murmurent | [hallettmiket/murmurent](https://github.com/hallettmiket/murmurent) |
+| read the documentation | <https://hallettmiket.github.io/murmurent/> |
+| report a problem, or ask for something new | [open an issue here](https://github.com/hallettmiket/murmurent_dev/issues) |
+| change how Murmurent works | keep reading |
 
-Murmurent is shared agentic-AI infrastructure for researchers, labs, cores and
-research centres: it lets groups work independently, pool agents and data when
-collaboration helps, and accumulate institutional knowledge across projects.
-[`CLAUDE.md`](CLAUDE.md) is the architectural overview Claude Code itself loads
-at the start of every session in this repo.
+Before changing anything, read [`CLAUDE.md`](CLAUDE.md) — the description of
+Murmurent that every Claude Code session loads automatically, and the shortest
+explanation of how the pieces fit together.
 
-## The three repositories
+## Why there are three repositories
 
-| | |
-|---|---|
-| [**`murmurent_dev`**](https://github.com/hallettmiket/murmurent_dev) | **Development. You are here.** Full history, issues, PRs, `tests/`, `release/`, `DEVELOPING.md`, and this deployment's own `rules/local/`. |
-| [**`murmurent`**](https://github.com/hallettmiket/murmurent) | **Releases.** One squashed commit per release, no development history, issues disabled. Built from a tag here by [`release/make_release.sh`](release/make_release.sh) and published to PyPI from there. |
-| [**`murmurent_public`**](https://github.com/hallettmiket/murmurent_public) | **The public directory.** Every institution running Murmurent, how to join it, and the index of published choreographies. |
+Murmurent is spread over three places on GitHub, which is worth understanding
+before you start, because it explains most of the procedures further down.
 
-Nothing is ever committed directly to the release repo.
+- **[`murmurent_dev`](https://github.com/hallettmiket/murmurent_dev) — this
+  one, and it is private.** All the development happens here: the full history
+  of every change, the discussion of problems and proposals, the automatic
+  tests, and one institution's own private settings.
+- **[`murmurent`](https://github.com/hallettmiket/murmurent) — the public
+  release.** This is what people download and install. It holds finished
+  versions only, with none of the history or discussion and none of the private
+  settings, and it is built from this repository whenever a new version is
+  published.
+- **[`murmurent_public`](https://github.com/hallettmiket/murmurent_public) — the
+  public directory.** A list of which institutions are running Murmurent and
+  how to ask to join one, plus an index of shared workflows anyone can install.
 
-## Get set up
+Changes only ever travel one way: they are made here, and they reach the public
+release when someone publishes a new version. Nothing is ever committed
+directly to the release repo.
 
-You need `git`, [Claude Code](https://claude.com/claude-code), and
-[uv](https://docs.astral.sh/uv/) (which fetches Python 3.12 for you if your
-system has none).
+## Getting set up
+
+You need [git](https://git-scm.com/),
+[Claude Code](https://claude.com/claude-code) and
+[uv](https://docs.astral.sh/uv/). You do not need to install Python: `uv`
+fetches the right version if your machine hasn't got it.
 
 ```bash
 git clone git@github.com:hallettmiket/murmurent_dev.git ~/repos/murmurent_dev
 cd ~/repos/murmurent_dev
-uv tool install --python 3.12 -e .      # editable: your edits take effect at once
-bash scripts/setup.sh                   # symlink agents/ rules/ skills/ into ~/.claude/
-murmurent install --hooks               # register the hooks + MCP servers
-murmurent doctor                        # every problem it prints comes with its fix
+uv tool install --python 3.12 -e .   # install Murmurent from this folder
+murmurent install                    # connect it to Claude Code
+murmurent doctor                     # check it worked
 ```
 
-`setup.sh` **symlinks** rather than copies, so editing an agent or a rule in
-this clone changes what every Claude Code session on this machine loads. 
+That's it. Murmurent now runs from this folder, so your next Claude Code
+session uses the agents in it, and any edit you make to an agent takes effect
+immediately with nothing to rerun.
 
-Two things to know before you trust your first edit, both written up in
-[`DEVELOPING.md`](DEVELOPING.md): how to confirm you are reading this clone's
-commons and not a packaged copy, and why `rules/local/` exists. Do **not** run
-`scripts/bootstrap.sh` to develop — it clones the release repo.
+`murmurent doctor` is the command to come back to whenever something looks
+wrong: it checks the whole installation and prints, for each problem it finds,
+the one command that fixes it.
 
-## Where things are
+One thing to avoid: don't install with `scripts/bootstrap.sh`. That installs
+the *public release*, so your changes here would have no effect on anything.
+[`DEVELOPING.md`](DEVELOPING.md) covers the more awkward situations, including
+what to do if you already had Murmurent installed a different way.
 
-| Path | What lives there |
+
+## Setting up one of your own project folders to use Murmurent
+
+Murmurent's agents live in one place — this folder. To use them while working
+in some *other* folder, say the one holding a research project, that folder has
+to be told where they are. Murmurent calls a folder that has been told
+**Murmurent-ready**, and you'll want it on your research projects as well as on
+any throwaway folder you're testing against.
+
+The same three commands cover every starting point — a folder you made a minute
+ago, a project with ten years of history in it, or one an older version of
+Murmurent set up. Nothing already in the folder is changed: your files, your
+history and your own settings are left exactly as they are. Ask Murmurent what
+it sees first, because the answer tells you which single command to run:
+
+```bash
+murmurent repo status ~/repos/<folder>
+```
+
+| If it says | Then run |
 |---|---|
-| [`agents/`](agents/) | The 14 commons agents, one Markdown file each. The public release essentially *is* this directory. Each must lead its final reply with a ≤200-char verdict ([`rules/headline_first.md`](rules/headline_first.md)), and adding one means adding its row to that rule and to [`CLAUDE.md`](CLAUDE.md) in the same commit. |
-| [`rules/`](rules/) | The five hard rules auto-loaded into every session. `rules/local/` is this deployment's own and never ships. |
-| [`skills/`](skills/) | The six user-invocable slash commands (`SKILL.md` per directory). |
-| [`src/murmurent/`](src/murmurent/) | The Python package. `cli.py` is the entry point; `commands/` one module per CLI command group, `core/` the model and logic, `dashboard/` the FastAPI dashboard, `hooks/` the Claude Code hooks that enforce the data-governance rules, `mcp/` the MCP servers. |
-| [`scripts/`](scripts/) | `setup.sh`, `bootstrap.sh`, launchers, and the `seed_*.py` demo-data scripts. |
-| [`templates/`](templates/), [`instruments/`](instruments/) | Scaffolding written into new repos; instrument descriptors. |
-| [`tests/`](tests/) | 161 test modules, ~2350 tests. `tests/agent_eval/cases/` holds agent-behaviour cases. Withheld from the release. |
-| [`release/`](release/) | The release machinery: [`allowlist.yaml`](release/allowlist.yaml), [`check_allowlist.py`](release/check_allowlist.py), [`make_release.sh`](release/make_release.sh), and [`README_public.md`](release/README_public.md) — the user-facing README. Withheld from the release. |
-| [`docs/`](docs/) | The MkDocs site published at the URL above. |
+| `✗ not a git repo` | `git -C ~/repos/<folder> init`, then read the next row |
+| `• clone` | `murmurent repo adopt ~/repos/<folder> --agents oracle,blacksmith` |
+| `± partial` | the same `adopt` command — it finishes a half-done setup |
+| `✓ ready`, older version | `murmurent repo upgrade ~/repos/<folder> --all-agents` |
+| `✓ ready`, current | nothing — open Claude Code in it |
 
-## How a change gets in
+Two things that surprise people:
 
-1. **An issue first**, for anything a user would notice. The templates are
-   under [`.github/ISSUE_TEMPLATE/`](.github/ISSUE_TEMPLATE/) (bug, feature,
-   smoke-test finding).
-2. **A branch**, named for what it does: `feat/…`, `fix/…`, `docs/…`, and
-   `fix/<issue-number>-<slug>` when it closes one. Never commit to `main`.
-3. **Write it, with a test.** Match the style of the code around you;
-   [`docs/style/code-style.md`](docs/style/code-style.md) and
-   [`docs/style/documentation.md`](docs/style/documentation.md) are the
-   written-down version (type hints, `pathlib`, script headers, `black` and
-   `isort` before committing).
-4. **Classify any file you add** in [`release/allowlist.yaml`](release/allowlist.yaml),
-   **in the same commit that adds it.** A path matching no rule stops the next
-   release on purpose: a path nobody classified is a decision nobody made.
-5. **Run the checks** (below) before you push.
-6. **Open the PR** against `main`:
+- **The folder has to be inside `~/repos/`.** Murmurent refuses anywhere else,
+  so that everything it has set up is in one predictable place.
+- **You have to name the agents you want.** `--agents oracle,blacksmith` gives
+  you those two. Leave the option off and the folder is set up with *no* agents
+  at all, which is only what you wanted if you meant it. To give a folder every
+  agent, run `murmurent repo upgrade ~/repos/<folder> --all-agents` afterwards.
+
+Being Murmurent-ready is only about wiring up the agents. It does not create a
+project, a charter or a Slack channel — that's a separate step, described in
+[the documentation](https://hallettmiket.github.io/murmurent/ready_vs_projects/).
+
+### If your edits to an agent don't seem to take effect
+
+Almost always this is one thing: your machine has more than one copy of
+Murmurent on it — this development folder and the public release, most likely —
+and the folder you're working in was wired up to the other copy.
+
+The rule is that **your project folders follow whichever copy of Murmurent you
+installed**. To see which copy a folder is using, ask it:
+
+```bash
+murmurent repo status ~/repos/<folder>
+```
+
+It prints a `follows commons` line naming the copy. If that isn't the folder you
+are editing agents in, the same output tells you the command that re-points it.
+(`commons` is Murmurent's word for the shared set of agents, rules and skills —
+the contents of this folder's [`agents/`](agents/), [`rules/`](rules/) and
+[`skills/`](skills/).)
+
+
+## Getting other people's changes
+
+Two commands. The first brings down what everyone else has done; the second
+applies it to your machine.
+
+```bash
+cd ~/repos/murmurent_dev
+git pull
+murmurent install
+```
+
+Run `murmurent install` with nothing after it, as above. On its own it does the
+whole job: it wires up any agents, rules or skills that are new, removes links
+to any that were deleted, re-registers Murmurent's Claude Code settings, and
+finally re-points every project folder on your machine that uses Murmurent. The
+version with `--hooks` on the end deliberately does only part of that, so it is
+the wrong one to use here.
+
+Two occasional extras:
+
+- If the pull changed `pyproject.toml` — the file listing the other software
+  Murmurent needs — also run
+  `uv tool install --python 3.12 --reinstall -e .`
+- If anything seems stale afterwards, run `murmurent doctor`. It says which
+  copy of Murmurent you're actually using and flags anything set up wrongly,
+  with the fix for each.
+
+**Most of the time you need none of this.** When someone rewords an agent or a
+rule, you have the new wording immediately, everywhere, with nothing run —
+including in all of your project folders. That's because those folders don't
+hold copies of the agents; they hold pointers to the single set in this folder,
+so there is only ever one version of an agent on your machine and it is always
+the current one.
+
+What that *doesn't* cover is an agent that is entirely new. Your project folders
+have no pointer to a file that didn't exist when they were set up, and nothing
+adds one behind your back — which agents a project uses is your decision, not
+something an update should make for you. So Murmurent tells you instead: the
+next time you work in that folder, your Claude Code session opens with a note
+like
+
+```
+- 2 commons agent(s) are not linked into this repo: teacher, lawyer.
+- fix: murmurent repo upgrade /home/you/repos/x1 --all-agents
+```
+
+Run that when you want them, and the note stops appearing. It shows up only
+when there's genuinely something missing, so it means something when it does.
+
+One historical note, in case you hit it: a copy of this folder cloned before
+September 2026 was pointed at the public repository rather than this one, and
+`git pull` fails in it with a complaint about unrelated histories. `murmurent
+doctor` recognises that exact situation and prints the one command that fixes
+it.
+
+
+## What is in this folder
+
+| Folder | What's in it |
+|---|---|
+| [`agents/`](agents/) | The 14 shared agents — Oracle, Bookworm, Adversary and the rest — one plain-English Markdown file each. This is the heart of Murmurent; an agent is defined by writing instructions for it, not by writing code. |
+| [`rules/`](rules/) | Five short documents that Claude Code loads into *every* session, covering things like where data may be written. `rules/local/` holds the settings belonging to one particular institution, and is never published. |
+| [`skills/`](skills/) | The slash commands, such as `/murmurent-push`. One folder each, containing a `SKILL.md`. |
+| [`src/murmurent/`](src/murmurent/) | The Python code behind the `murmurent` command: `commands/` has one file per command, `core/` the logic they share, `dashboard/` the web dashboard, `hooks/` the checks that stop a Claude Code session writing where it shouldn't, `mcp/` the servers that let agents search your notes. |
+| [`docs/`](docs/) | Everything on <https://hallettmiket.github.io/murmurent/>. |
+| [`tests/`](tests/) | Around 2,300 automatic checks that Murmurent still works. |
+| [`release/`](release/) | The tooling that builds the public version — see "Publishing a new version" below. |
+| [`scripts/`](scripts/) | Installers, launchers, and scripts that fill a test machine with realistic fake labs and people. |
+
+Two conventions worth knowing before you edit an agent. Every agent must begin
+its final reply with a one-line verdict, no more than 200 characters, because
+that line is all the dashboard shows — the reasoning is in
+[`rules/headline_first.md`](rules/headline_first.md). And if you add a new
+agent, add it to that file's table and to [`CLAUDE.md`](CLAUDE.md) in the same
+breath, or the next person won't know it exists.
+
+
+## I changed something. How do I make it part of Murmurent?
+
+Your edits already work on your own machine — that happened the moment you
+saved the file. This section is about the separate job of getting the change
+into Murmurent itself, so that everyone else gets it too.
+
+Six steps. Nothing here is unusual if you have contributed to a shared project
+before; if you haven't, the commands are all written out.
+
+**1. Describe the problem on GitHub first**, if the change is something other
+people would notice. Go to
+[the issues page](https://github.com/hallettmiket/murmurent_dev/issues) and
+click *New issue*. You'll be offered a few fill-in-the-blanks forms — one for
+"something is broken", one for "Murmurent should be able to do X", one for
+notes from someone trying Murmurent out for the first time. They exist so you
+don't have to guess what information is useful; fill in what you can and leave
+the rest. Skip this step for a typo fix.
+
+**2. Work on a branch, not on `main`.** A branch is your own copy of the
+project to change freely, so that unfinished work never affects anyone else.
+`main` is the version everyone uses, and releases are made from it.
+
+```bash
+git checkout -b fix/dashboard-crash      # any short name describing the change
+```
+
+By convention the name starts with `fix/` for a repair, `feat/` for something
+new, or `docs/` for writing. If you're fixing a numbered issue, include the
+number: `fix/130-dashboard-crash`.
+
+**3. Make the change, and add a test for it.** A test is a small piece of code
+that checks your change does what you intended, and that keeps checking it
+forever, so nobody accidentally undoes your work later. Put it in
+[`tests/`](tests/) next to the existing ones and copy the shape of whichever is
+closest to what you changed.
+
+Two other things while you're there: write your code in the same style as the
+code around it (the conventions are written down in
+[`docs/style/code-style.md`](docs/style/code-style.md) if you want them
+explicitly), and if your change affects how someone *uses* Murmurent, say so in
+[`CHANGELOG.md`](CHANGELOG.md) and update whichever document explains that
+feature.
+
+**4. If you added a new file, say whether it's allowed to be published.** This
+one is specific to Murmurent, so it needs a word of explanation.
+
+Murmurent exists in two copies: this private working one, and a public one that
+strangers download. The public copy is built by going through every file here
+and keeping only the files that [`release/allowlist.yaml`](release/allowlist.yaml)
+lists as publishable. That's how private things — one lab's Slack IDs, grant
+documents, internal notes — are kept from being published by accident.
+
+The consequence for you: **a file that isn't listed in that file stops the next
+release.** Deliberately, because a file nobody has thought about is a decision
+nobody has made. So if you added a file, open
+[`release/allowlist.yaml`](release/allowlist.yaml) and add its path under
+`ship:` (safe to publish) or `withhold:` (must stay private), with a short
+comment saying why.
+
+**5. Check that you haven't broken anything else.** Two commands, both of which
+just print results and change nothing:
+
+```bash
+uv run --python 3.12 --extra dev pytest -q     # run every test
+python3 release/check_allowlist.py             # every file is accounted for (step 4)
+```
+
+The first runs the whole test suite, a few thousand checks, in about two
+minutes. You want it to end in `passed` with no `failed`. A handful of tests
+depend on how a particular machine is configured rather than on the code, so if
+something fails and looks unrelated to your change, run the same command on a
+fresh copy of `main` and compare — that tells you whether it was already
+failing before you started.
+
+**6. Send it to be reviewed and merged.** First save your work and upload your
+branch to GitHub:
+
+```bash
+git add -A
+git commit -m "Fix the dashboard crash when a project has no members"
+git push -u origin fix/dashboard-crash
+```
+
+Then open a **pull request** — a request for your branch to be folded into
+`main`. It's where the change gets discussed before it becomes permanent:
+
+```bash
+gh pr create --fill --base main
+```
+
+Say what you changed, why, and what you ran to check it. Once someone approves
+it, merging the pull request on GitHub puts your change into `main`, and it
+reaches everyone else the next time they update.
+
+
+## Publishing a new version for everyone to download
+
+This is how the code in this folder becomes the version that other people
+install. It is Mike's job rather than a contributor's, so skip this section
+unless you are the one doing it.
+
+Everything here happens twice over, in two places, so it helps to know the
+shape before the steps. This folder is where Murmurent is written, and it is
+private: it holds years of history and one lab's private settings. The
+[public repository](https://github.com/hallettmiket/murmurent) is what people
+download, and it holds nothing but finished versions — one entry per release,
+no history. Publishing means building a clean copy of this folder, with every
+private file removed, and putting it there. The script does the removing, by
+consulting the list of publishable files described in step 4 of the previous
+section.
+
+The full procedure, including the one-time PyPI account setup and the checks to
+run by hand beforehand, is in [`DEVELOPING.md`](DEVELOPING.md). In outline:
+
+1. **Choose the new version number** and write it in
+   `src/murmurent/__init__.py`, which is the only place it is recorded.
+   Murmurent numbers versions by date — `2026.9.8` is the eighth release of
+   September 2026. [`docs/versioning.md`](docs/versioning.md) says when a change
+   deserves a new number and when it doesn't.
+2. **Write what changed** in [`CHANGELOG.md`](CHANGELOG.md), for the people who
+   will read it to decide whether to update.
+3. **Update the instructions users read**, in
+   [`release/README_public.md`](release/README_public.md), if this release
+   changes anything they do. Do this *before* step 4 — the publishing script
+   takes that file from the saved snapshot, not from your working copy.
+4. **Save and label this version**, so you can always come back to exactly the
+   code that was published:
    ```bash
-   gh pr create --fill --base main
+   git commit -am "Release 2026.9.9"
+   git tag -a v2026.9.9 -m "Release 2026.9.9"
+   git push origin main v2026.9.9
    ```
-   Describe what changed and why, and say what you ran. If the change touches
-   shared code or data, the [`security_guard`](agents/security_guard.md) agent
-   is meant to see it; methodological changes go past the
-   [`adversary`](agents/adversary.md). Both run inside Claude Code — they are
-   not CI jobs.
-7. **Merge to `main`** once it is reviewed. `main` is what a release is cut
-   from, so it is expected to be releasable at any time.
-
-## Before you push
-
-```bash
-uv run --python 3.12 --extra dev pytest -q     # the suite
-python3 release/check_allowlist.py             # every tracked file classified
-```
-
-Run pytest **through `uv`**, not through a bare `python3 -m pytest`. The
-`python3` on your PATH is often a conda `base` — it is below the 3.12 floor and
-has none of the runtime dependencies, so the suite collects with dozens of
-`ModuleNotFoundError`s that look like real breakage and are not. Targeted runs
-take the same prefix:
-
-```bash
-uv run --python 3.12 --extra dev pytest -q tests/test_release_hygiene.py
-```
-
-Two of these tests exist to stop a specific class of mistake, so read their
-docstrings before you work around them:
-[`tests/test_release_hygiene.py`](tests/test_release_hygiene.py) fails if a
-shipping file names a private repo, a grant document or a Slack ID, and
-[`tests/test_packaged_commons.py`](tests/test_packaged_commons.py) guards the
-packaging that puts the commons inside the wheel.
-
-A handful of tests are sensitive to the machine they run on rather than to the
-code: they pick up whatever `code` binary is on your PATH, your git identity, or
-a missing `age`. On an unmodified `main` in September 2026 this machine saw 4
-failed / 2315 passed / 38 skipped. **Record your own baseline on a clean `main`
-before assuming a failure is yours** — and when you do fix one of these, fix it
-by removing the environment dependency, not by skipping the test.
-
-## Exercising Murmurent without real people
-
-Most of what the CLI does is irreversible-looking (mints keys, writes
-`~/.murmurent/`, creates GitHub repos and Slack channels). Three ways to work
-on it safely:
-
-- **A scratch `HOME`**, which is how the release verification in
-  [`DEVELOPING.md`](DEVELOPING.md) works: `HOME=$(mktemp -d)` in front of the
-  command leaves your real `~/.claude/` and `~/.murmurent/` untouched.
-- **The [`/murmurent-reset`](skills/murmurent-reset/SKILL.md) skill**, which
-  tarballs `~/.murmurent` and then resets this machine to a first-run state, so
-  `centre-init` can be exercised again. It has a `--dry-run`.
-- **The seed scripts** — `scripts/seed_two_labs.py`, `seed_tutorial.py`,
-  `seed_fake_users.py` — which populate fake labs, members, projects and
-  certifications so the dashboard has something to show. Read the header of the
-  one you run first: they write into real paths (`~/repos/lab_mgmt`,
-  `~/.murmurent/lab_info/`) and `seed_two_labs.py` wipes what it reseeds.
-
-The member / PI / mayor onboarding flows themselves — `enroll`,
-`issue-member-card`, `import-card`, `centre-init` — are documented for the
-people who run them in
-[`release/README_public.md`](release/README_public.md) and on the
-[docs site](https://hallettmiket.github.io/murmurent/identity/). You need them
-to *test* the identity chain; you do not need to have joined a centre to
-develop here.
-
-## Cutting a release
-
-Full procedure, with the PyPI trusted-publishing setup and the manual
-pre-release checks: [`DEVELOPING.md`](DEVELOPING.md). In outline:
-
-1. Bump the CalVer version in `src/murmurent/__init__.py` — the single source of
-   truth ([`docs/versioning.md`](docs/versioning.md) says when to bump).
-2. Update [`CHANGELOG.md`](CHANGELOG.md).
-3. Update [`release/README_public.md`](release/README_public.md) if the release
-   changes anything a user does — **before** tagging, because the export reads
-   the README from the tag.
-4. Commit and tag here: `git tag -a v2026.9.9 -m "…" && git push origin v2026.9.9`.
-5. Export the release tree:
+5. **Build and publish the public copy.** Run it with `--dry-run` first, which
+   shows you what would be published and sends nothing:
    ```bash
    bash release/make_release.sh v2026.9.9 https://github.com/hallettmiket/murmurent.git --dry-run
    bash release/make_release.sh v2026.9.9 https://github.com/hallettmiket/murmurent.git
    ```
-   It refuses to run unless the allowlist classifies every tracked file and no
-   shipping file names a deployment fact. It prints the **dev SHA** — put that
-   in the GitHub Release notes, because two repos means two tags for one version
-   and that line is the only thing tying a release back to the commit it came
+   It refuses to run at all if any file is unaccounted for, or if a file due to
+   be published mentions something private. When it finishes it prints a long
+   code identifying the exact version of this folder it built from — paste that
+   into the release notes in the next step, because it is the only record of
+   which private version a public release came from.
+6. **Announce it on the public repository**: on its GitHub page, *Releases* →
+   *Draft a new release*, choose the tag from step 4, paste in the changelog
+   entry and the code from step 5. Publishing that page automatically uploads
+   the new version to PyPI, which is where `uv tool install murmurent` gets it
    from.
-6. Create the Release on the public repo. Publishing it triggers
-   [`.github/workflows/publish.yml`](.github/workflows/publish.yml) there, which
-   uploads to PyPI via trusted publishing.
 
-## The two READMEs
+## Which README to edit
 
-This file is the development repository's landing page and **does not ship**.
-The user-facing README lives at
-[`release/README_public.md`](release/README_public.md) and `make_release.sh`
-copies it to `README.md` in the release tree — which also makes it the PyPI
-project page, via `readme = "README.md"` in
-[`pyproject.toml`](pyproject.toml).
+There are two front pages, because the two repositories have different readers,
+and it is easy to edit the wrong one.
 
-So: **install instructions, identity flows and centre setup are edited in
-`release/README_public.md`. Developer instructions are edited here.** Neither
-one is a copy of the other, and a README edited in the release repo is
-overwritten by the next release.
+- **This file** is the front page of the private development repository — what
+  you are reading. It is for people working on Murmurent, and it is never
+  published.
+- **[`release/README_public.md`](release/README_public.md)** is the front page
+  users see. Publishing copies it into the public repository as its `README.md`,
+  and it doubles as the description on Murmurent's PyPI page.
 
-## Documentation site
+So install instructions, the identity and membership steps, and centre setup
+are edited in `release/README_public.md`; anything for developers is edited
+here. And if you ever edit the README in the public repository directly, your
+edit is thrown away by the next release, which rebuilds that file from this
+folder.
 
-[`docs/`](docs/) is built with MkDocs Material and published to GitHub Pages by
-[`.github/workflows/docs.yml`](.github/workflows/docs.yml) on any push to `main`
-that touches `docs/**` or `mkdocs.yml`. That workflow ships, so it runs in **both**
-repositories: this repo publishes a pre-release preview of the site, and the
-release repo publishes the site users read at
-<https://hallettmiket.github.io/murmurent/>. Build it locally before pushing doc
-changes — the workflow runs `--strict`, so one broken link fails it:
+
+## Changing the documentation website
+
+Everything at <https://hallettmiket.github.io/murmurent/> is built from the
+Markdown files in [`docs/`](docs/). Editing one and merging it is all that's
+needed — the site rebuilds itself.
+
+Two things will trip you up. A new page has to be listed in
+[`mkdocs.yml`](mkdocs.yml), or the build fails rather than quietly omitting it.
+And the build treats a broken link as an error, so check yours before merging:
 
 ```bash
-uv run --python 3.12 --extra docs mkdocs build --strict
-uv run --python 3.12 --extra docs mkdocs serve      # live preview
+uv run --python 3.12 --extra docs mkdocs build --strict   # reports any problem
+uv run --python 3.12 --extra docs mkdocs serve            # preview in a browser
 ```
 
-A page must be in the `nav:` of [`mkdocs.yml`](mkdocs.yml) or in its
-`exclude_docs:` list; keep `exclude_docs` in step with the withheld entries in
-the release allowlist.
+This repository publishes its own copy of the site as a preview, separate from
+the one users read; the public version updates when a new release is published.
+
 
 ## Conduct, licence, authors
 
