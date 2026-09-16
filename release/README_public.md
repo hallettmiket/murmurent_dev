@@ -113,38 +113,10 @@ You can still run it yourself — `murmurent repo upgrade --all`, or
 `murmurent repo upgrade ~/repos/<directory>` for one. It is idempotent, so
 running it when nothing changed costs a second and does nothing.
 
-**One thing an upgrade deliberately does not do: add new agents to your
-repositories.** If a release introduces an agent, your existing repositories
-keep exactly the roster they already had, because which agents a repository
-carries is your choice and not something an upgrade should make for you. You
-find out about the new one the next time you open Claude Code in that
-repository, which tells you:
-
-```
-- 2 commons agent(s) are not linked into this repo: teacher, lawyer.
-- fix: murmurent repo upgrade /home/you/repos/x1 --all-agents
-```
-
-Run that when you want them, and the notice stops. It does not appear when
-your repository is current, so it means something when it does.
-
-**What needs no command at all.** Agent, rule and skill *text* reaches you the
-moment it changes, because `~/.claude/` and each ready repository hold
-**symlinks** into the commons rather than copies. A reworded agent or a fixed
-rule is live in your next Claude Code session with nothing run. What does need
-the commands above is anything *structural*: a brand-new agent (there is no link
-to it yet), a change to the marker format, or new Python code.
-
-So after `git pull` on a clone, or `uv tool upgrade` from PyPI:
-
-| What changed upstream | What you run |
-|---|---|
-| the wording of an agent, rule or skill | nothing — it is already live |
-| a new agent, rule or skill was added | `murmurent install` (bare — not `--hooks`) wires it into `~/.claude/`; `murmurent repo upgrade --all --all-agents` opts your repositories in |
-| an agent was retired or renamed | `murmurent install` — it prunes the dangling link |
-| Python code, the CLI, the dashboard | `uv tool install --python 3.12 --reinstall -e .` (clone) or `uv tool upgrade murmurent` (PyPI) |
-| the version, or the `.murmurent.yaml` format | `murmurent install` covers it |
-| you are not sure | all of them, in the order above — each is idempotent |
+**New and changed agents need nothing further.** A reworded agent or rule is
+live in your next Claude Code session, in every directory, with nothing run at
+all; a brand-new agent arrives with the `murmurent install` above and is then
+available everywhere too. There is nothing to run per directory.
 
 Use `uv` for the reinstall. It installs into the interpreter Murmurent already
 runs under. The `pip` on your PATH can belong to a different Python (a conda
@@ -192,52 +164,59 @@ You're ready to run Murmurent locally. Several vignettes can help get you starte
 
 ## [Everyone] Initialize a directory for Murmurent
 
-To use Murmurent's agents while working in a directory — a research project,
-say — that directory must be set up to point at them. Murmurent calls such a
-directory **Murmurent-ready**.
+Murmurent's agents work in every directory on your machine already, so this
+step is not about getting access to them. What it turns on is everything that
+has to know *which project you are in*, and the important one is the check on
+patient data: before anything leaves your machine — a web search, a command, a
+fetch — Murmurent looks for things that resemble patient identifiers
+(health-card numbers, medical record numbers, a name beside a date of birth)
+and removes them. **That check only runs in a directory you have set up.** It
+also lets the directory be attached to a project, and records which project
+your activity log entries belong to.
 
-Run this to find out what state a directory is in:
+So do this for any directory holding research data, and certainly for any
+directory holding clinical data.
+
+First ask what state the directory is in:
 
 ```bash
 murmurent repo status ~/repos/<directory>
 ```
 
-It prints one of these verdicts. Find yours and run the command beside it:
+Then run the command beside your verdict:
 
 | Verdict | What it means | What to run |
 |---|---|---|
 | `✗ no such folder` | the path is wrong | check the path |
 | `✗ not tracked by git` | the directory exists but is not a git repository | `git -C ~/repos/<directory> init`, then the next row |
-| `• not set up yet` | a git repository Murmurent has never set up | `murmurent repo adopt ~/repos/<directory> --all-agents` |
+| `• not set up yet` | a git repository Murmurent has never set up | `murmurent repo adopt ~/repos/<directory>` |
 | `± half set up` | an earlier attempt stopped partway | the same `adopt` command; it completes the setup |
-| `✓ ready`, older version | set up by an earlier version of Murmurent | `murmurent repo upgrade ~/repos/<directory> --all-agents` |
+| `✓ ready`, older version | set up by an earlier version of Murmurent | `murmurent repo upgrade ~/repos/<directory>` |
 | `✓ ready`, current | nothing to do | open Claude Code in it |
 
-The verdict does not depend on the directory's history or contents, so a
-project you started this morning and one with ten years of commits take the
-same route. Neither `adopt` nor `upgrade` alters anything already there: your
-files, your git history and your own `.claude/` settings are left as they are.
-What they add is a `.murmurent.yaml` file recording the setup, a
-`.claude/agents/` directory pointing at Murmurent's agents, a `CLAUDE.md`,
-VS Code settings, and a `.gitignore` entry for your machine-specific Claude
-settings. **Commit them**, and every other copy of that repository is set up
-too, for you and for everyone else.
+No options are needed on either command. The directory must be somewhere under
+`~/repos/`, and nothing already in it is altered — your files, your git history
+and your own `.claude/` settings are left exactly as they are. What `adopt`
+adds is a `.murmurent.yaml` file recording the setup, a starter `CLAUDE.md`,
+and VS Code settings. Commit the first two, and everyone else working on that
+repository gets the same setup.
 
-`murmurent repo list` prints the verdict for every repository on the machine at
-once.
+`murmurent repo list` prints the verdict for every repository on your machine
+at once.
 
-Three constraints worth knowing in advance:
+If the directory holds clinical data, add one line to `.murmurent.yaml`:
 
-- **The directory must be inside `~/repos/`.** Murmurent refuses other
-  locations, so that everything it has set up is in one place.
-- **`--all-agents` gives the directory every agent**, which is the usual
-  choice. To restrict it to specific ones, use `--agents oracle,blacksmith`
-  instead; to add one later, `murmurent repo upgrade <directory> --add-agents
-  artist`. With neither option the directory is set up with no agents at all.
-- **Murmurent-ready concerns agents only.** It does not create a project, a
-  charter or a Slack channel. Attaching a ready repository to a project is a
-  separate, later step, described in [Making a repo
-  Murmurent-ready](https://hallettmiket.github.io/murmurent/ready_vs_projects/).
+```yaml
+sensitivity: clinical
+```
+
+That makes the security audit treat it accordingly.
+
+Setting a directory up concerns the above and nothing else — it does not create
+a project, a charter or a Slack channel. Those, and the options for pinning
+specific agents to a single directory, are in [Making a repo
+Murmurent-ready](https://hallettmiket.github.io/murmurent/ready_vs_projects/).
+
 
 
 ## Federating individuals, groups and centres 

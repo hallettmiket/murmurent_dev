@@ -17,6 +17,33 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 
 ## [Unreleased]
 
+### Fixed
+- **Corrected what "murmurent-ready" is documented to do.** Both READMEs and
+  `docs/ready_vs_projects.md` said readiness "wires the commons agents into the
+  repo so Claude Code sessions opened there can use them" — the one thing it
+  does not do. `murmurent setup` links the whole commons into
+  `~/.claude/agents/`, which Claude Code loads in *every* directory, so every
+  agent is available everywhere regardless. Verified: `murmurent_dev` has no
+  `.claude/agents/` directory at all and every agent is available in a session
+  there.
+  What readiness actually turns on, now documented in that order: **the PHI
+  check** (`hooks/phi_check.py` redacts patient identifiers from outbound tool
+  calls, and returns early — doing nothing — when there is no marker to
+  resolve a project from), project attribution in the audit log, attaching the
+  repo to a project, and `sensitivity: clinical`. The first of those is the
+  reason to make a folder ready and had been omitted entirely.
+- **The in-session readiness notice no longer reports agents "not linked into
+  this repo".** They are usable there anyway, so the notice implied a problem
+  that did not exist and sent the reader to run a command with no observable
+  effect. It now reports only a repo whose agent files point into a *different*
+  murmurent than the one installed — which does change behaviour, silently,
+  because Claude Code prefers a directory's own agent file.
+- Both READMEs now give the simplest form of each step: `murmurent repo adopt
+  ~/repos/<folder>` with no options, and no per-directory command after an
+  upgrade. Agent-pinning, `--agents`/`--all-agents`, and the fact that per-repo
+  agent symlinks are absolute paths that break on another machine moved to
+  `docs/ready_vs_projects.md`.
+
 ### Changed
 - **`murmurent repo status` verdicts say what they mean.** `• clone` named
   git's concept rather than the reader's situation and gave no hint what to do

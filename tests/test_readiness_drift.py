@@ -116,17 +116,21 @@ def test_notice_is_silent_when_the_repo_is_current(two_clones, tmp_path, monkeyp
     assert context_inject._readiness_notice() is None
 
 
-def test_notice_names_agents_the_repo_has_no_link_to(two_clones, tmp_path, monkeypatch):
-    """The shape a new agent in an upgrade takes."""
+def test_an_agent_absent_from_the_repo_is_not_reported(two_clones, tmp_path, monkeypatch):
+    """Because it is still perfectly usable there.
+
+    ``murmurent setup`` links the whole commons into ``~/.claude/agents/``,
+    which Claude Code loads in every directory, so an agent missing from a
+    repo's own ``.claude/agents/`` costs the user nothing. This hook used to
+    announce it as "2 commons agent(s) are not linked into this repo", which
+    read as "unavailable here" — false — and sent the reader to run a command
+    whose effect they could not observe.
+    """
     repo = _git_repo(tmp_path / "repos" / "x4")
-    repo_ready.make_ready(repo, lab="mh", agents=["oracle"])
+    repo_ready.make_ready(repo, lab="mh", agents=["oracle"])   # bookworm, blacksmith absent
     monkeypatch.chdir(repo)
 
-    notice = context_inject._readiness_notice()
-
-    assert notice is not None
-    assert "bookworm" in notice and "blacksmith" in notice
-    assert "repo upgrade" in notice
+    assert context_inject._readiness_notice() is None
 
 
 def test_notice_flags_a_repo_following_a_different_commons(
@@ -146,13 +150,17 @@ def test_notice_flags_a_repo_following_a_different_commons(
 
     assert notice is not None
     assert str(rel) in notice
-    assert "not the commons you are running" in notice
+    assert "not the murmurent you are running" in notice
 
 
 def test_notice_is_found_from_a_subdirectory(two_clones, tmp_path, monkeypatch):
     """Sessions open inside ``exp/07_thing/``, not at the repo root."""
+    dev, rel = two_clones
     repo = _git_repo(tmp_path / "repos" / "x6")
     repo_ready.make_ready(repo, lab="mh", agents=["oracle"])
+    link = repo / ".claude" / "agents" / "oracle.md"
+    link.unlink()
+    link.symlink_to(rel / "agents" / "oracle.md")
     deep = repo / "exp" / "07_thing"
     deep.mkdir(parents=True)
     monkeypatch.chdir(deep)
@@ -177,7 +185,7 @@ def test_a_bare_version_bump_alone_is_not_reported(two_clones, tmp_path, monkeyp
     them, which is how a warning becomes furniture.
     """
     repo = _git_repo(tmp_path / "repos" / "x7")
-    repo_ready.make_ready(repo, lab="mh", agents=["oracle", "bookworm", "blacksmith"])
+    repo_ready.make_ready(repo, lab="mh", agents=["oracle"])
     marker = repo / ".murmurent.yaml"
     marker.write_text(
         marker.read_text(encoding="utf-8").replace(
@@ -208,8 +216,12 @@ def test_the_hook_emits_the_notice_with_no_project(two_clones, tmp_path, monkeyp
     The notice has to travel on its own, or the people most likely to be
     behind — anyone whose repo was never made a project — never hear about it.
     """
+    dev, rel = two_clones
     repo = _git_repo(tmp_path / "repos" / "x9")
     repo_ready.make_ready(repo, lab="mh", agents=["oracle"])
+    link = repo / ".claude" / "agents" / "oracle.md"
+    link.unlink()
+    link.symlink_to(rel / "agents" / "oracle.md")
     monkeypatch.chdir(repo)
 
     out = io.StringIO()
