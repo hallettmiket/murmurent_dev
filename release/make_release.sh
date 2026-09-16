@@ -66,6 +66,16 @@ for p in sorted(root.rglob("*"), key=lambda x: -len(str(x))):
 print(f"  kept {len(keep)} files, removed {removed}")
 PY
 
+# The release's README is not this repo's README. This repo's landing page is
+# written for developers; the user-facing one lives at the `release_readme`
+# path in the allowlist and is copied in here, under the name GitHub and PyPI
+# both read. Taken from the tag, like everything else in the tree.
+README_SRC="$(python3 -c "import yaml; print(yaml.safe_load(open('$REPO_DIR/release/allowlist.yaml'))['release_readme'])")"
+git -C "$REPO_DIR" show "$TAG:$README_SRC" > "$SRC/README.md" 2>/dev/null \
+  || die "$README_SRC is missing from $TAG; the release would ship no README (and PyPI needs one)"
+[[ -s "$SRC/README.md" ]] || die "$README_SRC is empty at $TAG"
+say "README.md written from $README_SRC"
+
 echo "[4/5] Staging the public repo"
 PUB="$WORK/public"
 git clone -q "$PUBLIC_URL" "$PUB" 2>/dev/null || { mkdir -p "$PUB"; git -C "$PUB" init -q -b main; }

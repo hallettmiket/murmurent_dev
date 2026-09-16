@@ -46,14 +46,31 @@ TEXT_SUFFIXES = {
 }
 
 
+def _spec() -> dict:
+    return yaml.safe_load((REPO / "release" / "allowlist.yaml").read_text())
+
+
 def _shipping_paths() -> list[str]:
+    """Everything that reaches the public repo.
+
+    `release_readme` is included even though it classifies as *withheld*. It
+    lives under `release/`, which does not ship at its own path, but
+    make_release.sh copies it into the release tree AS README.md — so its
+    content is the most public text in the project while its path says
+    otherwise. Left out, the one file every visitor reads would be the only
+    shipping text nothing scanned.
+    """
     from check_allowlist import classify  # noqa: PLC0415
 
-    spec = yaml.safe_load((REPO / "release" / "allowlist.yaml").read_text())
+    spec = _spec()
     tracked = subprocess.run(
         ["git", "-C", str(REPO), "ls-files"], capture_output=True, text=True, check=True
     ).stdout.splitlines()
-    return classify(sorted(tracked), spec)["ship"]
+    ship = classify(sorted(tracked), spec)["ship"]
+    readme = spec.get("release_readme")
+    if readme and readme not in ship:
+        ship.append(readme)
+    return ship
 
 
 @pytest.mark.parametrize("needle,why", sorted(FORBIDDEN.items()))
@@ -97,3 +114,28 @@ def test_slack_channel_defaults_are_not_literals():
         text = (REPO / rel).read_text(encoding="utf-8")
         bad = re.findall(r'=\s*"C[A-Z0-9]{8,}"', text)
         assert not bad, f"{rel} assigns a literal Slack ID: {bad}"
+
+
+def test_the_release_readme_exists_and_the_dev_readme_does_not_ship():
+    """The two repos have two READMEs, and the export depends on both facts.
+
+    `release_readme` is the user-facing one, copied to README.md in the release
+    tree and used verbatim as the PyPI project page. This repo's own README.md
+    is the development landing page — a repo map, the PR flow, the release
+    steps — and shipping it would replace the install instructions with
+    instructions for software you do not install from there.
+    """
+    from check_allowlist import classify  # noqa: PLC0415
+
+    spec = _spec()
+    readme = spec.get("release_readme")
+    assert readme, "release/allowlist.yaml must name release_readme"
+    src = REPO / readme
+    assert src.is_file(), f"{readme} is missing; a release would ship no README"
+    assert src.read_text(encoding="utf-8").strip(), f"{readme} is empty"
+
+    buckets = classify(["README.md", readme], spec)
+    assert "README.md" not in buckets["ship"], (
+        "the development README must not ship; the release gets "
+        f"{readme} renamed to README.md by release/make_release.sh"
+    )

@@ -1,9 +1,15 @@
 # Working on murmurent itself
 
 **This file is in the development repository only.** It is not part of a
-release. If you are here to *use* murmurent, you want
-[`README.md`](README.md) instead, and the public repo at
-[hallettmiket/murmurent](https://github.com/hallettmiket/murmurent).
+release. If you are here to *use* murmurent, you want the public repo at
+[hallettmiket/murmurent](https://github.com/hallettmiket/murmurent), whose
+README is written for that; the copy of it here is
+[`release/README_public.md`](release/README_public.md).
+
+[`README.md`](README.md) is this repository's own landing page — the repo map,
+the pull-request flow, and a short form of the release steps below. This file is
+the long form: setup, `rules/local/`, the pre-push gates, and the release and
+PyPI procedures in full.
 
 ## The two repositories
 
@@ -36,10 +42,13 @@ is the point, and it is also why a careless edit here is felt immediately.
 murmurent installed from PyPI:
 
 ```bash
-python3 -c "from murmurent.core.commons import commons_root, commons_source; print(commons_source(), commons_root())"
+uv run --python 3.12 python3 -c "from murmurent.core.commons import commons_root, commons_source; print(commons_source(), commons_root())"
 ```
 
-It should print `clone` and the path to this clone. If it prints `package`, the
+It should print `clone` and the path to this clone. Run it through `uv`, for the
+same reason as the test suite: a bare `python3` is often a conda `base` that has
+no `murmurent` installed at all, and answers `ModuleNotFoundError` to a question
+you did not ask. If it prints `package`, the
 CLI is reading the copy inside the wheel and your edits will do nothing.
 The editable install above normally prevents that; `export MURMURENT_COMMONS_ROOT=$PWD`
 forces it.
@@ -91,9 +100,17 @@ such a thing appears in a file that ships.
 ## Before you push
 
 ```bash
-PYTHONPATH=src python3 -m pytest -q          # the suite
+uv run --python 3.12 --extra dev pytest -q   # the suite
 python3 release/check_allowlist.py           # every tracked file classified
 ```
+
+Run pytest through `uv`. A bare `python3 -m pytest` takes whatever `python3` is
+on your PATH, which is often a conda `base`: below the 3.12 floor and without
+fastapi, slack-sdk or mcp, so dozens of modules fail to import and the run looks
+broken when nothing is. (`check_allowlist.py` needs only `yaml`, so it is
+indifferent.) A few tests are sensitive to the environment rather than the code
+— establish your own baseline on a clean `main` before reading a failure as
+yours.
 
 The allowlist check matters more than it looks. **A file you add that matches
 no rule stops the next release**, deliberately: a path nobody classified is a
@@ -106,20 +123,27 @@ commit that adds it.
    `src/murmurent/__init__.py`. See [`docs/versioning.md`](docs/versioning.md)
    for when to bump and when not to.
 2. Update `CHANGELOG.md`.
-3. Commit, then tag: `git tag -a v2026.9.2 -m "..." && git push origin v2026.9.2`
-4. Export:
+3. If the release changes anything a user does, update
+   [`release/README_public.md`](release/README_public.md) — the user-facing
+   README, which the export copies into the release tree as `README.md` and
+   which PyPI renders as the project page. Editing this repo's own `README.md`
+   does not reach a single user. Do it **before** the tag: the export takes the
+   README from the tag, not from your working copy.
+4. Commit, then tag: `git tag -a v2026.9.2 -m "..." && git push origin v2026.9.2`
+5. Export:
 
    ```bash
    bash release/make_release.sh v2026.9.2 https://github.com/hallettmiket/murmurent.git
    ```
 
    Run it with `--dry-run` first if you want to see the tree without pushing.
-   It refuses to proceed unless the allowlist classifies everything and no
-   shipping file names a private repo, a grant document or a Slack ID.
-5. It prints the **dev SHA**. Put that in the GitHub Release notes. Two repos
+   It refuses to proceed unless the allowlist classifies everything, no
+   shipping file names a private repo, a grant document or a Slack ID, and
+   `release_readme` exists in the tag being released.
+6. It prints the **dev SHA**. Put that in the GitHub Release notes. Two repos
    means two tags for one version, and that line is the only thing connecting a
    public release back to the commit it came from.
-6. Create the Release on the public repo. Publishing it triggers
+7. Create the Release on the public repo. Publishing it triggers
    `.github/workflows/publish.yml`, which uploads to PyPI.
 
 ## Publishing to PyPI

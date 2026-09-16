@@ -17,6 +17,27 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 
 ## [Unreleased]
 
+### Changed
+- **The two repositories no longer share one README.** `README.md` here is now
+  the development repository's landing page — what the repo is, where everything
+  lives, how a change becomes a pull request, how the suite is run, and how a
+  release is cut. The user-facing README moved to `release/README_public.md`,
+  which `release/make_release.sh` copies into the release tree as `README.md`
+  (and which PyPI therefore renders as the project page). One README could not
+  be both: the development repo's front page opened with install instructions
+  for software nobody installs from it, and the member / PI / mayor onboarding
+  flows were the first thing a would-be contributor read.
+- `tests/test_release_hygiene.py` scans the release README even though its path
+  is withheld, because its *content* ships. Without that, the one file every
+  visitor reads was the only shipping text nothing checked for private repos,
+  grant documents or Slack IDs. A second test asserts the file exists and that
+  the development README is not in the shipping set.
+- `DEVELOPING.md` and `README.md` now run pytest and the commons check through
+  `uv run --python 3.12`. A bare `python3` is frequently a conda `base` — below
+  the 3.12 floor and without fastapi, slack-sdk or mcp — where the suite
+  reported 41 collection errors and the commons check reported
+  `ModuleNotFoundError`, both of which read as real breakage and are not.
+
 ## [2026.9.8] — 2026-09-04
 
 ### Changed
