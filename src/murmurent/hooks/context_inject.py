@@ -15,18 +15,28 @@ Two independent blocks, either of which can appear alone:
    them. Requires a CHARTER, so it appears only in project repos.
 
 2. **Readiness notice** — keyed on the ``.murmurent.yaml`` marker instead, so
-   it covers every murmurent-ready repo whether or not it is a project. This is
-   how someone finds out that an upgrade happened: agent, rule and skill TEXT
-   reaches a ready repo on its own, because ``.claude/agents/`` holds symlinks
-   into the commons rather than copies, but a newly ADDED agent has no link yet
-   and a repo linked to a different clone follows the wrong commons entirely.
-   Neither announces itself, and both look like murmurent quietly not working.
+   it covers every murmurent-ready repo whether or not it is a project. It
+   reports exactly one thing: that this repo's ``.claude/agents/`` points into
+   a DIFFERENT copy of the commons than the one now installed. Claude Code
+   prefers a repo's own agent file over the one in ``~/.claude/agents/``, so in
+   that state the repo silently runs an older or foreign version of an agent
+   while every other folder on the machine runs the current one.
 
-   Deliberately NOT reported: a ``bootstrap_version`` that merely differs from
-   the running version. ``repo_ready.needs_upgrade`` is true after every
-   release, including one that changed nothing about this repo, so notifying on
-   it would put a line in front of the user on every prompt after every upgrade
-   and teach them to ignore the notice. Only a real roster gap speaks up.
+   Two things are deliberately NOT reported, both of which this hook used to
+   report and should not have:
+
+   * **Agents in the commons with no link in this repo.** ``murmurent setup``
+     links the whole commons into ``~/.claude/agents/``, which Claude Code
+     loads in EVERY directory — so an agent absent from a repo's own
+     ``.claude/agents/`` is still perfectly usable there. Saying "2 agents are
+     not linked into this repo" implied they were unavailable, which was false,
+     and sent the reader off to run a command that changed nothing they could
+     observe.
+   * **A ``bootstrap_version`` that merely differs from the running version.**
+     ``repo_ready.needs_upgrade`` is true after every release, including one
+     that changed nothing about this repo, so notifying on it would put a line
+     in front of the user on every prompt after every upgrade and teach them to
+     ignore the notice.
 """
 
 from __future__ import annotations
@@ -109,12 +119,13 @@ def _find_ready_repo(start: str | None = None) -> Path | None:
 def _readiness_notice(start: str | None = None) -> str | None:
     """Tell the user when this ready repo's agent links have fallen behind.
 
-    Reports only the two states that are actionable and silent:
+    Reports one state: links resolving into a commons other than the installed
+    one. On a machine with two murmurent clones that means the repo runs a
+    different version of an agent from everywhere else, and nothing says so.
 
-    * agents exist in the commons that this repo has no link to — the shape a
-      new agent in an upgrade takes, since nothing retro-fits links;
-    * links resolving into a commons other than the installed one, which on a
-      machine with two clones means edits land somewhere this repo cannot see.
+    An agent the commons has and this repo does not is NOT reported: the
+    machine-wide links in ``~/.claude/agents/`` make every agent available in
+    every directory regardless, so there is nothing for the reader to fix.
 
     Cheap by construction: two globs over ~14 files each, no network, no git.
     This runs on every prompt submission, so it must never raise and never
@@ -129,17 +140,13 @@ def _readiness_notice(start: str | None = None) -> str | None:
         from ..core.commons import commons_root  # noqa: PLC0415
 
         commons = commons_root()
-        agents_src = commons / "agents"
-        if not agents_src.is_dir():
+        if not (commons / "agents").is_dir():
             return None
-        available = {p.stem for p in agents_src.glob("*.md")}
 
         linked_dir = repo / ".claude" / "agents"
-        linked: set[str] = set()
         foreign: set[Path] = set()
         if linked_dir.is_dir():
             for f in linked_dir.glob("*.md"):
-                linked.add(f.stem)
                 if not f.is_symlink():
                     continue
                 try:
@@ -149,29 +156,21 @@ def _readiness_notice(start: str | None = None) -> str | None:
                 if root.resolve() != commons.resolve():
                     foreign.add(root)
 
-        missing = sorted(available - linked)
-        if not missing and not foreign:
+        if not foreign:
             return None
 
-        lines = ["<system-reminder>",
-                 "murmurent readiness (auto-injected):"]
-        if foreign:
-            lines.append(
-                "- this repo's agents are linked into "
-                + ", ".join(str(f) for f in sorted(foreign))
-                + f", not the commons you are running ({commons}). Edits to an "
-                  "agent there will not be visible here."
-            )
-        if missing:
-            shown = ", ".join(missing[:8]) + ("…" if len(missing) > 8 else "")
-            lines.append(
-                f"- {len(missing)} commons agent(s) are not linked into this "
-                f"repo: {shown}. Agent TEXT updates arrive on their own (the "
-                "links are symlinks); a newly added agent needs linking once."
-            )
-        lines.append(f"- fix: murmurent repo upgrade {repo} --all-agents")
-        lines.append("</system-reminder>")
-        return "\n".join(lines)
+        return "\n".join([
+            "<system-reminder>",
+            "murmurent readiness (auto-injected):",
+            "- this folder's agent files point into "
+            + ", ".join(str(f) for f in sorted(foreign))
+            + f", which is not the murmurent you are running ({commons}). "
+              "Claude Code prefers a folder's own agent files, so this folder "
+              "is using a different version of those agents from the rest of "
+              "the machine.",
+            f"- fix: murmurent repo upgrade {repo} --all-agents",
+            "</system-reminder>",
+        ])
     except Exception:  # noqa: BLE001
         # A hook that throws blocks the prompt. Nothing here is worth that.
         return None

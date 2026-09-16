@@ -75,46 +75,54 @@ what to do if you already had Murmurent installed a different way.
 
 ## Setting up one of your own project folders to use Murmurent
 
-To use Murmurent's agents while working in another folder — a research project,
-say — that folder must be set up to point at them. Murmurent calls such a
-folder **Murmurent-ready**.
+Murmurent's agents work in every folder on your machine already, so this step
+is not about getting access to them. What it turns on is everything that has to
+know *which project you are in*, and the important one is the check on patient
+data: before anything leaves your machine — a web search, a command, a fetch —
+Murmurent looks for things that resemble patient identifiers (health-card
+numbers, medical record numbers, a name beside a date of birth) and removes
+them. **That check only runs in a folder you have set up.** It also lets the
+folder be attached to a project, and records which project your activity log
+entries belong to.
 
-Run this to find out what state a folder is in:
+So: do this for any folder holding research data, and certainly for any folder
+holding clinical data.
+
+First ask what state the folder is in:
 
 ```bash
 murmurent repo status ~/repos/<folder>
 ```
 
-It prints one of these verdicts. Find yours and run the command beside it:
+Then run the command beside your verdict:
 
 | Verdict | What it means | What to run |
 |---|---|---|
 | `✗ no such folder` | the path is wrong | check the path |
 | `✗ not tracked by git` | the folder exists but is not a git repository | `git -C ~/repos/<folder> init`, then the next row |
-| `• not set up yet` | a git repository Murmurent has never set up | `murmurent repo adopt ~/repos/<folder> --all-agents` |
+| `• not set up yet` | a git repository Murmurent has never set up | `murmurent repo adopt ~/repos/<folder>` |
 | `± half set up` | an earlier attempt stopped partway | the same `adopt` command; it completes the setup |
-| `✓ ready`, older version | set up by an earlier version of Murmurent | `murmurent repo upgrade ~/repos/<folder> --all-agents` |
+| `✓ ready`, older version | set up by an earlier version of Murmurent | `murmurent repo upgrade ~/repos/<folder>` |
 | `✓ ready`, current | nothing to do | open Claude Code in it |
 
-The verdict does not depend on the folder's history or contents, so a project
-you started this morning and one with ten years of commits take the same route.
-Neither `adopt` nor `upgrade` alters anything already in the folder: your
-files, your git history and your own `.claude/` settings are left as they are.
-What they add is a `.murmurent.yaml` file recording the setup and a
-`.claude/agents/` folder pointing at Murmurent's agents. Commit both, and every
-other copy of that repository is set up too.
+No options are needed on either command. The folder must be somewhere under
+`~/repos/`, and nothing already in it is altered — your files, your git history
+and your own `.claude/` settings are left exactly as they are. What `adopt`
+adds is a `.murmurent.yaml` file recording the setup, a starter `CLAUDE.md`,
+and VS Code settings. Commit the first two.
 
-Three constraints worth knowing in advance:
+If the folder holds clinical data, add one line to `.murmurent.yaml`:
 
-- **The folder must be inside `~/repos/`.** Murmurent refuses other locations,
-  so that everything it has set up is in one place.
-- **`--all-agents` gives the folder all 14 agents**, which is the usual choice.
-  To restrict it to specific ones, use `--agents oracle,blacksmith` instead; to
-  add one later, `murmurent repo upgrade <folder> --add-agents artist`. With
-  neither option the folder is set up with no agents at all.
-- **Murmurent-ready concerns agents only.** It does not create a project, a
-  charter or a Slack channel; those are separate and are described in
-  [the documentation](https://hallettmiket.github.io/murmurent/ready_vs_projects/).
+```yaml
+sensitivity: clinical
+```
+
+That makes the security audit treat it accordingly.
+
+Setting a folder up concerns the above and nothing else — it does not create a
+project, a charter or a Slack channel. Those, and the options for pinning
+specific agents to a single folder, are in
+[the documentation](https://hallettmiket.github.io/murmurent/ready_vs_projects/).
 
 
 ### If your edits to an agent don't seem to take effect
@@ -165,26 +173,9 @@ Two occasional extras:
   with the fix for each.
 
 **Most of the time you need none of this.** When someone rewords an agent or a
-rule, you have the new wording immediately, everywhere, with nothing run —
-including in all of your project folders. That's because those folders don't
-hold copies of the agents; they hold pointers to the single set in this folder,
-so there is only ever one version of an agent on your machine and it is always
-the current one.
-
-What that *doesn't* cover is an agent that is entirely new. Your project folders
-have no pointer to a file that didn't exist when they were set up, and nothing
-adds one behind your back — which agents a project uses is your decision, not
-something an update should make for you. So Murmurent tells you instead: the
-next time you work in that folder, your Claude Code session opens with a note
-like
-
-```
-- 2 commons agent(s) are not linked into this repo: teacher, lawyer.
-- fix: murmurent repo upgrade /home/you/repos/x1 --all-agents
-```
-
-Run that when you want them, and the note stops appearing. It shows up only
-when there's genuinely something missing, so it means something when it does.
+rule, you have the new wording immediately, in every folder, with nothing run.
+A brand-new agent needs the `murmurent install` above, and then it too is
+available everywhere. There is nothing to do per project folder.
 
 One historical note, in case you hit it: a copy of this folder cloned before
 September 2026 was pointed at the public repository rather than this one, and
