@@ -192,48 +192,52 @@ You're ready to run Murmurent locally. Several vignettes can help get you starte
 
 ## [Everyone] Initialize a directory for Murmurent
 
-Murmurent works inside a **repository**: a directory tracked by git, kept under
-`~/repos/`. Making a directory **Murmurent-ready** wires the shared agents into
-it, so Claude Code sessions opened there can use them.
+To use Murmurent's agents while working in a directory — a research project,
+say — that directory must be set up to point at them. Murmurent calls such a
+directory **Murmurent-ready**.
 
-**One procedure covers every starting point** — a folder you created a minute
-ago, a repository you have worked in for years, and one an older Murmurent
-release set up. Nothing already in the directory is touched: your code, your
-history and your own `.claude/` files stay as they are. So ask first, because
-the answer decides the single step you take:
+Run this to find out what state a directory is in:
 
 ```bash
 murmurent repo status ~/repos/<directory>
 ```
 
-| It says | What that means | Do this |
+It prints one of these verdicts. Find yours and run the command beside it:
+
+| Verdict | What it means | What to run |
 |---|---|---|
-| `✗ not a git repo` | a plain folder, tracked by nothing | `git -C ~/repos/<directory> init`, then the next row |
-| `• clone` | git, and Murmurent has never set it up — whether it holds ten years of code or nothing at all | `murmurent repo adopt ~/repos/<directory> --agents <names>` |
-| `± partial` | half set up: a marker without agent links, or the reverse | the same `adopt` — it is idempotent and finishes the job |
-| `✓ ready`, bootstrapped by an older version | ready, but wired to a Murmurent older than the one you are running | `murmurent repo upgrade ~/repos/<directory> --all-agents` |
-| `✓ ready`, current version | finished | open Claude Code in it |
+| `✗ no such folder` | the path is wrong | check the path |
+| `✗ not tracked by git` | the directory exists but is not a git repository | `git -C ~/repos/<directory> init`, then the next row |
+| `• not set up yet` | a git repository Murmurent has never set up | `murmurent repo adopt ~/repos/<directory> --all-agents` |
+| `± half set up` | an earlier attempt stopped partway | the same `adopt` command; it completes the setup |
+| `✓ ready`, older version | set up by an earlier version of Murmurent | `murmurent repo upgrade ~/repos/<directory> --all-agents` |
+| `✓ ready`, current | nothing to do | open Claude Code in it |
 
-Two things the verdict does not tell you:
+The verdict does not depend on the directory's history or contents, so a
+project you started this morning and one with ten years of commits take the
+same route. Neither `adopt` nor `upgrade` alters anything already there: your
+files, your git history and your own `.claude/` settings are left as they are.
+What they add is a `.murmurent.yaml` file recording the setup, a
+`.claude/agents/` directory pointing at Murmurent's agents, a `CLAUDE.md`,
+VS Code settings, and a `.gitignore` entry for your machine-specific Claude
+settings. **Commit them**, and every other copy of that repository is set up
+too, for you and for everyone else.
 
-- **The directory must live under `~/repos/`.** `adopt` refuses anything else
-  rather than scattering wired repositories across your disk.
-- **`adopt` links no agents unless you name them.** A bare `murmurent repo
-  adopt` makes the repository ready with an *empty* `.claude/agents/`, which is
-  a reasonable default only if you meant it. Pass `--agents
-  oracle,bookworm,blacksmith` for the ones you want, or run `murmurent repo
-  upgrade <path> --all-agents` afterwards to link all of them.
+`murmurent repo list` prints the verdict for every repository on the machine at
+once.
 
-Adopting writes a `.murmurent.yaml` marker, a `CLAUDE.md`, a `.claude/agents/`
-of symlinks into the commons, `.vscode/` settings, and a `.gitignore` entry for
-your machine-local Claude settings. **Commit them** — then every clone of that
-repository is ready too, for you and for everyone else. `murmurent repo list`
-shows the verdict for every repository on the machine at once.
+Three constraints worth knowing in advance:
 
-Being *ready* is a repository-level fact and nothing more: it does not create a
-project, a charter or a Slack channel. Attaching a ready repository to a project
-is a separate, later step. The distinction, and why it exists: [Making a repo
-Murmurent-ready](https://hallettmiket.github.io/murmurent/ready_vs_projects/).
+- **The directory must be inside `~/repos/`.** Murmurent refuses other
+  locations, so that everything it has set up is in one place.
+- **`--all-agents` gives the directory every agent**, which is the usual
+  choice. To restrict it to specific ones, use `--agents oracle,blacksmith`
+  instead; to add one later, `murmurent repo upgrade <directory> --add-agents
+  artist`. With neither option the directory is set up with no agents at all.
+- **Murmurent-ready concerns agents only.** It does not create a project, a
+  charter or a Slack channel. Attaching a ready repository to a project is a
+  separate, later step, described in [Making a repo
+  Murmurent-ready](https://hallettmiket.github.io/murmurent/ready_vs_projects/).
 
 
 ## Federating individuals, groups and centres 

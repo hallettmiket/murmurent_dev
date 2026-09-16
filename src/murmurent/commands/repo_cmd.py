@@ -24,13 +24,18 @@ from ..core import adopt as _adopt
 from ..core import hosts as _hosts
 from ..core import repo_inventory as _inv
 
-# Verdict → glyph, matching the Repos panel's cell vocabulary.
+# Verdict → what the reader sees. The internal verdict names are unchanged
+# (the dashboard and adopt.py share them); only the wording differs, because
+# the words are read by researchers rather than by git users. "• clone" in
+# particular said nothing about what to do next: it is git's word for "a
+# folder under version control", and the thing the reader needs to know is
+# that murmurent has not set it up yet.
 _GLYPH = {
     "ready": "✓ ready",
-    "partial": "± partial",
-    "plain clone": "• clone",
-    "not a git repo": "✗ not a git repo",
-    "missing": "✗ missing",
+    "partial": "± half set up",
+    "plain clone": "• not set up yet",
+    "not a git repo": "✗ not tracked by git",
+    "missing": "✗ no such folder",
 }
 
 
@@ -194,12 +199,30 @@ def cmd_status(target: str, host_name: str | None) -> int:
 
 
 def cmd_adopt(*, path: str, lab: str | None, agents_csv: str | None,
-              host_name: str) -> int:
+              host_name: str, all_agents: bool = False) -> int:
     """Make an existing clone murmurent-ready (CLI twin of the Repos
     panel's ↑ adopt button). Creates NO project — attach the ready repo
-    to a project via `murmurent project new` / the dashboard."""
+    to a project via `murmurent project new` / the dashboard.
+
+    ``all_agents`` links every agent in the commons. It exists because the
+    alternative was to name them: with neither option, adopt makes the repo
+    ready with an EMPTY ``.claude/agents/``, which is rarely what anyone
+    wants and is invisible until an agent turns out to be missing. Telling a
+    newcomer to type ``--agents oracle,blacksmith`` instead made them invent a
+    choice they had no basis for making."""
+    from ..core.commons import commons_root
+
     agents = ([a.strip() for a in agents_csv.split(",") if a.strip()]
               if agents_csv else None)
+    if all_agents:
+        src = commons_root() / "agents"
+        found = sorted(p.stem for p in src.glob("*.md")) if src.is_dir() else []
+        if not found:
+            raise click.ClickException(
+                f"no agents found in {src} — is murmurent installed? "
+                "Run `murmurent doctor`."
+            )
+        agents = sorted(set((agents or []) + found))
     try:
         outcome = _adopt.adopt_clone(
             clone_path=path, lab=(lab or "").strip(),

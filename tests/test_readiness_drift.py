@@ -269,3 +269,52 @@ def test_a_typed_upgrade_all_still_migrates_a_legacy_repo(
     assert rc == 0
     assert (legacy / ".murmurent.yaml").is_file()
     assert (legacy / "CHARTER.md").is_file(), "the CHARTER must be preserved"
+
+
+# ---------------------------------------------------------------------------
+# 4. one command to set a folder up with the agents
+# ---------------------------------------------------------------------------
+
+
+def test_adopt_all_agents_links_every_agent(two_clones, tmp_path):
+    """``--all-agents`` exists so nobody has to invent an agent list.
+
+    Without it, adopt takes ``--agents a,b,c`` or links nothing at all, so the
+    documentation had to tell a newcomer to type a specific pair of agent names
+    for no stated reason, and a bare adopt left an empty ``.claude/agents/``
+    that only showed up later as a missing agent.
+    """
+    dev, _ = two_clones
+    repo = _git_repo(tmp_path / "_repos" / "x10")   # cmd_adopt requires the repos root
+
+    rc = repo_cmd.cmd_adopt(path=str(repo), lab="mh", agents_csv=None,
+                            host_name="local", all_agents=True)
+
+    assert rc == 0
+    linked = {p.stem for p in (repo / ".claude" / "agents").glob("*.md")}
+    assert linked == {"oracle", "bookworm", "blacksmith"}
+
+
+def test_adopt_all_agents_fails_loudly_with_no_commons(tmp_path, monkeypatch):
+    """Better than silently making a repo ready with no agents."""
+    import click
+
+    monkeypatch.setenv("MURMURENT_COMMONS_ROOT", str(tmp_path / "nothing_here"))
+    repo = _git_repo(tmp_path / "_repos" / "x11")
+
+    with pytest.raises(click.ClickException):
+        repo_cmd.cmd_adopt(path=str(repo), lab="mh", agents_csv=None,
+                           host_name="local", all_agents=True)
+
+
+def test_status_verdicts_avoid_git_jargon():
+    """The verdicts are read by researchers, not by git users.
+
+    "• clone" named git's concept rather than the reader's situation and gave
+    no hint of what to do next; the internal verdict keys are unchanged, so the
+    dashboard and adopt.py are unaffected.
+    """
+    shown = repo_cmd._GLYPH
+    assert "clone" not in shown["plain clone"]
+    assert shown["plain clone"] == "• not set up yet"
+    assert "git" in shown["not a git repo"]
