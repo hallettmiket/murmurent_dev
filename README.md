@@ -1,6 +1,6 @@
 # Murmurent — development repository
 
-This is the development version of Murmurent. **If you are a user of Murmrent and not 
+This is the development version of Murmurent. If you are a user of Murmurent and not 
 a developer, go to [hallettmiket/murmurent](https://github.com/hallettmiket/murmurent), 
 which has the installation instructions, or read the
 [documentation](https://hallettmiket.github.io/murmurent/).
