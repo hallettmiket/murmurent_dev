@@ -72,22 +72,39 @@ the *public release*, so your changes here would have no effect on anything.
 what to do if you already had Murmurent installed a different way.
 
 
-## Setting up one of your own project folders to use Murmurent
+## Making a folder Murmurent-ready
 
-Murmurent's agents work in every folder on your machine already, so this step
-is not about getting access to them. What it turns on is everything that has to
-know *which project you are in*, and the important one is the check on patient
-data: before anything leaves your machine — a web search, a command, a fetch —
-Murmurent looks for things that resemble patient identifiers (health-card
-numbers, medical record numbers, a name beside a date of birth) and removes
-them. **That check only runs in a folder you have set up.** It also lets the
-folder be attached to a project, and records which project your activity log
-entries belong to.
+Murmurent's agents are defined in this folder, in [`agents/`](agents/) — one
+Markdown file per agent. When you installed Murmurent it linked that whole set
+into your home directory, once, and Claude Code reads it in **every** folder on
+your machine. So the agents are already available everywhere, and making a
+folder ready is not what gives you them. (An agent can be redefined for one
+folder only, which is occasionally useful and described in
+[the documentation](https://hallettmiket.github.io/murmurent/ready_vs_projects/).)
 
-So: do this for any folder holding research data, and certainly for any folder
-holding clinical data.
+**Making a folder Murmurent-ready means exactly four things:**
 
-First ask what state the folder is in:
+1. Murmurent's check on **sensitive data** starts running there. Before
+   anything leaves your machine — a web search, a command, a fetch — it is
+   scanned for personal identifiers and they are removed. In a folder that is
+   not ready, this check does nothing.
+2. The folder can be marked as holding sensitive data, by adding one line to
+   the `.murmurent.yaml` file described below:
+   ```yaml
+   sensitivity: clinical
+   ```
+3. Murmurent's activity log records which folder each entry came from.
+4. The folder becomes eligible to be joined to a Murmurent **project** — a
+   separate concept from a ready folder, covered in
+   [the documentation](https://hallettmiket.github.io/murmurent/ready_vs_projects/).
+   Making a folder ready does not create one.
+
+Do this for any folder holding research data, and certainly for any holding
+sensitive data.
+
+### How
+
+Ask what state the folder is in:
 
 ```bash
 murmurent repo status ~/repos/<folder>
@@ -110,44 +127,11 @@ and your own `.claude/` settings are left exactly as they are. What `adopt`
 adds is a `.murmurent.yaml` file recording the setup, a starter `CLAUDE.md`,
 and VS Code settings. Commit the first two.
 
-If the folder holds clinical data, add one line to `.murmurent.yaml`:
 
-```yaml
-sensitivity: clinical
-```
+## Updating your copy of murmurent_dev
 
-That makes the security audit treat it accordingly.
-
-Setting a folder up concerns the above and nothing else — it does not create a
-project, a charter or a Slack channel. Those, and the options for pinning
-specific agents to a single folder, are in
-[the documentation](https://hallettmiket.github.io/murmurent/ready_vs_projects/).
-
-
-### If your edits to an agent don't seem to take effect
-
-Almost always this is one thing: your machine has more than one copy of
-Murmurent on it — this development folder and the public release, most likely —
-and the folder you're working in was wired up to the other copy.
-
-The rule is that **your project folders follow whichever copy of Murmurent you
-installed**. To see which copy a folder is using, ask it:
-
-```bash
-murmurent repo status ~/repos/<folder>
-```
-
-It prints a `follows commons` line naming the copy. If that isn't the folder you
-are editing agents in, the same output tells you the command that re-points it.
-(`commons` is Murmurent's word for the shared set of agents, rules and skills —
-the contents of this folder's [`agents/`](agents/), [`rules/`](rules/) and
-[`skills/`](skills/).)
-
-
-## Getting other people's changes
-
-Two commands. The first brings down what everyone else has done; the second
-applies it to your machine.
+Other people are changing Murmurent too. Two commands bring their work onto
+your machine: the first downloads it, the second applies it.
 
 ```bash
 cd ~/repos/murmurent_dev
@@ -155,53 +139,22 @@ git pull
 murmurent install
 ```
 
-Run `murmurent install` with nothing after it, as above. On its own it does the
-whole job: it wires up any agents, rules or skills that are new, removes links
-to any that were deleted, re-registers Murmurent's Claude Code settings, and
-finally re-points every project folder on your machine that uses Murmurent. The
-version with `--hooks` on the end deliberately does only part of that, so it is
-the wrong one to use here.
+Run `murmurent install` with nothing after it, as above; that form does the
+whole job, and it is safe to run when nothing has changed.
 
-Two occasional extras:
+Two additions, both occasional:
 
-- If the pull changed `pyproject.toml` — the file listing the other software
-  Murmurent needs — also run
+- If `pyproject.toml` changed, also run
   `uv tool install --python 3.12 --reinstall -e .`
-- If anything seems stale afterwards, run `murmurent doctor`. It says which
-  copy of Murmurent you're actually using and flags anything set up wrongly,
-  with the fix for each.
+- If anything looks wrong afterwards, run `murmurent doctor`, which names each
+  problem and the command that fixes it.
 
-**Most of the time you need none of this.** When someone rewords an agent or a
-rule, you have the new wording immediately, in every folder, with nothing run.
-A brand-new agent needs the `murmurent install` above, and then it too is
-available everywhere. There is nothing to do per project folder.
+That is all. Reworded agents and rules reach you with nothing run at all; a
+brand-new agent arrives with the `murmurent install` above. There is never
+anything to run folder by folder.
 
-One historical note, in case you hit it: a copy of this folder cloned before
-September 2026 was pointed at the public repository rather than this one, and
-`git pull` fails in it with a complaint about unrelated histories. `murmurent
-doctor` recognises that exact situation and prints the one command that fixes
-it.
-
-
-## What is in this folder
-
-| Folder | What's in it |
-|---|---|
-| [`agents/`](agents/) | The 14 shared agents — Oracle, Bookworm, Adversary and the rest — one plain-English Markdown file each. This is the heart of Murmurent; an agent is defined by writing instructions for it, not by writing code. |
-| [`rules/`](rules/) | Five short documents that Claude Code loads into *every* session, covering things like where data may be written. `rules/local/` holds the settings belonging to one particular institution, and is never published. |
-| [`skills/`](skills/) | The slash commands, such as `/murmurent-push`. One folder each, containing a `SKILL.md`. |
-| [`src/murmurent/`](src/murmurent/) | The Python code behind the `murmurent` command: `commands/` has one file per command, `core/` the logic they share, `dashboard/` the web dashboard, `hooks/` the checks that stop a Claude Code session writing where it shouldn't, `mcp/` the servers that let agents search your notes. |
-| [`docs/`](docs/) | Everything on <https://hallettmiket.github.io/murmurent/>. |
-| [`tests/`](tests/) | Around 2,300 automatic checks that Murmurent still works. |
-| [`release/`](release/) | The tooling that builds the public version — see "Publishing a new version" below. |
-| [`scripts/`](scripts/) | Installers, launchers, and scripts that fill a test machine with realistic fake labs and people. |
-
-Two conventions worth knowing before you edit an agent. Every agent must begin
-its final reply with a one-line verdict, no more than 200 characters, because
-that line is all the dashboard shows — the reasoning is in
-[`rules/headline_first.md`](rules/headline_first.md). And if you add a new
-agent, add it to that file's table and to [`CLAUDE.md`](CLAUDE.md) in the same
-breath, or the next person won't know it exists.
+[`DEVELOPING.md`](DEVELOPING.md) covers the awkward cases, including a copy of
+this folder cloned before September 2026, where `git pull` fails.
 
 
 ## I changed something. How do I make it part of Murmurent?
