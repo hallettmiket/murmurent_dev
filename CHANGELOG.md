@@ -17,6 +17,26 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 
 ## [Unreleased]
 
+### Changed
+- **The user-facing README is rewritten and reorganised**, from 428 lines to
+  201. It now follows the Plain English output style, so it has no em dashes
+  and defines each term where it first appears. The structure is six numbered
+  steps with a table of contents at the top: install, say who you are, set up
+  a folder, keep it up to date, what to do next, getting help. The role
+  sections that made every reader scroll past the other roles are replaced by
+  one routing table, "what you are doing" against "where to go".
+  It also now describes what setting up a folder actually does, which is to
+  turn on the check on sensitive data, rather than repeating the claim that it
+  gives access to the agents.
+- Two procedures moved out of the README rather than being dropped, since
+  neither was documented anywhere else:
+  - `murmurent centre-init`, its fifteen options and the four steps that make a
+    centre joinable, are now in `docs/centre_overview.md` under "Starting a new
+    centre".
+  - How a PI finds their centre in the public directory and sends an encrypted
+    join request is now in `docs/identity.md`, which already covered the rest
+    of that exchange but not the discovery step.
+
 ### Fixed
 - **Corrected what "murmurent-ready" is documented to do.** Both READMEs and
   `docs/ready_vs_projects.md` said readiness "wires the commons agents into the
