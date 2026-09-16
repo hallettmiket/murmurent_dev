@@ -59,15 +59,15 @@ murmurent install                    # connect it to Claude Code
 murmurent doctor                     # check it worked
 ```
 
-That's it. Murmurent now runs from this folder, so your next Claude Code
-session uses the agents in it, and any edit you make to an agent takes effect
-immediately with nothing to rerun.
+Murmurent now runs from this folder, so your next Claude Code session uses the 
+agents in it, and any edit you make to an agent takes effect immediately with nothing 
+to rerun.
 
-`murmurent doctor` is the command to come back to whenever something looks
-wrong: it checks the whole installation and prints, for each problem it finds,
-the one command that fixes it.
+The `murmurent doctor` command can be used whenever something looks
+wrong: it checks the whole installation and describes, for each problem it finds,
+a possible fix.
 
-One thing to avoid: don't install with `scripts/bootstrap.sh`. That installs
+DO NOT install with `scripts/bootstrap.sh`. That installs
 the *public release*, so your changes here would have no effect on anything.
 [`DEVELOPING.md`](DEVELOPING.md) covers the more awkward situations, including
 what to do if you already had Murmurent installed a different way.
