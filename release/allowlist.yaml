@@ -18,6 +18,9 @@ ship:
   - agents/                 # the commons; the public release is these
   - rules/                  # auto-loaded hard rules
   - skills/                 # user-invocable slash commands
+  - output_styles/          # how Claude Code WRITES: shipped because every
+                            # murmurent document is read by researchers, and
+                            # the default register is written for engineers
   - src/                    # the murmurent package
   - scripts/                # setup.sh, bootstrap.sh, install helpers
   - templates/              # scaffolding written into new repos

@@ -23,32 +23,32 @@ explanation of how the pieces fit together.
 
 ## Why there are three repositories
 
-Murmurent is spread over three places on GitHub, which is worth understanding
-before you start, because it explains most of the procedures further down.
+Murmurent occupies three repositories on GitHub. The division explains
+several of the procedures below.
 
 - **[`murmurent_dev`](https://github.com/hallettmiket/murmurent_dev) — this
-  one, and it is private.** All the development happens here: the full history
-  of every change, the discussion of problems and proposals, the automatic
-  tests, and one institution's own private settings.
+  repository, which is private.** Contains all development: the full change
+  history, issues and proposals, the test suite, and one institution's private
+  settings.
 - **[`murmurent`](https://github.com/hallettmiket/murmurent) — the public
-  release.** This is what people download and install. It holds finished
-  versions only, with none of the history or discussion and none of the private
-  settings, and it is built from this repository whenever a new version is
-  published.
+  release.** What users download and install. It contains released versions
+  only: no development history, no discussion, no private settings. It is
+  rebuilt from murmurent_dev at each release.
 - **[`murmurent_public`](https://github.com/hallettmiket/murmurent_public) — the
-  public directory.** A list of which institutions are running Murmurent and
-  how to ask to join one, plus an index of shared workflows (termed choreographies in Murmurent) anyone can install.
+  public directory.** The institutions running Murmurent and how to request to
+  join one, plus an index of shared workflows (termed choreographies in
+  Murmurent) that anyone can install.
 
-Changes only ever travel one way: they are made here, and they reach the public
-release when someone publishes a new version. Nothing is ever committed
-directly to the release repo.
+Changes propagate in one direction only. They are made in murmurent_dev and
+copied to the release repository when a new version is published. Nothing is
+committed directly to the release repository.
 
 ## Getting set up
 
-You need [git](https://git-scm.com/),
+Requires [git](https://git-scm.com/),
 [Claude Code](https://claude.com/claude-code) and
-[uv](https://docs.astral.sh/uv/). You do not need to install Python: `uv`
-fetches the right version if your machine hasn't got it.
+[uv](https://docs.astral.sh/uv/). Python need not be installed separately; `uv`
+obtains the required version.
 
 ```bash
 git clone git@github.com:hallettmiket/murmurent_dev.git ~/repos/murmurent_dev
@@ -58,9 +58,9 @@ murmurent install                    # connect it to Claude Code
 murmurent doctor                     # check it worked
 ```
 
-Murmurent now runs from this folder, so your next Claude Code session uses the 
-agents in it, and any edit you make to an agent takes effect immediately with nothing 
-to rerun.
+Murmurent now runs from this folder. The next Claude Code session uses the
+agents defined here, and edits to an agent take effect immediately without
+rerunning any command.
 
 The `murmurent doctor` command can be used whenever something looks
 wrong: it checks the whole installation and describes, for each problem it finds,
@@ -74,32 +74,31 @@ what to do if you already had Murmurent installed a different way.
 
 ## Making a folder Murmurent-ready
 
-Murmurent's agents are defined in this folder, in [`agents/`](agents/) — one
-Markdown file per agent. When you installed Murmurent it linked that whole set
-into your home directory, once, and Claude Code reads it in **every** folder on
-your machine. So the agents are already available everywhere, and making a
-folder ready is not what gives you them. (An agent can be redefined for one
-folder only, which is occasionally useful and described in
-[the documentation](https://hallettmiket.github.io/murmurent/ready_vs_projects/).)
+The agents are defined in this repository, in [`agents/`](agents/) — one
+Markdown file per agent. Installation links that set into your home directory
+once, and Claude Code reads it in **every** folder on the machine. All agents
+are therefore available in all folders, and making a folder ready does not
+affect agent availability. An agent can be redefined for a single folder; see
+[the documentation](https://hallettmiket.github.io/murmurent/ready_vs_projects/).
 
 **Making a folder Murmurent-ready means exactly four things:**
 
-1. Murmurent's check on **sensitive data** starts running there. Before
-   anything leaves your machine — a web search, a command, a fetch — it is
-   scanned for personal identifiers and they are removed. In a folder that is
-   not ready, this check does nothing.
+1. The **sensitive-data check** operates in that folder. Outbound content —
+   web searches, shell commands, fetched URLs — is scanned for personal
+   identifiers, which are removed before transmission. The check performs no
+   action in folders that are not ready.
 2. The folder can be marked as holding sensitive data, by adding one line to
    the `.murmurent.yaml` file described below:
    ```yaml
    sensitivity: clinical
    ```
-3. Murmurent's activity log records which folder each entry came from.
-4. The folder becomes eligible to be joined to a Murmurent **project** — a
-   separate concept from a ready folder, covered in
-   [the documentation](https://hallettmiket.github.io/murmurent/ready_vs_projects/).
-   Making a folder ready does not create one.
+3. The activity log records the originating folder for each entry.
+4. The folder becomes eligible to join a Murmurent **project**, which is a
+   distinct concept from a ready folder and is documented
+   [here](https://hallettmiket.github.io/murmurent/ready_vs_projects/). Making
+   a folder ready does not create a project.
 
-Do this for any folder holding research data, and certainly for any holding
+Apply this to any folder holding research data, and to all folders holding
 sensitive data.
 
 ### How
@@ -121,17 +120,17 @@ Then run the command beside your verdict:
 | `✓ ready`, older version | set up by an earlier version of Murmurent | `murmurent repo upgrade ~/repos/<folder>` |
 | `✓ ready`, current | nothing to do | open Claude Code in it |
 
-No options are needed on either command. The folder must be somewhere under
-`~/repos/`, and nothing already in it is altered — your files, your git history
-and your own `.claude/` settings are left exactly as they are. What `adopt`
-adds is a `.murmurent.yaml` file recording the setup, a starter `CLAUDE.md`,
-and VS Code settings. Commit the first two.
+Neither command requires options. The folder must reside under `~/repos/`.
+Existing contents are not modified: files, git history and any existing
+`.claude/` settings are preserved. `adopt` adds a `.murmurent.yaml` file
+recording the setup, a `CLAUDE.md` template, and VS Code settings. Commit the
+first two.
 
 
 ## Updating your copy of murmurent_dev
 
-Other people are changing Murmurent too. Two commands bring their work onto
-your machine: the first downloads it, the second applies it.
+Two commands apply other contributors' changes to your machine: the first
+downloads them, the second installs them.
 
 ```bash
 cd ~/repos/murmurent_dev
@@ -139,100 +138,95 @@ git pull
 murmurent install
 ```
 
-Run `murmurent install` with nothing after it, as above; that form does the
-whole job, and it is safe to run when nothing has changed.
+Run `murmurent install` with no options, as above. It performs the complete
+update and is safe to run when nothing has changed.
 
-Two additions, both occasional:
+Two conditional additions:
 
 - If `pyproject.toml` changed, also run
   `uv tool install --python 3.12 --reinstall -e .`
-- If anything looks wrong afterwards, run `murmurent doctor`, which names each
-  problem and the command that fixes it.
+- If the installation appears incorrect afterwards, run `murmurent doctor`,
+  which reports each problem and the command that corrects it.
 
-That is all. Reworded agents and rules reach you with nothing run at all; a
-brand-new agent arrives with the `murmurent install` above. There is never
-anything to run folder by folder.
+Changes to the text of an existing agent or rule take effect without any
+command. A newly added agent requires the `murmurent install` above. No
+command is required in individual folders.
 
 [`DEVELOPING.md`](DEVELOPING.md) covers the awkward cases, including a copy of
 this folder cloned before September 2026, where `git pull` fails.
 
 
-## I changed something. How do I make it part of Murmurent?
+## Pushing your changes to murmurent_dev: opening a pull request
 
-Your edits already work on your own machine — that happened the moment you
-saved the file. This section is about the separate job of getting the change
-into Murmurent itself, so that everyone else gets it too.
+Your edits take effect on your own machine as soon as they are saved.
+Distributing them is a separate procedure: push the work to GitHub and open a
+**pull request**, which proposes your changes for inclusion in the shared copy
+of murmurent_dev.
 
-Six steps. Nothing here is unusual if you have contributed to a shared project
-before; if you haven't, the commands are all written out.
+Six steps, with each command given in full.
 
-**1. Describe the problem on GitHub first**, if the change is something other
-people would notice. Go to
-[the issues page](https://github.com/hallettmiket/murmurent_dev/issues) and
-click *New issue*. You'll be offered a few fill-in-the-blanks forms — one for
-"something is broken", one for "Murmurent should be able to do X", one for
-notes from someone trying Murmurent out for the first time. They exist so you
-don't have to guess what information is useful; fill in what you can and leave
-the rest. Skip this step for a typo fix.
+**1. Record the problem as an issue**, if the change is one other users
+would notice. Issues are filed on the murmurent_dev GitHub page: open
+<https://github.com/hallettmiket/murmurent_dev>, select the **Issues** tab,
+then **New issue**. Three templates are offered: a defect report, a feature
+request, and feedback from first-time use. Each template lists the information
+required; complete the fields that apply. This step may be omitted for
+corrections to typography.
 
-**2. Work on a branch, not on `main`.** A branch is your own copy of the
-project to change freely, so that unfinished work never affects anyone else.
-`main` is the version everyone uses, and releases are made from it.
+**2. Work on a branch rather than on `main`.** A branch is a separate line
+of development, so incomplete work does not affect other users. `main` is the
+shared version, and releases are built from it.
 
 ```bash
 git checkout -b fix/dashboard-crash      # any short name describing the change
 ```
 
-By convention the name starts with `fix/` for a repair, `feat/` for something
-new, or `docs/` for writing. If you're fixing a numbered issue, include the
-number: `fix/130-dashboard-crash`.
+Branch names are prefixed `fix/` for a correction, `feat/` for new
+functionality, or `docs/` for documentation. When the change resolves a
+numbered issue, include the number: `fix/130-dashboard-crash`.
 
-**3. Make the change, and add a test for it.** A test is a small piece of code
-that checks your change does what you intended, and that keeps checking it
-forever, so nobody accidentally undoes your work later. Put it in
-[`tests/`](tests/) next to the existing ones and copy the shape of whichever is
-closest to what you changed.
+**3. Make the change and add a test.** A test is code that verifies the
+change behaves as intended and continues to verify it in every subsequent test
+run, which prevents later modifications from reverting it. Add it to
+[`tests/`](tests/), following the structure of the existing test closest to
+what you changed.
 
-Two other things while you're there: write your code in the same style as the
-code around it (the conventions are written down in
-[`docs/style/code-style.md`](docs/style/code-style.md) if you want them
-explicitly), and if your change affects how someone *uses* Murmurent, say so in
-[`CHANGELOG.md`](CHANGELOG.md) and update whichever document explains that
-feature.
+Two further requirements: follow the style of the surrounding code, specified
+in [`docs/style/code-style.md`](docs/style/code-style.md); and if the change
+alters how Murmurent is used, record it in [`CHANGELOG.md`](CHANGELOG.md) and
+update the document describing that feature.
 
-**4. If you added a new file, say whether it's allowed to be published.** This
-one is specific to Murmurent, so it needs a word of explanation.
+**4. Classify any new file as publishable or not.** This requirement is
+specific to Murmurent.
 
-Murmurent exists in two copies: this private working one, and a public one that
-strangers download. The public copy is built by going through every file here
-and keeping only the files that [`release/allowlist.yaml`](release/allowlist.yaml)
-lists as publishable. That's how private things — one lab's Slack IDs, grant
-documents, internal notes — are kept from being published by accident.
+The public release is constructed by examining every file in murmurent_dev and
+retaining only those listed as publishable in
+[`release/allowlist.yaml`](release/allowlist.yaml). This prevents private
+material — institutional Slack identifiers, grant documents, internal notes —
+from being published inadvertently.
 
-The consequence for you: **a file that isn't listed in that file stops the next
-release.** Deliberately, because a file nobody has thought about is a decision
-nobody has made. So if you added a file, open
-[`release/allowlist.yaml`](release/allowlist.yaml) and add its path under
-`ship:` (safe to publish) or `withhold:` (must stay private), with a short
-comment saying why.
+**A file absent from that list halts the next release**, by design: an
+unclassified file represents a decision not yet made. If you added a file, add
+its path to [`release/allowlist.yaml`](release/allowlist.yaml) under `ship:`
+(publishable) or `withhold:` (must remain private), with a comment stating the
+reason.
 
-**5. Check that you haven't broken anything else.** Two commands, both of which
-just print results and change nothing:
+**5. Verify that nothing else is broken.** Two commands, both of which only
+report results:
 
 ```bash
 uv run --python 3.12 --extra dev pytest -q     # run every test
 python3 release/check_allowlist.py             # every file is accounted for (step 4)
 ```
 
-The first runs the whole test suite, a few thousand checks, in about two
-minutes. You want it to end in `passed` with no `failed`. A handful of tests
-depend on how a particular machine is configured rather than on the code, so if
-something fails and looks unrelated to your change, run the same command on a
-fresh copy of `main` and compare — that tells you whether it was already
-failing before you started.
+The first runs the full test suite, approximately 2,300 tests, in about two
+minutes. The expected result is `passed` with no `failed`. A small number of
+tests depend on machine configuration rather than on the code; if a failure
+appears unrelated to your change, run the same command on an unmodified copy of
+`main` to determine whether it was failing beforehand.
 
-**6. Send it to be reviewed and merged.** First save your work and upload your
-branch to GitHub:
+**6. Submit the change for review.** Commit the work and upload the branch
+to GitHub:
 
 ```bash
 git add -A
@@ -240,8 +234,8 @@ git commit -m "Fix the dashboard crash when a project has no members"
 git push -u origin fix/dashboard-crash
 ```
 
-Then open a **pull request** — a request for your branch to be folded into
-`main`. It's where the change gets discussed before it becomes permanent:
+Then open a pull request, which proposes merging the branch into `main` and
+provides the venue for review:
 
 ```bash
 gh pr create --fill --base main
@@ -255,8 +249,7 @@ reaches everyone else the next time they update.
 ## Publishing a new version for everyone to download
 
 This is how the code in this folder becomes the version that other people
-install. It is Mike's job rather than a contributor's, so skip this section
-unless you are the one doing it.
+install. Only the maintainer does it, so skip this section unless that is you.
 
 Everything here happens twice over, in two places, so it helps to know the
 shape before the steps. This folder is where Murmurent is written, and it is

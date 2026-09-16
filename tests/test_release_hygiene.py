@@ -139,3 +139,53 @@ def test_the_release_readme_exists_and_the_dev_readme_does_not_ship():
         "the development README must not ship; the release gets "
         f"{readme} renamed to README.md by release/make_release.sh"
     )
+
+
+# Names of people who work on murmurent. An authorship or contact line is
+# fine and is excluded below; naming one of them as the ACTOR in an
+# instruction is not, because it dates the document and tells a reader at
+# another centre nothing they can act on.
+_PERSON_AS_ACTOR = re.compile(
+    r"\b(Mike|Hallett|Mike Hallett)(?:'s|’s)\b"
+    r"|\b(?:ask|tell|email|contact) Mike\b"
+    r"|\bMike (?:will|does|runs|owns|decides)\b"
+)
+
+_DOCS_THAT_INSTRUCT = (
+    "README.md",
+    "release/README_public.md",
+    "DEVELOPING.md",
+    "TUTORIAL.md",
+    "TROUBLESHOOTING.md",
+    "CLAUDE.md",
+)
+
+
+def test_no_document_names_a_person_as_the_actor():
+    """Instructions name a ROLE, not a person.
+
+    ``DEVELOPING.md`` already states the rule — "anything naming a private
+    repo, a person, a channel ID or an institution belongs in rules/local/" —
+    but nothing enforced it, and the README told the reader that publishing a
+    release "is Mike's job rather than a contributor's". Every deployment of
+    murmurent has a maintainer; only one of them is Mike, and a reader at
+    another centre cannot act on the sentence at all.
+
+    Authorship and contact lines are deliberately not caught: attributing the
+    work is not the same as writing a person into a procedure.
+    """
+    offenders = []
+    for rel in _DOCS_THAT_INSTRUCT:
+        f = REPO / rel
+        if not f.is_file():
+            continue
+        for i, line in enumerate(f.read_text(encoding="utf-8").splitlines(), 1):
+            if "mailto:" in line or "@uwo.ca" in line:
+                continue          # a contact line, not an instruction
+            m = _PERSON_AS_ACTOR.search(line)
+            if m:
+                offenders.append(f"{rel}:{i}: {m.group(0)!r}")
+    assert not offenders, (
+        "name the role instead (the maintainer, the PI, the mayor): "
+        + "; ".join(offenders)
+    )
