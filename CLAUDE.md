@@ -80,6 +80,26 @@ ones when the directory exists. That is where private repos, Slack IDs
 and local conventions belong, so that nothing tied to one centre reaches
 another. A fresh clone has no `rules/local/` and simply skips it.
 
+## Output style: how murmurent writes
+
+[`output_styles/plain_english.md`](output_styles/plain_english.md), symlinked
+into `~/.claude/output-styles/` by [`scripts/setup.sh`](scripts/setup.sh).
+
+An output style replaces Claude Code's default instructions about how to
+write. Murmurent ships one because **every document this project produces is
+read by working researchers, not by software engineers**, and the default
+register is written for the latter. It sets: as little jargon as possible with
+every term defined where it is first used; **no em dashes**; plain, direct
+sentences; the answer before the detail; one way to do a thing, with the
+alternatives in the documentation.
+
+It sets `keep-coding-instructions: true`, so code is written exactly as
+before. Only prose changes.
+
+Linking it makes it available; it is not automatic. Select it per machine with
+`/config` -> Output style, then restart Claude Code. It applies to the main
+conversation, not to subagents, which each carry their own instructions.
+
 ## User-invocable skills (the commons)
 
 Defined in [`skills/`](skills/), symlinked into `~/.claude/skills/` by
