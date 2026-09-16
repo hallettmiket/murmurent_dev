@@ -18,6 +18,25 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 ## [Unreleased]
 
 ### Changed
+- **`murmurent repo status` verdicts say what they mean.** `• clone` named
+  git's concept rather than the reader's situation and gave no hint what to do
+  next; it is now `• not set up yet`. Likewise `± partial` → `± half set up`,
+  `✗ not a git repo` → `✗ not tracked by git`, `✗ missing` → `✗ no such
+  folder`. Internal verdict names are unchanged, so the dashboard and
+  `core/adopt.py` are unaffected.
+- The ready-a-directory section of both READMEs is a case-by-case table —
+  every verdict, what it means, the one command to run — instead of two
+  paragraphs of preamble before the table.
+
+### Added
+- **`murmurent repo adopt --all-agents`**, so setting a directory up with the
+  agents is one command. Previously `adopt` took `--agents a,b,c` or linked
+  nothing, which meant the documentation had to tell a newcomer to type a
+  specific pair of agent names for no stated reason, and a bare `adopt` left an
+  empty `.claude/agents/` that only surfaced later as a missing agent. It fails
+  loudly if no commons is found rather than making the repo ready with nothing.
+
+### Changed
 - **The development README is rewritten for its actual readers** — biomedical
   scientists, not software engineers. The previous version stated true things
   with no context and no gloss ("`setup.sh` symlinks rather than copies…", "how

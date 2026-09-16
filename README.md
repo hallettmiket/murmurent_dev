@@ -75,42 +75,47 @@ what to do if you already had Murmurent installed a different way.
 
 ## Setting up one of your own project folders to use Murmurent
 
-Murmurent's agents are only defined in the repository. To use them while working
-in another folder (e.g. a research project), that folder has
-to be told where they are. Murmurent calls a folder that has been told
-**Murmurent-ready**, and you'll want it on your research projects as well as on
-any throwaway folder you're testing against.
+To use Murmurent's agents while working in another folder — a research project,
+say — that folder must be set up to point at them. Murmurent calls such a
+folder **Murmurent-ready**.
 
-The same three commands cover every starting point — a folder you made a minute
-ago, a project with ten years of history in it, or one an older version of
-Murmurent set up. Nothing already in the folder is changed: your files, your
-history and your own settings are left exactly as they are. Ask Murmurent what
-it sees first, because the answer tells you which single command to run:
+Run this to find out what state a folder is in:
 
 ```bash
 murmurent repo status ~/repos/<folder>
 ```
 
-| If it says | Then run |
-|---|---|
-| `✗ not a git repo` | `git -C ~/repos/<folder> init`, then read the next row |
-| `• clone` | `murmurent repo adopt ~/repos/<folder> --agents oracle,blacksmith` |
-| `± partial` | the same `adopt` command — it finishes a half-done setup |
-| `✓ ready`, older version | `murmurent repo upgrade ~/repos/<folder> --all-agents` |
-| `✓ ready`, current | nothing — open Claude Code in it |
+It prints one of these verdicts. Find yours and run the command beside it:
 
-Two things that surprise people:
+| Verdict | What it means | What to run |
+|---|---|---|
+| `✗ no such folder` | the path is wrong | check the path |
+| `✗ not tracked by git` | the folder exists but is not a git repository | `git -C ~/repos/<folder> init`, then the next row |
+| `• not set up yet` | a git repository Murmurent has never set up | `murmurent repo adopt ~/repos/<folder> --all-agents` |
+| `± half set up` | an earlier attempt stopped partway | the same `adopt` command; it completes the setup |
+| `✓ ready`, older version | set up by an earlier version of Murmurent | `murmurent repo upgrade ~/repos/<folder> --all-agents` |
+| `✓ ready`, current | nothing to do | open Claude Code in it |
 
-- **The folder has to be inside `~/repos/`.** Murmurent refuses anywhere else,
-  so that everything it has set up is in one predictable place.
-- **You have to name the agents you want.** `--agents oracle,blacksmith` gives
-  you those two. Leave the option off and the folder is set up with *no* agents
-  at all, which is only what you wanted if you meant it. To give a folder every
-  agent, run `murmurent repo upgrade ~/repos/<folder> --all-agents` afterwards.
+The verdict does not depend on the folder's history or contents, so a project
+you started this morning and one with ten years of commits take the same route.
+Neither `adopt` nor `upgrade` alters anything already in the folder: your
+files, your git history and your own `.claude/` settings are left as they are.
+What they add is a `.murmurent.yaml` file recording the setup and a
+`.claude/agents/` folder pointing at Murmurent's agents. Commit both, and every
+other copy of that repository is set up too.
 
-Being Murmurent-ready is only about wiring up the agents. It does not create a
-project, a charter or a Slack channel — that's a separate step, described in
-[the documentation](https://hallettmiket.github.io/murmurent/ready_vs_projects/).
+Three constraints worth knowing in advance:
+
+- **The folder must be inside `~/repos/`.** Murmurent refuses other locations,
+  so that everything it has set up is in one place.
+- **`--all-agents` gives the folder all 14 agents**, which is the usual choice.
+  To restrict it to specific ones, use `--agents oracle,blacksmith` instead; to
+  add one later, `murmurent repo upgrade <folder> --add-agents artist`. With
+  neither option the folder is set up with no agents at all.
+- **Murmurent-ready concerns agents only.** It does not create a project, a
+  charter or a Slack channel; those are separate and are described in
+  [the documentation](https://hallettmiket.github.io/murmurent/ready_vs_projects/).
+
 
 ### If your edits to an agent don't seem to take effect
 

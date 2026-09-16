@@ -343,16 +343,20 @@ def repo_status_cmd(target: str, host_name: str | None) -> None:
 @click.argument("path")
 @click.option("--lab", default=None,
               help="Owning lab slug (default: this machine's lab).")
+@click.option("--all-agents", is_flag=True,
+              help="Link every agent in the commons (the usual choice).")
 @click.option("--agents", "agents_csv", default=None,
               help="Comma-separated commons agents to symlink into .claude/agents/.")
 @click.option("--host", "host_name", default="local", show_default=True,
               help="'local' or a registered SSH host; remote adopts bootstrap "
                    "over one batched SSH session.")
 def repo_adopt_cmd(path: str, lab: str | None, agents_csv: str | None,
+                   all_agents: bool,
                    host_name: str) -> None:
     from .commands import repo_cmd as _repo_cmd
     raise SystemExit(_repo_cmd.cmd_adopt(
-        path=path, lab=lab, agents_csv=agents_csv, host_name=host_name))
+        path=path, lab=lab, agents_csv=agents_csv, host_name=host_name,
+        all_agents=all_agents))
 
 
 @repo_group.command(
