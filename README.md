@@ -42,8 +42,7 @@ murmurent doctor                        # every problem it prints comes with its
 ```
 
 `setup.sh` **symlinks** rather than copies, so editing an agent or a rule in
-this clone changes what every Claude Code session on this machine loads. That is
-the point, and also why a careless edit here is felt immediately.
+this clone changes what every Claude Code session on this machine loads. 
 
 Two things to know before you trust your first edit, both written up in
 [`DEVELOPING.md`](DEVELOPING.md): how to confirm you are reading this clone's
