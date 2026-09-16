@@ -21,6 +21,26 @@ PyPI procedures in full.
 Code flows one way, dev to public, and only at a release. Nothing is ever
 committed directly to the public repo.
 
+## What is in this repository
+
+| Folder | What's in it |
+|---|---|
+| [`agents/`](agents/) | The 14 shared agents — Oracle, Bookworm, Adversary and the rest — one plain-English Markdown file each. This is the heart of Murmurent; an agent is defined by writing instructions for it, not by writing code. |
+| [`rules/`](rules/) | Five short documents that Claude Code loads into *every* session, covering things like where data may be written. `rules/local/` holds the settings belonging to one particular institution, and is never published. |
+| [`skills/`](skills/) | The slash commands, such as `/murmurent-push`. One folder each, containing a `SKILL.md`. |
+| [`src/murmurent/`](src/murmurent/) | The Python code behind the `murmurent` command: `commands/` has one file per command, `core/` the logic they share, `dashboard/` the web dashboard, `hooks/` the checks that stop a Claude Code session writing where it shouldn't, `mcp/` the servers that let agents search your notes. |
+| [`docs/`](docs/) | Everything on <https://hallettmiket.github.io/murmurent/>. |
+| [`tests/`](tests/) | Around 2,300 automatic checks that Murmurent still works. |
+| [`release/`](release/) | The tooling that builds the public version — see "Publishing a new version" below. |
+| [`scripts/`](scripts/) | Installers, launchers, and scripts that fill a test machine with realistic fake labs and people. |
+
+Two conventions worth knowing before you edit an agent. Every agent must begin
+its final reply with a one-line verdict, no more than 200 characters, because
+that line is all the dashboard shows — the reasoning is in
+[`rules/headline_first.md`](rules/headline_first.md). And if you add a new
+agent, add it to that file's table and to [`CLAUDE.md`](CLAUDE.md) in the same
+breath, or the next person won't know it exists.
+
 ## Setting up to develop
 
 You need Python 3.12+ (`uv` will fetch one if you have none), `git`, and
