@@ -1,9 +1,8 @@
 # Murmurent — development repository
 
-This is where Murmurent is written. **If you want to *use* Murmurent, you're in
-the wrong place** — go to
-[hallettmiket/murmurent](https://github.com/hallettmiket/murmurent), which has
-the installation instructions, or read the
+This is the development version of Murmurent. **If you are a user of Murmrent and not 
+a developer, go to [hallettmiket/murmurent](https://github.com/hallettmiket/murmurent), 
+which has the installation instructions, or read the
 [documentation](https://hallettmiket.github.io/murmurent/).
 
 Murmurent is shared AI infrastructure for research groups: a set of agents,
