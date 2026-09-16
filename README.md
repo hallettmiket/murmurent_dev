@@ -1,8 +1,7 @@
 # Murmurent — development repository
 
-**You are in `murmurent_dev`.** This is where Murmurent is built: all history,
-every issue and pull request, the test suite, and the release machinery. It is
-not what users install.
+**You are in `murmurent_dev`.** This is where Murmurent is built and contains the entire build  history,
+ issues and pull requests, the test suite, and the release machinery. 
 
 | I want to… | Go to |
 |---|---|
@@ -15,8 +14,7 @@ Murmurent is shared agentic-AI infrastructure for researchers, labs, cores and
 research centres: it lets groups work independently, pool agents and data when
 collaboration helps, and accumulate institutional knowledge across projects.
 [`CLAUDE.md`](CLAUDE.md) is the architectural overview Claude Code itself loads
-at the start of every session in this repo — read it first, because the agents
-you are editing are written against it.
+at the start of every session in this repo.
 
 ## The three repositories
 
@@ -26,9 +24,7 @@ you are editing are written against it.
 | [**`murmurent`**](https://github.com/hallettmiket/murmurent) | **Releases.** One squashed commit per release, no development history, issues disabled. Built from a tag here by [`release/make_release.sh`](release/make_release.sh) and published to PyPI from there. |
 | [**`murmurent_public`**](https://github.com/hallettmiket/murmurent_public) | **The public directory.** Every institution running Murmurent, how to join it, and the index of published choreographies. |
 
-Code flows one way — dev to release, and only at a release. **Nothing is ever
-committed directly to the release repo**, and nothing develops against it: it
-has no tests and no history to bisect.
+Nothing is ever committed directly to the release repo.
 
 ## Get set up
 
