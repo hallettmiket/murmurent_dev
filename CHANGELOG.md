@@ -17,6 +17,30 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 
 ## [Unreleased]
 
+### Added
+- **Both READMEs now cover making a directory Murmurent-ready and keeping it
+  current**, which neither said completely. The ready-a-directory section states
+  the three starting points (plain folder, long-lived repo, repo set up by an
+  older release) as one procedure keyed on `murmurent repo status`, and names
+  two things the verdict does not: `adopt` refuses a path outside `~/repos/`,
+  and a bare `adopt` leaves `.claude/agents/` **empty** unless you pass
+  `--agents` (the README previously described it as writing "a `.claude/agents/`
+  folder of symlinks", which is only true when you ask for agents).
+- **An upgrade is two halves** — the install, then the repos wired to it — and
+  the READMEs now say which changes need no command at all. Agent, rule and
+  skill *text* is live immediately because everything is symlinks; only
+  structural change (a new agent file, a marker-schema bump, a version bump)
+  needs `setup` / `install` / `repo upgrade`. Each README carries the table.
+- `DEVELOPING.md` records a defect found while verifying the above: `repo adopt`
+  and `repo upgrade` resolve the commons through
+  `core.repo.murmurent_repo_root()` (hardcoded `~/repos/murmurent`, overridable
+  with `$MURMURENT_REPO_ROOT`), while `setup` / `install` / `doctor` use
+  `core.commons.commons_root()` (the clone you are running from). On a machine
+  holding both clones they disagree silently: an agent edited in the dev clone
+  is live in `~/.claude/agents/` and absent from an adopted repo. Documented
+  with the `MURMURENT_REPO_ROOT` workaround rather than fixed in passing —
+  changing the fallback moves where every adopted repo's links point.
+
 ### Changed
 - **The two repositories no longer share one README.** `README.md` here is now
   the development repository's landing page — what the repo is, where everything

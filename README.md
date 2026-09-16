@@ -54,6 +54,104 @@ Two things to know before you trust your first edit, both written up in
 commons and not a packaged copy, and why `rules/local/` exists. Do **not** run
 `scripts/bootstrap.sh` to develop — it clones the release repo.
 
+## Making a directory ready against your dev clone
+
+A directory is **Murmurent-ready** when it carries a `.murmurent.yaml` marker
+and a `.claude/agents/` of symlinks into the commons — that is what lets a
+Claude Code session opened there use the agents. You will want this on the
+throwaway repositories you test against, and on whatever you actually do
+research in.
+
+One procedure covers every starting point: a folder you made a minute ago, a
+repository with ten years of history, or one an older Murmurent set up. Nothing
+already there is touched. Ask first, because the answer decides the step:
+
+```bash
+murmurent repo status ~/repos/<directory>
+```
+
+| It says | Do this |
+|---|---|
+| `✗ not a git repo` | `git -C ~/repos/<directory> init`, then the next row |
+| `• clone` | `murmurent repo adopt ~/repos/<directory> --agents <names>` |
+| `± partial` | the same `adopt` — idempotent, it finishes the job |
+| `✓ ready`, older version | `murmurent repo upgrade ~/repos/<directory> --all-agents` |
+| `✓ ready`, current | open Claude Code in it |
+
+Two things that catch people, neither of them dev-specific:
+
+- **The directory must live under `~/repos/`.** `adopt` refuses any other path.
+- **`adopt` links no agents unless you name them.** A bare `murmurent repo
+  adopt` leaves `.claude/agents/` *empty* and the marker's `agents: []`. Pass
+  `--agents oracle,blacksmith`, or follow with `repo upgrade <path>
+  --all-agents`.
+
+### The dev-clone trap: check where the links point
+
+**`repo adopt` and `repo upgrade` do not resolve the commons the way the rest of
+the CLI does.** They use `core.repo.murmurent_repo_root()`, which is
+`~/repos/murmurent` unless `$MURMURENT_REPO_ROOT` says otherwise — while
+`murmurent setup`, `install` and `doctor` use `core.commons.commons_root()`,
+which prefers whichever clone you are actually running from. On a machine with
+both clones the two disagree, and the symptom is quiet: your edit to an agent
+here shows up in `~/.claude/agents/` and **not** in an adopted repo.
+
+Check, rather than assume:
+
+```bash
+readlink ~/repos/<directory>/.claude/agents/adversary.md
+```
+
+If that prints a path under `~/repos/murmurent`, the repo is following the
+release clone. Point adopt and upgrade at this one instead:
+
+```bash
+export MURMURENT_REPO_ROOT=~/repos/murmurent_dev
+murmurent repo upgrade ~/repos/<directory> --all-agents
+```
+
+Put that `export` in your shell profile if you develop here routinely. It is
+worth knowing this is a defect rather than a convention — see the note at the
+end of this section in [`DEVELOPING.md`](DEVELOPING.md).
+
+## Keeping your clone, and your repos, current
+
+Someone else's changes reach you in two moves: update the clone, then update the
+repositories wired to it. Doing only the first leaves every ready repo pointing
+at yesterday's structure.
+
+```bash
+cd ~/repos/murmurent_dev
+git pull                                          # collect other people's work
+uv tool install --python 3.12 --reinstall -e .    # only when pyproject.toml changed
+bash scripts/setup.sh                             # link new agents/rules/skills; prune retired ones
+murmurent install --hooks                         # re-register hooks + MCP servers
+murmurent doctor                                  # confirm what you are actually reading
+MURMURENT_REPO_ROOT=~/repos/murmurent_dev murmurent repo upgrade --all
+```
+
+**Most of the time you need none of it.** Agent, rule and skill *text* is live
+the moment you save, in this clone and in every ready repo, because everything
+is symlinks rather than copies. That is the whole point of `setup.sh`. What
+needs a command is anything structural:
+
+| What changed in the pull | What you run |
+|---|---|
+| the wording of an agent, rule or skill | nothing — already live |
+| a new agent, rule or skill file | `bash scripts/setup.sh`, then `repo upgrade --all --all-agents` |
+| an agent was retired or renamed | `bash scripts/setup.sh` — it prunes the dangling link |
+| Python code | nothing; the editable install reads your working tree |
+| `pyproject.toml` (deps, entry points) | `uv tool install --python 3.12 --reinstall -e .` |
+| the version, or the `.murmurent.yaml` schema | `murmurent repo upgrade --all` |
+| you are not sure | the whole block above, in order — each step is idempotent |
+
+`murmurent doctor` is the one to run when something feels stale: it names the
+clone it is reading, its commit, and whether the packaged copy is shadowing it.
+
+A clone made before 2026-09-01 has `origin` pointing at the release repo and its
+`git pull` fails with unrelated histories; `doctor` detects exactly that and
+prints the remote-url fix.
+
 ## Where things are
 
 | Path | What lives there |

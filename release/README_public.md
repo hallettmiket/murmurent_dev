@@ -75,14 +75,19 @@ it finds comes with the one command that fixes it.
 
 ### Upgrading
 
-Installed from PyPI:
+Upgrading has **two halves**: bring Murmurent itself up to date, then bring the
+directories you already made Murmurent-ready up to the new Murmurent. Doing only
+the first leaves your repositories wired to the version you had yesterday.
+
+**Half one — Murmurent itself.** Installed from PyPI:
 
 ```bash
 uv tool upgrade murmurent
 murmurent install
 ```
 
-Installed from a clone:
+Installed from a clone (this is also how you collect other people's changes:
+`git pull` is what brings them down):
 
 ```bash
 cd ~/repos/murmurent && git pull
@@ -90,12 +95,43 @@ uv tool install --python 3.12 --reinstall -e .
 murmurent install
 ```
 
-Then, either way:
+Run `murmurent install` **bare**, as above. Bare, it does both halves of the
+wiring: links agents, rules and skills into `~/.claude/` (so a new agent is
+picked up) and then registers the hooks and MCP servers. `murmurent install
+--hooks` deliberately does only the second, so it is the wrong command after an
+upgrade that added an agent. `murmurent setup` is the first half on its own.
+
+**Half two — your ready repositories**, and a check that half one landed:
 
 ```bash
 murmurent doctor                 # confirms the upgrade landed
 murmurent repo upgrade --all     # brings every Murmurent-ready directory up to the new release
 ```
+
+`murmurent repo upgrade --all` walks every ready repository under `~/repos/`,
+migrates its marker, re-links its agents and re-stamps the version it was
+bootstrapped by. Run it after every upgrade — it is idempotent, so running it
+when nothing changed costs a second and does nothing. For one repository, name
+it: `murmurent repo upgrade ~/repos/<directory>`. Add `--all-agents` to pick up
+agents that did not exist when you adopted it; without that flag, the
+repository keeps exactly the agents it already had.
+
+**What needs no command at all.** Agent, rule and skill *text* reaches you the
+moment it changes, because `~/.claude/` and each ready repository hold
+**symlinks** into the commons rather than copies. A reworded agent or a fixed
+rule is live in your next Claude Code session with nothing run. What does need
+the commands above is anything *structural*: a brand-new agent (there is no link
+to it yet), a change to the marker format, or new Python code.
+
+So after `git pull` on a clone, or `uv tool upgrade` from PyPI:
+
+| What changed upstream | What you run |
+|---|---|
+| the wording of an agent, rule or skill | nothing — it is already live |
+| a new agent, rule or skill was added | `murmurent install` (bare — not `--hooks`), then `murmurent repo upgrade --all --all-agents` |
+| Python code, the CLI, the dashboard | `uv tool install --python 3.12 --reinstall -e .` (clone) or `uv tool upgrade murmurent` (PyPI) |
+| the version, or the `.murmurent.yaml` format | `murmurent repo upgrade --all` |
+| you are not sure | all of them, in the order above — each is idempotent |
 
 Use `uv` for the reinstall. It installs into the interpreter Murmurent already
 runs under. The `pip` on your PATH can belong to a different Python (a conda
@@ -144,29 +180,47 @@ You're ready to run Murmurent locally. Several vignettes can help get you starte
 ## [Everyone] Initialize a directory for Murmurent
 
 Murmurent works inside a **repository**: a directory tracked by git, kept under
-`~/repos/`. Making a directory **Murmurent-ready** wires the shared agents and
-rules into it, so Claude Code sessions opened there can use them. The same
-procedure covers a brand-new folder, a repository you have worked in for years,
-and one that an older Murmurent release set up. Start by asking, because the
-answer decides the step:
+`~/repos/`. Making a directory **Murmurent-ready** wires the shared agents into
+it, so Claude Code sessions opened there can use them.
+
+**One procedure covers every starting point** — a folder you created a minute
+ago, a repository you have worked in for years, and one an older Murmurent
+release set up. Nothing already in the directory is touched: your code, your
+history and your own `.claude/` files stay as they are. So ask first, because
+the answer decides the single step you take:
 
 ```bash
 murmurent repo status ~/repos/<directory>
 ```
 
-| Verdict | What it means | Do this |
+| It says | What that means | Do this |
 |---|---|---|
-| `not a git repo` | a plain folder | `git -C ~/repos/<directory> init`, then the next row |
-| `plain clone` or `partial` | git, and Murmurent has never set it up | `murmurent repo adopt ~/repos/<directory>` |
-| `ready`, bootstrapped by an older version | ready, and newer agents are missing | `murmurent repo upgrade ~/repos/<directory> --all-agents` |
-| `ready`, current version | finished | open Claude Code in it |
+| `✗ not a git repo` | a plain folder, tracked by nothing | `git -C ~/repos/<directory> init`, then the next row |
+| `• clone` | git, and Murmurent has never set it up — whether it holds ten years of code or nothing at all | `murmurent repo adopt ~/repos/<directory> --agents <names>` |
+| `± partial` | half set up: a marker without agent links, or the reverse | the same `adopt` — it is idempotent and finishes the job |
+| `✓ ready`, bootstrapped by an older version | ready, but wired to a Murmurent older than the one you are running | `murmurent repo upgrade ~/repos/<directory> --all-agents` |
+| `✓ ready`, current version | finished | open Claude Code in it |
 
-Adopting writes a `.murmurent.yaml` marker and a `.claude/agents/` folder of
-symlinks into the commons, and leaves every other file as it was. Commit both,
-so each clone of the repository is ready as well. `murmurent repo list` shows
-the verdict for every repository on the machine, and `murmurent repo upgrade
---all` upgrades all of them at once. Details, and how ready repositories are
-attached to a project: [Making a repo Murmurent-ready](https://hallettmiket.github.io/murmurent/ready_vs_projects/).
+Two things the verdict does not tell you:
+
+- **The directory must live under `~/repos/`.** `adopt` refuses anything else
+  rather than scattering wired repositories across your disk.
+- **`adopt` links no agents unless you name them.** A bare `murmurent repo
+  adopt` makes the repository ready with an *empty* `.claude/agents/`, which is
+  a reasonable default only if you meant it. Pass `--agents
+  oracle,bookworm,blacksmith` for the ones you want, or run `murmurent repo
+  upgrade <path> --all-agents` afterwards to link all of them.
+
+Adopting writes a `.murmurent.yaml` marker, a `CLAUDE.md`, a `.claude/agents/`
+of symlinks into the commons, `.vscode/` settings, and a `.gitignore` entry for
+your machine-local Claude settings. **Commit them** — then every clone of that
+repository is ready too, for you and for everyone else. `murmurent repo list`
+shows the verdict for every repository on the machine at once.
+
+Being *ready* is a repository-level fact and nothing more: it does not create a
+project, a charter or a Slack channel. Attaching a ready repository to a project
+is a separate, later step. The distinction, and why it exists: [Making a repo
+Murmurent-ready](https://hallettmiket.github.io/murmurent/ready_vs_projects/).
 
 
 ## Federating individuals, groups and centres 
