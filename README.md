@@ -75,8 +75,8 @@ what to do if you already had Murmurent installed a different way.
 
 ## Setting up one of your own project folders to use Murmurent
 
-Murmurent's agents live in one place — this folder. To use them while working
-in some *other* folder, say the one holding a research project, that folder has
+Murmurent's agents are only defined in the repository. To use them while working
+in another folder (e.g. a research project), that folder has
 to be told where they are. Murmurent calls a folder that has been told
 **Murmurent-ready**, and you'll want it on your research projects as well as on
 any throwaway folder you're testing against.
