@@ -35,7 +35,7 @@ from pathlib import Path
 import yaml
 
 from .preflight import Probe
-from .repo import murmurent_repo_root
+from .commons import commons_root
 
 MARKER_FILENAME = ".murmurent.yaml"
 # Versions the SHAPE of the .murmurent.yaml marker — independent of the
@@ -145,6 +145,18 @@ def make_ready(clone_path: Path, *, lab: str = "",
                murmurent_root: Path | None = None) -> list[Probe]:
     """Make ``clone_path`` murmurent-ready: marker + CC bootstrap.
 
+    The agent symlinks point into :func:`commons.commons_root` — the same
+    commons ``murmurent setup``, ``install`` and ``doctor`` read, which is the
+    clone you installed rather than whatever sits at ``~/repos/murmurent``.
+    This used to call ``repo.murmurent_repo_root()`` instead, and the two
+    disagree on a machine holding both a release clone and a development one:
+    ``doctor`` would report the commons coming from ``~/repos/murmurent_dev``
+    while the repo adopted a moment earlier was linked into
+    ``~/repos/murmurent``. An agent edited in the clone you are working on was
+    then live in ``~/.claude/agents/`` and silently absent from the repo, which
+    is the worst shape a failure like this can take: no error, and the thing
+    you just changed appears not to work.
+
     Deliberately does NOT create a project, write a charter, or touch
     the lab registry — attach the repo to a project separately. ``lab``
     is recorded so multi-lab machines know whose commons this repo
@@ -170,7 +182,7 @@ def make_ready(clone_path: Path, *, lab: str = "",
         probes.append(Probe(name="marker", status="ok",
                             detail=f"wrote {f}", required=False))
 
-    root = murmurent_root or murmurent_repo_root()
+    root = murmurent_root or commons_root()
     probes.extend(_cci.bootstrap_local(repo, root, agents=picked,
                                        project_name=repo.name))
     return probes
@@ -224,7 +236,7 @@ def upgrade(clone_path: Path, *, add_agents: list[str] | None = None,
                                    "CHARTER.md bootstrap (CHARTER.md preserved)",
                             required=False))
 
-    root = murmurent_root or murmurent_repo_root()
+    root = murmurent_root or commons_root()
     if all_agents:
         commons = root / "agents"
         if commons.is_dir():

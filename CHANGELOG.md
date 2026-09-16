@@ -18,6 +18,87 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 ## [Unreleased]
 
 ### Changed
+- **The development README is rewritten for its actual readers** — biomedical
+  scientists, not software engineers. The previous version stated true things
+  with no context and no gloss ("`setup.sh` symlinks rather than copies…", "how
+  to confirm you are reading this clone's commons and not a packaged copy"), and
+  used headings that were engineer shorthand ("How a change gets in", "Before
+  you push", "Cutting a release"). Sections are now named as the reader's own
+  question and explain why before what: *I changed something. How do I make it
+  part of Murmurent?*, *Publishing a new version for everyone to download*,
+  *Which README to edit*. Every Murmurent-specific term — the commons, the
+  publishable-files list, a branch, a pull request, a test — gets a
+  one-sentence definition where it first appears.
+  Removed: *Exercising Murmurent without real people*, which answered a question
+  nobody asked, and the test-suite pass/fail statistics from one machine, which
+  no reader could act on.
+
+### Fixed
+- **`repo adopt` and `repo upgrade` now resolve the commons the way the rest of
+  the CLI does** (`core.commons.commons_root()` instead of the hardcoded
+  `~/repos/murmurent` in `core.repo.murmurent_repo_root()`). On a machine
+  holding both a release clone and a development one the two disagreed, so
+  `murmurent doctor` truthfully reported reading the commons from
+  `murmurent_dev` while a repo adopted seconds earlier was linked into
+  `~/repos/murmurent`: an agent edited in the clone under development was live
+  in `~/.claude/agents/` and silently absent from the repo. The rule is now one
+  rule everywhere — *the clone you installed is the clone your repos follow* —
+  and the `$MURMURENT_REPO_ROOT` workaround is no longer needed.
+- **`murmurent repo status` prints which commons a repo follows**, and flags a
+  repo following a different one. Previously discoverable only by running
+  `readlink` on a symlink by hand.
+
+### Added
+- **A murmurent-ready repo now says when its wiring has fallen behind**, through
+  the existing `UserPromptSubmit` hook (`hooks/context_inject.py`), so it
+  appears the moment you start working rather than requiring you to go and ask.
+  It reports the two states that are both actionable and otherwise silent:
+  commons agents this repo has no link to (the shape a newly added agent takes,
+  since nothing retro-fits links), and links resolving into a different commons.
+  Keyed on the `.murmurent.yaml` marker rather than on a CHARTER, so it covers
+  every ready repo and not only project repos.
+  **Deliberately not reported:** a `bootstrap_version` that merely differs from
+  the running version. `repo_ready.needs_upgrade` is true after every release,
+  including one that changed nothing for the repo, so notifying on it would put
+  a line in front of the user on every prompt after every upgrade and teach them
+  to ignore the notice.
+- **Bare `murmurent install` now finishes by re-linking every murmurent-ready
+  repo on the machine**, so an upgrade reaches the repos people work in instead
+  of stopping at `~/.claude/`. `--hooks` is unchanged (hooks only). It re-links
+  the roster each repo already chose and does **not** add agents new in the
+  release: that changes what a repo is, and the readiness notice above plus
+  `repo upgrade --all-agents` makes it an opt-in.
+  The automatic pass is restricted to repos that already carry a marker. The
+  first run of it on a real machine stamped a marker and a `.vscode/` onto a
+  years-old repo whose only bootstrap was a legacy `CHARTER.md` — turning an
+  upgrade into an adoption and leaving untracked files in a repo whose owner had
+  asked for nothing. A hand-typed `repo upgrade --all` still migrates those.
+
+### Added
+- **Both READMEs now cover making a directory Murmurent-ready and keeping it
+  current**, which neither said completely. The ready-a-directory section states
+  the three starting points (plain folder, long-lived repo, repo set up by an
+  older release) as one procedure keyed on `murmurent repo status`, and names
+  two things the verdict does not: `adopt` refuses a path outside `~/repos/`,
+  and a bare `adopt` leaves `.claude/agents/` **empty** unless you pass
+  `--agents` (the README previously described it as writing "a `.claude/agents/`
+  folder of symlinks", which is only true when you ask for agents).
+- **An upgrade is two halves** — the install, then the repos wired to it — and
+  the READMEs now say which changes need no command at all. Agent, rule and
+  skill *text* is live immediately because everything is symlinks; only
+  structural change (a new agent file, a marker-schema bump, a version bump)
+  needs `setup` / `install` / `repo upgrade`. Each README carries the table.
+- `DEVELOPING.md` records a defect found while verifying the above: `repo adopt`
+  and `repo upgrade` resolve the commons through
+  `core.repo.murmurent_repo_root()` (hardcoded `~/repos/murmurent`, overridable
+  with `$MURMURENT_REPO_ROOT`), while `setup` / `install` / `doctor` use
+  `core.commons.commons_root()` (the clone you are running from). On a machine
+  holding both clones they disagree silently: an agent edited in the dev clone
+  is live in `~/.claude/agents/` and absent from an adopted repo. Documented
+  with the `MURMURENT_REPO_ROOT` workaround rather than fixed in passing —
+  changing the fallback moves where every adopted repo's links point.
+
+### Changed
 - **The two repositories no longer share one README.** `README.md` here is now
   the development repository's landing page — what the repo is, where everything
   lives, how a change becomes a pull request, how the suite is run, and how a
