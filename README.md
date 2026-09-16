@@ -38,7 +38,7 @@ before you start, because it explains most of the procedures further down.
   published.
 - **[`murmurent_public`](https://github.com/hallettmiket/murmurent_public) — the
   public directory.** A list of which institutions are running Murmurent and
-  how to ask to join one, plus an index of shared workflows anyone can install.
+  how to ask to join one, plus an index of shared workflows (termed choreographies in Murmurent) anyone can install.
 
 Changes only ever travel one way: they are made here, and they reach the public
 release when someone publishes a new version. Nothing is ever committed
