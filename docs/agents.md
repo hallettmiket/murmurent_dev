@@ -54,6 +54,33 @@ cohort curator, …) that compose against this same reference set, the
 same hard rules, and the same verdict protocol. This corresponds to the
 so-called "commons-plus-toolkit" pattern described in the manuscript.
 
+## All of them at a glance
+
+**Scope** names the social unit whose state the agent reads and writes.
+**Verdict** is the fixed set of words that agent's conclusion is drawn from,
+and with which it must open its reply.
+
+| Agent | What it does | Scope | Verdict |
+|---|---|---|---|
+| *Research and production* | | | |
+| Blacksmith | Data handling, feature engineering, statistical modelling and evaluation; tailored per group to local tools and protocols | member | Done / Partial / Failed |
+| Bookworm | Literature search and biomedical-database queries; annotates results with published knowledge | member | Found *n* sources |
+| Artist | Figures, plots and presentation material for publication and communication | member | Rendered / Skipped / Failed |
+| Teacher | Explains methods, papers and decisions for a technically competent, adjacent-field audience | member | Explained / Gap |
+| *Memory* | | | |
+| Oracle | Personal research memory: findings, hypotheses and experimental context across a member's projects | member | Found / Not found / Unsure |
+| Lab Oracle | Group memory of reviewed findings | group | Found / Not found / Unsure |
+| *Review and adjudication* | | | |
+| Adversary | Methodological audit: validates design, checks for data leakage, demands cross-validation | member | Pass / Questions / Reject |
+| Conscience | EDID and SGBA+ review of design, language, literature selection and presentation | member | OK / Flagged |
+| Lawyer | Patent landscape and freedom-to-operate assessment | member | Clear / Conflict / Unknown |
+| Security Guard | Scans diffs and outgoing data objects for credentials, protected health information and permission errors | member | Clear / Concerns / Blocked |
+| Judge | Combines contributions to one choreography on a shared key, shows disagreement, and computes a consensus only where the contributions share a metric | project | Presented / Split / Insufficient |
+| *Infrastructure and administration* | | | |
+| Cable Guy | Provisions and health-checks member environments, repositories, storage and communication channels for one group | group | Provisioned / Skipped / Failed |
+| Centre Cable Guy | Centre-wide reconciler: cross-group permissions, membership drift and shared-infrastructure differences | centre | Reconciled / Drift / BLOCKED |
+| Registrar | Registry of groups, cores and collaborations; the centre-level administrative view | centre | Recorded / Conflict / Skipped |
+
 ---
 
 ## Oracle
