@@ -104,8 +104,22 @@ def readiness(repo: Path) -> Readiness:
     )
 
 
+#: The marker fields readiness owns. Every other field belongs to someone else
+#: (a choreography's ``kind: choreography`` declaration, for one) and is kept.
+READINESS_FIELDS: tuple[str, ...] = (
+    "murmurent", "lab", "ready_since", "bootstrap_version", "agents",
+)
+
+
 def _write_marker(repo: Path, *, lab: str, agents: list[str],
                   ready_since: str | None = None) -> Path:
+    """Write the readiness fields, keeping every other field already there.
+
+    This used to write the five readiness fields and nothing else, so
+    ``repo upgrade`` (and ``adopt --all-agents`` on a ready repo) silently
+    erased a choreography's declaration, after which ``choreography install``
+    refused the repo as not being one.
+    """
     marker = {
         "murmurent": MARKER_SCHEMA,
         "lab": lab or "",
@@ -113,7 +127,31 @@ def _write_marker(repo: Path, *, lab: str, agents: list[str],
         "bootstrap_version": _version(),
         "agents": sorted(set(agents or [])),
     }
+    for key, value in (read_marker(repo) or {}).items():
+        if key not in READINESS_FIELDS:
+            marker[key] = value
     f = Path(repo) / MARKER_FILENAME
+    f.write_text(yaml.safe_dump(marker, sort_keys=False), encoding="utf-8")
+    return f
+
+
+def update_marker(repo: Path, fields: dict) -> Path:
+    """Merge ``fields`` into an existing marker, leaving readiness fields alone.
+
+    For a caller that owns fields other than readiness, such as the choreography
+    declaration. Refuses to create a marker: a repo is made ready by
+    :func:`make_ready`, not by acquiring unrelated fields.
+    """
+    repo = Path(repo).expanduser()
+    marker = read_marker(repo)
+    if marker is None:
+        raise FileNotFoundError(
+            f"{repo / MARKER_FILENAME} does not exist; make the repo ready first")
+    clash = sorted(set(fields) & set(READINESS_FIELDS))
+    if clash:
+        raise ValueError(f"readiness owns these marker fields: {', '.join(clash)}")
+    marker.update(fields)
+    f = repo / MARKER_FILENAME
     f.write_text(yaml.safe_dump(marker, sort_keys=False), encoding="utf-8")
     return f
 

@@ -17,6 +17,26 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 
 ## [Unreleased]
 
+### Added
+- **`murmurent choreography init <name>`, and ＋ new choreography on the
+  dashboard, start a choreography from nothing.** One action creates the
+  repository with the lab's folder layout, starts git, makes it murmurent-ready,
+  declares `kind: choreography` in `.murmurent.yaml`, poses the question, creates
+  the data folders, makes the first commit, and files a project request naming
+  the repository. Approving the request creates the GitHub repository, the Slack
+  channel and the lead card, as for any project. The command asks for anything
+  left out and shows the plan before acting; both finish with a list of what is
+  left. See `docs/starting_a_choreography.md`.
+- A question file may now name its repository (`repo:`), and the dashboard card
+  shows it.
+
+### Fixed
+- **`repo upgrade` erased a choreography's declaration.** It, and
+  `repo adopt --agents`/`--all-agents` on a ready repo, rewrote
+  `.murmurent.yaml` with the readiness fields only, so `kind: choreography`
+  and everything after it were lost and `choreography install` then refused the
+  repo. The marker now keeps every field readiness does not own.
+
 ### Changed
 - **The user-facing README is rewritten and reorganised**, from 428 lines to
   201. It now follows the Plain English output style, so it has no em dashes

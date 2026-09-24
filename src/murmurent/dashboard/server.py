@@ -249,6 +249,24 @@ class NewChoreographyBody(BaseModel):
     poser: str = ""   # defaults to the acting handle when blank
 
 
+class InitChoreographyBody(BaseModel):
+    """JSON body for ``POST /api/choreography/init``: start a choreography from
+    nothing. The fields mirror ``murmurent choreography init``."""
+
+    name: str
+    title: str
+    summary: str
+    mode: str = "compositional"
+    approaches: list[str] = []
+    agents: list[str] = []
+    question: str = ""
+    candidate_key: str = ""   # blank: pose the question later
+    criteria: str = ""
+    request_project: bool = True
+    members: list[str] = []
+    sensitivity: str = "standard"
+
+
 class MemberSettingsBody(BaseModel):
     """JSON body for ``POST /api/member/settings``.
 
@@ -6549,6 +6567,35 @@ def create_app() -> FastAPI:
                 status_code=409, detail=f"a choreography already exists at {dest.name}")
         dest.write_text(obj.to_markdown(), encoding="utf-8")
         return {"ok": True, "id": dest.stem, "path": str(dest)}
+
+    @app.post("/api/choreography/init")
+    def init_choreography_endpoint(
+        body: InitChoreographyBody,
+        user: str = Query("", description="Actor handle; falls back to $MURMURENT_USER."),
+    ) -> dict:
+        """Start a choreography from nothing: repository, readiness, declaration,
+        question, first commit and project request. The CLI twin is
+        ``murmurent choreography init``; both call ``core.choreography_init``."""
+        from ..core import choreography_init as _ci
+
+        actor = _resolve_actor(user)
+        _require_active(actor)
+        plan = _ci.ChoreographyPlan(
+            name=body.name.strip(), title=body.title, summary=body.summary,
+            mode=body.mode,
+            approaches=[a.strip() for a in body.approaches if a.strip()],
+            agents=[a.strip() for a in body.agents if a.strip()]
+                   or list(_ci.DEFAULT_AGENTS),
+            question=body.question, candidate_key=body.candidate_key,
+            criteria=body.criteria, request_project=body.request_project,
+            members=[m.strip() for m in body.members if m.strip()],
+            sensitivity=body.sensitivity,
+        )
+        try:
+            result = _ci.init_choreography(plan, actor=actor)
+        except _ci.InitError as exc:
+            raise HTTPException(status_code=422, detail="; ".join(exc.problems))
+        return result.to_dict()
 
     @app.post("/api/choreography/{cid}/attach")
     def attach_contribution_endpoint(

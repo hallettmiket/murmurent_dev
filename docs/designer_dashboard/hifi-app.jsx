@@ -3933,6 +3933,146 @@ function NewChoreographyModal({ onClose }) {
   );
 }
 
+// Start a choreography from nothing (POST /api/choreography/init). The CLI twin
+// is `murmurent choreography init`; both run core.choreography_init, which
+// creates the repository, declares it, poses the question, commits, and files
+// the project request the PI approves.
+function StartChoreographyModal({ onClose }) {
+  const [form, setForm] = useState({
+    name:"", title:"", summary:"", mode:"compositional", approaches:"",
+    pose:true, candidate_key:"", criteria:"", request_project:true, members:"",
+  });
+  const [busy, setBusy]     = useState(false);
+  const [err, setErr]       = useState(null);
+  const [result, setResult] = useState(null);
+  const set = k => e => setForm({ ...form,
+    [k]: e.target.type === "checkbox" ? e.target.checked : e.target.value });
+  const csv = t => String(t || "").split(",").map(x => x.trim()).filter(Boolean);
+  const posing = form.mode === "compositional" && form.pose;
+  const ready = form.name && form.title && form.summary
+    && (!posing || (form.candidate_key && form.criteria));
+  const submit = async () => {
+    setBusy(true); setErr(null);
+    try {
+      const res = await postJSON("/api/choreography/init", {
+        name: form.name.trim(), title: form.title, summary: form.summary,
+        mode: form.mode, approaches: csv(form.approaches),
+        candidate_key: posing ? form.candidate_key : "",
+        criteria: posing ? form.criteria : "",
+        request_project: form.request_project, members: csv(form.members),
+      });
+      setResult(res);
+      await refreshDashboard();
+    } catch (ex) { setErr(String(ex.message || ex)); }
+    finally { setBusy(false); }
+  };
+  const inputStyle = {width:"100%", padding:"6px 8px", border:"1px solid var(--rule-strong)",
+                      borderRadius:2, fontFamily:"var(--sans)", fontSize:13};
+  const label = (text, hint) => (
+    <div className="mono muted" style={{fontSize:11, marginBottom:3}}>
+      {text}{hint && <span style={{textTransform:"none"}}> ({hint})</span>}
+    </div>
+  );
+  const field = (text, k, ph, hint) => (
+    <label style={{display:"block", marginBottom:10}}>
+      {label(text, hint)}
+      <input value={form[k]} onChange={set(k)} placeholder={ph} style={inputStyle} />
+    </label>
+  );
+  const MARK = { ok:"✓", warn:"!", fail:"✕" };
+  const COLOUR = { ok:"var(--green,#2e7d32)", warn:"var(--amber,#b26a00)", fail:"var(--red)" };
+  return (
+    <div onClick={onClose} style={MODAL_BACKDROP_STYLE}>
+      <div onClick={e => e.stopPropagation()} style={{...MODAL_PANEL_STYLE, maxWidth:600}}>
+        <div style={{background:"var(--paper-2)", borderBottom:"1px solid var(--rule)", padding:"12px 16px"}}>
+          <h2 style={{margin:0, fontFamily:"var(--serif)", fontSize:17, color:"var(--purple-deep)"}}>
+            Start a choreography
+          </h2>
+          <div className="muted" style={{fontSize:12, marginTop:3}}>
+            Creates its repository, poses its question, and asks your PI to make it a project.
+          </div>
+        </div>
+        {!result && (
+          <div style={{padding:16, maxHeight:"70vh", overflowY:"auto"}}>
+            {field("Name", "name", "e.g. pin1_inhibition", "lowercase and underscores; also the repository name")}
+            {field("Title", "title", "e.g. Dance with Inhibition")}
+            <label style={{display:"block", marginBottom:10}}>
+              {label("Summary", "what the approaches are and how they are combined")}
+              <textarea value={form.summary} onChange={set("summary")} rows={3} style={inputStyle} />
+            </label>
+            <label style={{display:"block", marginBottom:10}}>
+              {label("Mode", "compositional: several approaches, combined by the judge")}
+              <select value={form.mode} onChange={set("mode")} style={inputStyle}>
+                <option value="compositional">compositional</option>
+                <option value="coordination">coordination</option>
+              </select>
+            </label>
+            {field("Approaches", "approaches", "t1_docking, t2_assay", "comma-separated; can be added later")}
+            {form.mode === "compositional" && (
+              <div style={{border:"1px solid var(--rule)", padding:"10px 12px", marginBottom:10}}>
+                <label style={{display:"flex", gap:6, alignItems:"center", fontSize:13, marginBottom: form.pose ? 10 : 0}}>
+                  <input type="checkbox" checked={form.pose} onChange={set("pose")} />
+                  Pose the question now
+                </label>
+                {form.pose && (<>
+                  <label style={{display:"block", marginBottom:10}}>
+                    {label("Candidate key", "what every approach reports on, so results line up")}
+                    <input value={form.candidate_key} onChange={set("candidate_key")} list="ck-list-init"
+                           placeholder="inchikey | smiles | gene_symbol | uniprot | other:<text>"
+                           style={{...inputStyle, fontFamily:"var(--mono)", fontSize:12}} />
+                    <datalist id="ck-list-init">
+                      {["inchikey", "smiles", "gene_symbol", "uniprot"].map(k => <option key={k} value={k} />)}
+                    </datalist>
+                  </label>
+                  <label style={{display:"block"}}>
+                    {label("Criteria", "how the judge should rank and present results")}
+                    <textarea value={form.criteria} onChange={set("criteria")} rows={3} style={inputStyle} />
+                  </label>
+                </>)}
+              </div>
+            )}
+            <div style={{border:"1px solid var(--rule)", padding:"10px 12px", marginBottom:10}}>
+              <label style={{display:"flex", gap:6, alignItems:"center", fontSize:13, marginBottom: form.request_project ? 10 : 0}}>
+                <input type="checkbox" checked={form.request_project} onChange={set("request_project")} />
+                Ask my PI to make it a project
+              </label>
+              {form.request_project && field("Members besides you", "members", "@bob, @carol", "comma-separated handles")}
+            </div>
+            {err && <div style={{color:"var(--red)", fontSize:12, marginBottom:8}}>{err}</div>}
+            <div style={{display:"flex", justifyContent:"flex-end", gap:8, marginTop:6}}>
+              <button className="btn sm" onClick={onClose} disabled={busy}>cancel</button>
+              <button className="btn sm primary" onClick={submit} disabled={busy || !ready}>
+                {busy ? "starting…" : "start choreography"}
+              </button>
+            </div>
+          </div>
+        )}
+        {result && (
+          <div style={{padding:16, maxHeight:"70vh", overflowY:"auto"}}>
+            {result.probes.map((p, i) => (
+              <div key={i} style={{fontSize:12, marginBottom:4, display:"flex", gap:6}}>
+                <span style={{color: COLOUR[p.status] || "inherit"}}>{MARK[p.status] || "?"}</span>
+                <span><b>{p.name}</b>: {p.detail}</span>
+              </div>
+            ))}
+            {result.ok && (<>
+              <div style={{fontSize:13, margin:"12px 0 6px"}}>
+                The choreography is in <span className="mono">{result.repo_path}</span>. What is left:
+              </div>
+              <ol style={{fontSize:12, paddingLeft:20, margin:0}}>
+                {result.next_steps.map((s, i) => <li key={i} style={{marginBottom:4}}>{s}</li>)}
+              </ol>
+            </>)}
+            <div style={{display:"flex", justifyContent:"flex-end", marginTop:12}}>
+              <button className="btn sm primary" onClick={onClose}>done</button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function ChoreographyCard({ c }) {
   const [busy, setBusy] = useState(null);
   const [err, setErr]   = useState(null);
@@ -3956,6 +4096,7 @@ function ChoreographyCard({ c }) {
       {c.criteria && <div className="muted" style={{fontSize:11, marginTop:2, fontStyle:"italic"}}>criteria: {c.criteria}</div>}
       <div className="mono muted" style={{fontSize:10, marginTop:3}}>
         posed by {c.poser || "—"}
+        {c.repo && <span style={{marginLeft:8}}>· repository {c.repo}</span>}
         {c.attached.length > 0 && (c.all_join
           ? <span style={{color:"var(--green,#2e7d32)", marginLeft:8}}>· all {c.attached.length} contribution(s) join — ready to compose</span>
           : <span style={{color:"var(--red)", marginLeft:8}}>· some attached contributions don't join</span>)}
@@ -4004,26 +4145,35 @@ function slugify(text) {
 function ChoreographiesPanel({ choreographies, span="c-12" }) {
   const list = choreographies || [];
   const [modal, setModal] = useState(false);
+  const [starting, setStarting] = useState(false);
   return (
     <div className={"panel "+span}>
       <header>
         <h2>Choreographies</h2>
         <span className="meta" style={{display:"flex", alignItems:"center", gap:8}}>
           {list.length} posed
-          <button className="btn sm" onClick={() => setModal(true)}>+ pose</button>
+          <button className="btn sm primary" onClick={() => setStarting(true)}
+                  title="Create a choreography's repository, pose its question, and ask your PI to make it a project">
+            + new choreography
+          </button>
+          <button className="btn sm" onClick={() => setModal(true)}
+                  title="Pose a question on its own, with no repository behind it">
+            + pose a question
+          </button>
         </span>
       </header>
       <div className="body" style={{padding:0}}>
         {list.length === 0 && (
           <div className="muted" style={{padding:"14px", fontSize:13}}>
-            No choreographies yet. Pose one to advertise a target; members then
-            contribute contributions that join on its candidate key, and the judge
-            combines them.
+            No choreographies yet. Start one to create its repository and pose its
+            question; members then contribute approaches that report on the same
+            candidates, and the judge combines them.
           </div>
         )}
         {list.map(c => <ChoreographyCard key={c.id || c.title} c={c} />)}
       </div>
       {modal && <NewChoreographyModal onClose={() => setModal(false)} />}
+      {starting && <StartChoreographyModal onClose={() => setStarting(false)} />}
     </div>
   );
 }

@@ -2257,6 +2257,50 @@ def choreography_list(index_url: str | None) -> None:
     raise SystemExit(_ci.cmd_list(**kwargs))
 
 
+@choreography_group.command(
+    "init",
+    help="Start a new choreography from nothing: create its repository, make it "
+         "murmurent-ready, declare it, pose its question, make the first commit "
+         "and ask the PI to make it a project. Asks for anything you leave out.")
+@click.argument("name")
+@click.option("--title", default=None, help="The choreography's title, in one line.")
+@click.option("--summary", default=None,
+              help="What the approaches are and how they are combined.")
+@click.option("--mode", type=click.Choice(["compositional", "coordination"]),
+              default=None, help="Default: compositional.")
+@click.option("--approaches", default=None, help="Comma-separated approach names.")
+@click.option("--agents", default=None,
+              help="Comma-separated agents it uses (default: blacksmith, adversary, "
+                   "bookworm, artist, judge).")
+@click.option("--question", default=None,
+              help="Question slug (default: the repository name).")
+@click.option("--candidate-key", "candidate_key", default=None,
+              help="What every approach reports on: inchikey | smiles | gene_symbol "
+                   "| uniprot | other:<text>. Leave out to pose the question later.")
+@click.option("--criteria", default=None,
+              help="How the judge ranks results (text, or @file to read).")
+@click.option("--members", default=None,
+              help="Project members besides you, comma-separated handles.")
+@click.option("--sensitivity", type=click.Choice(["standard", "restricted", "clinical"]),
+              default="standard", show_default=True)
+@click.option("--lab", default="", help="Owning lab (default: this machine's lab).")
+@click.option("--no-project", "no_project", is_flag=True,
+              help="Do not file a project request.")
+@click.option("--yes", "-y", "assume_yes", is_flag=True,
+              help="Ask nothing; fail if a required value is missing.")
+def choreography_init(name: str, title: str | None, summary: str | None,
+                      mode: str | None, approaches: str | None, agents: str | None,
+                      question: str | None, candidate_key: str | None,
+                      criteria: str | None, members: str | None, sensitivity: str,
+                      lab: str, no_project: bool, assume_yes: bool) -> None:
+    from .commands import choreography_cmd as _ch_cmd
+    raise SystemExit(_ch_cmd.cmd_init(
+        name=name, title=title, summary=summary, mode=mode, approaches=approaches,
+        agents=agents, question=question, candidate_key=candidate_key,
+        criteria=criteria, members=members, sensitivity=sensitivity, lab=lab,
+        request_project=not no_project, assume_yes=assume_yes))
+
+
 @choreography_group.command("new", help="Pose a new choreography (a question).")
 @click.option("--question", required=True, help="Question slug/id.")
 @click.option("--poser", required=True, help="Posing member handle (e.g. @the_pi).")
