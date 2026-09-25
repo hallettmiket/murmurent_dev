@@ -73,6 +73,10 @@ Auto-loaded into every CC session via `~/.claude/rules/`:
 - [`rules/slack.md`](rules/slack.md) — Slack-posting protocol (after
   every `git push`, post to the group's own channel). Which channel,
   workspace and bot is a deployment fact and lives in `rules/local/`.
+- [`rules/voice.md`](rules/voice.md) — read the voice guidelines at the start
+  of every session, before writing anything a person will read. Points at
+  [`output_styles/plain_english.md`](output_styles/plain_english.md) for the
+  general voice, and at a repository's own `CLAUDE.md` where it is stricter.
 
 **Deployment-specific rules.** A centre may add its own rules under
 `rules/local/`, which `scripts/setup.sh` symlinks alongside the shared
@@ -95,6 +99,10 @@ alternatives in the documentation.
 
 It sets `keep-coding-instructions: true`, so code is written exactly as
 before. Only prose changes.
+
+**Read it at the start of every session.** [`rules/voice.md`](rules/voice.md)
+is auto-loaded and says so, because the style file itself is only active when
+a member has selected it, and subagents never inherit it.
 
 Linking it makes it available; it is not automatic. Select it per machine with
 `/config` -> Output style, then restart Claude Code. It applies to the main

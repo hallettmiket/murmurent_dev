@@ -5,8 +5,11 @@ The murmurent manuscript lives in its own repo, synchronised with
 
 - Working clone: `~/repos/murmurent_manuscript`
 - Remote: `git@github.com:hallettmiket/murmurent_manuscript.git`
-- Single source file: `main-article.tex` (Springer Nature class);
-  bibliography in `wigamig_bib.bib`.
+- Single source file: `main-article.tex` (Springer Nature class).
+- Bibliography: **`mm_bib.bib` is the current one**, and new references go
+  there. `wigamig_bib.bib` is still cited for older entries, so both are
+  loaded by `\bibliography{mm_bib,wigamig_bib}`. Both are exported from
+  Zotero, so do not hand-edit them: ask Mike to add a missing reference.
 
 Mike edits the manuscript **both** locally (through Claude Code) and on
 Overleaf (in a browser). Overleaf pushes to GitHub, so the GitHub `main`
@@ -36,4 +39,27 @@ Overleaf can fetch them. Do not sit on uncommitted manuscript changes.
 
 The manuscript is the authoritative description of murmurent's purpose and
 architecture. When doing admin-level or design work, read it (and the
-code) before acting — see the `/murmurent-admin` skill.
+code) before acting: see the `/murmurent-admin` skill.
+
+## Voice
+
+Read the manuscript's writing voice before drafting any of it. It is in
+`~/repos/murmurent_manuscript/CLAUDE.md`, under "Writing voice", and it is
+stricter than the general voice in
+[`output_styles/plain_english.md`](../../output_styles/plain_english.md). It is
+a scientific paper for a peer-reviewing biomedical audience: factual and
+cited, concise, serious and understated, every term defined on first use,
+British and Canadian spelling. When in doubt, flag rather than invent.
+
+## Which murmurent repository
+
+Both exist and both are live. They are not copies of each other.
+
+- `~/repos/murmurent_dev` is where development happens. Change code, agents,
+  rules and documentation here.
+- `~/repos/murmurent` is the released version. Read it to see what members
+  actually have installed. Do not develop in it.
+
+The manuscript describes the system, so read `murmurent_dev` when writing
+about how something works now, and `murmurent` when writing about what has
+shipped.
