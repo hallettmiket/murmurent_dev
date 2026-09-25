@@ -6111,7 +6111,7 @@ function BroadcastsPanel({ span="c-12" }) {
   );
 }
 
-/* ───────── Centre projects (centre_cable_guy front door, item 0e) ─────────
+/* ───────── Centre projects (centre_millwright front door, item 0e) ─────────
    PI of primary_lab can declare and reconcile their projects from
    here. Members see read-only listing of every centre project they
    belong to (visibility, not editing). */
@@ -6734,7 +6734,7 @@ const AGENT_COLOURS = {
   adversary:      "#b91c1c", // red
   artist:         "#c2410c", // orange
   blacksmith:     "#a16207", // gold
-  cable_guy:      "#4d7c0f", // olive
+  millwright:     "#4d7c0f", // olive
   conscience:     "#15803d", // green
   lawyer:         "#0f766e", // teal
   receptionist:   "#0284c7", // sky

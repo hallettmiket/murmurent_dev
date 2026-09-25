@@ -141,7 +141,7 @@ shouldn't put here" table. Link it from `docs/setup.md`.
 projects checked out there. The `$MURMURENT_PROJECTS_ROOT` env var
 overrides, but users have to know about it.
 
-**Scope.** ~1 day. During `cable_guy`'s onboarding flow, prompt the
+**Scope.** ~1 day. During `millwright`'s onboarding flow, prompt the
 member for their preferred `<projects_root>`, write it to
 `lab_mgmt/members/<handle>.md` (a new `projects_root:` frontmatter
 field), and have `lab_mgmt_repo_root()` + `projects_root()` resolve

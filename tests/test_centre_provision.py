@@ -1,5 +1,5 @@
 """
-Tests for centre_cable_guy's Python surface (item 0 of the post-smoke
+Tests for centre_millwright's Python surface (item 0 of the post-smoke
 design conversation).
 
 Covers:
