@@ -14,7 +14,7 @@ def test_commons_agents_carry_origin_and_category():
     assert rows["judge"].origin == "commons"
     assert rows["judge"].category == "choreography-support"
     assert rows["registrar"].category == "administrative"
-    assert rows["centre_cable_guy"].category == "administrative"
+    assert rows["centre_millwright"].category == "administrative"
     assert rows["blacksmith"].category == "member"
     # The deprecated receptionist is gone.
     assert "receptionist" not in rows

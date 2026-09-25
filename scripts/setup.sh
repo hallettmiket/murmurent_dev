@@ -89,6 +89,18 @@ for src in "$AGENTS_SRC"/*.md; do
     created=$((created + 1))
   fi
 done
+# Remove links left behind when an agent is renamed or retired
+# (e.g. cable_guy -> millwright): they point into this repo's agents/
+# but the file they name no longer exists.
+for dest in "$CC_DIR/agents"/*.md; do
+  [[ -L "$dest" && ! -e "$dest" ]] || continue
+  case "$(readlink "$dest")" in
+    "$AGENTS_SRC"/*)
+      rm -f "$dest"
+      ok "removed stale link $(basename "$dest") (agent renamed or retired)"
+      ;;
+  esac
+done
 echo "  -- migrated $swept_legacy generic_cc symlinks, created $created new, preserved $preserved user files."
 
 echo

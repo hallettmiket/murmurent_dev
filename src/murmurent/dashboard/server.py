@@ -7560,7 +7560,7 @@ def create_app() -> FastAPI:
         }
 
     # ------------------------------------------------------------------
-    # Centre projects (centre_cable_guy front door, item 0)
+    # Centre projects (centre_millwright front door, item 0)
     # ------------------------------------------------------------------
 
     def _project_to_dict(r) -> dict:
@@ -7641,7 +7641,7 @@ def create_app() -> FastAPI:
         """Pure-diff reconcile. Caller passes the actual state (Slack
         members / GitHub collaborators / FS ACL per machine); the
         endpoint returns the deltas. Wiring the actual-fetch (slack
-        API, gh api, ssh+sudo) lives in the dashboard/centre_cable_guy
+        API, gh api, ssh+sudo) lives in the dashboard/centre_millwright
         — keeping the diff pure here makes the surface trivially
         testable + offline-runnable."""
         from ..core import centre_provision as _cp

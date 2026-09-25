@@ -28,8 +28,8 @@ EXPECTED_AGENTS = {
     "artist",
     "blacksmith",
     "bookworm",
-    "cable_guy",
-    "centre_cable_guy",
+    "millwright",
+    "centre_millwright",
     "conscience",
     "judge",
     "lab_oracle",
@@ -43,7 +43,7 @@ EXPECTED_AGENTS = {
 # Commons-agent categories (#38). The rest default to "member".
 EXPECTED_CATEGORY = {
     "registrar": "administrative",
-    "centre_cable_guy": "administrative",
+    "centre_millwright": "administrative",
     "judge": "choreography-support",
 }
 

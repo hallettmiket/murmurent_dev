@@ -4,7 +4,7 @@
 BR pane shows only the first 200 characters of a subagent's reply, so the table
 that tells each agent what verdict vocabulary to lead with is load-bearing.
 
-It went two agents out of date (``centre_cable_guy``, ``lab_oracle``) and
+It went two agents out of date (``centre_millwright``, ``lab_oracle``) and
 nothing complained, because both agents declared their verdicts in their own
 files. Nothing was broken; the rule was simply silent about them. That is the
 project's recurring shape: a hand-maintained list that cannot announce it is

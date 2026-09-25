@@ -238,7 +238,7 @@ def test_pi_onboarded_dms_each_step(world, monkeypatch):
     assert ok is True
     assert all(c == "U0PI" for c, _ in seen)          # all DMs to the PI
     joined = " ".join(t for _, t in seen)
-    assert "registrar" in joined and "cable_guy" in joined
+    assert "registrar" in joined and "millwright" in joined
     assert "security_guard" in joined and "dashboard" in joined
     assert "#mh" in joined
 
