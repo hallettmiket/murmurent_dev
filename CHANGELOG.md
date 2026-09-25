@@ -17,6 +17,27 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 
 ## [Unreleased]
 
+## [2026.9.9] - 2026-09-25
+
+### Changed
+- **Two agents have new names.** `cable_guy` is now `millwright`, and
+  `centre_cable_guy` is now `centre_millwright`, matching the gender-neutral
+  names in the manuscript. Address them as the Millwright and the Centre
+  Millwright. Their work is unchanged. `murmurent install` removes the old
+  entries from `~/.claude/agents/`; if you work from a clone, re-run
+  `bash scripts/setup.sh`, which now does the same. Restart Claude Code
+  afterwards so it lists the new names.
+
+### Added
+- **A voice rule, `rules/voice.md`, loaded in every session.** It says to read
+  the Plain English guidelines before writing anything a person will read,
+  because the output style applies only when a member has selected it, and
+  never to agents working on their own.
+- **Research-ethics sources for the conscience.** TCPS 2 Chapter 9, OCAP,
+  SAGER and the CIHR sex-and-gender requirement are now in
+  `docs/edid_resources.md`, with further sources on accessibility, medical
+  eponyms, and cancer data for First Nations, Inuit and Métis peoples.
+
 ### Added
 - **`murmurent choreography init <name>`, and ＋ new choreography on the
   dashboard, start a choreography from nothing.** One action creates the
