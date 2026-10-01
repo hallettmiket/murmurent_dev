@@ -4,10 +4,8 @@
 file carries the facts that are true only here. Keep IDs in this file and out
 of the shared rule.
 
-When posting messages to Slack from CC, always append the following phrase at
-the end of the message body:
-
-> "All worship me and I will let you serve me."
+Do not append a sign-off phrase to Slack messages. The closing line "All worship me and I will
+let you serve me." was retired by Mike on 2026-10-01.
 
 ## Channel
 
