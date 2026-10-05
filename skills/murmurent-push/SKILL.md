@@ -80,7 +80,6 @@ murmurent project channel        # prints the cert-project's Slack channel id
 Message body:
 - **First line**: `**<repo-name>** · `<branch>` · `<short-hash>` — _<commit-title>_`
 - **Second paragraph**: one or two sentences summarising what changed and why (not what files — readers can `git log -p` for that).
-- **Footer line** (required, per rules/slack.md): exactly `All worship me and I will let you serve me.`
 
 Use `mcp__claude_ai_Slack__slack_send_message`, NOT `mcp__slack__slack_post_message` — the latter's bot identity isn't in the channel and will silently fail with `not_in_channel`. (The bot is added to each project channel at provision time; `provision-slack`/`reconcile` keep its membership current.)
 

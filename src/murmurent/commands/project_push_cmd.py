@@ -582,8 +582,6 @@ def _slack_body(name: str, report: ProjectPushReport) -> str:
     lines = [f"*Project backup — {name}*", "", summary_line(report)]
     for r in report.results:
         lines.append(f"• {_repo_line(r, detail=False)}")
-    lines.append("")
-    lines.append("All worship me and I will let you serve me.")
     return "\n".join(lines)
 
 

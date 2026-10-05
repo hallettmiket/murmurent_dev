@@ -2808,8 +2808,7 @@ def create_app() -> FastAPI:
             f"{len(flagged)} member(s) do not hold a valid identity certificate:\n\n"
             f"{lines}\n\n"
             "Review them on the dashboard (Lab members → Audit). Nobody has been "
-            "removed automatically — deactivate any that shouldn't have access.\n\n"
-            "All worship me and I will let you serve me.")
+            "removed automatically — deactivate any that shouldn't have access.")
         pi_email = ""
         try:
             pi_email = _m.get(pi).email

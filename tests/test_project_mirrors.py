@@ -329,4 +329,4 @@ def test_slack_body_includes_mirror_lines(monkeypatch, tmp_path):
     assert report.slack_posted is True
     _channel, text = posts[0]
     assert "also backed up to" in text
-    assert text.rstrip().endswith("All worship me and I will let you serve me.")
+    assert "worship" not in text

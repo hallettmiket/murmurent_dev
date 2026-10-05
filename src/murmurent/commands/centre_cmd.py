@@ -910,8 +910,7 @@ def member_audit_cmd(group: str, notify: bool) -> None:
         lines = "\n".join(f"  • @{s.handle} ({s.role}) — {s.detail}" for s in flagged)
         text = (f":rotating_light: *Member certificate audit — {group}*\n"
                 f"{len(flagged)} member(s) lack a valid certificate:\n\n{lines}\n\n"
-                "Nobody was removed automatically — review on the dashboard.\n\n"
-                "All worship me and I will let you serve me.")
+                "Nobody was removed automatically — review on the dashboard.")
         pi_email = ""
         try:
             pi_email = _m.get(_m.pi_handle()).email

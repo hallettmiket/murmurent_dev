@@ -336,7 +336,7 @@ def test_slack_note_posts_once_when_channel_present(monkeypatch, tmp_path):
     channel, text, token = posts[0]
     assert channel == "C123"
     assert token == "xoxb-fake"
-    assert text.rstrip().endswith("All worship me and I will let you serve me.")
+    assert "worship" not in text
 
 
 def test_slack_skipped_silently_without_channel(monkeypatch, tmp_path):
