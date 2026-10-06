@@ -397,7 +397,7 @@ def _scan_script(scan_dirs: tuple[str, ...]) -> str:
         '    repo=$(dirname "$gitdir"); '
         '    url=$(git -C "$repo" remote get-url origin 2>/dev/null); '
         '    marked=0; [ -f "$repo/.murmurent.yaml" ] && marked=1; '
-        '    claude=0; [ -d "$repo/.claude/agents" ] && claude=1; '
+        '    claude=0; for f in "$repo"/.claude/agents/*.md; do [ -e "$f" ] && { claude=1; break; }; done; '
         '    echo "$repo|$url|$marked|$claude|1"; '
         '  done; '
         # (2) Non-git immediate child folders (plain project dirs).
@@ -408,7 +408,7 @@ def _scan_script(scan_dirs: tuple[str, ...]) -> str:
         # repos are already emitted by pass (1).
         '    if find "$child" -mindepth 1 -maxdepth 2 -name .git 2>/dev/null | grep -q .; then continue; fi; '
         '    marked=0; [ -f "$child/.murmurent.yaml" ] && marked=1; '
-        '    claude=0; [ -d "$child/.claude/agents" ] && claude=1; '
+        '    claude=0; for f in "$child"/.claude/agents/*.md; do [ -e "$f" ] && { claude=1; break; }; done; '
         '    echo "$child||$marked|$claude|0"; '
         '  done; '
         'done'

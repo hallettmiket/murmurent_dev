@@ -60,7 +60,7 @@ class Readiness:
     path: Path
     marker: dict | None = None          # parsed .murmurent.yaml, if present
     legacy_charter: bool = False        # CHARTER.md present (pre-split bootstrap)
-    has_agents_dir: bool = False        # .claude/agents/ exists
+    has_agents: bool = False            # at least one LINKED .claude/agents/*.md
 
     @property
     def ready(self) -> bool:
@@ -69,7 +69,13 @@ class Readiness:
         # document (project/lead/members), not a bootstrap marker. Repos that
         # only carry a CHARTER migrate via `murmurent repo upgrade`, which
         # stamps a marker and PRESERVES the CHARTER.
-        return self.marker is not None and self.has_agents_dir
+        #
+        # The second half counts LINKED AGENTS, not the mere existence of
+        # `.claude/agents/`. That directory is created by the bootstrap before
+        # anything is linked into it, so testing `.is_dir()` reported ✓ ready
+        # for a repo wired to zero agents — which is how an agent-less adopt
+        # went unnoticed. An empty (or wholly dangling) directory is not ready.
+        return self.marker is not None and self.has_agents
 
     @property
     def needs_upgrade(self) -> bool:
@@ -94,13 +100,27 @@ def read_marker(repo: Path) -> dict | None:
     return data if isinstance(data, dict) else None
 
 
+def linked_agents(repo: Path) -> list[str]:
+    """The agents actually wired into ``repo`` (``.claude/agents/*.md``).
+
+    ``Path.exists()`` follows symlinks, so a link left pointing at an agent
+    that has since been renamed out of the commons does NOT count. That is
+    deliberate and matches the remote probe in :mod:`core.adopt`: a repo whose
+    only links are dangling has no working agents, whatever the listing says.
+    """
+    d = Path(repo).expanduser() / ".claude" / "agents"
+    if not d.is_dir():
+        return []
+    return sorted(p.stem for p in d.glob("*.md") if p.exists())
+
+
 def readiness(repo: Path) -> Readiness:
     repo = Path(repo).expanduser()
     return Readiness(
         path=repo,
         marker=read_marker(repo),
         legacy_charter=(repo / LEGACY_MARKER).is_file(),
-        has_agents_dir=(repo / ".claude" / "agents").is_dir(),
+        has_agents=bool(linked_agents(repo)),
     )
 
 
@@ -156,6 +176,49 @@ def update_marker(repo: Path, fields: dict) -> Path:
     return f
 
 
+def _commons_agent_names(root: Path) -> list[str]:
+    """Every agent shipped by the commons clone at ``root``.
+
+    Takes the root explicitly because :func:`upgrade` accepts a
+    ``murmurent_root`` override and must read the same clone it links against.
+    """
+    commons = Path(root) / "agents"
+    if not commons.is_dir():
+        return []
+    return sorted(p.stem for p in commons.glob("*.md"))
+
+
+def _resolve_agents(existing: dict | None, agents: list[str] | None,
+                    root: Path) -> list[str]:
+    """Which agents to wire: explicit list > the marker's own picks > the
+    whole commons at ``root``.
+
+    The last step is the one that was missing. ``agents=None`` fell through to
+    an empty list, so a plain ``murmurent repo adopt`` on a fresh clone created
+    ``.claude/agents/``, linked nothing into it, and recorded ``agents: []``,
+    while the docs promise the standard set. The commons default is what makes
+    the no-flag case do the documented thing.
+
+    An explicit ``[]`` is a CHOICE (deliberately no agents) and survives, so
+    the fallback keys on the marker having no recorded picks at all — not on
+    those picks being empty. Otherwise a caller could never opt out.
+
+    ``root`` is passed in rather than resolved here so the default names come
+    from the SAME clone the caller links against. ``agent_forks`` resolves the
+    commons through ``repo.murmurent_repo_root()``, which disagrees with
+    :func:`commons.commons_root` on a machine holding both a release clone and
+    a development one — the divergence :func:`make_ready` already documents.
+    Defaulting from one clone while symlinking into the other would record
+    agents that were never wired.
+    """
+    if agents is not None:
+        return list(agents)
+    recorded = (existing or {}).get("agents")
+    if isinstance(recorded, list):
+        return list(recorded)
+    return _commons_agent_names(root)
+
+
 def ensure_marker(repo: Path, *, lab: str = "",
                   agents: list[str] | None = None) -> Path:
     """Idempotently write the ``.murmurent.yaml`` readiness marker.
@@ -200,16 +263,23 @@ def make_ready(clone_path: Path, *, lab: str = "",
     is recorded so multi-lab machines know whose commons this repo
     follows. Idempotent: an existing marker is preserved (its agent
     picks win when ``agents`` is None); re-running refreshes symlinks.
+    A fresh clone with no ``agents`` gets the whole commons, not nothing —
+    see :func:`_resolve_agents` for the precedence and why.
     """
     from . import project_cc_init as _cci
 
     repo = Path(clone_path).expanduser()
     probes: list[Probe] = []
+    root = murmurent_root or commons_root()
     existing = read_marker(repo)
-    picked = list(agents) if agents is not None else list(
-        (existing or {}).get("agents") or [])
+    picked = _resolve_agents(existing, agents, root)
 
-    if existing is not None and agents is None:
+    # Keep an existing marker only when it already records its own picks.
+    # A legacy marker with no `agents` key just resolved to the commons, so
+    # re-stamp it — otherwise the marker would keep claiming nothing while
+    # fourteen agents sit linked beside it.
+    if (existing is not None and agents is None
+            and isinstance(existing.get("agents"), list)):
         probes.append(Probe(name="marker", status="ok",
                             detail=f"{MARKER_FILENAME} already present — kept",
                             required=False))
@@ -220,7 +290,6 @@ def make_ready(clone_path: Path, *, lab: str = "",
         probes.append(Probe(name="marker", status="ok",
                             detail=f"wrote {f}", required=False))
 
-    root = murmurent_root or commons_root()
     probes.extend(_cci.bootstrap_local(repo, root, agents=picked,
                                        project_name=repo.name))
     return probes
@@ -249,6 +318,7 @@ def upgrade(clone_path: Path, *, add_agents: list[str] | None = None,
                       detail=f"{repo} is not murmurent-ready — adopt it first",
                       required=True)]
     probes: list[Probe] = []
+    root = murmurent_root or commons_root()
     lab = str((r.marker or {}).get("lab") or "")
     agents = list((r.marker or {}).get("agents") or [])
 
@@ -265,20 +335,19 @@ def upgrade(clone_path: Path, *, add_agents: list[str] | None = None,
             lab = str(meta.get("lab") or "")
         except Exception:  # noqa: BLE001
             pass
-        agents_dir = repo / ".claude" / "agents"
-        if agents_dir.is_dir():
-            agents = sorted(p.stem for p in agents_dir.iterdir()
-                            if p.suffix == ".md")
+        # Lift whatever the legacy bootstrap actually wired. If it wired
+        # nothing, fall back to the whole commons rather than to none: there
+        # is no marker here, so there are no recorded picks to respect, and
+        # readiness now counts LINKED agents. Migrating a legacy repo into a
+        # permanent "partial" is not a migration.
+        agents = linked_agents(repo) or _commons_agent_names(root)
         probes.append(Probe(name="upgrade", status="ok",
                             detail=f"stamped {MARKER_FILENAME} from legacy "
                                    "CHARTER.md bootstrap (CHARTER.md preserved)",
                             required=False))
 
-    root = murmurent_root or commons_root()
     if all_agents:
-        commons = root / "agents"
-        if commons.is_dir():
-            agents = sorted(p.stem for p in commons.glob("*.md"))
+        agents = _commons_agent_names(root) or agents
     for a in (add_agents or []):
         if a not in agents:
             agents.append(a)

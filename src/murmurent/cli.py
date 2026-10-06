@@ -344,9 +344,11 @@ def repo_status_cmd(target: str, host_name: str | None) -> None:
 @click.option("--lab", default=None,
               help="Owning lab slug (default: this machine's lab).")
 @click.option("--all-agents", is_flag=True,
-              help="Link every agent in the commons (the usual choice).")
+              help="Link every agent in the commons. Now the default, so this "
+                   "flag only makes the choice explicit.")
 @click.option("--agents", "agents_csv", default=None,
-              help="Comma-separated commons agents to symlink into .claude/agents/.")
+              help="Comma-separated commons agents to symlink into "
+                   ".claude/agents/, instead of the whole commons.")
 @click.option("--host", "host_name", default="local", show_default=True,
               help="'local' or a registered SSH host; remote adopts bootstrap "
                    "over one batched SSH session.")

@@ -32,6 +32,7 @@ from pathlib import Path
 
 import yaml
 
+from . import agent_forks as _af
 from . import hosts as _hosts
 from . import remote as _remote
 from . import repo as _repo
@@ -207,6 +208,13 @@ def _adopt_remote(*, clone_path: str, lab: str,
     from . import remote_adopt as _radopt
     name = Path(clone_path).name
     resolved_lab = lab or _default_lab() or ""
+    # Same agent default as the local path (core.repo_ready.make_ready): no
+    # explicit --agents means the full commons, not none. A remote adopt does
+    # NOT route through make_ready, so the default has to be applied here too
+    # — otherwise `repo adopt --host <box>` silently wires zero agents while
+    # the local form wires fourteen. An explicit [] still means none.
+    picked = (sorted(_af.commons_agent_names()) if agents is None
+              else list(agents))
     # Pure readiness adopt (no project): write ONLY the .murmurent.yaml marker
     # on the host — no CHARTER. Passing charter_text="" makes the batched
     # script skip the CHARTER block entirely (issue #28: CHARTER is a project
@@ -214,7 +222,7 @@ def _adopt_remote(*, clone_path: str, lab: str,
     try:
         probes = _radopt.adopt_remote_clone(
             host=host_obj, clone_path=clone_path, project=name,
-            charter_text="", agents=list(agents or []), lab=resolved_lab)
+            charter_text="", agents=picked, lab=resolved_lab)
     except Exception as exc:  # noqa: BLE001
         raise AdoptError(f"remote bootstrap failed: {exc}", code="internal") from exc
     _raise_if_required_failed(probes)
@@ -308,7 +316,7 @@ def adoption_status(clone_path: str, *, host: str = "local") -> AdoptionStatus:
             is_git=p.is_dir() and (p / ".git").is_dir(),
             has_marker=r.marker is not None,
             legacy_charter=r.legacy_charter,
-            has_claude_agents=r.has_agents_dir,
+            has_claude_agents=r.has_agents,
             bootstrap_version=str((r.marker or {}).get("bootstrap_version") or ""),
         )
 
@@ -324,7 +332,7 @@ def adoption_status(clone_path: str, *, host: str = "local") -> AdoptionStatus:
         'g=0; [ -d "$p/.git" ] && g=1; '
         f'm=0; [ -f "$p/{_rr.MARKER_FILENAME}" ] && m=1; '
         f'c=0; [ -f "$p/{_rr.LEGACY_MARKER}" ] && c=1; '
-        'a=0; [ -d "$p/.claude/agents" ] && a=1; '
+        'a=0; for f in "$p"/.claude/agents/*.md; do [ -e "$f" ] && { a=1; break; }; done; '
         'echo "$e|$g|$m|$c|$a"'
     )
     try:

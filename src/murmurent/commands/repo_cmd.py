@@ -223,12 +223,17 @@ def cmd_adopt(*, path: str, lab: str | None, agents_csv: str | None,
     panel's ↑ adopt button). Creates NO project — attach the ready repo
     to a project via `murmurent project new` / the dashboard.
 
-    ``all_agents`` links every agent in the commons. It exists because the
-    alternative was to name them: with neither option, adopt makes the repo
-    ready with an EMPTY ``.claude/agents/``, which is rarely what anyone
-    wants and is invisible until an agent turns out to be missing. Telling a
-    newcomer to type ``--agents oracle,blacksmith`` instead made them invent a
-    choice they had no basis for making."""
+    ``all_agents`` links every agent in the commons, which is now what a plain
+    adopt does as well: ``--agents`` names a subset, and naming nothing takes
+    the lot (see ``core.repo_ready._resolve_agents``). The flag stays because
+    it is documented and reads as explicit, but it no longer changes the
+    outcome.
+
+    It was added when the no-flag case left the repo ready with an EMPTY
+    ``.claude/agents/``, which was rarely what anyone wanted and was invisible
+    until an agent turned out to be missing. Telling a newcomer to type
+    ``--agents oracle,blacksmith`` instead made them invent a choice they had
+    no basis for making."""
     from ..core.commons import commons_root
 
     agents = ([a.strip() for a in agents_csv.split(",") if a.strip()]

@@ -64,10 +64,22 @@ def test_status_plain_clone(world):
 
 
 def test_status_partial_then_ready(world):
+    """Marker alone is partial; marker plus a LINKED agent is ready.
+
+    The middle step used to be a bare ``mkdir`` of ``.claude/agents/`` and
+    this asserted ``ready`` on it. Readiness now counts linked agents, so an
+    empty directory stays partial — see
+    ``test_repo_ready.test_empty_agents_dir_is_not_ready``.
+    """
     clone = _make_clone(world["repos"], "dcis")
     (clone / ".murmurent.yaml").write_text("murmurent: 1\nlab: mh\n")
     assert _adopt.adoption_status(str(clone)).verdict == "partial"
-    (clone / ".claude" / "agents").mkdir(parents=True)
+
+    agents = clone / ".claude" / "agents"
+    agents.mkdir(parents=True)
+    assert _adopt.adoption_status(str(clone)).verdict == "partial"
+
+    (agents / "blacksmith.md").write_text("stub")
     st = _adopt.adoption_status(str(clone))
     assert st.ready and st.verdict == "ready"
 

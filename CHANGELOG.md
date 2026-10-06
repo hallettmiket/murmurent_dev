@@ -46,6 +46,26 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
   was not installed; `murmurent setup` now links it. If you installed with
   `uv`, run `uv tool upgrade murmurent`, then `murmurent install`, then
   restart Claude Code.
+- **A repo wired to no agents no longer reports itself ready.** Readiness
+  tested that `.claude/agents/` existed, and the bootstrap creates that
+  directory before it links anything into it, so a repo with zero agents
+  showed `ready` in `murmurent repo status`, `murmurent repo list` and the
+  dashboard's Repos panel. Readiness now counts the agents actually linked
+  there. A link left pointing at an agent that has since been renamed out of
+  the commons does not count either.
+- **`murmurent repo adopt` with no `--agents` now wires the whole commons**,
+  which is what the documentation already promised. It used to wire nothing
+  and record `agents: []`. Naming `--agents a,b` still wires just those, and
+  an explicit empty list still means deliberately none. The same default now
+  applies to `murmurent repo adopt --host <machine>`, which takes a separate
+  path through the code and had the same gap.
+- **`murmurent repo upgrade` no longer migrates a legacy `CHARTER.md` repo
+  into a permanent `partial`.** A legacy repo with nothing linked now picks up
+  the commons, since it carries no recorded agent picks to respect.
+
+Repos adopted before this change may still record `agents: []`. Run
+`murmurent repo list` to see which of them now read as `partial`, and
+`murmurent repo upgrade <path> --all-agents` to wire the commons into one.
 
 ## [2026.9.9] - 2026-09-25
 

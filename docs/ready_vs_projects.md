@@ -46,8 +46,8 @@ paths, not on readiness, so they apply everywhere.
 
 ## The per-repo `.claude/agents/` directory
 
-`adopt` creates this directory, and populates it only if you name agents with
-`--agents`, or all of them with `--all-agents`. Since access comes from
+`adopt` populates this directory with the whole commons, or with just the
+agents you name using `--agents`. Since access comes from
 `~/.claude/agents/` regardless, a repo's own copies do exactly one thing:
 **Claude Code prefers a directory's own agent file over the machine-wide one**,
 so a link here pins that agent, for this repo, to whatever it points at.
@@ -148,10 +148,14 @@ old_proj   ~/repos/old_proj        missing
 
 Verdicts:
 
-- **ready**: has both the `.murmurent.yaml` marker and `.claude/agents/`.
+- **ready**: has the `.murmurent.yaml` marker, and at least one agent
+  linked into `.claude/agents/`. An empty `.claude/agents/` does not
+  count. The bootstrap creates that directory before it links anything
+  into it, so the directory existing says nothing about whether the repo
+  has any agents.
 - **partial**: has one but not the other (for example agents linked but
-  no marker yet). Run `murmurent repo adopt` (or the Upgrade button) to
-  finish.
+  no marker yet, or a marker sitting beside an empty `.claude/agents/`).
+  Run `murmurent repo adopt` (or the Upgrade button) to finish.
 - **plain clone**: an ordinary git repo with neither marker, outside
   Murmurent's configuration.
 - **not a git repo** / **missing**: the path is not a git checkout, or
