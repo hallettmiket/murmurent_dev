@@ -169,7 +169,8 @@ replies once and cannot hold a back-and-forth.
 - [`docs/vscode-workflow.md`](docs/vscode-workflow.md) — launcher, 4-quadrant layout, agent reporter, tmux copy-paste.
 - [`docs/setup.md`](docs/setup.md) — per-machine + per-project install steps.
 - [`training/README.md`](training/README.md) — the 7-minute getting-started video:
-  where to watch it (Google Drive), chapter times, the full transcript (`.srt`), and how to update it.
+  where to watch it (Google Drive), chapter times, the full transcript (`.srt`), and how to update it;
+  plus a start-to-finish guide to using ElevenLabs from Claude Code (student offer, API key, connector).
 - [`docs/vault-setup.md`](docs/vault-setup.md) — members: create/adopt your
   personal vault (`murmurent vault init [--adopt]`); the symlinked-folder gotcha.
 - [`docs/ready_vs_projects.md`](docs/ready_vs_projects.md) — "murmurent-ready"
