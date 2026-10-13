@@ -46,6 +46,8 @@ ship:
   - TUTORIAL.md
   - TROUBLESHOOTING.md
   - CLAUDE.md               # genericised 2026-09-01; deployment facts moved to rules/local/
+  - training/               # getting-started video: links, chapters, transcript (.srt);
+                            # the video itself is never committed
 
   # --- branding actually used by the app --------------------------------
   - assets/murmurent_app_icon.png

@@ -168,6 +168,8 @@ replies once and cannot hold a back-and-forth.
 - [`docs/obsidian-layout.md`](docs/obsidian-layout.md) — vault-side conventions + cross-reference to vault's own `CLAUDE.md` and `maps-legends/`.
 - [`docs/vscode-workflow.md`](docs/vscode-workflow.md) — launcher, 4-quadrant layout, agent reporter, tmux copy-paste.
 - [`docs/setup.md`](docs/setup.md) — per-machine + per-project install steps.
+- [`training/README.md`](training/README.md) — the 7-minute getting-started video:
+  where to watch it (Google Drive), chapter times, the full transcript (`.srt`), and how to update it.
 - [`docs/vault-setup.md`](docs/vault-setup.md) — members: create/adopt your
   personal vault (`murmurent vault init [--adopt]`); the symlinked-folder gotcha.
 - [`docs/ready_vs_projects.md`](docs/ready_vs_projects.md) — "murmurent-ready"

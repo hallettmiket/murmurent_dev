@@ -17,6 +17,9 @@ facilities at an institution.
 
 **Documentation: <https://hallettmiket.github.io/murmurent/>**
 
+**Prefer to watch?** [A 7-minute getting-started video](training/README.md)
+covers installing Murmurent, the agents, and joining a lab or a centre.
+
 > **Stuck on any step?** Once [Claude Code](https://claude.com/claude-code) is
 > installed, ask it. Murmurent puts its own documentation and commands inside
 > Claude Code, so questions such as "walk me through installing Murmurent",
