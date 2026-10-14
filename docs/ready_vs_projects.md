@@ -61,7 +61,15 @@ agent — and twice a liability:
   colleague's machine — different home directory, or Murmurent installed from
   PyPI with no clone at all — every one of those links dangles. The portable
   record is the marker's own `agents:` list, which `repo adopt`/`repo upgrade`
-  read to recreate the links locally.
+  read to recreate the links locally. To stop the links being committed, `adopt`
+  names each one in a block at the end of the repo's `.gitignore`, and both push
+  commands leave them out. A file you wrote yourself in `.claude/agents/` is not
+  a link: it is never replaced, and you commit it as usual.
+
+  If links were committed before this, `murmurent repo status` lists them and
+  prints the repair: stop tracking them with `git rm --cached`, commit and
+  push, then everyone else runs `murmurent repo upgrade <repo>` straight after
+  their next pull to re-create their own links.
 - **A wrong link is silent.** A repo whose links point into a second Murmurent
   clone runs a different version of those agents from the rest of the machine,
   with no error. `murmurent repo status` reports this as a `follows commons`
