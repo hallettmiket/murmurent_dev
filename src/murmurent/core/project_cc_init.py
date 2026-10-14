@@ -406,7 +406,7 @@ def _stub(
         "\n"
         "## Agents wired up for this project\n"
         "\n"
-        "See `.claude/agents/` — symlinks into `~/repos/murmurent/agents/`.\n"
+        "See `.claude/agents/` — links to murmurent's shared agents, if any were pinned.\n"
         f"Selected: {selected}.\n"
         "\n"
         "## Data locations\n"
@@ -415,7 +415,7 @@ def _stub(
         "\n"
         "## murmurent commons\n"
         "\n"
-        "Lab-wide agents + rules live in `~/repos/murmurent/`. This project\n"
+        "Lab-wide agents + rules live in murmurent's shared folder. This project\n"
         "inherits from `~/.claude/` (Layer 1) AND overrides via `.claude/`\n"
         "here (Layer 2). See [[project-cc-commons-layered]] in lab oracle.\n"
     )

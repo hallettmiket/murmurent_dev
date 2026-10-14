@@ -39,7 +39,9 @@ def test_read_local_only_when_file_missing(isolated):
     registry = hosts.read()
     assert list(registry.keys()) == ["local"]
     assert registry["local"].kind == "local"
-    assert registry["local"].project_root == "~/repos"
+    # This machine's folder follows the repos_root setting (#166).
+    from murmurent.core.repo import repos_root_for_display
+    assert registry["local"].project_root == repos_root_for_display()
 
 
 def test_round_trip_with_ssh_host(isolated):

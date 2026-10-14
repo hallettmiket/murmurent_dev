@@ -17,6 +17,24 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 
 ## [Unreleased]
 
+### Changed
+- **You choose where your repositories live** (#166). Murmurent no longer
+  assumes `~/repos`: `murmurent init` asks, `murmurent config repos-root`
+  shows or changes it, the dashboard's "this machine" settings have a field
+  for it, and `murmurent doctor` reports it. Nothing changes for anyone
+  already using `~/repos`.
+- **A project's repositories can sit in one folder** (#166). New projects go in
+  a project folder, `<repositories>/<project>/<project>`, with the manuscript
+  and seminar repositories beside the code; `seminar` is a new repository
+  role. The flat layout stays fully supported and nobody has to move.
+  `murmurent config project-layout flat` keeps new projects flat;
+  `murmurent project gather <project>` moves an existing project into a folder
+  (it shows its plan first and moves nothing without `--yes`).
+- **Project records no longer hold one member's folder paths** (#166). Each
+  computer finds its own copy of a project's repositories, so a path recorded
+  by one member no longer sends everyone else's tools into that member's home
+  folder.
+
 ### Added
 - **`/murmurent-update-me` posts a status update for any project** (#152). It
   reports what is running, what finished since the last update, what is blocked

@@ -16,6 +16,11 @@ curl -fsSL https://raw.githubusercontent.com/hallettmiket/murmurent/main/scripts
 That is the entire installation. It installs the `murmurent` command and
 symlinks the shared agents, rules, and skills into `~/.claude/`.
 
+The command ends by asking you to run `murmurent init`, which records who you
+are. It also asks where you keep your git repositories on this computer, for
+example `~/repos`, `~/repo` or `~/repositories`. To see or change that folder
+later, run `murmurent config repos-root` (give a folder to change it).
+
 !!! note "You are finished after the command above"
     You do **not** need to run any of the steps that follow. They are shown
     only for transparency, and for the rare case of installing by hand. If
@@ -82,7 +87,8 @@ you are*. It does not bring the lab's shared records onto your machine.
 The roster of your fellow members, the lab's projects, its compliance
 records, and the Lab Oracle all live in the lab's private governance
 repository, which every member holds a read-only clone of. Ask your PI
-for its name and clone it to the canonical path:
+for its name and clone it into your repositories folder (`~/repos` unless
+you chose another; `murmurent config repos-root` shows it):
 
 ```bash
 git clone git@github.com:<org>/murmurent_lab_mgmt_<lab>.git \
@@ -128,7 +134,7 @@ creates or modifies locally:
 ## Initializing a directory for Murmurent
 
 A **repository** (or "repo") is a folder of code and files tracked by git,
-living under `~/repos/` on your machine (for example, `~/repos/brca_wgs`).
+living in your repositories folder (for example, `~/repos/brca_wgs`).
 Your day-to-day research work happens inside repositories.
 
 Installing Murmurent (above) prepares your machine, and every agent then works
@@ -162,6 +168,30 @@ own pages:
   verdicts, and upgrading after a release.
 - [`project_intra.md`](project_intra.md): what a project is and how one is
   created.
+
+## Projects with several repositories
+
+A project often has more than one repository: its code, a manuscript, a
+seminar (talks and slides). Murmurent puts a new project's repositories
+together in one project folder, each keeping its full name:
+
+```text
+~/repos/brca/                 the project folder
+├── brca/                     the code
+├── brca_manuscript/
+└── brca_seminar/
+```
+
+The older flat layout, with each repository directly in your repositories
+folder (`~/repos/brca`, `~/repos/brca_manuscript`), stays fully valid, and
+Murmurent finds repositories in either. To choose where new projects go, run
+`murmurent config project-layout nested` or `flat` (nested is the default).
+To move an existing project into a project folder, run
+`murmurent project gather <project>`: it shows what it would move, and moves
+nothing until you add `--yes`. It only changes this computer, never
+overwrites a folder, and lists anything you must fix by hand afterwards (for
+example a VS Code workspace file that names the old path). Your lab's records repository
+(`murmurent_lab_mgmt_<lab>`) always stays directly in your repositories folder.
 
 ## For PIs: setting up a lab
 
@@ -375,7 +405,8 @@ scripts/install_remote.sh my-server
 
 `hosts.yaml` is a **connection-only registry** (issue #80): it records how to
 reach a machine (`ssh_host`, `remote_user`) and where its git clones live
-(`project_root` + `scan_dirs`). It does **not** hold a machine's data-root or
+(`project_root` + `scan_dirs`). Murmurent uses a host's own `project_root` as
+its repositories folder, or `~/repos` if the host records none. It does **not** hold a machine's data-root or
 vault paths. Each machine configures its own data-root + personal/lab vault on
 **its own dashboard** (This machine → edit → save, written to that machine's
 `~/.murmurent/machine.yaml`); reach a remote machine's dashboard over the SSH

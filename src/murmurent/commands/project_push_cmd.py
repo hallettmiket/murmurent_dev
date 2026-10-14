@@ -370,17 +370,18 @@ def push_mirrors(ref, res: RepoPushResult) -> list:
 
 def _resolve_clone(ref) -> Path | None:
     """Local clone path for ``ref`` (a RepoRef), or None if not on this machine.
-    Prefers the record's explicit ``path``; falls back to ``<repos_root>/<name>``."""
-    from ..core.repo import repos_root
-    cand = None
-    if ref.path:
-        cand = Path(ref.path).expanduser()
-    elif ref.name:
-        cand = repos_root() / ref.name
-    if cand is None:
+
+    Found on THIS machine (#166): its own record, the repositories folder flat
+    or inside a project folder, or a repository with the same GitHub origin.
+    ``ref.path`` is only a hint; a path in another account's home is ignored.
+    """
+    from ..core import repo_paths as _rp
+    name = ref.name or (Path(ref.path).name if ref.path else "")
+    if not name:
         return None
-    if cand.is_dir() and (cand / ".git").exists():
-        return cand
+    found = _rp.find(name, hint=ref.path or "", remote_url=getattr(ref, "remote_url", "") or "")
+    if found is not None and (found / ".git").exists():
+        return found
     return None
 
 

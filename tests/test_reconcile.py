@@ -45,6 +45,7 @@ def world(monkeypatch, tmp_path):
     (lab_mgmt / "projects").mkdir(parents=True)
     hosts_file = tmp_path / "hosts.yaml"
     monkeypatch.setenv("HOME", str(home))
+    monkeypatch.setenv("MURMURENT_REPOS_ROOT", str(home / "repos"))  # #166: a setting, not ~/repos
     monkeypatch.setenv("MURMURENT_LAB_MGMT_REPO", str(lab_mgmt))
     monkeypatch.setenv("MURMURENT_HOSTS_FILE", str(hosts_file))
     # Redirect runtime constants the detectors read.

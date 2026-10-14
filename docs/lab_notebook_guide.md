@@ -89,7 +89,8 @@ sense (paper notebook → digital). One experiment = one folder under
 murmurent experiment new --project brca_sc_tutorial --name titration_v3
 ```
 
-This scaffolds:
+This scaffolds the following, shown here for a repositories folder at
+`~/repos` (yours may differ; `murmurent config repos-root` shows it):
 
 ```
 ~/repos/brca_sc_tutorial/exp/3_titration_v3/

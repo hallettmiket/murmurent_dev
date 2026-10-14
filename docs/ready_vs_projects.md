@@ -1,7 +1,8 @@
 # Making a repo Murmurent-ready
 
 A **repo** (repository) is a folder of code and files tracked by git,
-living under `~/repos/` on your machine. Your day-to-day research work
+living in your repositories folder (`~/repos` unless you chose another;
+`murmurent config repos-root` shows it). Your day-to-day research work
 happens inside repositories.
 
 A **Murmurent-ready** repo is a git clone Murmurent has registered, by
@@ -9,6 +10,13 @@ writing a `.murmurent.yaml` marker at its root. This page covers how to make
 a repo ready, check its status, and upgrade it after a release. A project is a
 separate, higher-level thing built on top of ready repos; see
 [`project_intra.md`](project_intra.md).
+
+A project often owns several repos, each with a role: `code`, `manuscript`,
+`seminar` (talks and slides), `data` or `infra`. On your machine they can sit
+together in one project folder, for example `~/repos/brca/brca`,
+`~/repos/brca/brca_manuscript` and `~/repos/brca/brca_seminar`, or each
+directly in your repositories folder. Murmurent finds them either way; see
+[Projects with several repositories](setup.md#projects-with-several-repositories).
 
 ## What readiness does and does not do
 
@@ -99,8 +107,8 @@ murmurent repo status ~/repos/<directory>
 
 Murmurent tracks a directory through git, so the plain-folder row comes first:
 `repo adopt` on a folder without a `.git/` directory stops and says so. The
-directory has to live under `~/repos/` (or the folder named by
-`MURMURENT_REPOS_ROOT`), which is where the inventory looks.
+directory has to live in your repositories folder, directly or inside a
+project folder, which is where the inventory looks.
 
 Adopting writes the two things readiness consists of, the `.murmurent.yaml`
 marker and the `.claude/agents/` symlinks, and leaves every other file as it
@@ -179,7 +187,7 @@ murmurent repo upgrade --all [--add-agents a,b] [--all-agents]
 `--add-agents` links specific new agents into an already-ready repo
 without touching the ones already linked; `--all-agents` links every
 commons agent (new releases included). `--all` applies the upgrade to
-every ready repo under `~/repos` instead of a single path. Neither flag
+every ready repo in your repositories folder instead of a single path. Neither flag
 is needed just to pick up prompt edits to agents already linked; that
 part is automatic.
 

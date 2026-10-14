@@ -230,6 +230,10 @@ def make_ready(clone_path: Path, *, lab: str = "",
     root = murmurent_root or commons_root()
     probes.extend(_cci.bootstrap_local(repo, root, agents=picked,
                                        project_name=repo.name))
+    # Note where this repository is on this machine (#166), so it is found
+    # wherever it sits, including inside a project folder.
+    from . import repo_paths as _rp
+    _rp.record(repo.name, repo)
     return probes
 
 

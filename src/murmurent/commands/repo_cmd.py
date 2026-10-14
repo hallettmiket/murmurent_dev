@@ -289,8 +289,13 @@ def cmd_upgrade(*, path: str | None, all_repos: bool,
                   if add_agents_csv else None)
     targets: list[Path] = []
     if all_repos:
-        repos_root = Path.home() / "repos"
-        for child in sorted(repos_root.iterdir()) if repos_root.is_dir() else []:
+        from ..core.repo import repos_root as _repos_root
+        repos_root = _repos_root()
+        # A project folder (#166) holds repositories one level down; include them.
+        tops = sorted(repos_root.iterdir()) if repos_root.is_dir() else []
+        nested = [g for t in tops if t.is_dir() and not (t / ".git").exists()
+                  for g in sorted(t.iterdir()) if g.is_dir() and (g / ".git").exists()]
+        for child in tops + nested:
             if not child.is_dir():
                 continue
             r = _rr.readiness(child)
@@ -298,7 +303,7 @@ def cmd_upgrade(*, path: str | None, all_repos: bool,
                 targets.append(child)
         if not targets:
             if not quiet:
-                click.echo("no murmurent-ready repos found under ~/repos")
+                click.echo(f"no murmurent-ready repos found under {repos_root}")
             return 0
     elif path:
         targets = [Path(path).expanduser()]

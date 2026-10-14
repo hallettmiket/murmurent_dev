@@ -117,7 +117,7 @@ def test_update_marker_will_not_make_a_repo_ready(tmp_path):
 def test_init_does_every_step(env):
     result = ci.init_choreography(_plan(), actor="alice")
     assert result.ok, [p.to_dict() for p in result.probes]
-    repo = env["repos"] / "pin1_x"
+    repo = env["repos"] / "pin1_x" / "pin1_x"  # #166: a new project gets a project folder
 
     for d in ci.LAYOUT_DIRS:
         assert (repo / d).is_dir()
@@ -235,7 +235,7 @@ def test_cli_with_every_flag(env):
         "--criteria", "rank by affinity", "--no-project", "--yes"])
     assert r.exit_code == 0, r.output
     assert "What is left" in r.output
-    assert cr.read_marker(env["repos"] / "pin1_x").title == "Pin1 binders"
+    assert cr.read_marker(env["repos"] / "pin1_x" / "pin1_x").title == "Pin1 binders"
 
 
 def test_cli_asks_for_what_is_missing(env, monkeypatch):
@@ -249,7 +249,7 @@ def test_cli_asks_for_what_is_missing(env, monkeypatch):
                            input="\n".join(answers) + "\n")
     assert r.exit_code == 0, r.output
     assert "This will:" in r.output, "the plan is shown before anything is made"
-    info = cr.read_marker(env["repos"] / "pin1_x")
+    info = cr.read_marker(env["repos"] / "pin1_x" / "pin1_x")
     assert (info.mode, info.approaches) == ("compositional", ["t1_dock", "t2_assay"])
 
 
@@ -262,7 +262,7 @@ def test_cli_does_nothing_when_the_plan_is_declined(env, monkeypatch):
         "choreography", "init", "pin1_x", "--title", "T", "--summary", "S",
         "--mode", "coordination", "--no-project"], input="\nn\n")
     assert "Nothing was created" in r.output
-    assert not (env["repos"] / "pin1_x").exists()
+    assert not (env["repos"] / "pin1_x" / "pin1_x").exists()
 
 
 def test_cli_says_what_is_missing_instead_of_guessing(env):
@@ -271,7 +271,7 @@ def test_cli_says_what_is_missing_instead_of_guessing(env):
     r = CliRunner().invoke(cli, ["choreography", "init", "pin1_x", "--yes"])
     assert r.exit_code != 0
     assert "title is required" in r.output
-    assert not (env["repos"] / "pin1_x").exists()
+    assert not (env["repos"] / "pin1_x" / "pin1_x").exists()
 
 
 def test_dashboard_endpoint(env, monkeypatch):

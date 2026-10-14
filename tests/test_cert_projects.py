@@ -5,6 +5,8 @@ Tests for core/cert_projects.py — the lab-scoped cert-project registry
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from murmurent.core import cert_projects as CP
@@ -14,6 +16,14 @@ from murmurent.core import cert_projects as CP
 def _lab_mgmt(monkeypatch, tmp_path):
     monkeypatch.setenv("MURMURENT_LAB_MGMT_REPO", str(tmp_path / "lab_mgmt"))
 
+
+
+def _local(name: str) -> str:
+    """Where this machine would keep repository ``name`` (#166): local paths are
+    no longer stored in the shared record, so a repo not on this machine reads
+    back at its place in this machine's repositories folder."""
+    from murmurent.core.repo import repos_root
+    return str(repos_root() / name)
 
 def test_upsert_creates_then_adds_members():
     CP.upsert("rna_atlas", lab="lab_mh", member="@allie",
@@ -60,7 +70,7 @@ def test_enrichment_fields_round_trip():
               choreography="hub", code_repo="~/repos/p", github_repo="org/p")
     p = CP.get("p")
     assert p.lead == "@the_pi" and p.sensitivity == "clinical"   # normalized
-    assert p.choreography == "hub" and p.code_repo == "~/repos/p"
+    assert p.choreography == "hub" and p.code_repo == _local("p")
     assert p.github_repo == "org/p"
 
 
@@ -73,7 +83,7 @@ def test_membership_upsert_preserves_metadata():
               cert={"fingerprint": "f", "card_id": "c"})
     p = CP.get("p")
     assert p.sensitivity == "restricted" and p.lead == "@the_pi"
-    assert p.code_repo == "~/repos/p" and "@allie" in p.members
+    assert p.code_repo == _local("p") and "@allie" in p.members
 
 
 def test_set_status_preserves_metadata():
@@ -81,7 +91,7 @@ def test_set_status_preserves_metadata():
     CP.set_status("p", "archived")
     p = CP.get("p")
     assert p.status == "archived" and p.sensitivity == "clinical"
-    assert p.code_repo == "~/repos/p"
+    assert p.code_repo == _local("p")
 
 
 def test_slack_channel_for():
@@ -128,7 +138,8 @@ def test_render_retires_top_level_code_repo_but_reads_back(tmp_path):
     assert "\ncode_repo:" not in text
     assert "\nhost:" not in text and "\nremote_path:" not in text
     assert "repos:" in text
-    assert CP.get("p").code_repo == "/r/p"        # still derived on read
+    assert "/r/p" not in text                     # #166: no local path in the shared record
+    assert CP.get("p").code_repo == _local("p")   # derived on read, per machine
 
 
 def test_old_format_file_with_code_repo_still_reads(tmp_path, monkeypatch):
@@ -149,8 +160,8 @@ def test_legacy_code_repo_reads_as_a_single_code_repo():
     p = CP.get("legacy")
     assert len(p.repos) == 1
     r = p.repos[0]
-    assert r.role == "code" and r.path == "/Users/x/repos/legacy" and r.name == "legacy"
-    assert p.code_repo == "/Users/x/repos/legacy"          # mirror preserved
+    assert r.role == "code" and r.path == _local("legacy") and r.name == "legacy"
+    assert p.code_repo == _local("legacy")                 # mirror preserved
 
 
 def test_multi_repo_project_round_trips():
@@ -163,7 +174,7 @@ def test_multi_repo_project_round_trips():
     ms = next(r for r in p.repos if r.role == "manuscript")
     assert ms.name == "rna_atlas_manuscript" and ms.overleaf is True
     # code_repo mirror still points at the code repo
-    assert p.code_repo == "/Users/x/repos/rna_atlas"
+    assert p.code_repo == _local("rna_atlas")
 
 
 def test_add_repo_replaces_by_name_and_needs_project():
@@ -171,7 +182,7 @@ def test_add_repo_replaces_by_name_and_needs_project():
     CP.add_repo("p", role="data", repo_name="p_data", path="/r/p_data_v1")
     CP.add_repo("p", role="data", repo_name="p_data", path="/r/p_data_v2")  # replace
     data = [r for r in CP.get("p").repos if r.name == "p_data"]
-    assert len(data) == 1 and data[0].path == "/r/p_data_v2"
+    assert len(data) == 1 and data[0].path == _local("p_data")
     with pytest.raises(CP.CertProjectError, match="no cert-project"):
         CP.add_repo("ghost", path="/r/x")
 
@@ -189,7 +200,7 @@ def test_remove_repo_detaches_and_repromotes_primary():
     CP.remove_repo("p", "p")
     left = CP.get("p")
     assert {r.name for r in left.repos} == {"p_ms"}
-    assert left.code_repo == "/r/p_ms"          # mirror re-pointed, not stale "/r/p"
+    assert left.code_repo == _local("p_ms")     # mirror re-pointed, not stale "p"
 
     # Errors: unknown repo, unknown project.
     with pytest.raises(CP.CertProjectError, match="no repo named"):
@@ -405,3 +416,20 @@ def test_upsert_commits_to_lab_mgmt_git(monkeypatch, tmp_path):
     tracked = subprocess.run(["git", "-C", str(root), "ls-files"],
                              capture_output=True, text=True).stdout
     assert "cert_projects/proj_x.md" in tracked      # committed, not just written
+
+
+def test_local_paths_stay_out_of_the_shared_record(tmp_path, monkeypatch):
+    """#166: a local path names one member's folder, so it is never written to
+    the shared record; each machine finds its own copy, and a stored path in
+    another account's home folder is never used."""
+    from murmurent.core import repo_paths as RP
+    mine = tmp_path / "mine" / "proj"
+    (mine / ".git").mkdir(parents=True)
+    CP.upsert("proj", lab="lab_mh", code_repo=str(mine))
+    text = CP.project_path("proj").read_text()
+    assert str(mine) not in text
+    assert CP.get("proj").code_repo == str(mine)          # found via this machine's record
+    # A legacy file naming someone else's home folder: never used here.
+    other = Path.home().parent / "someone_else" / "repos" / "x"
+    assert not RP.is_mine(other)
+    assert RP.is_mine(Path.home() / "repos" / "x") and RP.is_mine("/data/shared/x")
