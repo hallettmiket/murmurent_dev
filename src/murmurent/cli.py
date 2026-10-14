@@ -16,6 +16,8 @@ import click
 from rich.console import Console
 from rich.table import Table
 
+from .core.hosts import DEFAULT_REMOTE_PROJECT_ROOT as _DEFAULT_REMOTE_PROJECT_ROOT
+from .core.repo import repos_root_for_display as _repos_display
 from . import __version__
 from .commands import dashboard_cmd as dashboard_impl
 from .commands import data_cmd
@@ -142,6 +144,31 @@ def launcher_command(remove: bool, user: str) -> None:
     if res.supported:
         click.echo(f"Created {res.location}" + (f" ({res.note})" if res.note else "") + ".")
     click.echo(_launcher.where_to_find(res))
+
+
+@cli.group("config", help="Settings for this computer.")
+def config_group() -> None:
+    pass
+
+
+@config_group.command("repos-root",
+                      help="Show or set where this computer keeps its git repositories "
+                           "(for example repos, repo or repositories in your home "
+                           "folder). Stored in "
+                           "~/.murmurent/machine.yaml.")
+@click.argument("folder", required=False)
+def config_repos_root(folder: str | None) -> None:
+    from .core import repo as _repo
+
+    if not folder:
+        root, source = _repo.repos_root_and_source()
+        click.echo(f"{root}  (from {source})")
+        return
+    stored = _repo.set_repos_root(folder)
+    click.echo(f"Repositories folder set to {stored}.")
+    if not stored.is_dir():
+        click.echo("  It does not exist yet; it will be created when a repository is first put there.")
+    click.echo("  Repositories already elsewhere are not moved.")
 
 
 @cli.command("setup", help="Wire the murmurent commons (agents, rules, skills) into ~/.claude/.")
@@ -305,7 +332,7 @@ def host_list_cmd() -> None:
     help="Alias in ~/.ssh/config (e.g. 'lab-server'). Omit to register a local host.",
 )
 @click.option("--remote-user", default="", help="Username on the remote host.")
-@click.option("--project-root", default="~/repos", show_default=True,
+@click.option("--project-root", default=_DEFAULT_REMOTE_PROJECT_ROOT, show_default=True,
               help="Where projects live on the remote host (first repo location).")
 @click.option("--scan-dir", "scan_dirs", multiple=True,
               help="Repo location to scan on the host (repeatable). "
@@ -422,7 +449,7 @@ def repo_adopt_cmd(path: str, lab: str | None, agents_csv: str | None,
 )
 @click.argument("path", required=False)
 @click.option("--all", "all_repos", is_flag=True,
-              help="Upgrade every murmurent-ready repo under ~/repos.")
+              help="Upgrade every murmurent-ready repo in your repositories folder.")
 @click.option("--add-agents", "add_agents_csv", default=None,
               help="Comma-separated commons agents to ADD to the repo's links.")
 @click.option("--all-agents", is_flag=True,
@@ -594,7 +621,7 @@ def project_describe(name: str) -> None:
     show_default=True,
     help="Install target. 'local' = this laptop; any other registered host (see "
          "`murmurent host list`) scaffolds the project on that machine over SSH "
-         "and leaves a remote-pointer placeholder in ~/repos/<name>/.",
+         "and leaves a remote-pointer placeholder in your repositories folder.",
 )
 def project_new(
     name: str,
@@ -712,14 +739,14 @@ def project_backfill() -> None:
     except _cp.CertProjectError as exc:
         raise click.ClickException(str(exc)) from exc
     if not names:
-        click.echo("No CHARTER projects found under ~/repos to backfill.")
+        click.echo(f"No CHARTER projects found under {_repos_display()} to backfill.")
         return
     click.echo(f"✓ backfilled {len(names)} project(s) into the cert-project "
                f"registry: {', '.join(sorted(names))}")
 
 
 @project_group.command("migrate-charters",
-                       help="One-shot: backfill every ~/repos/*/CHARTER.md into the "
+                       help="One-shot: backfill every CHARTER.md in your repositories folder into the "
                             "cert-project registry, then delete the CHARTER files "
                             "whose migration is verified. --keep skips deletion.")
 @click.option("--keep", is_flag=True, default=False,
@@ -731,7 +758,7 @@ def project_migrate_charters(keep: bool) -> None:
     except _cp.CertProjectError as exc:
         raise click.ClickException(str(exc)) from exc
     if not out["migrated"]:
-        click.echo("No CHARTER projects found under ~/repos to migrate.")
+        click.echo(f"No CHARTER projects found under {_repos_display()} to migrate.")
         return
     click.echo(f"✓ migrated {len(out['migrated'])} project(s) into the "
                f"cert-project registry: {', '.join(sorted(out['migrated']))}")

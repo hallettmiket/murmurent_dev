@@ -7687,6 +7687,7 @@ function ThisMachineEditor({ initial, onSaved, onCancel }) {
     notebook_subfolder:  initial.notebook_subfolder  || "lab-notebook",
     oracle_subfolder:    initial.oracle_subfolder    || "oracle",
     murmurent_data_subfolder: initial.murmurent_data_subfolder || "murmurent_data",
+    repos_root:          initial.repos_root          || "",
   });
   // Repo location (scan_dirs) is stored on the host registry, not machine.yaml,
   // so it's a separate field + a second save call.
@@ -7806,7 +7807,11 @@ function ThisMachineEditor({ initial, onSaved, onCancel }) {
         </div>
       )}
 
-      <div style={labelStyle}>Repo locations (one per line; where clones live)</div>
+      <div style={labelStyle}>Repositories folder (where murmurent puts and finds your repositories)</div>
+      <input style={inputStyle} value={form.repos_root}
+             onChange={update("repos_root")} placeholder="~/repos   (or ~/repo, ~/repositories, ...)" />
+
+      <div style={labelStyle}>Other places to look for repositories (one per line; optional)</div>
       <textarea style={{...inputStyle, minHeight:54, resize:"vertical"}} value={repos}
                 onChange={e => setRepos(e.target.value)} placeholder={"~/repos\nwork/clones"} />
 

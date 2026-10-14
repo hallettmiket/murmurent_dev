@@ -272,6 +272,7 @@ def test_a_typed_upgrade_all_still_migrates_a_legacy_repo(
 ):
     """The migration path must survive the fix above."""
     monkeypatch.setattr("pathlib.Path.home", lambda: tmp_path)
+    monkeypatch.setenv("MURMURENT_REPOS_ROOT", str(tmp_path / "repos"))  # #166: a setting, not ~/repos
     legacy = _git_repo(tmp_path / "repos" / "old_project")
     (legacy / "CHARTER.md").write_text("---\nlab: mh\n---\n# old\n", encoding="utf-8")
 

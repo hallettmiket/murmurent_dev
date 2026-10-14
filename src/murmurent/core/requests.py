@@ -513,7 +513,8 @@ def _repo_clone_location(name: str, preferred_host: str) -> tuple[str, str]:
                             str(clones[0]["path"]))
     except Exception:  # noqa: BLE001 — cache is an optimisation, never a gate
         pass
-    return preferred_host or "local", str(Path.home() / "repos" / name)
+    from .repo import repos_root
+    return preferred_host or "local", str(repos_root() / name)
 
 
 def _register_project_from_repos(req: JoinRequest) -> None:
