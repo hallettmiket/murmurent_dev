@@ -102,9 +102,18 @@ For reference, or for auditing what Murmurent touches, here is what it
 creates or modifies locally:
 
 - `~/.claude/agents/`, `~/.claude/rules/`, `~/.claude/skills/`: the commons
-  agents, rules, and skills, symlinked in by `scripts/setup.sh`.
+  agents, rules, and skills, linked in by `murmurent install` (or
+  `scripts/setup.sh` from a copy of the repository).
+- `~/.claude/output-styles/`: the plain-English writing style. Select it once
+  per machine in Claude Code with `/config`, then *Output style*, then restart
+  Claude Code. It changes how Claude Code writes prose to you, not code.
 - `~/.claude/settings.json`: where Murmurent registers its hooks and MCP
-  servers.
+  servers (the four data services: Oracle, data, core data, inventory). It
+  also turns off Claude Code's feedback survey
+  (`CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY=1`), which interrupts sessions to ask
+  for a rating; a value you set yourself is kept.
+- The **Murmurent Dashboard** icon: in `~/Applications` on a Mac, in the
+  applications menu on Linux (see [the dashboard page](dashboard.md#the-dashboard-icon)).
 - `~/.claude/agent-memory/`: per-agent working memory.
 - `~/.claude/murmurent-preferences.yaml`: your personal preference profile.
 - `~/.murmurent/`, this machine's Murmurent state: `machine.yaml`, your
@@ -122,12 +131,14 @@ A **repository** (or "repo") is a folder of code and files tracked by git,
 living under `~/repos/` on your machine (for example, `~/repos/brca_wgs`).
 Your day-to-day research work happens inside repositories.
 
-Installing Murmurent (above) prepares your machine. The next step is to make
-each directory you want to use with Murmurent **ready**: this wires the
-commons agents and rules into it, so Claude Code sessions opened there can use
-them. The procedure is the same for a brand-new folder, a repository you have
-worked in for years, and one that an older Murmurent release set up. Start
-with the status check, because its verdict decides the step:
+Installing Murmurent (above) prepares your machine, and every agent then works
+in every folder on it. Making a directory **ready** does something different:
+it turns on the check that removes patient identifiers from anything leaving
+your machine (a web search, a fetched page), records which project activity
+belongs to, and lets the directory join a project. **That check does not run
+in a directory that is not ready**, so do this for every directory holding
+research data. Start with the status check, because its verdict decides the
+step:
 
 ```bash
 murmurent repo status ~/repos/<directory>
@@ -136,14 +147,16 @@ murmurent repo status ~/repos/<directory>
 | Verdict | What it means | Do this |
 |---|---|---|
 | `not a git repo` | a plain folder | `git -C ~/repos/<directory> init`, then the next row |
-| `plain clone` or `partial` | git, and Murmurent has never set it up | `murmurent repo adopt ~/repos/<directory>` |
-| `ready`, bootstrapped by an older version | ready, and newer agents are missing | `murmurent repo upgrade ~/repos/<directory> --all-agents` |
+| `plain clone` | git, and Murmurent has never set it up | `murmurent repo adopt ~/repos/<directory>` |
+| `partial` | set up by a very old Murmurent (`CHARTER.md`, no `.murmurent.yaml`) | `murmurent repo upgrade ~/repos/<directory>` |
+| `ready`, bootstrapped by an older version | ready; the marker predates this release | `murmurent repo upgrade ~/repos/<directory>` |
 | `ready`, current version | finished | open Claude Code in it |
 
-Adopting writes a `.murmurent.yaml` marker and a `.claude/agents/` folder of
-symlinks into the commons, and leaves every other file as it was. Commit
-both, so each clone of the repository is ready as well. A ready repository
-can then be attached to a **project**. Both topics have their own pages:
+Adopting writes a `.murmurent.yaml` marker and leaves every other file as it
+was. Commit it, so each clone of the repository is ready as well. It adds no
+agent links unless you ask for them with `--agents`, which you rarely need. A
+ready repository can then be attached to a **project**. Both topics have their
+own pages:
 
 - [`ready_vs_projects.md`](ready_vs_projects.md): readiness in full, the
   verdicts, and upgrading after a release.

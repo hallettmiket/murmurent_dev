@@ -9,8 +9,8 @@ and are symlinked into `~/.claude/agents/` by `scripts/setup.sh`. They
 fall into three categories:
 
 - **Member** — the per-member/per-lab science toolkit (Oracle, Lab
-  Oracle, Bookworm, Blacksmith, Adversary, Artist, Conscience, Lawyer,
-  Millwright, Security Guard).
+  Oracle, Bookworm, Blacksmith, Adversary, Artist, Teacher, Scribe,
+  Conscience, Lawyer, Millwright, Security Guard).
 - **Administrative** — centre-level singletons that act above any single
   lab (`registrar`, `centre_millwright`; a centre security guard will
   join them).
@@ -278,6 +278,57 @@ hold the back-and-forth a subagent cannot.
 > is the only path — here's the mechanism, and where it would differ if the file
 > lived under `data/` instead.
 
+## Scribe
+
+The Scribe writes scientific prose: manuscript sections, grant text, figure
+legends. It exists because Claude Code, after a session of code and commit
+messages, tends to write science like a software engineer: justifying itself,
+reaching for metaphors, adding "rather than" contrasts and dramatic one-line
+sentences. A subagent starts with a clean context, so that register is not
+carried in.
+
+It has two jobs, inferred from what you give it:
+
+- **Revise.** Give it a passage. It returns the passage rewritten, a list of
+  each change with the rule it follows, and the sentences it removed, quoted so
+  you can restore any of them. It never changes a fact, a number, a citation
+  key, a `\label` or a `\ref`; a fact it doubts is flagged, not fixed.
+- **Draft.** Give it results, figures and notes as files, and name the
+  section. It writes it, leaving `[CITE: ...]`, `[N=?]` or `[CHECK: ...]`
+  wherever a citation, a number or an interpretation is missing, rather than
+  inventing one.
+
+Its rules come from the PI's own writing, not from general advice. The house
+writing guide (`docs/scientific_writing.md` in the development repository) was
+built from 728 rewrites and 74 deletions Mike Hallett made by hand to text
+Claude Code had written for two manuscripts, plus a profile of the finished
+papers. About 70 to 85% of those edits change voice rather than facts, and the
+main move is cutting. If the guide is not on the machine, the Scribe returns
+`Gap` rather than fall back on generic advice.
+
+Two blind tests on 18 passages the PI later rewrote showed where it can be
+trusted. Word-level fixes (intensifiers, metaphors, dashes, emphasis, sentence
+length) matched his edits well. Deciding which whole sentences a paper does not
+need takes knowledge of the whole manuscript, so the Scribe deletes only clear
+cases (roadmaps, restatements, comments on the writing) and lists the rest
+under **Consider cutting** for the author to decide.
+
+**It returns text and never edits the manuscript itself.** The main session
+applies it, because manuscripts synced with Overleaf have their own rules
+(pull first, never rewrap a paragraph, commit promptly). It does not browse:
+citations come from the project's `.bib` files or through the Bookworm, and it
+hands reporting questions to the Adversary and wording about people to the
+Conscience. It replies once, so for "try this paragraph three ways" use the
+main session with the same guide.
+
+A member can fork it (`murmurent agent fork scribe`) to build a version in their
+own voice from their own edits.
+
+**Status:** the Scribe and its guide are in the development repository and not
+yet in a release, because the guide quotes unpublished manuscripts.
+
+**Verdict vocabulary:** `Revised / Drafted / Gap — <one-line on what was written or what is missing>`
+
 ## Conscience
 
 The Conscience is both an equity, diversity, inclusion, and
@@ -381,9 +432,8 @@ filesystem: for example a member who was removed from a project's
 roster but never removed from its Slack channel. The reconcile loop
 diffs declared state against actual state and applies the corrections
 needed to close that gap. It always requests registrar sign-off before
-writing to shared infra. This is the thirteenth reference agent, the
-one that operates at centre scope rather than individual/group/lab
-scope.
+writing to shared infra. It is the reference agent that operates at
+centre scope rather than individual/group/lab scope.
 
 **Verdict vocabulary:** `Provisioned / Skipped / Failed — <one-line on what>`
 (shares the Millwright's vocabulary; also emits `Reconciled — N deltas
