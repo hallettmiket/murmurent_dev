@@ -73,6 +73,7 @@ nav:
   - Getting started:
       - Why Murmurent? (five vignettes): getting_started.md
       - Install & setup: setup.md
+      - "Installing: special cases": install_special_cases.md
       - Preparing GitHub: github_setup.md
       - Firing up the dashboard: dashboard.md
       - Remote dashboard access: remote_dashboard.md
