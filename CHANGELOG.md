@@ -17,6 +17,16 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 
 ## [Unreleased]
 
+### Fixed
+- **Agent links in a project folder are no longer committed** (#150). The
+  links `murmurent repo adopt` makes in `.claude/agents/` point into your own
+  home folder, so a committed link broke those agents for everyone else in the
+  project. `adopt` now lists each link in `.gitignore`, both push commands leave
+  them out, and `murmurent repo status` names any already committed and how to
+  repair them. Run `murmurent repo upgrade <folder>` in each folder you have set
+  up to add the `.gitignore` lines. Also fixed: adopting a folder replaced a
+  group's own agent file with a link when the two had the same name.
+
 ### Changed
 - **Project Slack channels are named `proj-<project>`** (#157). Projects made
   with certificates were getting a channel named after the project alone. A

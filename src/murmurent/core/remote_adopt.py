@@ -184,8 +184,14 @@ def build_remote_adopt_script(
         '  done',
         f'  for a in {agents_csv}; do',
         '    src="$WIG/agents/$a.md"',
-        '    if [ -f "$src" ]; then',
+        # A real file is the group's own agent: keep it. Each link made
+        # points into this member's home, so list it in .gitignore (#150).
+        '    if [ -e "$DEST/.claude/agents/$a.md" ] && [ ! -L "$DEST/.claude/agents/$a.md" ]; then',
+        '      echo "cc_agent:ok:$a (kept your own file)"',
+        '    elif [ -f "$src" ]; then',
         '      ln -sfn "$src" "$DEST/.claude/agents/$a.md"',
+        '      grep -qxF ".claude/agents/$a.md" "$DEST/.gitignore" 2>/dev/null \\',
+        '        || echo ".claude/agents/$a.md" >> "$DEST/.gitignore"',
         '      echo "cc_agent:ok:$a -> wigamig/agents/$a.md"',
         '    else',
         '      echo "cc_agent:warn:$a (no $a.md in murmurent commons)"',

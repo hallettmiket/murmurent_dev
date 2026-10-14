@@ -164,8 +164,14 @@ def build_script(t: InstallTargets) -> str:
             f'  done; '
             f'  for a in {agents_csv}; do '
             f'    src="$WIG/agents/$a.md"; '
-            f'    if [ -f "$src" ]; then '
+            # A real file is the group's own agent: keep it. Each link made
+            # points into this member's home, so list it in .gitignore (#150).
+            f'    if [ -e "$DEST/.claude/agents/$a.md" ] && [ ! -L "$DEST/.claude/agents/$a.md" ]; then '
+            f'      echo "cc_agent:ok:$a (kept your own file)"; '
+            f'    elif [ -f "$src" ]; then '
             f'      ln -sfn "$src" "$DEST/.claude/agents/$a.md"; '
+            f'      grep -qxF ".claude/agents/$a.md" "$DEST/.gitignore" 2>/dev/null '
+            f'        || echo ".claude/agents/$a.md" >> "$DEST/.gitignore"; '
             f'      echo "cc_agent:ok:$a -> wigamig/agents/$a.md"; '
             f'    else '
             f'      echo "cc_agent:warn:$a (no $a.md in murmurent commons)"; '
