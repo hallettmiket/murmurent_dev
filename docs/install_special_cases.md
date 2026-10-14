@@ -58,7 +58,7 @@ Then run the command beside the answer you get.
 | `✗ no such folder` | the path is wrong | check the path |
 | `✗ not tracked by git` | git is not tracking the folder | `git -C ~/repos/<folder> init`, then the next row |
 | `• not set up yet` | Murmurent has never set it up | `murmurent repo adopt ~/repos/<folder>` |
-| `± half set up` | an earlier attempt stopped partway | the same `adopt` command, which completes it |
+| `± half set up` | set up by a very old Murmurent | `murmurent repo upgrade ~/repos/<folder>` |
 | `✓ ready`, older version | set up by an earlier Murmurent | `murmurent repo upgrade ~/repos/<folder>` |
 | `✓ ready`, current | nothing to do | open Claude Code in it |
 

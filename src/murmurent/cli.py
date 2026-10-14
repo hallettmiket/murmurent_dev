@@ -393,9 +393,12 @@ def repo_status_cmd(target: str, host_name: str | None) -> None:
 @click.option("--lab", default=None,
               help="Owning lab slug (default: this machine's lab).")
 @click.option("--all-agents", is_flag=True,
-              help="Link every agent in the commons (the usual choice).")
+              help="Pin every commons agent to this repo. Rarely needed: every "
+                   "agent already works in every folder.")
 @click.option("--agents", "agents_csv", default=None,
-              help="Comma-separated commons agents to symlink into .claude/agents/.")
+              help="Comma-separated agents to pin to this repo. Default: none. "
+                   "Pinning only matters if this repo must use a specific copy "
+                   "of an agent.")
 @click.option("--host", "host_name", default="local", show_default=True,
               help="'local' or a registered SSH host; remote adopts bootstrap "
                    "over one batched SSH session.")
@@ -423,7 +426,8 @@ def repo_adopt_cmd(path: str, lab: str | None, agents_csv: str | None,
 @click.option("--add-agents", "add_agents_csv", default=None,
               help="Comma-separated commons agents to ADD to the repo's links.")
 @click.option("--all-agents", is_flag=True,
-              help="Link every agent in the commons (new releases included).")
+              help="Pin every commons agent to this repo (new releases included). "
+                   "Rarely needed: every agent already works in every folder.")
 def repo_upgrade_cmd(path: str | None, all_repos: bool,
                      add_agents_csv: str | None, all_agents: bool) -> None:
     from .commands import repo_cmd as _repo_cmd

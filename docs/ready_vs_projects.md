@@ -93,7 +93,7 @@ murmurent repo status ~/repos/<directory>
 | `✗ no such folder` | the path is wrong | check the path |
 | `✗ not tracked by git` | a plain folder | `git -C ~/repos/<directory> init`, then the next row |
 | `• not set up yet` | git, and Murmurent has never set it up | `murmurent repo adopt ~/repos/<directory>` |
-| `± half set up` | a marker without agent links, or the reverse | the same `adopt` — it completes the setup |
+| `± half set up` | set up by a very old Murmurent (a `CHARTER.md` but no `.murmurent.yaml`) | `murmurent repo upgrade ~/repos/<directory>` |
 | `✓ ready`, bootstrapped by an older version | ready, set up by an earlier release | `murmurent repo upgrade ~/repos/<directory>` |
 | `✓ ready`, current version | finished | open Claude Code in it |
 
@@ -141,19 +141,19 @@ Example `repo list` output:
 ```
 NAME       PATH                    VERDICT
 brca_wgs   ~/repos/brca_wgs        ready
-brca_sc    ~/repos/brca_sc         partial
 scratch    ~/repos/scratch         plain clone
 old_proj   ~/repos/old_proj        missing
 ```
 
 Verdicts:
 
-- **ready**: has both the `.murmurent.yaml` marker and `.claude/agents/`.
-- **partial**: has one but not the other (for example agents linked but
-  no marker yet). Run `murmurent repo adopt` (or the Upgrade button) to
-  finish.
-- **plain clone**: an ordinary git repo with neither marker, outside
-  Murmurent's configuration.
+- **ready**: has the `.murmurent.yaml` marker. Whether `.claude/agents/`
+  holds anything makes no difference: every agent works in every folder.
+- **partial**: set up by a very old Murmurent, with a `CHARTER.md` but no
+  `.murmurent.yaml`. Run `murmurent repo upgrade` (or the Upgrade button).
+- **plain clone**: an ordinary git repo with no marker, outside
+  Murmurent's configuration. A `.claude/agents/` folder on its own does not
+  change this: that is Claude Code's feature, not Murmurent's.
 - **not a git repo** / **missing**: the path is not a git checkout, or
   does not exist.
 
