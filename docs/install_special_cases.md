@@ -22,7 +22,9 @@ To read the installer before running it, download the repository and run
 
 ## I installed from a copy of the repository, not from PyPI
 
-Update with these instead of `uv tool upgrade`:
+Update with these instead of `uv tool upgrade`. The example assumes your copy
+is in your repositories folder (`~/repos` unless you chose another;
+`murmurent config repos-root` shows it):
 
 ```bash
 cd ~/repos/murmurent
@@ -46,6 +48,17 @@ do not support. Update, then restart Claude Code:
 uv tool upgrade murmurent
 murmurent install
 ```
+
+## I keep my repositories somewhere other than ~/repos
+
+Tell Murmurent which folder you use, for example `~/repositories`:
+
+```bash
+murmurent config repos-root ~/repositories
+```
+
+Run it without a folder to see the current setting. Repositories already on
+your computer are not moved.
 
 ## A folder holds patient data
 

@@ -171,6 +171,32 @@ def config_repos_root(folder: str | None) -> None:
     click.echo("  Repositories already elsewhere are not moved.")
 
 
+@config_group.command("project-layout",
+                      help="Show or set where NEW projects go: 'nested' (a project folder "
+                           "holding its code, manuscript and seminar repositories; the "
+                           "default) or 'flat' (each repository directly in your "
+                           "repositories folder). Existing projects are not moved.")
+@click.argument("layout", required=False, type=click.Choice(["nested", "flat"]))
+def config_project_layout(layout: str | None) -> None:
+    from .core import repo as _repo
+    from .core import repo_paths as _rp
+
+    if not layout:
+        click.echo(_rp.project_layout())
+        return
+    import yaml
+    path = _repo.MACHINE_SETTINGS_FILE
+    data = {}
+    if path.is_file():
+        loaded = yaml.safe_load(path.read_text(encoding="utf-8"))
+        data = loaded if isinstance(loaded, dict) else {}
+    data["project_layout"] = layout
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(yaml.safe_dump(data, sort_keys=False, allow_unicode=True), encoding="utf-8")
+    click.echo(f"New projects will be {layout}. Existing projects are not moved "
+               "(to move one: murmurent project gather <name>).")
+
+
 @cli.command("setup", help="Wire the murmurent commons (agents, rules, skills) into ~/.claude/.")
 def setup_command() -> None:
     raise SystemExit(setup_cmd.cmd_setup())
@@ -708,6 +734,44 @@ def project_resume(name: str) -> None:
 @click.option("--reason", required=True)
 def project_end(name: str, reason: str) -> None:
     _stub()
+
+
+@project_group.command("gather",
+                       help="Move a project's repositories (code, manuscript, seminar, ...) "
+                            "into one project folder in your repositories folder. Shows the "
+                            "plan; moves nothing without --yes. This computer only.")
+@click.argument("name")
+@click.option("--yes", is_flag=True, help="Carry out the plan shown.")
+def project_gather(name: str, yes: bool) -> None:
+    from .core import project_gather as _pg
+
+    try:
+        plan = _pg.plan(name)
+    except _pg.GatherError as exc:
+        raise click.ClickException(str(exc)) from exc
+    click.echo(f"Project folder: {plan.folder}")
+    for move in plan.moves:
+        click.echo(f"  move  {move.source}  ->  {move.target}")
+    for repo_name in plan.already_inside:
+        click.echo(f"  ok    {repo_name} is already inside")
+    for repo_name in plan.not_found:
+        click.echo(f"  skip  {repo_name} is not on this computer")
+    if plan.to_fix_by_hand:
+        click.echo("\nAfter the move, fix these by hand (murmurent cannot update them):")
+        for note in dict.fromkeys(plan.to_fix_by_hand):
+            click.echo(f"  - {note}")
+    if not plan.moves:
+        click.echo("\nNothing to move.")
+        return
+    if not yes:
+        click.echo("\nNothing was moved. Run again with --yes to move these folders.")
+        return
+    try:
+        for line in _pg.apply(plan):
+            click.echo(f"moved {line}")
+    except (_pg.GatherError, OSError) as exc:
+        raise click.ClickException(f"stopped: {exc}") from exc
+    click.echo("Done. Other members' copies are not affected; murmurent finds each copy on its own machine.")
 
 
 @project_group.command("archive", help="(PI) Archive a project repo + data.")

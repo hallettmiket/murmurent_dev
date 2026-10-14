@@ -4,9 +4,10 @@
 
 A Murmurent **project** is three coordinated sets:
 
-- a set of **repos**: *existing* clones picked from your machines' repo
-  folders (`~/repos` etc.; the folders themselves are configured on the
-  Machines panel under *Repo location*). Creating a project attaches
+- a set of **repos**: *existing* clones picked from your machines'
+  repositories folders (`~/repos` unless you chose another;
+  `murmurent config repos-root` shows it, and the dashboard's settings for
+  this machine have a *Repositories folder* field). Creating a project attaches
   existing clones: clone or `git init` the repo first, then group it into
   a project;
 - a set of **machines** (your laptop, the lab VM, …),
@@ -38,7 +39,7 @@ distinction between the two.
 
 Allie (a member of the Rao lab) wants to start `brca_17` with Bob. She
 already has the two repos that make up the work (`brca_code` and
-`brca_manuscript`) cloned under `~/repos` on her laptop.
+`brca_manuscript`) cloned in her repositories folder on her laptop.
 
 **1. Propose.** On her dashboard, Allie clicks **＋ new project** and picks:
 

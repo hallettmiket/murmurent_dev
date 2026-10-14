@@ -854,7 +854,7 @@ class InstalledRepo(BaseModel):
     manuscript + …), each of which may or may not be cloned here."""
 
     name: str
-    role: str = "code"                         # code | manuscript | data | infra
+    role: str = "code"                         # code | manuscript | seminar | data | infra
     path: str = ""                             # clone/pointer path on this machine
     present: bool = False                      # is it actually cloned here?
 

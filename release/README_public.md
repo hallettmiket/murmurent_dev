@@ -57,7 +57,8 @@ removes patient identifiers from anything leaving your computer.
 murmurent repo adopt ~/repos/<folder>
 ```
 
-The folder must be a git repository inside `~/repos/`.
+The folder must be a git repository inside your repositories folder (`~/repos`
+unless you chose another).
 [If it does not work](https://hallettmiket.github.io/murmurent/install_special_cases/#setting-up-a-folder-did-not-work).
 
 ## 4. Start working

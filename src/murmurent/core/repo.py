@@ -201,8 +201,18 @@ def _discover_lab_mgmt_clone() -> Path | None:
         entries = sorted(p for p in root.iterdir() if p.is_dir())
     except OSError:
         return None
+    # The lab records repository belongs to a lab, not a project, so it
+    # normally sits at the top. One level down is searched too (#166): a clone
+    # moved into a project folder by mistake is found rather than missed.
+    nested = []
+    for p in entries:
+        if not (p / ".git").exists():
+            try:
+                nested += sorted(c for c in p.iterdir() if c.is_dir())
+            except OSError:
+                pass
 
-    candidates = [p for p in entries if _looks_like_lab_mgmt_clone(p)]
+    candidates = [p for p in entries + nested if _looks_like_lab_mgmt_clone(p)]
     if not candidates:
         return None
 

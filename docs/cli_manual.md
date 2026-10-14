@@ -50,6 +50,15 @@ Effects:
 
 `murmurent install` does **not** generate an age key or push a member profile: those are one-time onboarding events.
 
+### This computer's settings
+
+Stored in `~/.murmurent/machine.yaml`. Each applies to this computer only.
+
+| Command | Effect |
+|---|---|
+| `murmurent config repos-root [FOLDER]` | Show, or set, the folder where this computer keeps its git repositories (default `~/repos`). Setting it moves nothing |
+| `murmurent config project-layout [nested\|flat]` | Show, or set, where new projects go: `nested` (one project folder holding its code, manuscript and seminar repositories; the default) or `flat` (each repository directly in the repositories folder). Existing projects are not moved |
+
 ## Command reference
 
 ### Agents
@@ -126,6 +135,7 @@ Personal preferences profile lives at `~/.claude/murmurent-preferences.yaml` (lo
 | `murmurent project resume <name>` *PI* | Mark active |
 | `murmurent project end <name> --reason <r>` *PI* | Terminal event |
 | `murmurent project archive <name>` *PI* | Archive repo + data |
+| `murmurent project gather <name> [--yes]` | Move a project's repositories on this computer into one project folder. Shows the plan and moves nothing without `--yes`; never overwrites; lists anything to fix by hand |
 | `murmurent project provision-slack <name>` *PI* | Create the project's private Slack channel, named `proj-<name>`, and invite its certified members. Idempotent |
 | `murmurent project rename-slack <name> [--to <channel>]` *PI* | Rename the project's Slack channel to `proj-<name>`, or to the name given. For channels made before 2026.10.0 without the `proj-` prefix (#157) |
 

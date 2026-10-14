@@ -144,6 +144,8 @@ def write(settings: C.MachineSettings) -> Path:
         "murmurent_data_subfolder": settings.murmurent_data_subfolder,
         "lab_base": settings.lab_base,
         "repos_root": repos_root,
+        # Not edited in the dashboard; kept so a save never drops it (#166).
+        "project_layout": _read_yaml(MACHINE_FILE).get("project_layout") or None,
     }
     MACHINE_FILE.write_text(
         yaml.safe_dump(payload, sort_keys=False, allow_unicode=True),

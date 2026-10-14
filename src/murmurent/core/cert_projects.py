@@ -40,7 +40,9 @@ def _norm(handle: str) -> str:
     return str(handle or "").strip().lstrip("@").lower()
 
 
-VALID_REPO_ROLES = ("code", "manuscript", "data", "infra")
+# ``seminar``: slides for a talk (PowerPoint, HTML, LaTeX beamer), kept beside
+# the code and manuscript in the project's folder (#166).
+VALID_REPO_ROLES = ("code", "manuscript", "seminar", "data", "infra")
 
 # ---------------------------------------------------------------------------
 # Governance validation — moved here from ``core/charter.py`` (which is being
@@ -66,7 +68,7 @@ class RepoRef:
     and ``path`` is a local pointer."""
 
     name: str
-    role: str = "code"                     # code | manuscript | data | infra
+    role: str = "code"                     # code | manuscript | seminar | data | infra
     host: str = "local"
     path: str = ""                         # local clone / pointer path
     remote_path: str = ""                  # path on `host` when host != local

@@ -172,3 +172,44 @@ def find_or_default(name: str, *, hint: str = "", remote_url: str = "") -> Path:
     copy would go: ``<repositories folder>/<name>``. For code that needs a path
     to report or to check, not a guarantee that it exists."""
     return find(name, hint=hint, remote_url=remote_url) or repos_root() / name
+
+
+# ---------------------------------------------------------------------------
+# Where a NEW project's repositories go (issue #166, part 2)
+# ---------------------------------------------------------------------------
+
+#: The two layouts. Both are fully supported; nobody has to move.
+FLAT, NESTED = "flat", "nested"
+
+
+def project_layout() -> str:
+    """``nested`` (new projects get a project folder) or ``flat``.
+
+    Read from ``project_layout`` in this machine's machine.yaml; default
+    nested. It decides only where murmurent puts a NEW project. Existing
+    repositories stay where they are unless moved with `murmurent project
+    gather`, and are found in either layout.
+    """
+    from .repo import MACHINE_SETTINGS_FILE
+    try:
+        import yaml
+        data = yaml.safe_load(MACHINE_SETTINGS_FILE.read_text(encoding="utf-8")) or {}
+    except Exception:  # noqa: BLE001 - unset means the default
+        return NESTED
+    value = str((data or {}).get("project_layout") or "").strip().lower() if isinstance(data, dict) else ""
+    return FLAT if value == FLAT else NESTED
+
+
+def new_project_repo(project: str, repo_name: str | None = None) -> Path:
+    """Where a new repository of ``project`` goes on this machine.
+
+    Nested layout: ``<repositories>/<project>/<repo_name>``, so a project's
+    code, manuscript and seminar repositories sit together, each keeping its
+    full name (``x_y``, ``x_y_manuscript``, ``x_y_seminar``). Flat layout:
+    ``<repositories>/<repo_name>``. ``repo_name`` defaults to the project name
+    (the code repository).
+    """
+    name = repo_name or project
+    if project_layout() == FLAT:
+        return repos_root() / name
+    return repos_root() / project / name
