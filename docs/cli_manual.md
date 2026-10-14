@@ -44,6 +44,7 @@ Effects:
 - Symlinks `frozen` agents from the group registry; copies `personal` agents.
 - Configures `~/.claude/settings.json` with group-derived permissions and MCP servers.
 - Initialises `~/.claude/agent-memory/` for the agents installed.
+- Creates the **Murmurent Dashboard** icon (skip with `--no-launcher`). `murmurent launcher` re-creates it; `murmurent launcher --remove` deletes it; `--user <handle>` makes it always open as that handle.
 
 `murmurent install` does **not** generate an age key or push a member profile: those are one-time onboarding events.
 

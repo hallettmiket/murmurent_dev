@@ -34,7 +34,6 @@ ship:
   - mkdocs.yml              # NOTE: its exclude_docs list must be kept in step
   - overrides/              # mkdocs theme overrides
   - .gitignore
-  - Open Dashboard.command
 
   # --- front matter ------------------------------------------------------
   # README.md is NOT here: the dev repo's README is for developers. The

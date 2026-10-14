@@ -17,6 +17,15 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 
 ## [Unreleased]
 
+### Added
+- **Every install now gets a Murmurent Dashboard icon** (#156). `murmurent
+  install` creates it: in Applications on a Mac, in the applications menu on
+  Linux. Until now only installs from a copy of the repository got one, and
+  nobody was told. A new command, `murmurent launcher`, re-creates it, and
+  `murmurent launcher --remove` deletes it. `murmurent doctor` says whether it
+  is there. Windows has no icon yet. `Open Dashboard.command` is retired; use
+  the icon.
+
 ### Changed
 - **Project Slack channels are named `proj-<project>`** (#157). Projects made
   with certificates were getting a channel named after the project alone. A

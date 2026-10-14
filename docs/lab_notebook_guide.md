@@ -32,7 +32,7 @@ The first time it resolves to the vault path, any pre-existing
 
 ### Daily flow
 
-1. Open the dashboard (`Open Dashboard.command`).
+1. Open the dashboard (the **Murmurent Dashboard** icon).
 2. Click **edit** in the "Lab notebook · today" panel header.
    - First click of the day creates that day's file (e.g.
      `2026-05-08.md`) in the resolved `lab-notebook/` folder from a small
