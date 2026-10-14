@@ -64,6 +64,7 @@ exclude_docs: |
   backlog.md
   cores_plan.md
   cores_smoke_runbook.md
+  scientific_writing.md
   designer_dashboard/
   murmurent_public/
   diagrams/README.md

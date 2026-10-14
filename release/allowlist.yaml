@@ -81,6 +81,7 @@ withhold:
   - docs/implementation_prompt_phase_5_dashboard_tutorial.md
   - docs/cores_smoke_runbook.md
   - docs/cores_plan.md            # PI 2026-09-01; see the 8 docstrings below
+  - docs/scientific_writing.md     # #153 draft: quotes unpublished manuscripts; Mike decides before it ships
   - tests/                        # PI 2026-09-01: not shipped
   - release/                      # the release tooling itself is a dev-repo concern
   - DEVELOPING.md                 # how to work on murmurent; meaningless in a release
