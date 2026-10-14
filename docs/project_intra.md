@@ -107,3 +107,20 @@ same command underneath.
 Deeper background: the certificate chain and trust model are in
 [`identity.md`](identity.md); the full command reference is in
 [`cli_manual.md`](cli_manual.md).
+
+## Posting a status update
+
+Type `/murmurent-update-me` in a Claude Code session opened in one of the
+project's repositories. It gathers the facts (what is running on every lab
+account, what finished since the last update, quality-gate results, git, and the
+project's open progress issues on GitHub), writes a short plain-English summary
+naming what is blocked and on whom, and posts it to the project's Slack channel.
+Type `/murmurent-update-me dry-run` to see the text without posting.
+
+It never posts a credential, a path inside a `publication/` folder, or a count
+under six of people or events. Most projects need no settings. To change where
+it looks (another outputs folder, a manuscript repository, quality gates to
+report, the channel for a project without its own), add an `update_me:` block to
+the repository's `.murmurent.yaml`; the keys are listed in the skill's
+[`SKILL.md`](https://github.com/hallettmiket/murmurent/blob/main/skills/murmurent-update-me/SKILL.md).
+
