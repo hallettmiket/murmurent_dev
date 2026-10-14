@@ -69,6 +69,12 @@ grep murmurent-oracle ~/.claude/settings.json   # MCP server registered
 murmurent --version
 ```
 
+### The dashboard icon
+
+The install also creates a **Murmurent Dashboard** icon: on a Mac, in your
+Applications folder (drag it to your Dock); on Linux, in your applications
+menu. See [the dashboard page](dashboard.md#the-dashboard-icon).
+
 ### Members: clone your lab's governance repository
 
 Installing Murmurent and importing your membership card establishes *who

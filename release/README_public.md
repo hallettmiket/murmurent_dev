@@ -36,6 +36,9 @@ murmurent doctor
 `murmurent doctor` checks the install. If something is wrong, it prints the
 command that fixes it.
 
+You also get a **Murmurent Dashboard** icon: in Applications on a Mac, in
+the applications menu on Linux.
+
 ## 2. Say who you are
 
 ```bash

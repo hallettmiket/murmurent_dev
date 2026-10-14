@@ -67,7 +67,9 @@ def test_every_forced_include_is_also_in_the_sdist(name: str):
     into the wheel but absent from the sdist include list, and the build died.
     """
     top = name.split("/")[0]
-    assert top in SDIST["include"], (
+    # An exact file path is allowed, and for assets/ required: that folder also
+    # holds grant documents in the dev repo, which must never be packaged.
+    assert top in SDIST["include"] or name in SDIST["include"], (
         f"{name!r} is force-included into the wheel but {top!r} is not in the "
         "sdist include list. The wheel builds from the sdist, so this fails "
         "the build."
@@ -153,3 +155,9 @@ def test_an_editable_clone_is_found_at_any_path(tmp_path, monkeypatch):
     assert commons.commons_root() == editable, (
         "an editable clone must win over the packaged copy, whatever it is called"
     )
+
+
+def test_the_sdist_never_takes_the_whole_assets_folder():
+    """assets/ in the dev repo holds grant documents (withheld in
+    release/allowlist.yaml). Only named files from it may be packaged (#156)."""
+    assert "assets" not in SDIST["include"] and "assets/" not in SDIST["include"]

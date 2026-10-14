@@ -124,6 +124,9 @@ exclude = ["rules/local", "rules/local/**"]
 # The agent-activity hook is a bash script. Without it in the wheel, the hook
 # pointed at ~/repos/murmurent/scripts/, which a PyPI install never has (#159).
 "scripts/murmurent_log_agent_event.sh" = "murmurent/commons/scripts/murmurent_log_agent_event.sh"
+# The dashboard icon's image, read by core/launcher.py (#156). Without it a
+# PyPI install made the icon with a generic picture, or could not make it at all.
+"assets/murmurent_app_icon.png" = "murmurent/commons/assets/murmurent_app_icon.png"
 
 [tool.hatch.build.targets.sdist]
 # The sdist is what PyPI keeps as the buildable source, so it needs the same
@@ -135,6 +138,7 @@ include = [
     "skills",
     "templates",
     "output_styles",
+    "assets/murmurent_app_icon.png",
     "scripts",
     "docs",
     "README.md",

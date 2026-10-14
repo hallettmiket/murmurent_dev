@@ -62,7 +62,10 @@ def cli(ctx: click.Context) -> None:
     help="Override the settings.json target path (mostly for tests).",
 )
 @click.option("--no-backup", is_flag=True, help="Skip the .bak copy of settings.json.")
-def install_command(hooks: bool, settings_path: Path | None, no_backup: bool) -> None:
+@click.option("--no-launcher", is_flag=True,
+              help="Don't create the Murmurent Dashboard icon.")
+def install_command(hooks: bool, settings_path: Path | None, no_backup: bool,
+                    no_launcher: bool) -> None:
     """Bare ``murmurent install`` is the whole install: wire the commons,
     register the hooks, then re-link every murmurent-ready repo on the machine.
     It used to say "not yet implemented in v1", which left the obvious command
@@ -93,6 +96,52 @@ def install_command(hooks: bool, settings_path: Path | None, no_backup: bool) ->
         from .commands import repo_cmd as _repo_cmd
         _repo_cmd.cmd_upgrade(path=None, all_repos=True, add_agents_csv=None,
                               all_agents=False, quiet=True, marker_only=True)
+        if not no_launcher:
+            _make_launcher_quietly()
+
+
+def _make_launcher_quietly() -> None:
+    """Create the dashboard icon as the last step of ``murmurent install`` (#156).
+
+    By default rather than on request: an icon nobody knows to ask for was the
+    problem. A failure here never fails the install; it says so in one line.
+    """
+    from .core import launcher as _launcher
+
+    click.echo()
+    try:
+        res = _launcher.create()
+    except OSError as exc:
+        click.echo(f"  ! could not create the dashboard icon: {exc}. "
+                   "Try again later with: murmurent launcher")
+        return
+    click.echo(f"  {_launcher.where_to_find(res)}")
+
+
+@cli.command("launcher",
+             help="Create the Murmurent Dashboard icon: an app in Applications on a "
+                  "Mac, an applications-menu entry on Linux. Run it again to "
+                  "re-create the icon; --remove deletes it.")
+@click.option("--remove", is_flag=True, help="Delete the icon.")
+@click.option("--user", "user", default="",
+              help="Always open the dashboard as this handle (for a shared demo "
+                   "machine). Default: whoever `murmurent init` recorded.")
+def launcher_command(remove: bool, user: str) -> None:
+    from .core import launcher as _launcher
+
+    if remove:
+        res = _launcher.remove()
+        if not res.supported:
+            click.echo("There is no dashboard icon on this platform.")
+        elif res.files:
+            click.echo(f"Removed the dashboard icon ({res.files[0]}).")
+        else:
+            click.echo("There was no dashboard icon to remove.")
+        return
+    res = _launcher.create(user=user.lstrip("@"))
+    if res.supported:
+        click.echo(f"Created {res.location}" + (f" ({res.note})" if res.note else "") + ".")
+    click.echo(_launcher.where_to_find(res))
 
 
 @cli.command("setup", help="Wire the murmurent commons (agents, rules, skills) into ~/.claude/.")

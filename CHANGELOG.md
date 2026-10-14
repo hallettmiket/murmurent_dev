@@ -17,6 +17,14 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 
 ## [Unreleased]
 
+### Added
+- **Every install now gets a Murmurent Dashboard icon** (#156). `murmurent
+  install` creates it: in Applications on a Mac, in the applications menu on
+  Linux. Until now only installs from a copy of the repository got one, and
+  nobody was told. A new command, `murmurent launcher`, re-creates it, and
+  `murmurent launcher --remove` deletes it. `murmurent doctor` says whether it
+  is there. Windows has no icon yet. `Open Dashboard.command` is retired; use
+  the icon.
 ### Fixed
 - **Agent links in a project folder are no longer committed** (#150). The
   links `murmurent repo adopt` makes in `.claude/agents/` point into your own
