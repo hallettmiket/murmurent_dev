@@ -82,6 +82,8 @@ withhold:
   - docs/cores_smoke_runbook.md
   - docs/cores_plan.md            # PI 2026-09-01; see the 8 docstrings below
   - docs/reporting_guidelines.md   # #155: ships once Mike approves the licence reading (TRIPOD+AI footer)
+  - docs/scientific_writing.md     # #153 draft: quotes unpublished manuscripts; Mike decides before it ships
+  - agents/scribe.md              # #153: reads docs/scientific_writing.md, so ships with it
   - tests/                        # PI 2026-09-01: not shipped
   - release/                      # the release tooling itself is a dev-repo concern
   - DEVELOPING.md                 # how to work on murmurent; meaningless in a release

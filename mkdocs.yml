@@ -65,6 +65,7 @@ exclude_docs: |
   cores_plan.md
   cores_smoke_runbook.md
   reporting_guidelines.md
+  scientific_writing.md
   designer_dashboard/
   murmurent_public/
   diagrams/README.md
