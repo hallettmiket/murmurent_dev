@@ -17,6 +17,18 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 
 ## [Unreleased]
 
+### Fixed
+- **A fresh install from PyPI now works fully** (#159). Three problems are
+  fixed. The four murmurent data services (Oracle, data, core data and
+  inventory) failed to start because a fresh install picked up version 2 of
+  the `mcp` library, which they do not support yet; murmurent now asks for
+  version 1. The agent activity log looked for a script in
+  `~/repos/murmurent`, which only exists if you copied the repository; the
+  script now ships inside the package. And the plain-English writing style
+  was not installed; `murmurent setup` now links it. If you installed with
+  `uv`, run `uv tool upgrade murmurent`, then `murmurent install`, then
+  restart Claude Code.
+
 ## [2026.9.9] - 2026-09-25
 
 ### Changed
