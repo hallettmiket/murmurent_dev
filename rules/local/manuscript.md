@@ -43,13 +43,14 @@ code) before acting: see the `/murmurent-admin` skill.
 
 ## Voice
 
-Read the manuscript's writing voice before drafting any of it. It is in
-`~/repos/murmurent_manuscript/CLAUDE.md`, under "Writing voice", and it is
-stricter than the general voice in
-[`output_styles/plain_english.md`](../../output_styles/plain_english.md). It is
-a scientific paper for a peer-reviewing biomedical audience: factual and
-cited, concise, serious and understated, every term defined on first use,
-British and Canadian spelling. When in doubt, flag rather than invent.
+Read the house writing guide before drafting any of it:
+[`docs/scientific_writing.md`](../../docs/scientific_writing.md), built from
+Mike's own hand edits to Claude-written text. For a passage of any length, use
+the **Scribe** agent, which follows it and returns text for you to apply. The
+manuscript's own `CLAUDE.md`, under "Writing voice", adds what is specific to
+this paper. Both are stricter than
+[`output_styles/plain_english.md`](../../output_styles/plain_english.md), which
+is for documentation, not papers. When in doubt, flag rather than invent.
 
 ## Which murmurent repository
 

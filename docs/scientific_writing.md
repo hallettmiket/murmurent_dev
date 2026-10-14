@@ -52,6 +52,28 @@ The most common edit. State the fact and stop.
   deliberately not ...", "the distinction matters", "which is the point".
 - **No pre-empting the reviewer.** Delete caveats whose only job is to answer
   an objection nobody has raised yet, and do not repeat a point already made.
+- **Cut whole sentences, not only words.** Trimming inside sentences is not
+  enough. Ask of each sentence whether a reader of the paper needs it, and
+  delete it when it does not. The kinds Mike deletes most:
+  - the reasoning behind a design or security choice ("because the opposite
+    rule would hand an attacker an easy move"), when the paper only needs the
+    choice;
+  - the motivation for an analysis step ("which motivates pooling the eras
+    below"), when the next paragraph simply does it;
+  - analysis settings outside Methods (fold counts, bootstraps, permutation
+    nulls in the Introduction);
+  - a second sentence that restates or elaborates the first.
+
+  Cutting is not changing the facts: a deleted sentence leaves every remaining
+  claim as true as it was. In a data paper, though, he often *adds* a plain
+  "That is," sentence, so the median rewrite there is about as long as the
+  original. Cut what serves the writer; keep and add what serves the reader.
+
+  For an editor that is not the author (the Scribe, or any session), the line
+  is drawn in two places. Delete what plainly serves the writer: roadmaps,
+  restatements, comments on the writing. Propose, but leave in place, cuts of
+  detail the paper may not need: deciding those takes the whole manuscript and
+  the author's intent.
 
 ### 2. Say it literally
 
