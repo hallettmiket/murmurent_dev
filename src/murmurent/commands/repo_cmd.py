@@ -44,11 +44,9 @@ def _looks_like_path(target: str) -> bool:
 
 
 def _clone_verdict(clone: _inv.RepoOnHost) -> str:
-    if clone.has_marker and clone.has_claude_dir:
-        return "ready"
-    if clone.has_marker or clone.has_claude_dir:
-        return "partial"
-    return "plain clone"
+    # The marker alone decides (PR #167). The machine scan does not look for a
+    # legacy CHARTER.md, so there is no "partial" here.
+    return "ready" if clone.has_marker else "plain clone"
 
 
 def cmd_list(host_filter: str | None) -> int:
@@ -99,7 +97,8 @@ def _print_status(st: _adopt.AdoptionStatus) -> None:
     click.echo(f"  readiness marker  {mark(st.has_marker)}"
                + ("  (legacy CHARTER.md — run `murmurent repo upgrade`)"
                   if st.legacy_charter and not st.has_marker else ""))
-    click.echo(f"  .claude/agents/   {mark(st.has_claude_agents)}")
+    click.echo(f"  pinned agents     {mark(st.has_claude_agents)}"
+               "  (optional; every agent works here anyway)")
     if st.bootstrap_version:
         click.echo(f"  bootstrapped by   murmurent {st.bootstrap_version}")
     _print_follows(Path(st.path))

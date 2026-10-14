@@ -63,11 +63,12 @@ def test_status_plain_clone(world):
     assert st.verdict == "plain clone"
 
 
-def test_status_partial_then_ready(world):
+def test_status_marker_alone_is_ready(world):
+    """PR #167: the marker decides. .claude/agents/ plays no part either way."""
     clone = _make_clone(world["repos"], "dcis")
-    (clone / ".murmurent.yaml").write_text("murmurent: 1\nlab: mh\n")
-    assert _adopt.adoption_status(str(clone)).verdict == "partial"
     (clone / ".claude" / "agents").mkdir(parents=True)
+    assert _adopt.adoption_status(str(clone)).verdict == "plain clone"
+    (clone / ".murmurent.yaml").write_text("murmurent: 1\nlab: mh\n")
     st = _adopt.adoption_status(str(clone))
     assert st.ready and st.verdict == "ready"
 

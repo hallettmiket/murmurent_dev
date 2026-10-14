@@ -17,6 +17,15 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 
 ## [Unreleased]
 
+### Changed
+- **"Ready" now means the folder has a `.murmurent.yaml` file, and nothing
+  else** (from PR #167, found by emucaki). The check also required a
+  `.claude/agents/` folder, which `adopt` always creates, so it could never
+  fail. Agents in that folder make no difference: every agent already works in
+  every folder. "Half set up" now means only a folder set up by a very old
+  Murmurent; `murmurent repo upgrade` finishes it. The help for `--agents` and
+  `--all-agents` now says they pin agents to one folder and are rarely needed.
+
 ### Added
 - **Every install now gets a Murmurent Dashboard icon** (#156). `murmurent
   install` creates it: in Applications on a Mac, in the applications menu on
