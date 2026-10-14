@@ -39,6 +39,8 @@ Stage changed files, create a descriptive commit, push to the remote tracking br
 
 6. **Skip `.claude/settings.json` even if it shows up changed.** The per-project `.claude/settings.json` is .gitignored by `project_cc_init.bootstrap_local` because it contains machine-absolute paths and per-machine permission allowlists. If `.gitignore` is missing the entry, add the entry to `.gitignore` first (`echo '.claude/settings.json' >> .gitignore`) and include that `.gitignore` change in the commit — but do NOT stage `.claude/settings.json` itself.
 
+6b. **Never stage a link under `.claude/agents/` that points outside the repo.** `murmurent repo adopt` links the shared agents into the repo by absolute path into *this member's* home folder, so a committed link breaks those agents for everyone else (issue #150). Check each changed path under `.claude/agents/`: if `test -L <path>` is true and `readlink <path>` is absolute or leads outside the repo, leave it unstaged. `adopt` lists these links in a managed `.gitignore` block; if one is missing, run `murmurent repo upgrade <repo>` to rewrite the block and commit the `.gitignore` change. Ordinary files in `.claude/agents/` are the group's own agents and ARE committed as usual. If `murmurent repo status` reports committed links, tell the user and show its fix line; do not untrack them yourself without asking, because untracking deletes the links from every other member's copy on their next pull.
+
 7. **Validate `.murmurent.yaml` / `CHARTER.md` if modified.** The marker must parse as YAML with `murmurent:` (schema int) and `lab:`; a legacy CHARTER needs `project`, `lead`, `members`, `sensitivity`. If broken, refuse the commit with the specific error.
 
 8. **Validate `MEMBERS` file if it was modified.** Should be one `@handle` per line. Refuse if a line doesn't match `^@[A-Za-z0-9_-]+$`.
@@ -48,7 +50,7 @@ Stage changed files, create a descriptive commit, push to the remote tracking br
 Once the pre-flight passes, follow the standard commit-push flow with these murmurent conventions:
 
 - **Stage selectively.** Use `git add <specific files>` rather than `git add -A` or `git add .` so the skips from steps 3-5 stick.
-- **Commit message style.** Lead with a short imperative title (≤70 chars). Body explains the *why*, not the *what*. If `CHARTER.md`, `MEMBERS`, or `.claude/agents/` symlinks changed, call that out explicitly in the body — those are governance-level changes a reader needs to notice.
+- **Commit message style.** Lead with a short imperative title (≤70 chars). Body explains the *why*, not the *what*. If `CHARTER.md`, `MEMBERS`, or an agent file the group wrote itself in `.claude/agents/` changed, call that out explicitly in the body — those are governance-level changes a reader needs to notice. (Links in `.claude/agents/` are never committed: see 6b.)
 - Always pass the commit message via a HEREDOC to preserve formatting (see CLAUDE.md "Git Safety Protocol" section). End with:
 
   ```
@@ -93,6 +95,7 @@ Use `mcp__claude_ai_Slack__slack_send_message`, NOT `mcp__slack__slack_post_mess
 | `murmurent security secrets-scan --staged` exits non-zero (block hit) | Refuse; show redacted findings | Hardcoded credential in file *content* would reach GitHub |
 | File > 1 MB in `data/`/`src/`/`exp/`/`obsolete/` | Refuse; suggest append_only/ | rules/project-structure.md |
 | `.claude/settings.json` staged | Drop from stage; ensure in `.gitignore` | Machine-absolute paths leak across collaborators |
+| A `.claude/agents/` link pointing outside the repo | Drop from stage; `murmurent repo upgrade` relists it in `.gitignore` | It points into one member's home folder and breaks the agent for everyone else (#150) |
 | Marker/CHARTER invalid YAML / missing fields | Refuse | corrupt readiness metadata |
 | User asks for `--force`/`--no-verify`/`--amend` | Ask for explicit confirmation | Defaults from CLAUDE.md |
 

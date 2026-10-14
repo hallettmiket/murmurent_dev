@@ -103,6 +103,25 @@ def _print_status(st: _adopt.AdoptionStatus) -> None:
     if st.bootstrap_version:
         click.echo(f"  bootstrapped by   murmurent {st.bootstrap_version}")
     _print_follows(Path(st.path))
+    _print_committed_links(Path(st.path))
+
+
+def _print_committed_links(repo: Path) -> None:
+    """Flag agent links that git tracks (issue #150).
+
+    Each link points into one member's own home folder, so once committed it
+    breaks those agents for everyone else working in the repo.
+    """
+    from ..core import agent_links as _al
+
+    committed = _al.tracked_machine_links(repo)
+    if not committed:
+        return
+    click.echo(f"  ! committed links {len(committed)} agent link(s) are in git and "
+               "point into one person's home folder:")
+    for path, target in committed:
+        click.echo(f"      {path} -> {target}")
+    click.echo(f"  fix:              {_al.repair_hint(repo)}")
 
 
 def _print_follows(repo: Path) -> None:

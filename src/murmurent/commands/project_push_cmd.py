@@ -29,6 +29,7 @@ import subprocess
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from ..core import agent_links as _al
 from ..core import cert_projects as _cp
 from ..core import secret_scan as _ss
 
@@ -449,8 +450,11 @@ def push_one_repo(ref, *, message: str | None) -> RepoPushResult:
                        "move it to the project's data area, then run this again",
                 git_detail=f"{p} = {size} bytes")
 
-    # 6. Select files to stage (drop the always-skip list).
-    to_stage = [p for p in changed if p not in _SKIP_ALWAYS]
+    # 6. Select files to stage. Drop the always-skip list, and any link under
+    #    .claude/agents/ that points outside the repo: it names this member's
+    #    own home folder and breaks those agents for everyone else (#150).
+    to_stage = [p for p in changed
+                if p not in _SKIP_ALWAYS and not _al.is_machine_link(repo, p)]
     settings_changed = any(p in _SKIP_ALWAYS for p in changed)
     if settings_changed:
         _ensure_gitignored(repo, ".claude/settings.json")
