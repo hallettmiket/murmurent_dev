@@ -85,6 +85,7 @@ withhold:
   - tests/                        # PI 2026-09-01: not shipped
   - release/                      # the release tooling itself is a dev-repo concern
   - DEVELOPING.md                 # how to work on murmurent; meaningless in a release
+  - CONTRIBUTING.md               # the dev repo's pull-request guide (#161); meaningless in a release
   - README.md                     # the DEV repo's landing page: repo map, PR flow, release
                                   # steps. The release gets `release_readme` instead.
   - rules/local/                  # a centre's own rules: private repos, Slack IDs, local

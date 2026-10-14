@@ -15,7 +15,7 @@ appears on screen as the commands you would type.
 
 | | |
 |---|---|
-| **Where it is** | [Google Drive folder](https://drive.google.com/drive/folders/1KMUkXi2XyS6sO8H7M_YicwaSk8ylQ7dZ), open to anyone with the link: `murmurent_getting_started_1080p.mp4` (33 MB, 1080p, English captions built in), to watch in the browser or download |
+| **Where it is** | [mikehallett.science](https://mikehallett.science/assets/videos/murmurent_getting_started.html), to watch in the browser with captions. The [video file itself](https://mikehallett.science/assets/videos/murmurent_getting_started_1080p.mp4) (33 MB, 1080p) can be downloaded. |
 | **Transcript** | [murmurent_getting_started.srt](murmurent_getting_started.srt), in this folder: the full narration with timings, which also works as a subtitle file |
 | **Made with** | [ElevenLabs](https://elevenlabs.io): the narration (voice "Matilda") and the music |
 | **Checked against** | Murmurent 2026.9.9 |
