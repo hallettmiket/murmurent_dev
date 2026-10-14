@@ -67,6 +67,7 @@ and with which it must open its reply.
 | Bookworm | Literature search and biomedical-database queries; annotates results with published knowledge | member | Found *n* sources |
 | Artist | Figures, plots and presentation material for publication and communication | member | Rendered / Skipped / Failed |
 | Teacher | Explains methods, papers and decisions for a technically competent, adjacent-field audience | member | Explained / Gap |
+| Scribe | Writes and revises manuscript text in the PI's own scientific register, from a guide built on the PI's edits | member | Revised / Drafted / Gap |
 | *Memory* | | | |
 | Oracle | Personal research memory: findings, hypotheses and experimental context across a member's projects | member | Found / Not found / Unsure |
 | Lab Oracle | Group memory of reviewed findings | group | Found / Not found / Unsure |
