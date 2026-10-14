@@ -33,8 +33,12 @@ from pathlib import Path
 
 from .repo import repos_root
 
-#: This machine's record of where repositories are: {name: path}.
-RECORD_FILE = Path.home() / ".murmurent" / "repo_paths.yaml"
+def _record_file() -> Path:
+    """This machine's record of where repositories are: {name: path}.
+
+    Under MURMURENT_HOME when set (the test suite isolates it), else ~/.murmurent.
+    """
+    return Path(os.environ.get("MURMURENT_HOME") or Path.home() / ".murmurent") / "repo_paths.yaml"
 
 
 #: The placeholder a remote project leaves on this machine (core.projects).
@@ -49,7 +53,7 @@ def _is_git_repo(path: Path) -> bool:
 def _read_record() -> dict[str, str]:
     try:
         import yaml
-        data = yaml.safe_load(RECORD_FILE.read_text(encoding="utf-8")) or {}
+        data = yaml.safe_load(_record_file().read_text(encoding="utf-8")) or {}
     except Exception:  # noqa: BLE001 - no record means "nothing recorded"
         return {}
     return {str(k): str(v) for k, v in data.items()} if isinstance(data, dict) else {}
@@ -65,8 +69,8 @@ def record(name: str, path: str | Path) -> None:
     data = _read_record()
     data[str(name)] = str(Path(str(path)).expanduser())
     try:
-        RECORD_FILE.parent.mkdir(parents=True, exist_ok=True)
-        RECORD_FILE.write_text(yaml.safe_dump(data, sort_keys=True), encoding="utf-8")
+        _record_file().parent.mkdir(parents=True, exist_ok=True)
+        _record_file().write_text(yaml.safe_dump(data, sort_keys=True), encoding="utf-8")
     except OSError:
         pass
 
@@ -77,7 +81,7 @@ def forget(name: str) -> None:
     data = _read_record()
     if data.pop(str(name), None) is not None:
         try:
-            RECORD_FILE.write_text(yaml.safe_dump(data, sort_keys=True), encoding="utf-8")
+            _record_file().write_text(yaml.safe_dump(data, sort_keys=True), encoding="utf-8")
         except OSError:
             pass
 
@@ -142,7 +146,7 @@ def find(name: str, *, hint: str = "", remote_url: str = "") -> Path | None:
     cloned under another folder name still be found.
     """
     recorded = _read_record().get(str(name))
-    if recorded and _is_git_repo(Path(recorded)):
+    if recorded and Path(recorded).is_dir():     # this machine's own record: trust it while the folder exists
         return Path(recorded)
     if hint and is_mine(hint) and _is_git_repo(Path(hint).expanduser()):
         return Path(hint).expanduser()

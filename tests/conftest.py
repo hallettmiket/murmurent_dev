@@ -69,6 +69,9 @@ def _isolate_machine_settings(monkeypatch, tmp_path):
     from murmurent.dashboard import machine_settings as _ms
 
     monkeypatch.setattr(_ms, "MACHINE_FILE", tmp_path / "_machine.yaml")
+    # core.repo reads the same file for repos_root (#166); point it at the same place.
+    from murmurent.core import repo as _repo_mod
+    monkeypatch.setattr(_repo_mod, "MACHINE_SETTINGS_FILE", tmp_path / "_machine.yaml")
 
 
 @pytest.fixture(autouse=True)
