@@ -35,6 +35,18 @@ Use `uv`, not `pip`. The `pip` on your path often belongs to a different Python,
 such as a conda environment, and the update then lands in the wrong place or
 stops with an error about the Python version.
 
+## The data services do not connect
+
+Claude Code may report that `murmurent-oracle`, `murmurent-data`,
+`murmurent-core-data` or `murmurent-inventory` failed to connect. Installs made
+before version 2026.10.0 could pick up a version of a library those services
+do not support. Update, then restart Claude Code:
+
+```bash
+uv tool upgrade murmurent
+murmurent install
+```
+
 ## A folder holds patient data
 
 Add this line to the folder's `.murmurent.yaml` file:
