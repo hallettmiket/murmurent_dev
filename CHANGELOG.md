@@ -18,6 +18,13 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 ## [Unreleased]
 
 ### Added
+- **`/murmurent-update-me` posts a status update for any project** (#152). It
+  reports what is running, what finished since the last update, what is blocked
+  and on whom, and the next steps, to the project's Slack channel. Built and used
+  in the survival project first; most projects need no settings, and an
+  optional `update_me:` block in `.murmurent.yaml` changes the defaults.
+
+### Added
 - **The adversary checks written-up prediction models and marker studies
   against TRIPOD+AI, PROBAST+AI and REMARK** (#155). Missing reporting items
   get their own section and never on their own fail a method; a high risk of
