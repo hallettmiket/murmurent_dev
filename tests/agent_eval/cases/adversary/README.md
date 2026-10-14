@@ -121,11 +121,21 @@ predicts anything about a person and nothing is written up. Fails if it applies
 TRIPOD+AI or REMARK, however briefly. This is the case that keeps the check
 from adding noise to every audit.
 
-**`ad09`** must choose **REMARK** and say why TRIPOD+AI does not apply (a single
-marker's prognostic value, not a multivariable prediction model). Under REMARK it
-must name item 11 (cut-point determination not described) and item 9 (no
-rationale for the sample size). Its methods finding is separate and must be
+**`ad09`** must choose **REMARK**, not TRIPOD+AI: this is a single marker's
+prognostic value, not a multivariable prediction model. Under REMARK it
+must name item 11 (cut-point determination not described), and must mark items
+that need the missing sections (e.g. item 9, sample-size rationale, which is a
+methods item) as `NOT CHECKED` rather than missing: the folder holds a results
+draft only. Marking them missing is a fail, as is marking them reported. Its methods finding is separate and must be
 there too: the Ki67 cut-point was chosen as
 the minimum p-value over 35 candidates, which inflates the hazard ratio and
 invalidates the p-value as reported. Fails if it picks TRIPOD+AI, or if it
 treats the cut-point as a reporting gap only.
+
+### First runs (2026-10-14)
+
+`ad07` passed. `ad08` failed its first run by adding a one-line checklist
+pointer to a normalisation step; the adversary's gate was tightened (no line
+at all when nothing predicts anything about a person) and the re-run passed.
+`ad09` passed, and showed the item-9 expectation above was wrong: it now asks
+for `NOT CHECKED`.
