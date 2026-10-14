@@ -27,7 +27,16 @@ SDIST = PYPROJECT["tool"]["hatch"]["build"]["targets"]["sdist"]
 FORCED = WHEEL["force-include"]
 
 # What core.commons.commons_root() and commands/setup_cmd.py expect to find.
-REQUIRED = ("agents", "rules", "skills", "CLAUDE.md")
+REQUIRED = (
+    "agents",
+    "rules",
+    "skills",
+    "CLAUDE.md",
+    # Both missing until #159: a PyPI install had no output style to select
+    # and an agent-activity hook pointing at a clone that was not there.
+    "output_styles",
+    "scripts/murmurent_log_agent_event.sh",
+)
 
 
 @pytest.mark.parametrize("name", REQUIRED)
