@@ -729,6 +729,31 @@ def project_provision_slack(name: str) -> None:
             click.echo(f"  ⏳ {p['handle']}: {p['status']}{link} [{p['detail']}]")
 
 
+@project_group.command("rename-slack",
+                       help="(PI) Rename the cert-project's Slack channel. With no "
+                            "--to, renames it to the standard proj-<project> name.")
+@click.argument("name")
+@click.option("--to", "new_name", default="",
+              help="The new channel name. Default: proj-<project>.")
+def project_rename_slack(name: str, new_name: str) -> None:
+    from .core import cert_provision as _cprov
+    try:
+        out = _cprov.rename_slack(name, new_name or None)
+    except _cprov.CertProvisionError as exc:
+        raise click.ClickException(str(exc)) from exc
+    if not out["ok"]:
+        hint = ""
+        if out["detail"] in ("not_in_channel", "channel_not_found"):
+            hint = " The bot must be in the channel; invite it once, then retry."
+        elif out["detail"] == "missing_scope":
+            hint = " Add the channels:manage and groups:write scopes to the bot."
+        elif out["detail"] == "name_taken":
+            hint = " Another channel already has that name; pick one with --to."
+        raise click.ClickException(
+            f"could not rename the channel ({out['detail']}).{hint}")
+    click.echo(f"✓ channel renamed to #{out['name']} ({out['channel_id']}).")
+
+
 @project_group.command("provision-github",
                        help="(PI) Create the cert-project's private GitHub repo "
                             "and add its certified members as collaborators. "

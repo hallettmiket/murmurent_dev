@@ -34,9 +34,39 @@ def _seed_project_with_members():
 
 
 def test_slack_channel_name_normalizes():
-    assert CPROV.slack_channel_name("RNA_Atlas") == "rna_atlas"     # keeps _
-    assert CPROV.slack_channel_name("a b/c") == "a-b-c"
-    assert CPROV.slack_channel_name("--x--") == "x"
+    assert CPROV.slack_channel_name("RNA_Atlas") == "proj-rna_atlas"     # keeps _
+    assert CPROV.slack_channel_name("a b/c") == "proj-a-b-c"
+    assert CPROV.slack_channel_name("--x--") == "proj-x"
+
+
+def test_slack_channel_name_has_the_proj_prefix_once():
+    """#157: cert-project channels were created without ``proj-``."""
+    assert CPROV.slack_channel_name("proj-atlas") == "proj-atlas"
+    assert len(CPROV.slack_channel_name("x" * 200)) == 80
+
+
+def test_rename_slack_defaults_to_the_convention():
+    _seed_project_with_members()
+    CP.upsert("rna_atlas", lab="lab_mh", slack_channel_id="C123")
+    seen = {}
+
+    def renamer(cid, name):
+        seen.update(cid=cid, name=name)
+        return (True, "renamed")
+
+    out = CPROV.rename_slack("rna_atlas", renamer=renamer)
+    assert out["ok"] and seen == {"cid": "C123", "name": "proj-rna_atlas"}
+    out = CPROV.rename_slack("rna_atlas", "#Atlas Team", renamer=renamer)
+    assert seen["name"] == "atlas-team"
+
+
+def test_rename_slack_refuses_without_a_channel_or_with_a_bad_name():
+    _seed_project_with_members()
+    with pytest.raises(CPROV.CertProvisionError, match="no Slack channel yet"):
+        CPROV.rename_slack("rna_atlas", renamer=lambda c, n: (True, ""))
+    CP.upsert("rna_atlas", lab="lab_mh", slack_channel_id="C123")
+    with pytest.raises(CPROV.CertProvisionError, match="not a valid"):
+        CPROV.rename_slack("rna_atlas", "-bad", renamer=lambda c, n: (True, ""))
 
 
 def test_member_email_map_from_roster():
@@ -64,7 +94,7 @@ def test_provision_creates_channel_and_stamps_id():
 
     out = CPROV.provision_slack("rna_atlas", creator=creator, inviter=inviter)
     assert out["ok"] and out["created"] and out["channel_id"] == "C123"
-    assert seen["name"] == "rna_atlas" and seen["channel_id"] == "C123"
+    assert seen["name"] == "proj-rna_atlas" and seen["channel_id"] == "C123"
     assert set(seen["handles"]) == {"allie", "bob", "nomail"}
     assert seen["emails"] == {"allie": "allie@example.edu", "bob": "bob@example.edu"}
     # the id is persisted on the record
@@ -112,7 +142,7 @@ def test_provision_reuses_existing_channel_on_name_taken():
                                 resolver=resolver)
     assert out["ok"] is True and out["created"] is False
     assert out["channel_id"] == "Cexisting"
-    assert calls["resolve"] == ["rna_atlas"]              # looked up by channel name
+    assert calls["resolve"] == ["proj-rna_atlas"]              # looked up by channel name
     assert CP.get("rna_atlas").slack_channel_id == "Cexisting"   # adopted + stamped
 
 
