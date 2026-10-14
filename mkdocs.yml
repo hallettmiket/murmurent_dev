@@ -130,6 +130,7 @@ nav:
       - Security dashboard: security-dashboard.md
   - Reference:
       - CLI manual: cli_manual.md
+      - "Reporting checklists (TRIPOD+AI, PROBAST+AI, REMARK)": reporting_guidelines.md
       - Architecture diagrams: diagrams.md
       - Versioning: versioning.md
       - Code style: style/code-style.md

@@ -36,6 +36,8 @@ REQUIRED = (
     # and an agent-activity hook pointing at a clone that was not there.
     "output_styles",
     "scripts/murmurent_log_agent_event.sh",
+    # The adversary's checklist reference (#155): it may not browse.
+    "docs/reporting_guidelines.md",
 )
 
 

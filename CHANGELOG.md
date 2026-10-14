@@ -17,6 +17,14 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 
 ## [Unreleased]
 
+### Added
+- **The adversary checks written-up prediction models and marker studies
+  against TRIPOD+AI, PROBAST+AI and REMARK** (#155). Missing reporting items
+  get their own section and never on their own fail a method; a high risk of
+  bias does count. Work that predicts nothing about a person is left alone.
+  The checklists ship as a reference page, [Reporting
+  checklists](https://hallettmiket.github.io/murmurent/reporting_guidelines/).
+
 ### Changed
 - **"Ready" now means the folder has a `.murmurent.yaml` file, and nothing
   else** (from PR #167, found by emucaki). The check also required a

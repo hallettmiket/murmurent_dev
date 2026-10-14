@@ -72,7 +72,7 @@ and with which it must open its reply.
 | Oracle | Personal research memory: findings, hypotheses and experimental context across a member's projects | member | Found / Not found / Unsure |
 | Lab Oracle | Group memory of reviewed findings | group | Found / Not found / Unsure |
 | *Review and adjudication* | | | |
-| Adversary | Methodological audit: validates design, checks for data leakage, demands cross-validation | member | Pass / Questions / Reject |
+| Adversary | Methodological audit: validates design, checks for data leakage, demands cross-validation; checks written-up prediction models and marker studies against TRIPOD+AI, PROBAST+AI and REMARK | member | Pass / Questions / Reject |
 | Conscience | EDID and SGBA+ review of design, language, literature selection and presentation | member | OK / Flagged |
 | Lawyer | Patent landscape and freedom-to-operate assessment | member | Clear / Conflict / Unknown |
 | Security Guard | Scans diffs and outgoing data objects for credentials, protected health information and permission errors | member | Clear / Concerns / Blocked |
@@ -182,6 +182,59 @@ presents the latter as fact. Adversarial critique between agents reduces
 hallucinations, improves factual validity, and increases the depth of
 answers. The Adversary is Murmurent's implementation of that idea, and
 it is expected to evolve with use.
+
+When the work names something a project intends to act on (a compound going
+to synthesis, a result heading for publication or disclosure) or moves
+governed data, the Adversary refers it to the [Lawyer](#lawyer) itself and
+folds the Lawyer's verdict into its own. Every audit ends with a `COUNSEL:`
+line saying what the Lawyer found, or why no referral was needed.
+
+### Reporting checklists for prediction models
+
+A paper can describe a sound method and still be returned by a journal because
+it does not report what reviewers check for. For clinical prediction models
+and prognostic markers those items are published as checklists, and the
+Adversary checks against them whenever the work calls for it, not only when
+asked.
+
+**When it checks.** Both must hold: the work develops, validates or updates a
+model that predicts an individual's diagnosis or outcome (by regression or
+machine learning), or studies whether a single marker is prognostic; **and**
+something presents it (a manuscript, abstract, report, poster, grant section
+or slides). For a model still in progress with nothing written up, it adds one
+line saying which checklist will apply. For work that predicts nothing about a
+person (a normalisation step, a compound shortlist, a segmentation tool) it
+says nothing about checklists at all, so groups that do not build clinical
+models see no extra noise.
+
+**Which checklist.**
+
+| The work | Reporting | Risk of bias |
+|---|---|---|
+| A model predicting an individual's diagnosis or outcome | **TRIPOD+AI** (Collins et al., *BMJ* 2024; 27 items) | **PROBAST+AI** (Moons et al., *BMJ* 2025; 4 domains) |
+| A single marker's prognostic value, including marker-by-marker screens | **REMARK** (McShane et al., 2005; Altman et al., 2012; 20 items) | reviewed as methods |
+| A model built from markers first screened one at a time | TRIPOD+AI, and REMARK for the screen | PROBAST+AI |
+
+CONSORT (randomised trials), STROBE (observational studies) and STARD
+(diagnostic accuracy studies) are named when they apply, but not checked.
+
+**How the result reads.** Reporting gaps get a section of their own, item by
+item (`OBSERVED: TRIPOD+AI 10 missing`), with items it could not check marked
+`NOT CHECKED` and the reason. Missing reporting items alone never produce
+MAJOR CONCERNS: they are things to fix before submission, not a failed method.
+A high PROBAST+AI risk of bias is a methods finding, labelled with its domain
+(participants, predictors, outcome or analysis), and counts like any other.
+Passing these checklists says the work is reported fully and is not obviously
+biased; it does not say the model adds anything over the clinical factors,
+which stays part of the methods review.
+
+**Where the items come from.** The Adversary may not browse, so it checks
+against a local copy of each checklist, [Reporting checklists](reporting_guidelines.md), which
+the Bookworm sourced from the published papers on 14 October 2026 and keeps
+current. It never recites a checklist from memory: an item number it reports is
+one you can look up in that file. TRIPOD+AI and REMARK are reproduced word for
+word under their CC BY licences; PROBAST+AI is paraphrased, because its licence
+is non-commercial.
 
 **Verdict vocabulary:** `Pass / Questions / Reject — <one-line why>`
 

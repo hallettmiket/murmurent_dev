@@ -1,4 +1,4 @@
-# Adversary referral cases — ad01–ad06
+# Adversary cases: ad01 to ad09
 
 Six fixtures that test whether the [adversary](../../../../agents/adversary.md)
 refers IP- and governance-bearing work to the [lawyer](../../../../agents/lawyer.md),
@@ -85,3 +85,57 @@ entire age stratum; a seeded shuffle allowed all 180 participant ids to be
 recovered from the released file; a stable sort shipped every group in accession
 order. **In de-identification, reproducibility is the vulnerability** — the
 ordering must be an unseeded permutation.
+
+## Reporting-guideline cases: ad07 to ad09 (issue #155)
+
+A third matched set, graded **together**, for the section *Reporting guidelines
+for prediction models* in the adversary. As above, no request mentions a
+checklist: the check has to arise from the work. Item numbers must come from
+[`docs/reporting_guidelines.md`](../../../../docs/reporting_guidelines.md); an
+item number the agent cannot point to in that file is a fail however plausible
+it looks.
+
+| Case | Situation | Must check? | Checklist | Expected verdict |
+|---|---|---|---|---|
+| `ad07` | Recurrence-risk model, draft methods and results for submission | **yes** | TRIPOD+AI and PROBAST+AI | NEEDS REVISION (MAJOR CONCERNS only if it rests on a methods finding, never on reporting gaps alone) |
+| `ad08` | nCounter normalisation step; no model, no write-up | **no** | none | METHODOLOGY SOUND or NEEDS REVISION on its own merits |
+| `ad09` | Single-marker (Ki67) prognostic result, draft | **yes** | REMARK, **not** TRIPOD+AI | MAJOR CONCERNS acceptable (the cut-point), NEEDS REVISION acceptable |
+
+**`ad07`** must open a `Reporting (TRIPOD+AI)` section and name, as
+`OBSERVED: ... missing`, at least these gaps planted in the draft: no
+justification of the sample size (item 10); 108 of 520 eligible women dropped
+with no account of missing data, since the code silently runs `dropna()` (items
+11, 20b); discrimination reported but no calibration (item 12e) and no
+confidence interval (item 23a); the full model, coefficients or equation, not
+presented (item 22); no flow of participants or their characteristics (items
+20a, 20b). It must give a
+PROBAST+AI judgement per domain, and should raise concern in the analysis domain
+(signalling questions 4.3, missing data, and, for the evaluation, 4.7,
+performance measures) because of the complete-case exclusion and absent
+calibration. Fails if it
+marks any of these items as reported, cites an item number absent from the
+reference file, or lists every item rather than the gaps.
+
+**`ad08`** must **not** open a reporting section or name any checklist: nothing
+predicts anything about a person and nothing is written up. Fails if it applies
+TRIPOD+AI or REMARK, however briefly. This is the case that keeps the check
+from adding noise to every audit.
+
+**`ad09`** must choose **REMARK**, not TRIPOD+AI: this is a single marker's
+prognostic value, not a multivariable prediction model. Under REMARK it
+must name item 11 (cut-point determination not described), and must mark items
+that need the missing sections (e.g. item 9, sample-size rationale, which is a
+methods item) as `NOT CHECKED` rather than missing: the folder holds a results
+draft only. Marking them missing is a fail, as is marking them reported. Its methods finding is separate and must be
+there too: the Ki67 cut-point was chosen as
+the minimum p-value over 35 candidates, which inflates the hazard ratio and
+invalidates the p-value as reported. Fails if it picks TRIPOD+AI, or if it
+treats the cut-point as a reporting gap only.
+
+### First runs (2026-10-14)
+
+`ad07` passed. `ad08` failed its first run by adding a one-line checklist
+pointer to a normalisation step; the adversary's gate was tightened (no line
+at all when nothing predicts anything about a person) and the re-run passed.
+`ad09` passed, and showed the item-9 expectation above was wrong: it now asks
+for `NOT CHECKED`.
