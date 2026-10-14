@@ -22,6 +22,9 @@ project should exist; the lead controls who's in it.
 
 Every project also gets a **private Slack channel**: certificates are DM'd
 through Slack, members are invited when they join and removed when they leave.
+The channel is named `proj-<project>`. To rename it, run
+`murmurent project rename-slack <project>` (add `--to <name>` for a name of
+your own).
 
 A project is a higher-level construct than a repo being
 **murmurent-ready** (having the commons agents wired in via `murmurent repo

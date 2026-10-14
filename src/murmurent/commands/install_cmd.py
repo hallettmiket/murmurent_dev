@@ -242,6 +242,29 @@ def _ensure_hook(settings: dict[str, Any], reg: dict[str, Any]) -> bool:
     return True
 
 
+#: Environment settings murmurent sets in ``settings.json`` for every member,
+#: unless the member has already chosen a value. The feedback survey interrupts
+#: a working session to ask for a rating; the lab asked for it off (#154).
+DEFAULT_ENV: dict[str, str] = {
+    "CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY": "1",
+}
+
+
+def _ensure_env(settings: dict[str, Any]) -> bool:
+    """Add each ``DEFAULT_ENV`` entry to ``settings.env`` if it is not there.
+
+    A value the member already set is left alone, even if it differs: this is
+    a default, not a policy. Returns True if anything changed.
+    """
+    env = settings.setdefault("env", {})
+    changed = False
+    for key, value in DEFAULT_ENV.items():
+        if key not in env:
+            env[key] = value
+            changed = True
+    return changed
+
+
 def _ensure_mcp(settings: dict[str, Any]) -> bool:
     """Ensure each entry in ``MCP_REGISTRATIONS`` is in ``settings.mcpServers``.
 
@@ -314,6 +337,8 @@ def cmd_install(
     for reg in HOOK_REGISTRATIONS:
         if _ensure_hook(settings, reg):
             changed = True
+    if _ensure_env(settings):
+        changed = True
     if _ensure_mcp(settings):
         changed = True
     # ALSO write MCP entries to ~/.claude.json — that's where Claude Code

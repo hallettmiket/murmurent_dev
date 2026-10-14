@@ -38,3 +38,22 @@ def test_install_preserves_unrelated(tmp_path):
     assert settings["theme"] == "dark"
     assert "Stop" in settings["hooks"]
     assert "PreToolUse" in settings["hooks"]
+
+
+def test_install_turns_the_feedback_survey_off(tmp_path):
+    """#154: the survey interrupts sessions; murmurent sets it off by default."""
+    target = tmp_path / "settings.json"
+    install_cmd.cmd_install(hooks=True, settings_path=target, backup=False)
+    settings = json.loads(target.read_text(encoding="utf-8"))
+    assert settings["env"]["CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY"] == "1"
+
+
+def test_install_keeps_a_members_own_survey_choice(tmp_path):
+    target = tmp_path / "settings.json"
+    target.write_text(
+        json.dumps({"env": {"CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY": "0", "OTHER": "x"}}),
+        encoding="utf-8",
+    )
+    install_cmd.cmd_install(hooks=True, settings_path=target, backup=False)
+    env = json.loads(target.read_text(encoding="utf-8"))["env"]
+    assert env == {"CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY": "0", "OTHER": "x"}

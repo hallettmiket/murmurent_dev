@@ -17,6 +17,14 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 
 ## [Unreleased]
 
+### Changed
+- **Project Slack channels are named `proj-<project>`** (#157). Projects made
+  with certificates were getting a channel named after the project alone. A
+  new command, `murmurent project rename-slack <project>`, renames an existing
+  channel to the `proj-` name, or to any name with `--to`.
+- **`murmurent install` turns off Claude Code's feedback survey** (#154), which
+  interrupted sessions to ask for a rating. A member who has set
+  `CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY` themselves keeps their own setting.
 ### Fixed
 - **A fresh install from PyPI now works fully** (#159). Three problems are
   fixed. The four murmurent data services (Oracle, data, core data and
