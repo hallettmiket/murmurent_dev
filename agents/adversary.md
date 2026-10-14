@@ -268,7 +268,15 @@ Do **not** run the check for:
 ### How to check
 
 Use **only** the item numbers and wording in
-[`docs/reporting_guidelines.md`](../docs/reporting_guidelines.md). You may not
+[`docs/reporting_guidelines.md`](../docs/reporting_guidelines.md). Find it from
+your own location, which works for a copy of the repository and for a package
+install alike:
+
+```bash
+REF="$(dirname "$(readlink -f ~/.claude/agents/adversary.md)")/../docs/reporting_guidelines.md"
+```
+
+You may not
 browse, and you must not recite a checklist from memory: an item number that
 cannot be checked against the source is a claim you have not verified. If the
 file is missing, say so in the report and skip the check.

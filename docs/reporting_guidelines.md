@@ -1,13 +1,14 @@
 # Reporting guidelines for prediction models and marker studies
 
-**Status: sourced 2026-10-14, awaiting a person's approval of the licence
-reading below before it ships (issue #155).**
+**Status:** sourced 2026-10-14 (issue #155). The licence reading below was
+approved by Mike Hallett on 2026-10-14: TRIPOD+AI's explicit CC BY 4.0
+statement governs, over the "No commercial re-use" line in the page footer.
 
-The [adversary](../agents/adversary.md) checks written-up clinical prediction
+The [adversary](agents.md#adversary) checks written-up clinical prediction
 models and prognostic marker studies against these checklists. It may not
 browse and must not recite a checklist from memory, so this file is its only
 source: an item number it reports has to be one listed here. The
-[bookworm](../agents/bookworm.md) keeps this file. Every item below was loaded
+[bookworm](agents.md#bookworm) keeps this file. Every item below was loaded
 from the published source on the date shown, not typed from memory.
 
 ## Which checklist

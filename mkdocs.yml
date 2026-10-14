@@ -64,7 +64,6 @@ exclude_docs: |
   backlog.md
   cores_plan.md
   cores_smoke_runbook.md
-  reporting_guidelines.md
   scientific_writing.md
   designer_dashboard/
   murmurent_public/
@@ -131,6 +130,7 @@ nav:
       - Security dashboard: security-dashboard.md
   - Reference:
       - CLI manual: cli_manual.md
+      - "Reporting checklists (TRIPOD+AI, PROBAST+AI, REMARK)": reporting_guidelines.md
       - Architecture diagrams: diagrams.md
       - Versioning: versioning.md
       - Code style: style/code-style.md

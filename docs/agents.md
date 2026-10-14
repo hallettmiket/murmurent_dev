@@ -229,7 +229,7 @@ biased; it does not say the model adds anything over the clinical factors,
 which stays part of the methods review.
 
 **Where the items come from.** The Adversary may not browse, so it checks
-against a local copy of each checklist, `docs/reporting_guidelines.md`, which
+against a local copy of each checklist, [Reporting checklists](reporting_guidelines.md), which
 the Bookworm sourced from the published papers on 14 October 2026 and keeps
 current. It never recites a checklist from memory: an item number it reports is
 one you can look up in that file. TRIPOD+AI and REMARK are reproduced word for
