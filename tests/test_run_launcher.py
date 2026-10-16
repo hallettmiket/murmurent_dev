@@ -310,24 +310,50 @@ def test_launch_writes_a_card_and_starts_the_supervisor_in_tmux(tmp_path):
         probes=FakeProbes(),
         policy=POLICY,
         tmux=tmux,
-        environ={"PATH": "/x", "SECRET": "s"},
+        environ={"PATH": "/x", "GH_TOKEN": "value-of-the-token"},
     )
     card = result.card
     assert result.started_now and card.cores == 4 and card.state == cards.STATE_WAITING
     assert card.env_set["OMP_NUM_THREADS"] == "4"
     saved = cards.read_card(cards.card_path(card.id))
     assert saved is not None and saved.command == ["Rscript", "fit.R"]
-    assert "SECRET" not in cards.card_path(card.id).read_text()
+    assert "value-of-the-token" not in cards.card_path(card.id).read_text()
     [started] = tmux.started
     assert started["session"] == f"run-{card.id}" and started["window"] == "gate_d"
     assert started["command"].startswith("nice -n 19 ")
     assert " -P -m murmurent.core.run_supervisor " in started["command"]
     assert str(cards.card_path(card.id)) in started["command"]
     snapshot = rl.environment_snapshot_path(card.id)
-    assert json.loads(snapshot.read_text())["SECRET"] == "s"
+    copied = json.loads(snapshot.read_text())
+    assert copied["PATH"] == "/x" and "GH_TOKEN" not in copied
+    assert any("GH_TOKEN" in note["text"] for note in saved.notes)
     assert stat.S_IMODE(snapshot.stat().st_mode) == 0o600
     assert stat.S_IMODE(cards.card_path(card.id).stat().st_mode) == 0o600
     assert stat.S_IMODE(cards.runs_dir().stat().st_mode) == 0o700
+
+
+def test_secret_looking_variables_are_left_out_unless_passed(tmp_path):
+    environ = {
+        "PATH": "/x",
+        "CONDA_PREFIX": "/envs/a",
+        "SLACK_BOT_TOKEN": "t",
+        "AWS_SECRET_ACCESS_KEY": "k",
+        "HF_TOKEN": "h",
+        "DB_PASSWORD": "p",
+    }
+    kept, left_out = rl.filter_environment(environ, ("HF_TOKEN",))
+    assert set(kept) == {"PATH", "CONDA_PREFIX", "HF_TOKEN"}
+    assert left_out == ["AWS_SECRET_ACCESS_KEY", "DB_PASSWORD", "SLACK_BOT_TOKEN"]
+    result = rl.launch(
+        _options(tmp_path, pass_env=("HF_TOKEN",)),
+        probes=FakeProbes(),
+        policy=POLICY,
+        tmux=FakeTmux(),
+        environ=environ,
+    )
+    copied = json.loads(rl.environment_snapshot_path(result.card.id).read_text())
+    assert copied["HF_TOKEN"] == "h" and "SLACK_BOT_TOKEN" not in copied
+    assert rl.restart_options(result.card).pass_env == ("HF_TOKEN",)
 
 
 def test_launch_says_plainly_when_tmux_is_missing(tmp_path):

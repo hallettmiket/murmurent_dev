@@ -792,6 +792,7 @@ class LaunchOptions:
     notify: bool = True
     dry_run: bool = False
     restarted_from: str = ""
+    pass_env: tuple[str, ...] = ()
 
 
 @dataclass
@@ -856,6 +857,51 @@ class TmuxRunner:
 def environment_snapshot_path(job_id: str) -> Path:
     """The private file holding the person's environment until the job starts."""
     return _cards.runs_dir() / f"{job_id}{_cards.ENV_SUFFIX}"
+
+
+# Names that look like they hold a secret: tokens, passwords, keys. The job does
+# not get these unless the person names them with ``--pass-env``, because the
+# copy of the environment waits on disk until the job starts (for a delayed job,
+# hours), and a job rarely needs them.
+SECRET_NAME_PATTERN = re.compile(
+    r"TOKEN|SECRET|PASSWORD|PASSWD|PASSPHRASE|CREDENTIAL|PRIVATE|API_?KEY|ACCESS_?KEY"
+    r"|_KEY$|^KEY$|AUTH",
+    re.IGNORECASE,
+)
+
+
+def filter_environment(
+    environ: dict[str, str], pass_env: tuple[str, ...] | list[str] = ()
+) -> tuple[dict[str, str], list[str]]:
+    """Split the environment into what the job gets and the secret-looking names left out.
+
+    Parameters
+    ----------
+    environ : dict
+        The person's environment.
+    pass_env : sequence of str
+        Names to keep even though they look like secrets.
+
+    Returns
+    -------
+    tuple
+        The environment to give the job, and the sorted names left out (names
+        only; their values are never recorded).
+
+    Examples
+    --------
+    >>> filter_environment({"PATH": "/bin", "GH_TOKEN": "x"})
+    ({'PATH': '/bin'}, ['GH_TOKEN'])
+    """
+    allowed = {name for name in pass_env}
+    kept: dict[str, str] = {}
+    left_out: list[str] = []
+    for name, value in environ.items():
+        if SECRET_NAME_PATTERN.search(name) and name not in allowed:
+            left_out.append(name)
+        else:
+            kept[name] = value
+    return kept, sorted(left_out)
 
 
 def write_environment_snapshot(job_id: str, environ: dict[str, str]) -> Path:
@@ -1056,6 +1102,7 @@ def launch(
             "wait": options.wait,
             "session": options.session,
             "log_given": bool(options.log),
+            "pass_env": list(options.pass_env),
         },
         exception=exception,
         created_at=_cards.to_iso(now),
@@ -1090,8 +1137,15 @@ def launch(
         result.lines.insert(0, "Dry run: nothing was started and no card was written.")
         return result
 
+    job_environ, left_out = filter_environment(environ, options.pass_env)
+    if left_out:
+        card.add_note(
+            "Left out of the job's environment because the names look like secrets: "
+            + ", ".join(left_out)
+            + ". Pass one with --pass-env NAME if the job needs it."
+        )
     card_file = _cards.write_card(card)
-    write_environment_snapshot(job_id, environ)
+    write_environment_snapshot(job_id, job_environ)
     try:
         tmux.start(
             card.tmux_session,
@@ -1218,6 +1272,7 @@ def restart_options(card: _cards.JobCard, *, wait: bool = False) -> LaunchOption
         session=str(requested.get("session") or ""),
         notify=bool(card.notify.get("enabled")),
         restarted_from=card.id,
+        pass_env=tuple(requested.get("pass_env") or ()),
     )
 
 
@@ -1248,6 +1303,7 @@ __all__ = [
     "restart_options",
     "supervisor_command",
     "thread_environment",
+    "filter_environment",
     "waiting_description",
     "write_environment_snapshot",
 ]

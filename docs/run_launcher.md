@@ -65,6 +65,12 @@ What it does:
 - **The job card.** It writes a small record of the job: the command, folders,
   cores and GPUs given, start and end times, exit code and estimates. Cards are
   kept in `~/.murmurent/runs/`, readable by you only.
+- **Your settings.** The job gets the same environment you have (your conda
+  environment, your R and Python), except for anything whose name looks like a
+  secret: a token, a password or a key. Those are left out because the copy of
+  your settings waits on disk until the job starts. If your job needs one, name
+  it: `--pass-env HF_TOKEN`. The job card lists the names that were left out,
+  never their values.
 
 **If the server is too busy**, it refuses and says so. Add `--wait` to start the
 job as soon as there is room instead.

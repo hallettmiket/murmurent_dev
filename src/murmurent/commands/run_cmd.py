@@ -127,6 +127,14 @@ def _launch_or_fail(options: _rl.LaunchOptions) -> None:
     help="Put the job in a new window of this tmux " "session instead of a session of its own.",
 )
 @click.option(
+    "--pass-env",
+    "pass_env",
+    multiple=True,
+    metavar="NAME",
+    help="Give the job this environment variable even though its name looks like a "
+    "secret (a token, password or key). Repeat for more than one.",
+)
+@click.option(
     "--no-notify", is_flag=True, default=False, help="Do not post to the project's Slack channel."
 )
 @click.option(
@@ -149,6 +157,7 @@ def run_command(
     exception: str,
     until: str,
     session: str,
+    pass_env: tuple[str, ...],
     no_notify: bool,
     dry_run: bool,
     command: tuple[str, ...],
@@ -172,6 +181,7 @@ def run_command(
         exception=exception,
         until=until,
         session=session,
+        pass_env=tuple(pass_env),
         notify=not no_notify,
         dry_run=dry_run,
     )
