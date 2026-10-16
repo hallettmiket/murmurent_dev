@@ -37,7 +37,6 @@ import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
-import yaml
 
 from . import cert_projects as _cp
 from . import lab_vm as _lab_vm
@@ -55,9 +54,10 @@ ACTIVE, QUIET, DORMANT, UNKNOWN = "active", "quiet", "dormant", "unknown"
 DEFAULT_QUIET_AFTER_MONTHS = 12
 DEFAULT_DORMANT_AFTER_MONTHS = 24
 
-#: The lab's policy file, at the root of the lab records repository. Read
-#: section ``projects``, keys ``quiet_after_months`` and ``dormant_after_months``.
-POLICY_FILENAME = "lab_policy.yaml"
+#: The lab's policy file is the millwright's, ``policy/millwright.yaml`` in the
+#: lab records repository (:mod:`core.millwright_policy`), keys
+#: ``project_quiet_months`` and ``project_dormant_months``. One file holds all
+#: of the lab's numbers, so the written rules and the tools cannot drift apart.
 
 #: Where ``murmurent run`` keeps one job record per job (step 1 of #151).
 RUNS_SUBDIR = "runs"
@@ -422,33 +422,19 @@ class ActivityPolicy:
 
 
 def load_activity_policy(env: dict | None = None) -> ActivityPolicy:
-    """The lab's thresholds, from ``lab_policy.yaml`` in the lab records repository.
+    """The lab's thresholds, from the millwright's policy file.
 
-    Falls back to 12 and 24 months when the file, the section or a value is
-    missing, or when the values make no sense (not whole numbers above zero,
-    or quiet not before dormant).
+    Reads ``project_quiet_months`` and ``project_dormant_months`` through
+    :func:`core.millwright_policy.load_policy`, which keeps the built-in 12 and
+    24 months when the file is missing or a value makes no sense (not a whole
+    number above zero, or dormant before quiet).
     """
-    default = ActivityPolicy()
-    try:
-        from .repo import lab_mgmt_repo_root
-        path = lab_mgmt_repo_root(env) / POLICY_FILENAME
-        data = yaml.safe_load(path.read_text(encoding="utf-8")) if path.is_file() else None
-    except (OSError, yaml.YAMLError):
-        return default
-    section = data.get("projects") if isinstance(data, dict) else None
-    if not isinstance(section, dict):
-        return default
-    try:
-        quiet = int(section.get("quiet_after_months", default.quiet_after_months))
-        dormant = int(section.get("dormant_after_months", default.dormant_after_months))
-    except (TypeError, ValueError):
-        return default
-    if quiet <= 0 or dormant <= quiet:
-        _log.warning("%s: project thresholds %s and %s make no sense; using %s and %s",
-                     POLICY_FILENAME, quiet, dormant,
-                     default.quiet_after_months, default.dormant_after_months)
-        return default
-    return ActivityPolicy(quiet_after_months=quiet, dormant_after_months=dormant)
+    from .millwright_policy import load_policy
+    policy = load_policy(env)
+    for problem in policy.problems:
+        _log.warning("%s", problem)
+    return ActivityPolicy(quiet_after_months=policy.project_quiet_months,
+                          dormant_after_months=policy.project_dormant_months)
 
 
 def months_between(earlier: _dt.date, later: _dt.date) -> int:
@@ -674,7 +660,7 @@ def ensure_repo_project(repo_path: Path, *, lab: str = "", lead: str = "",
 __all__ = [
     "ACTIVE", "QUIET", "DORMANT", "UNKNOWN",
     "DEFAULT_QUIET_AFTER_MONTHS", "DEFAULT_DORMANT_AFTER_MONTHS",
-    "POLICY_FILENAME", "RUNS_SUBDIR", "SPACE_SUBDIR", "DATA_DATES_FILENAME",
+    "RUNS_SUBDIR", "SPACE_SUBDIR", "DATA_DATES_FILENAME",
     "DATA_DATES_SCHEMA", "SIBLING_ROLES",
     "murmurent_home", "runs_dir", "data_dates_path",
     "default_data_folders", "effective_data_folders", "ReadsFrom",

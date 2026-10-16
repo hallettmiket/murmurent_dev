@@ -212,9 +212,10 @@ keep-until date, when it was last used, and its **activity**:
 - **dormant**: not used for 24 months;
 - **unknown**: nothing on this computer shows it being used.
 
-A lab can set its own numbers of months in `lab_policy.yaml` in the lab records
-repository (`projects:`, then `quiet_after_months:` and
-`dormant_after_months:`).
+A lab can set its own numbers of months in its policy file,
+`policy/millwright.yaml` in the lab records repository
+(`project_quiet_months:` and `project_dormant_months:`). The same file holds the
+lab's other numbers; a commented example is in `templates/millwright_policy.yaml`.
 
 "Used" means the newest of: a commit in any of the project's repositories on
 this computer, a job started with `murmurent run`, and a file changed in its

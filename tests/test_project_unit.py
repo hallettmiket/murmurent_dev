@@ -296,11 +296,15 @@ def test_activity_unknown_without_any_evidence(world):
 
 
 def test_policy_file_sets_thresholds_and_nonsense_falls_back(world):
-    policy = world["lab_mgmt"] / pu.POLICY_FILENAME
+    # The thresholds come from the millwright's policy file (one file for the
+    # lab's numbers), policy/millwright.yaml in the lab records repository.
+    from murmurent.core import millwright_policy as mp
+    policy = world["lab_mgmt"] / mp.POLICY_RELATIVE_PATH
+    policy.parent.mkdir(parents=True, exist_ok=True)
     assert pu.load_activity_policy() == pu.ActivityPolicy(12, 24)
-    policy.write_text("projects:\n  quiet_after_months: 6\n  dormant_after_months: 18\n")
+    policy.write_text("project_quiet_months: 6\nproject_dormant_months: 18\n")
     assert pu.load_activity_policy() == pu.ActivityPolicy(6, 18)
-    policy.write_text("projects:\n  quiet_after_months: 30\n  dormant_after_months: 18\n")
+    policy.write_text("project_quiet_months: 30\nproject_dormant_months: 18\n")
     assert pu.load_activity_policy() == pu.ActivityPolicy(12, 24)
     policy.write_text(": not yaml : [")
     assert pu.load_activity_policy() == pu.ActivityPolicy(12, 24)
