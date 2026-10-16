@@ -62,6 +62,10 @@ What it does:
 - **Disk.** It checks the free space where the job writes (`--out`). If you
   know roughly how much the job will write, say so with `--expect-disk 500G`
   and it refuses a job that would not fit.
+- **Inputs.** Name what the job reads with `--input` (repeat it for several).
+  Nothing is checked at the start; the folders are recorded, so that the
+  [space scan](space_table.md) can later tell whether the job's output could be
+  made again.
 - **The job card.** It writes a small record of the job: the command, folders,
   cores and GPUs given, start and end times, exit code and estimates. Cards are
   kept in `~/.murmurent/runs/`, readable by you only.

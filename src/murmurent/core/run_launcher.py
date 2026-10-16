@@ -779,6 +779,7 @@ class LaunchOptions:
     gpus: int = 0
     memory: str = ""
     out: str = ""
+    inputs: tuple[str, ...] = ()
     expect_disk: str = ""
     log: str = ""
     watch: str = ""
@@ -1050,6 +1051,9 @@ def launch(
         _resolve_path(options.log, workdir) if options.log else _cards.runs_dir() / f"{job_id}.log"
     )
     watch = _resolve_path(options.watch, workdir) if options.watch else log
+    # Recorded so the space scan can tell later whether this job's output could
+    # be made again: it can only if the inputs still exist (#151, step 2).
+    inputs = [str(_resolve_path(i, workdir)) for i in options.inputs if str(i).strip()]
     stall_minutes = options.stall_after or policy.stall_minutes
 
     request = ResourceRequest(
@@ -1087,6 +1091,7 @@ def launch(
         log=str(log),
         watch=str(watch),
         out=str(out) if out else "",
+        inputs=inputs,
         project=target.project,
         tmux_session=options.session or f"{TMUX_PREFIX}{job_id}",
         tmux_window=name.replace(" ", "_")[:30],
@@ -1262,6 +1267,7 @@ def restart_options(card: _cards.JobCard, *, wait: bool = False) -> LaunchOption
         gpus=int(requested.get("gpus") or 0),
         memory=str(memory) if memory else "",
         out=card.out,
+        inputs=tuple(card.inputs or ()),
         expect_disk=str(expect) if expect else "",
         log=card.log if requested.get("log_given") else "",
         watch=card.watch if card.watch != card.log else "",

@@ -65,3 +65,39 @@ home_folder_firm_gb: 150
 # dormant (mothballing suggested).
 project_quiet_months: 12
 project_dormant_months: 24
+
+# --- Space (murmurent space scan). The scan only suggests; a person decides.
+
+# A temporary file (nohup.out, a notebook checkpoint, a partial download) is
+# suggested for deletion once it is this many days old, so files a running job
+# is still using are left alone.
+temporary_min_age_days: 7
+
+# A file this big or bigger inside a repository folder is out of place. Data
+# belongs in the project's data folders, not in a repository.
+large_file_in_repo_mb: 100
+
+# Uncompressed text data (FASTQ, SAM, VCF, CSV) this big or bigger is suggested
+# for compression. Only lossless methods are ever suggested.
+compress_min_mb: 100
+
+# Files this big or bigger are compared to find duplicates. Comparing means
+# reading the whole file to fingerprint it, so small files are skipped.
+duplicate_min_mb: 10
+
+# The most one scan reads in full to confirm duplicates. On a network drive,
+# reading 100 GB takes roughly ten to twenty minutes. Past this, files with the
+# same size and the same first and last megabyte are listed as probable
+# duplicates, for a person to confirm.
+duplicate_max_read_gb: 100
+
+# An intermediate file made by a job you ran with `murmurent run`, from code
+# that is committed and inputs that still exist, is suggested for deletion when
+# making it again would take fewer CPU hours than this. Costlier ones are marked
+# "ask the owner".
+remake_cheap_below_cpu_hours: 10
+
+# Emergencies: a disk fuller than this share, or one item larger than this
+# share of the disk's free space.
+disk_emergency_fill_fraction: 0.90
+emergency_item_share_of_free: 0.25

@@ -118,6 +118,7 @@ class JobCard:
     log: str
     watch: str
     out: str = ""
+    inputs: list[str] = field(default_factory=list)
     project: str = ""
     tmux_session: str = ""
     tmux_window: str = ""

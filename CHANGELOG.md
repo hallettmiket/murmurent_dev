@@ -55,6 +55,21 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
   management repository, `policy/millwright.yaml`; a commented example is in
   `templates/millwright_policy.yaml`. Guide: [Running long
   jobs](https://hallettmiket.github.io/murmurent/run_launcher/).
+- **`murmurent space scan` lists what in a project could be deleted, compressed,
+  moved or asked about** (#151). It looks through one project's repositories
+  and data folders, reading sizes, dates, owners and names, and suggests:
+  temporary files, job output that could be made again, uncompressed text data,
+  duplicates, files out of place, files owned by non-members, and files already
+  listed in `src/ready_to_delete.md`. Each row gives a reason and its evidence.
+  `murmurent space show` lists the three most pressing first, and
+  `murmurent space decide` records what you decide. Nothing is changed, moved or
+  deleted, nothing in `immutable/` is ever suggested for deletion, and a
+  project's keep-until date turns every "delete" into "keep". The table is kept
+  in your own `~/.murmurent/space/`, readable by you only. The thresholds are in
+  `policy/millwright.yaml`. Guide: [Tidying a project's
+  space](https://hallettmiket.github.io/murmurent/space_table/).
+- **`murmurent run --input`** records what a job reads, so the space scan can
+  tell later whether its output could be made again.
 
 ## [2026.10.0] - 2026-10-14
 
