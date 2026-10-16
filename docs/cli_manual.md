@@ -293,6 +293,25 @@ The finalisation choreography runs at SEA / experiment / project scope. `<scope>
 
 The full workflow is in [Assembling a choreography](assembling_choreographies.md).
 
+### Long jobs
+
+| Command | Effect |
+|---|---|
+| `murmurent run [options] -- <command>` | Start a long job inside tmux (so a dropped connection does not stop it) at priority `nice 19`, with thread limits set and cores and GPUs chosen from the lab's rules and the server's load. Writes a job card under `~/.murmurent/runs/` and posts one line to the project's Slack channel when the job finishes, fails or stalls (never the command or a file path) |
+| `murmurent run --cores N --gpus N --memory 64G` | Ask for cores, GPUs and memory. Requests above the lab's allowance are capped or refused, and the reply says why |
+| `murmurent run --out <folder> --expect-disk 500G` | Check the output folder's free space, and refuse a job whose stated output would not fit |
+| `murmurent run --at 22:00` / `--when-load-below 150` / `--wait` | Start later: at a time, once the server is quieter, or as soon as there is room |
+| `murmurent run --exception "<reason>" --until <time>` | Go above your allowance after asking in the server channel; recorded on the card |
+| `murmurent run --session <name>` | Put the job in a new window of an existing tmux session |
+| `murmurent run --no-notify` / `--dry-run` | No Slack line / show what would be chosen and start nothing |
+| `murmurent jobs [--all]` | What is running, waiting and recently ended, with estimates |
+| `murmurent jobs show <id or name>` | Everything recorded about one job |
+| `murmurent jobs stop <id or name>` | Stop a job: asked to end cleanly, then by force 30 seconds later |
+| `murmurent jobs restart <id or name> [--wait]` | Run a job again from its card |
+| `murmurent jobs policy` | The lab's rules in force (from `<lab-mgmt>/policy/millwright.yaml`) and where they came from |
+
+The full guide is [Running long jobs](run_launcher.md).
+
 ### Dashboard
 
 | Command | Effect |

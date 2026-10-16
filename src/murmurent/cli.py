@@ -2681,6 +2681,12 @@ cli.add_command(_group_init_toolkit)
 cli.add_command(_join_request_group)
 cli.add_command(_keyring_group)
 
+# Long jobs: `murmurent run` starts one in tmux; `murmurent jobs` reports (#151).
+from .commands.run_cmd import jobs_group as _jobs_group
+from .commands.run_cmd import run_command as _run_command
+cli.add_command(_run_command)
+cli.add_command(_jobs_group)
+
 
 if __name__ == "__main__":  # pragma: no cover
     cli()

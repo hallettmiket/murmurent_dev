@@ -99,6 +99,7 @@ nav:
               - 6 · Share a fact with the lab: vault_vignettes/6_share_with_the_lab.md
               - 7 · Recall across all your notes: vault_vignettes/7_recall_across_tiers.md
       - Creating a project (in your lab): project_intra.md
+      - Running long jobs: run_launcher.md
   - Labs & cores:
       - "Overview: members, groups, projects": overview.md
       - Group-level architecture: group_level.md
