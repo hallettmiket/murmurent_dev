@@ -220,10 +220,10 @@ def _mock_remote(monkeypatch, *, probe_verdict: str = "OK",
 
 
 def test_remote_adopt_happy_path(world, monkeypatch):
-    """Full SSH adopt (readiness split, 2026-07-15): probe says OK, the
-    batched script bootstraps the repo on the host. NO project artefacts
-    on this side — adopt makes a repo ready; projects are made by the
-    New Project flow attaching ready repos."""
+    """Full SSH adopt: probe says OK, the batched script bootstraps the repo
+    on the host. Every repository belongs to a project (#151), so a
+    one-repository project record is written for it, naming the host and the
+    path there. Still no CHARTER.md and no installation manifest."""
     calls = _mock_remote(monkeypatch)
     client = TestClient(create_app())
     res = client.post("/api/inventory/adopt", json={
@@ -236,8 +236,12 @@ def test_remote_adopt_happy_path(world, monkeypatch):
     assert body["ok"] is True
     assert body["host"] == "lab-server"
     assert body["repo"] == "demo"
-    # Adopt no longer mints a project: no registry record, no manifest.
-    assert not (world["lab_mgmt"] / "cert_projects" / "demo.md").exists()
+    # A one-repository project record (#151); still no installation manifest.
+    from murmurent.core import cert_projects as _cp
+    record = _cp.get("demo")
+    assert record is not None
+    assert [(r.name, r.role, r.host, r.remote_path) for r in record.repos] == [
+        ("demo", "code", "lab-server", body["clone_path"])]
     assert not (world["home"] / ".murmurent" / "installations" / "demo.yaml").exists()
     # Probes include the remote bootstrap records. Pure adopt writes the
     # .murmurent.yaml marker (issue #28), NOT a CHARTER.
@@ -245,6 +249,7 @@ def test_remote_adopt_happy_path(world, monkeypatch):
     assert "marker" in probe_names
     assert "charter" not in probe_names
     assert "cc_agent" in probe_names
+    assert "project" in probe_names
     # We made at least two SSH calls: the path probe + the adopt script.
     assert len(calls) >= 2
 

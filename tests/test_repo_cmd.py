@@ -7,7 +7,7 @@ test_projectize.py (the chokepoint itself); here we pin:
 
   * adoption_status verdicts (plain clone / partial / adopted / missing)
   * find_manifest_for path match + project-name fallback
-  * the CLI surface: adopt writes CHARTER, status exit codes (0/1/2)
+  * the CLI surface: adopt writes the marker (no CHARTER), status exit codes (0/1/2)
 """
 
 from __future__ import annotations
@@ -138,7 +138,7 @@ def test_cli_adopt_then_status(world):
     assert "murmurent-ready on local" in res.output
     marker = yaml.safe_load((clone / ".murmurent.yaml").read_text())
     assert marker["lab"] == "mh" and marker["agents"] == ["blacksmith"]
-    assert not (clone / "CHARTER.md").exists()          # adopt makes NO project
+    assert not (clone / "CHARTER.md").exists()          # a project is a record, not a charter
     assert (clone / ".claude" / "agents" / "blacksmith.md").is_symlink()
 
     res = runner.invoke(cli, ["repo", "status", str(clone)])
