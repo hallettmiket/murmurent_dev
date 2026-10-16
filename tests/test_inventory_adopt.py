@@ -4,7 +4,8 @@ murmurent-READY" from the Repo Inventory panel.
 What this endpoint must guarantee (post readiness/project split):
   - Writes the ``.murmurent.yaml`` readiness marker at the clone root
   - Runs the layer-2 CC bootstrap so ``.claude/agents/`` exists
-  - Creates NO project (no CHARTER.md, no registry record, no manifest)
+  - Creates no CHARTER.md and no manifest, but does record a one-repository
+    project when no project lists the repository (#151)
   - Refuses paths outside ``~/repos/`` and non-git dirs
   - Migrates a legacy CHARTER.md bootstrap by stamping the marker,
     preserving the CHARTER.md (issue #28)
@@ -64,7 +65,7 @@ def test_adopt_writes_marker_and_runs_bootstrap(world):
     assert res.status_code == 200, res.text
     body = res.json()
     assert body["ok"] is True and body["repo"] == "hockey_stats"
-    # Readiness marker written; NO project artefacts.
+    # Readiness marker written; no CHARTER.md (the project is a record, #151).
     import yaml as _yaml
     marker = _yaml.safe_load((clone / ".murmurent.yaml").read_text())
     assert marker["murmurent"] == 1
@@ -78,6 +79,7 @@ def test_adopt_writes_marker_and_runs_bootstrap(world):
     # Probes reported back so the UI can render them inline.
     steps = {p["name"]: p["status"] for p in body["probes"]}
     assert steps["marker"] == "ok"
+    assert steps["project"] == "ok"
     assert steps["cc_agent: blacksmith"] == "ok"
 
 

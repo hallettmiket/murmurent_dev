@@ -473,8 +473,9 @@ class AdoptCloneBody(BaseModel):
 
     Makes an existing git clone (a ``• clone`` row in the Repo
     Inventory) **murmurent-ready**: readiness marker + commons agent
-    symlinks + CLAUDE.md stub. No project fields — adoption doesn't
-    create a project; the New Project flow attaches ready repos.
+    symlinks + CLAUDE.md stub. No project fields: when no project lists
+    the repository, adoption records a one-repository project named after
+    it (#151), and the New Project flow can still group repositories.
 
     ``host`` defaults to ``"local"``; a registered SSH host name runs
     the bootstrap on the remote over one batched SSH session.
@@ -2413,9 +2414,9 @@ def create_app() -> FastAPI:
 
         Thin HTTP wrapper over :func:`core.adopt.adopt_clone` — the same
         chokepoint ``murmurent repo adopt`` uses. Adoption bootstraps the
-        REPO only (readiness marker + commons agents); it does NOT create
-        a project — attach ready repos to a project via the New Project
-        flow (a project = a set of repos + a set of members). Refusals
+        repo (readiness marker + commons agents) and, since every repository
+        belongs to a project (#151), records a one-repository project when no
+        project lists it; an existing project is never changed. Refusals
         arrive as :class:`core.adopt.AdoptError` and map onto HTTP
         statuses via ``core.adopt.ERROR_HTTP_STATUS``.
         """

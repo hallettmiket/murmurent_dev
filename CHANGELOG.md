@@ -17,6 +17,30 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 
 ## [Unreleased]
 
+### Added
+- **Every repository is now part of a project** (#151). `murmurent repo adopt`
+  records a one-repository project for a repository that no project lists,
+  with you as lead; adopting again changes nothing, and an existing project is
+  never changed by adopting. When such a repository later joins a bigger
+  project, its one-repository project is archived, so each repository has one
+  owning project. `murmurent project migrate` lists every repository and data
+  folder that no project claims and proposes project records for them,
+  grouping `x`, `x_manuscript` and `x_seminar` into one project. It writes
+  nothing unless you add `--apply` and confirm, and it never moves, renames or
+  deletes anything. Run it once on each machine.
+- **`murmurent project status`** shows one project as a whole: its
+  repositories, its data folders, what it reads without owning, its keep-until
+  date, when it was last used, and whether it is active, quiet (no use for 12
+  months) or dormant (24 months). Activity is worked out from commits,
+  `murmurent run` job records and the data scan's record, never typed, and it
+  does not change who can reach a project.
+- **Three optional settings in a project record**: `data_folders` (the folders
+  it owns; by default `immutable/<project>/` and `append_only/<project>/`),
+  `reads_from` (folders and repositories it reads but does not own, which are
+  never offered to it for clean-up) and `retain_until` (a date before which
+  nothing in it may be suggested for deletion). Records without them read as
+  before.
+
 ## [2026.10.0] - 2026-10-14
 
 **To upgrade:** `uv tool upgrade murmurent`, then `murmurent install`, then
