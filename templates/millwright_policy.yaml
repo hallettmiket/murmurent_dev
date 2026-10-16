@@ -1,0 +1,67 @@
+# The lab's rules for long jobs, read by `murmurent run` and the millwright.
+#
+# Copy this file into your lab's management repository as
+#     policy/millwright.yaml
+# and change the numbers to suit your server. Every line is optional: a setting
+# you leave out keeps murmurent's built-in default, which is deliberately
+# modest. `murmurent jobs policy` prints the rules in force and the files they
+# came from, and names any value it could not use.
+#
+# The numbers below are one lab's choices for a large shared server, agreed by
+# its PI on 2026-10-16 (issue #151). They are an example, not a recommendation.
+
+# Every job runs at this priority. 19 is the lowest, so other people's
+# interactive work always goes first.
+priority: 19
+
+# The most cores one person's jobs may use at once, across all of them.
+max_cores_per_person: 100
+
+# Cores a job gets when it does not ask with --cores.
+default_cores: 1
+
+# New work is held once the server's load passes this share of its cores.
+# The load is the number of processes running or waiting for a core, averaged
+# over one minute. 0.8 leaves room for people working interactively.
+hold_new_work_at_load_fraction: 0.8
+
+# A job does not start if it would leave less than this share of memory free.
+# Below about a fifth, the system starts moving memory to disk and every
+# user's jobs slow sharply.
+min_free_memory_fraction: 0.20
+
+# The share of total memory one person may claim with --memory without asking.
+memory_per_person_fraction: 0.25
+
+# When the daytime GPU allowance applies.
+working_hours:
+  days: [mon, tue, wed, thu, fri]
+  start: "08:00"
+  end: "18:00"
+
+# GPUs one person may hold. "all" means every GPU that is idle when the job
+# starts, and never fewer than the daytime number.
+gpus_per_person_working_hours: 4
+gpus_per_person_outside_hours: all
+
+# A GPU counts as idle when its use and its memory in use are both below this
+# percentage.
+gpu_idle_below_percent: 10
+
+# A job that states its output with --expect-disk is refused if writing it would
+# fill the disk past this share.
+disk_fill_limit_fraction: 0.95
+
+# A running job whose log has not grown for this many minutes is reported as
+# stalled. Nothing is stopped.
+stall_minutes: 60
+
+# Home-folder sizes for a friendly note and a firm reminder (used by a later
+# step of the millwright).
+home_folder_heads_up_gb: 100
+home_folder_firm_gb: 150
+
+# Months without use after which a project is quiet (a note to its lead), then
+# dormant (mothballing suggested).
+project_quiet_months: 12
+project_dormant_months: 24
