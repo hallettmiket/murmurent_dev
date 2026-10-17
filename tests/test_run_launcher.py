@@ -508,6 +508,29 @@ def test_relative_out_and_log_are_read_from_the_working_folder(tmp_path):
     assert result.card.watch == result.card.log
 
 
+
+def test_inputs_are_recorded_in_full_and_kept_on_restart(tmp_path):
+    """The space scan needs a job's inputs to tell whether its output can be remade."""
+    result = rl.launch(
+        _options(tmp_path, inputs=("reads/sample.fastq.gz", "/data/ref/genome.fa")),
+        probes=FakeProbes(),
+        policy=POLICY,
+        tmux=FakeTmux(),
+        environ={},
+    )
+    assert result.card.inputs == [
+        str(tmp_path.resolve() / "reads" / "sample.fastq.gz"),
+        "/data/ref/genome.fa",
+    ]
+    again = rl.restart_options(cards.read_card(cards.card_path(result.card.id)))
+    assert list(again.inputs) == result.card.inputs
+
+
+def test_a_card_written_before_inputs_existed_still_reads():
+    data = _card("20261016-080000-aaaa").to_dict()
+    data.pop("inputs")
+    assert cards.JobCard.from_dict(data).inputs == []
+
 def test_running_jobs_count_against_the_allowance(tmp_path, monkeypatch):
     other = _card("20261016-080000-aaaa", state=cards.STATE_RUNNING, cores=14)
     cards.write_card(other)

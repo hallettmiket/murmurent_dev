@@ -79,6 +79,14 @@ def _launch_or_fail(options: _rl.LaunchOptions) -> None:
     "is checked, and its growth gives a disk estimate.",
 )
 @click.option(
+    "--input",
+    "inputs",
+    multiple=True,
+    metavar="PATH",
+    help="A file or folder the job reads. Repeat for more than one. Recorded so "
+    "the space scan can tell later whether the job's output could be made again.",
+)
+@click.option(
     "--expect-disk",
     default="",
     help="How much the job expects to write, "
@@ -147,6 +155,7 @@ def run_command(
     gpus: int,
     memory: str,
     out: str,
+    inputs: tuple[str, ...],
     expect_disk: str,
     log: str,
     watch: str,
@@ -171,6 +180,7 @@ def run_command(
         gpus=gpus,
         memory=memory,
         out=out,
+        inputs=tuple(inputs),
         expect_disk=expect_disk,
         log=log,
         watch=watch,
@@ -310,6 +320,8 @@ def card_detail(card: _cards.JobCard, now: _dt.datetime) -> list[str]:
         lines.append(f"  Watched for progress: {card.watch}")
     if card.out:
         lines.append(f"  Output folder: {card.out}")
+    for path in card.inputs or ():
+        lines.append(f"  Input: {path}")
     asked = requested.get("cores")
     if card.cores:
         lines.append(f"  Cores: {card.cores}" + (f" (asked for {asked})" if asked else ""))

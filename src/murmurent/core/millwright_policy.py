@@ -11,7 +11,8 @@ Output:  A :class:`Policy`, with the list of files it was built from and any
          problems found in them.
 
 Issue #151, step 1. The launcher (``murmurent run``) reads the job settings;
-step 0 reads ``project_quiet_months`` and ``project_dormant_months``; later
+step 0 reads ``project_quiet_months`` and ``project_dormant_months``; step 2,
+the space scan (``murmurent space scan``), reads the space settings; later
 steps read the home-folder sizes.
 
 The built-in defaults are generic on purpose. They are fractions of the machine
@@ -121,6 +122,32 @@ class Policy:
         Home-folder sizes for a friendly note and a firm reminder (later steps).
     project_quiet_months, project_dormant_months : int
         Months without use after which a project is quiet, then dormant (step 0).
+    temporary_min_age_days : int
+        A temporary file (``nohup.out``, a notebook checkpoint, a partial
+        download) is suggested for deletion only once it is this many days old,
+        so a running job's scratch files are left alone (step 2).
+    large_file_in_repo_mb : int
+        A file at least this big inside a repository folder is out of place:
+        data belongs in the project's data folders (step 2).
+    compress_min_mb : int
+        Uncompressed text formats (FASTQ, SAM, VCF, CSV) at least this big are
+        suggested for lossless compression (step 2).
+    duplicate_min_mb : int
+        Files at least this big are compared for duplicates. Smaller files are
+        not worth reading to fingerprint (step 2).
+    duplicate_max_read_gb : int
+        The most a scan reads in full to confirm duplicates. Past it, files with
+        the same size and the same first and last megabyte are listed as
+        probable duplicates, not confirmed (step 2).
+    remake_cheap_below_cpu_hours : int
+        An intermediate file that took less than this many CPU hours to make,
+        from committed code and inputs that still exist, is suggested for
+        deletion. Anything costlier is ``ask the owner`` (step 2).
+    disk_emergency_fill_fraction : float
+        A disk fuller than this share is an emergency (step 2).
+    emergency_item_share_of_free : float
+        One suggestion bigger than this share of a disk's free space is an
+        emergency (step 2).
     sources : tuple of str
         The files read, in order, after the built-in defaults.
     problems : tuple of str
@@ -143,6 +170,14 @@ class Policy:
     home_folder_firm_gb: int = 100
     project_quiet_months: int = 12
     project_dormant_months: int = 24
+    temporary_min_age_days: int = 7
+    large_file_in_repo_mb: int = 100
+    compress_min_mb: int = 100
+    duplicate_min_mb: int = 10
+    duplicate_max_read_gb: int = 100
+    remake_cheap_below_cpu_hours: int = 10
+    disk_emergency_fill_fraction: float = 0.90
+    emergency_item_share_of_free: float = 0.25
     sources: tuple[str, ...] = ()
     problems: tuple[str, ...] = ()
 
@@ -249,6 +284,14 @@ _CHECKERS = {
     "home_folder_firm_gb": _check_int(1),
     "project_quiet_months": _check_int(1),
     "project_dormant_months": _check_int(1),
+    "temporary_min_age_days": _check_int(0),
+    "large_file_in_repo_mb": _check_int(1),
+    "compress_min_mb": _check_int(1),
+    "duplicate_min_mb": _check_int(1),
+    "duplicate_max_read_gb": _check_int(0),
+    "remake_cheap_below_cpu_hours": _check_int(0),
+    "disk_emergency_fill_fraction": _check_fraction,
+    "emergency_item_share_of_free": _check_fraction,
 }
 
 _INTERNAL_FIELDS = {"sources", "problems"}
@@ -403,6 +446,18 @@ def describe_policy(policy: Policy) -> list[str]:
         f"  A job is reported as stalled after {policy.stall_minutes} minutes with no new output.",
         f"  A stated output size is refused if it would fill the disk past "
         f"{policy.disk_fill_limit_fraction:.0%}.",
+    ]
+    lines += [
+        "  Space (murmurent space scan):",
+        f"    temporary files are suggested for deletion after {policy.temporary_min_age_days} days;",
+        f"    a file of {policy.large_file_in_repo_mb} MB or more inside a repository is out of place;",
+        f"    text data of {policy.compress_min_mb} MB or more is suggested for compression;",
+        f"    files of {policy.duplicate_min_mb} MB or more are compared for duplicates, reading "
+        f"at most {policy.duplicate_max_read_gb} GB in full to confirm them;",
+        f"    an intermediate file that cost under {policy.remake_cheap_below_cpu_hours} CPU hours "
+        "to make may be suggested for deletion;",
+        f"    a disk more than {policy.disk_emergency_fill_fraction:.0%} full, or one item larger "
+        f"than {policy.emergency_item_share_of_free:.0%} of a disk's free space, is an emergency.",
     ]
     for problem in policy.problems:
         lines.append(f"  Problem: {problem}")
