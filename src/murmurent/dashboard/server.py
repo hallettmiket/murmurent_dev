@@ -631,6 +631,17 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 STATIC_DIR = REPO_ROOT / "docs" / "designer_dashboard"
 
 
+def _card_health():
+    """This machine's identity card status (core.issuance.CardHealth), or None
+    when it cannot be worked out. Never raises: a broken check must not lock
+    anyone out by itself; the registry checks still apply."""
+    try:
+        from ..core import issuance as _iss
+        return _iss.local_card_health()
+    except Exception:  # noqa: BLE001
+        return None
+
+
 def create_app() -> FastAPI:
     """Build the FastAPI application."""
     from .. import __version__ as _mm_version
@@ -748,18 +759,11 @@ def create_app() -> FastAPI:
         # (when a CRL is available), not tampered. A bad card is refused even when
         # ~/.murmurent/user matches (identity attestation; live authz stays on the
         # registry below). No card / no anchor → falls through untouched.
-        try:
-            from ..core import issuance as _iss
-            _cstatus, _creason = _iss.verify_local_identity()
-        except Exception:
-            _cstatus, _creason = ("no_card", "")
-        if _cstatus == "reject":
-            raise HTTPException(
-                status_code=403,
-                detail=(f"Your murmurent identity card failed verification "
-                        f"({_creason}). It may be expired or revoked — ask your "
-                        "PI/mayor to re-issue it (`murmurent import-card`)."),
-            )
+        _card = _card_health()
+        if _card is not None and _card.status == "reject":
+            # The page shows this text on the sign-in screen, so it must say
+            # what is wrong and how to fix it.
+            raise HTTPException(status_code=403, detail=_card.message)
         # Cross-lab scoping: look up which lab this handle belongs to via the
         # registrar registry and point lab_mgmt_repo_root() at that lab's
         # lab-mgmt repo for the duration of the request. Falls through to
@@ -5962,6 +5966,17 @@ def create_app() -> FastAPI:
         _notify.core_service_archived(core=core, slug=slug, actor=actor)
         return {"ok": True, "core": core, "slug": slug, "status": "retired"}
 
+    def _card_notice() -> dict | None:
+        """What the sign-in page should say about this machine's card, if anything."""
+        card = _card_health()
+        if card is None:
+            return None
+        if card.status == "reject":
+            return {"kind": "error", "text": card.message}
+        if card.warning:
+            return {"kind": "warning", "text": card.warning}
+        return None
+
     @app.get("/api/login/resolve")
     def get_login_resolve(
         user: str = Query("", description="Western netname to resolve roles for"),
@@ -5972,7 +5987,9 @@ def create_app() -> FastAPI:
         if not handle:
             identity = resolve_identity(allow_unknown=True)
             handle = identity.handle if identity.source != "unknown" else ""
-        return _resolve_roles(handle)
+        out = dict(_resolve_roles(handle))
+        out["card_notice"] = _card_notice()
+        return out
 
     @app.get("/api/lab/public")
     def get_lab_public() -> dict:
@@ -6014,6 +6031,15 @@ def create_app() -> FastAPI:
         # Members are not gated server-side (unknown handles still get
         # the member lens — they just won't see any projects). PI and
         # registrar both require an authoritative match.
+        card = _card_health()
+        if card is not None and card.status == "reject":
+            # Refuse here, with the reason, rather than let the dashboard's own
+            # data request refuse a moment later and bounce back to this page.
+            role_audit.record(
+                handle=handle, role=role, source=client_host,
+                allowed=False, reason=f"card_{card.reason or 'invalid'}",
+            )
+            raise HTTPException(status_code=403, detail=card.message)
         if not allowed:
             role_audit.record(
                 handle=handle, role=role, source=client_host,

@@ -17,6 +17,16 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 
 ## [Unreleased]
 
+### Fixed
+- **The dashboard now says when your identity card has expired.** Before, the
+  sign-in page accepted you, the dashboard was then refused, and you landed back
+  on the sign-in page with no reason given. Now the sign-in page checks your
+  card first and, if it has expired, says on which date and gives the command
+  that renews it: `murmurent pi-init <lab>` for a PI, or a new card from the PI
+  for a member. A member whose own card is fine but whose PI's card (which their
+  card carries) has expired is told so. In the two weeks before a card expires,
+  the sign-in page shows a warning with the same command.
+
 ### Added
 - **Every repository is now part of a project** (#151). `murmurent repo adopt`
   records a one-repository project for a repository that no project lists,
