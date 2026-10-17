@@ -40,6 +40,21 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
   never offered to it for clean-up) and `retain_until` (a date before which
   nothing in it may be suggested for deletion). Records without them read as
   before.
+- **`murmurent run` starts a long job so that a dropped connection does not
+  stop it, and `murmurent jobs` says how it is going** (#151). The job runs
+  inside tmux (a program that keeps a command running after you disconnect),
+  at the lowest priority, with the thread settings numerical libraries read set
+  to the number of cores it was given. Cores and GPUs are chosen from the lab's
+  rules and how busy the server is; memory and disk space are checked before it
+  starts; it can start at a set time or once the server is quieter. When the job
+  finishes, fails or stops producing output, one line goes to the project's
+  Slack channel, giving the job's name, what happened, how long it ran and its
+  exit code, never the command or a file path. `murmurent jobs` lists what is
+  running and how earlier jobs ended, with time and disk estimates where there
+  is something to base them on. The lab's rules live in one file in its
+  management repository, `policy/millwright.yaml`; a commented example is in
+  `templates/millwright_policy.yaml`. Guide: [Running long
+  jobs](https://hallettmiket.github.io/murmurent/run_launcher/).
 
 ## [2026.10.0] - 2026-10-14
 
