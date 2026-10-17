@@ -293,11 +293,16 @@ def space_scan_lab(no_checksums: bool, notify: bool) -> None:
               help="A machine from `murmurent host list` to fetch the report from.")
 @click.option("--json", "as_json", is_flag=True, default=False,
               help="Print the report as JSON, for other programs.")
-def space_lab_report(host_name: str, as_json: bool) -> None:
+@click.option("--rebuild", is_flag=True, default=False,
+              help="Redo the report's summaries from the last scan's table, without "
+                   "scanning again (on the machine the scan ran on).")
+def space_lab_report(host_name: str, as_json: bool, rebuild: bool) -> None:
     import json as _json
 
     from ..core import space_lab as _sl
-    report = fetch_lab_report(host_name)
+    if rebuild and host_name:
+        raise click.UsageError("--rebuild runs on the machine the scan ran on; leave out --host")
+    report = _sl.rebuild_report() if rebuild else fetch_lab_report(host_name)
     if report is None:
         where = f"on {host_name}" if host_name else "on this computer"
         raise click.ClickException(

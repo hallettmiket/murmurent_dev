@@ -201,11 +201,26 @@ def test_past_the_reading_limit_a_match_is_only_a_probable_duplicate(world):
         candidates.append(ss._Candidate(path=str(f), size=st_.st_size, mtime=st_.st_mtime,
                                         owner=ME, root_kind=kind, disk="", dev=st_.st_dev,
                                         ino=st_.st_ino))
+    # 8 MB of quick checks (2 MB from each of four files), leaving 4 MB: enough to
+    # confirm the small pair in full (4 MB), not the large one (6 MB).
     rows = {i.path: i for i in ss.duplicate_items(candidates, retention_blocked=False,
-                                                    max_read_bytes=5 * MB)}
+                                                    max_read_bytes=12 * MB)}
     assert rows[str(big_copy)].suggestion == st.ASK_OWNER
     assert "Not confirmed" in rows[str(big_copy)].reason
     assert rows[str(small_copy)].suggestion == st.DELETE or rows[str(small)].suggestion == st.DELETE
+
+
+def test_files_left_uncompared_are_reported(world):
+    p = project(world)
+    a = write(world["data"] / "append_only" / "brca" / "01_align" / "a.bam", 2 * MB, seed=3)
+    (a.parent / "b.bam").write_bytes(a.read_bytes())
+    policy_path = world["tmp"] / "tight.yaml"
+    policy_path.write_text(yaml.safe_dump({"duplicate_min_mb": 1, "duplicate_max_read_gb": 0}))
+    from murmurent.core.millwright_policy import load_policy
+    summary = ss.scan_project(p, policy=load_policy({POLICY_ENV: str(policy_path),
+                                                     "MURMURENT_LAB_MGMT_REPO": "/nonexistent"}))
+    assert not by(summary, st.DUPLICATE)
+    assert any("were not compared" in n for n in summary.notes)
 
 
 def test_no_checksums_means_no_duplicates(world):

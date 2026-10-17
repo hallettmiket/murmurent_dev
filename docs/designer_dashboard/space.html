@@ -172,6 +172,12 @@
           '<th class="num">Waiting rows</th><th class="num">Waiting size</th></tr></thead><tbody>';
         const sorted = projects.slice().sort((a, b) => b.waiting_bytes - a.waiting_bytes);
         for (const p of sorted) {
+          if (p.no_data) {
+            html += "<tr><td>" + esc(p.name) + '</td><td colspan="5" class="note">No data folder found; ' +
+              "the record points to " + esc((p.looked_in || []).join(", ")) +
+              ". Set <code>data_folders</code> in its record.</td></tr>";
+            continue;
+          }
           html += "<tr><td>" + esc(p.name) + '</td><td class="num">' + esc(size(p.bytes)) +
             '</td><td><span class="pill ' + esc(p.activity) + '">' + esc(p.activity) + "</span></td><td>" +
             esc(p.last_used || "no sign of use") + '</td><td class="num">' + esc(p.waiting_rows) +
@@ -183,6 +189,23 @@
             '</td><td class="num">' + esc(size(unclaimed.waiting_bytes)) + "</td></tr>";
         }
         html += "</tbody></table></div></div>";
+        const folders = report.unclaimed_folders || [];
+        if (folders.length) {
+          html += '<div class="card"><header>Folders no project claims</header><div class="body">' +
+            "<p>Add each to a project's data folders, or ask its owner. Largest first.</p>" +
+            '<table><thead><tr><th class="num">Size</th><th>Folder</th><th>Owners</th></tr></thead><tbody>';
+          for (const f of folders) {
+            html += '<tr><td class="num">' + esc(size(f.size)) + "</td><td><code>" + esc(f.path) +
+              "</code></td><td>" + esc(f.owners) + "</td></tr>";
+          }
+          html += "</tbody></table></div></div>";
+        }
+        const dormant = report.dormant || [];
+        if (dormant.length) {
+          html += '<div class="card"><header>Dormant projects: mothballing suggested</header><div class="body"><table><tbody>';
+          for (const d of dormant) html += '<tr><td class="num">' + esc(size(d.size)) + "</td><td>" + esc(d.project) + "</td></tr>";
+          html += "</tbody></table></div></div>";
+        }
         reportEl.innerHTML = html;
       }
 
