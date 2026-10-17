@@ -2988,6 +2988,30 @@ def create_app() -> FastAPI:
         return {"host": host, "report": report,
                 "lines": _sl.describe(report) if report else []}
 
+    @app.get("/api/space/rows")
+    def space_rows_endpoint(
+        host: str = Query("", description="Registered host the scan runs on; blank = here."),
+        project: str = Query(""), category: str = Query(""), suggestion: str = Query(""),
+        owner: str = Query(""), min_size: int = Query(0), limit: int = Query(200),
+        offset: int = Query(0),
+        user: str = Query("", description="Actor handle; falls back to $MURMURENT_USER."),
+    ) -> dict:
+        """One page of the space table (#151), for the PI only: every file and folder
+        with a suggestion, largest first, fetched from ``host`` over SSH when named.
+        Never cached here."""
+        from ..core import membership as _m
+        from ..core import space_lab as _sl
+        actor = _resolve_actor(user)
+        _require_active(actor)
+        if actor.lower() != _m.pi_handle().lower():
+            raise HTTPException(status_code=403, detail="Only the PI can see the lab's space table.")
+        try:
+            return _sl.fetch_rows(host, project=project or None, category=category or None,
+                                  suggestion=suggestion or None, owner=owner or None,
+                                  min_size=min_size, limit=limit, offset=offset)
+        except _sl.FetchError as exc:
+            raise HTTPException(status_code=502, detail=str(exc))
+
     @app.get("/api/security/findings")
     @_scoped_to_viewer
     def security_findings_endpoint(

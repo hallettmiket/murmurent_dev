@@ -361,6 +361,59 @@ def rows(conn: sqlite3.Connection, project: str | None = None, *,
     return conn.execute(sql, args).fetchall()
 
 
+#: Most rows one page of :func:`rows_page` returns.
+PAGE_LIMIT = 500
+
+
+def rows_page(conn: sqlite3.Connection, *, project: str | None = None,
+              category: str | None = None, suggestion: str | None = None,
+              owner: str | None = None, min_size: int = 0, limit: int = 200,
+              offset: int = 0) -> dict:
+    """One page of the rows waiting for a decision, largest first, with totals.
+
+    For the dashboard's list of every suggestion. ``total`` and ``total_bytes``
+    cover every row the filters match, not just this page; ``facets`` give the
+    projects, categories, suggestions and owners there are to filter by.
+    Folder-level rows (unclaimed folders, dormant projects) are included: on a
+    page of their own category they are what the person is looking for.
+    """
+    where, args = ["decision IS NULL", "gone = 0", "suggestion != ?"], [KEEP]
+    for column, value in (("project", project), ("category", category),
+                          ("suggestion", suggestion), ("owner", owner)):
+        if value:
+            where.append(f"{column} = ?")
+            args.append(value)
+    if min_size:
+        where.append("size >= ?")
+        args.append(int(min_size))
+    clause = " AND ".join(where)
+    total, total_bytes = conn.execute(
+        f"SELECT COUNT(*), COALESCE(SUM(size), 0) FROM items WHERE {clause}", args).fetchone()
+    limit = max(1, min(int(limit), PAGE_LIMIT))
+    found = conn.execute(
+        f"SELECT * FROM items WHERE {clause} ORDER BY size DESC, path LIMIT ? OFFSET ?",
+        args + [limit, max(0, int(offset))]).fetchall()
+    waiting = "decision IS NULL AND gone = 0 AND suggestion != ?"
+
+    def facet(column: str, top: int = 0) -> list[list]:
+        sql = (f"SELECT {column}, COUNT(*) FROM items WHERE {waiting} AND {column} != '' "
+               f"GROUP BY {column} ORDER BY COUNT(*) DESC")
+        return [list(r) for r in conn.execute(sql + (f" LIMIT {top}" if top else ""), [KEEP])]
+
+    return {
+        "kind": "space_rows", "total": int(total), "total_bytes": int(total_bytes),
+        "offset": max(0, int(offset)), "limit": limit,
+        "rows": [{"id": int(r["id"]), "project": r["project"], "path": r["path"],
+                  "category": r["category"], "suggestion": r["suggestion"],
+                  "reason": r["reason"] or "", "evidence": r["evidence"] or "",
+                  "size": int(r["size"] or 0), "files": int(r["n_files"] or 0),
+                  "owner": r["owner"] or "", "changed_at": r["changed_at"] or "",
+                  "cost_cpu_hours": r["cost_cpu_hours"]} for r in found],
+        "facets": {"projects": facet("project"), "categories": facet("category"),
+                   "suggestions": facet("suggestion"), "owners": facet("owner", 40)},
+    }
+
+
 def get_row(conn: sqlite3.Connection, item_id: int) -> sqlite3.Row | None:
     """One row by its number."""
     return conn.execute("SELECT * FROM items WHERE id = ?", (int(item_id),)).fetchone()
@@ -514,6 +567,6 @@ __all__ = [
     "DELETE", "MOTHBALL", "COMPRESS", "MOVE", "KEEP", "ASK_OWNER", "REFER_SECURITY",
     "Item", "SopGap", "Disk", "ScanSummary", "Emergency", "DecisionError",
     "now_iso", "table_path", "connect", "record_scan", "last_scan", "disks", "sop_gaps",
-    "rows", "get_row", "score", "ranked", "emergencies", "decide", "decided",
+    "rows", "rows_page", "PAGE_LIMIT", "get_row", "score", "ranked", "emergencies", "decide", "decided",
     "counts_by_category", "projects",
 ]

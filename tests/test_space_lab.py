@@ -353,3 +353,61 @@ def test_the_space_report_is_for_the_pi_only(lab, monkeypatch):
     ok = client.get("/api/space/lab?user=the_pi")
     assert ok.status_code == 200 and ok.json()["report"]["lab"] == "mh"
     assert client.get("/space").status_code == 200
+
+
+# ---------------------------------------------------------------------------
+# Every suggestion, a page at a time (the Space page's list)
+# ---------------------------------------------------------------------------
+
+
+def test_a_page_of_rows_filters_and_totals_every_match(lab):
+    lab["write"]("append_only/brca/01_align/more.fastq", 3 * MB, seed=9)
+    sl.scan_lab()
+    conn = st.connect()
+    page = st.rows_page(conn, category=st.COMPRESSIBLE, limit=1)
+    assert page["kind"] == "space_rows" and page["total"] == 2 and len(page["rows"]) == 1
+    assert page["rows"][0]["size"] >= 3 * MB                   # largest first
+    nxt = st.rows_page(conn, category=st.COMPRESSIBLE, limit=1, offset=1)
+    assert nxt["rows"][0]["id"] != page["rows"][0]["id"]
+    assert dict(map(tuple, page["facets"]["categories"]))[st.COMPRESSIBLE] == 2
+    unclaimed = st.rows_page(conn, project=sl.UNCLAIMED_PROJECT, category=st.UNCLAIMED)
+    assert unclaimed["rows"][0]["path"].endswith("mystery_dump")   # paths are shown
+
+
+def test_the_rows_command_prints_one_page_as_json(lab):
+    sl.scan_lab()
+    out = CliRunner().invoke(cli, ["space", "rows", "--json", "--category", "compressible"])
+    assert out.exit_code == 0, out.output
+    assert json.loads(out.output)["total"] == 1
+
+
+def test_a_page_can_be_fetched_from_another_machine(lab, monkeypatch):
+    from murmurent.core import hosts
+    from murmurent.core import remote
+    sl.scan_lab()
+    page = st.rows_page(st.connect())
+    monkeypatch.setattr(hosts, "resolve", lambda name: hosts.Host(name=name, kind="ssh"))
+    seen = []
+
+    def fake_run(self, command, **kw):
+        seen.append(command)
+        return remote.RemoteResult(host="server", command=command, returncode=0, stderr="",
+                                   stdout="REMINDER: use nice\n" + json.dumps(page))
+
+    monkeypatch.setattr(remote.Remote, "run", fake_run)
+    got = sl.fetch_rows("server", project=sl.UNCLAIMED_PROJECT, min_size=1024, limit=50)
+    assert got["total"] == page["total"]
+    assert seen == ["murmurent space rows --json --project '(unclaimed)' --min-size 1024 --limit 50"]
+
+
+def test_the_page_of_rows_is_for_the_pi_only(lab, monkeypatch):
+    from fastapi.testclient import TestClient
+
+    from murmurent.core import membership
+    from murmurent.dashboard.server import create_app
+    sl.scan_lab()
+    client = TestClient(create_app())
+    monkeypatch.setattr(membership, "pi_handle", lambda: "the_pi")
+    assert client.get("/api/space/rows?user=student").status_code == 403
+    ok = client.get("/api/space/rows?user=the_pi&category=compressible")
+    assert ok.status_code == 200 and ok.json()["total"] == 1

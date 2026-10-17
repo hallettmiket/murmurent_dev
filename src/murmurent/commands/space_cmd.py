@@ -325,6 +325,43 @@ def fetch_lab_report(host_name: str = "") -> dict | None:
 
 
 @space_group.command(
+    "rows",
+    help="List rows of the space table waiting for a decision, largest first, with "
+         "filters. With --json, one page for other programs (the dashboard's Space page "
+         "fetches it this way).")
+@click.option("--project", default="", help="Only this project; \"(unclaimed)\" for folders no project claims.")
+@click.option("--category", type=click.Choice(_st.CATEGORIES), default=None, help="Only this category.")
+@click.option("--suggestion", type=click.Choice(_st.SUGGESTIONS), default=None,
+              help="Only this suggestion.")
+@click.option("--owner", default="", help="Only files owned by this login.")
+@click.option("--min-size", default="", help="Only rows at least this big, such as 10G.")
+@click.option("--limit", type=int, default=50, show_default=True, help="Rows per page.")
+@click.option("--offset", type=int, default=0, help="Rows to skip, for the next page.")
+@click.option("--json", "as_json", is_flag=True, default=False, help="Print JSON.")
+def space_rows(project: str, category: str | None, suggestion: str | None, owner: str,
+               min_size: str, limit: int, offset: int, as_json: bool) -> None:
+    import json as _json
+
+    from ..core.run_launcher import LaunchError, parse_size
+    try:
+        smallest = parse_size(min_size) if min_size else 0
+    except LaunchError as exc:
+        raise click.ClickException(str(exc)) from exc
+    page = _st.rows_page(_st.connect(), project=project or None, category=category,
+                         suggestion=suggestion, owner=owner or None, min_size=smallest,
+                         limit=limit, offset=offset)
+    if as_json:
+        click.echo(_json.dumps(page))
+        return
+    click.echo(f"{page['total']:,} rows, {format_size(page['total_bytes'])}; "
+               f"showing {page['offset'] + 1} to {page['offset'] + len(page['rows'])}.")
+    for r in page["rows"]:
+        click.echo(f"  {format_size(r['size']):>9}  {r['project']}: {r['category']}, suggest "
+                   f"{r['suggestion']}  [row {r['id']}]")
+        click.echo(f"      {r['path']}")
+
+
+@space_group.command(
     "schedule",
     help="Show, set up or remove the weekly lab space scan. It runs under your "
          "account at the lowest priority, reads only, and sends you a Slack summary.")
