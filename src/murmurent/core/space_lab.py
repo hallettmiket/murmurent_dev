@@ -637,12 +637,34 @@ def fetch_report(host_name: str = "") -> dict | None:
             return None
         last = text.splitlines()[-1] if text else str(exc)
         raise FetchError(f"could not fetch the report from {host_name}: {last}") from exc
-    try:
-        data = json.loads(out.stdout)
-    except ValueError as exc:
+    data = _report_from_output(out.stdout)
+    if data is None:
         raise FetchError(f"{host_name} did not send a report murmurent can read; is "
-                         "murmurent up to date there?") from exc
-    return data if isinstance(data, dict) else None
+                         "murmurent up to date there?")
+    return data
+
+
+def _report_from_output(text: str) -> dict | None:
+    """The report in a remote command's output, skipping anything printed before it.
+
+    A server's login scripts may print a notice first (the lab's server reminds
+    everyone to use nice 19), and the remote command runs in a login shell. The
+    report is the first line that opens a JSON object, through to its end.
+    """
+    decoder = json.JSONDecoder()
+    start = 0
+    while True:
+        at = text.find("{", start)
+        if at < 0:
+            return None
+        if at == 0 or text[at - 1] == "\n":
+            try:
+                data, _end = decoder.raw_decode(text, at)
+            except ValueError:
+                data = None
+            if isinstance(data, dict) and data.get("schema") == REPORT_SCHEMA:
+                return data
+        start = at + 1
 
 
 def notify_pi(report: dict, *, lab: str = "",
