@@ -253,4 +253,97 @@ def space_gaps(project: str | None) -> None:
             click.echo(f"      for example {_short(gap['example'])}")
 
 
-__all__ = ["space_group"]
+# ---------------------------------------------------------------------------
+# The whole lab (step 3)
+# ---------------------------------------------------------------------------
+
+
+@space_group.command(
+    "scan-lab",
+    help="Scan the data folders of every project in this lab, and the folders no "
+         "project claims, and write the lab's space report. This is what the weekly "
+         "timer runs. Reads only; changes nothing.")
+@click.option("--no-checksums", is_flag=True, default=False,
+              help="Do not look for duplicates.")
+@click.option("--notify", is_flag=True, default=False,
+              help="Send the PI a Slack direct message with the summary (no file names).")
+def space_scan_lab(no_checksums: bool, notify: bool) -> None:
+    from ..core import space_lab as _sl
+    _lower_priority()
+    try:
+        report = _sl.scan_lab(checksums=not no_checksums,
+                              progress=lambda msg: click.echo(f"  {msg}"))
+    except _sl.LabScanBusy as exc:
+        raise click.ClickException(f"{exc}; try again when it has finished.") from exc
+    for line in _sl.describe(report):
+        click.echo(line)
+    if notify:
+        ok, detail = _sl.notify_pi(report)
+        click.echo("Summary sent to the PI on Slack." if ok
+                   else f"Summary not sent to the PI: {detail}")
+
+
+@space_group.command(
+    "lab",
+    help="Show the lab's last space report: emergencies, what to look at first, and "
+         "every project with how much is waiting for a decision. With --host, fetch it "
+         "from that machine (for example from your laptop, from the server the scan "
+         "runs on).")
+@click.option("--host", "host_name", default="",
+              help="A machine from `murmurent host list` to fetch the report from.")
+@click.option("--json", "as_json", is_flag=True, default=False,
+              help="Print the report as JSON, for other programs.")
+def space_lab_report(host_name: str, as_json: bool) -> None:
+    import json as _json
+
+    from ..core import space_lab as _sl
+    report = fetch_lab_report(host_name)
+    if report is None:
+        where = f"on {host_name}" if host_name else "on this computer"
+        raise click.ClickException(
+            f"no lab space report {where} yet. It is written by "
+            "`murmurent space scan-lab`, which the weekly timer runs.")
+    if as_json:
+        click.echo(_json.dumps(report, indent=2))
+        return
+    for line in _sl.describe(report):
+        click.echo(line)
+
+
+def fetch_lab_report(host_name: str = "") -> dict | None:
+    """The lab report from this computer, or from a registered host over SSH."""
+    from ..core import space_lab as _sl
+    try:
+        return _sl.fetch_report(host_name)
+    except _sl.FetchError as exc:
+        raise click.ClickException(str(exc)) from exc
+
+
+@space_group.command(
+    "schedule",
+    help="Show, set up or remove the weekly lab space scan. It runs under your "
+         "account at the lowest priority, reads only, and sends you a Slack summary.")
+@click.option("--install", is_flag=True, default=False, help="Set up the weekly scan.")
+@click.option("--remove", "remove_it", is_flag=True, default=False, help="Remove it.")
+@click.option("--day", default="sun", show_default=True, help="Day of the week.")
+@click.option("--at", "at", default="02:00", show_default=True, help="Time of day.")
+def space_schedule(install: bool, remove_it: bool, day: str, at: str) -> None:
+    from ..core import space_schedule as _sch
+    try:
+        if install and remove_it:
+            raise click.UsageError("choose --install or --remove, not both")
+        if install:
+            result = _sch.install(day, at)
+        elif remove_it:
+            result = _sch.remove()
+        else:
+            result = _sch.status()
+    except (ValueError, RuntimeError) as exc:
+        raise click.ClickException(str(exc)) from exc
+    for line in result.lines():
+        click.echo(line)
+    if result.record:
+        click.echo("  Commit and push the lab records repository so the lab can see it.")
+
+
+__all__ = ["space_group", "fetch_lab_report"]

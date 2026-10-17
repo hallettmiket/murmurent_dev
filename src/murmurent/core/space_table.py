@@ -49,8 +49,12 @@ UNATTRIBUTED = "unattributed"
 LISTED = "listed"
 ACCESS = "access"
 UNREADABLE = "unreadable"
+# From the lab-wide scan (step 3): a data folder no project claims, and a
+# project unused for long enough to be called dormant.
+UNCLAIMED = "unclaimed"
+DORMANT = "dormant"
 CATEGORIES = (TEMPORARY, INTERMEDIATE, COMPRESSIBLE, DUPLICATE, OUT_OF_PLACE,
-              UNATTRIBUTED, LISTED, ACCESS, UNREADABLE)
+              UNATTRIBUTED, LISTED, ACCESS, UNREADABLE, UNCLAIMED, DORMANT)
 
 # What the millwright suggests. A person's decision uses the same words.
 DELETE = "delete"
@@ -207,6 +211,11 @@ class ScanSummary:
     sop_gaps: list[SopGap] = field(default_factory=list)
     disks: dict[str, Disk] = field(default_factory=dict)
     notes: list[str] = field(default_factory=list)
+    #: Bytes read in full to confirm duplicates.
+    bytes_fingerprinted: int = 0
+    #: {top-level data folder: {owner: [bytes, files, newest change]}}; used by
+    #: the lab-wide scan, not stored in the table.
+    owners_by_folder: dict[str, dict[str, list[float]]] = field(default_factory=dict)
 
 
 # ---------------------------------------------------------------------------
@@ -214,13 +223,22 @@ class ScanSummary:
 # ---------------------------------------------------------------------------
 
 
-def record_scan(conn: sqlite3.Connection, summary: ScanSummary) -> int:
+def _inside(path: str, roots: list[str]) -> bool:
+    return any(path == r or path.startswith(r.rstrip("/") + "/") for r in roots)
+
+
+def record_scan(conn: sqlite3.Connection, summary: ScanSummary, *,
+                roots: list[str] | None = None) -> int:
     """Write one scan's findings into the table, keeping every decision.
 
     A row seen before keeps its first-seen date and its decision, and its old
     size is kept so the table can show growth. A row not seen this time is
     removed if nobody had decided on it, and marked ``gone`` if someone had,
     so a decision is never lost.
+
+    ``roots`` limits that clean-up to rows inside the folders this scan
+    walked. The lab-wide scan walks data folders only, so without it the rows
+    an in-session scan found in a project's repositories would be retired.
 
     Returns
     -------
@@ -253,10 +271,15 @@ def record_scan(conn: sqlite3.Connection, summary: ScanSummary) -> int:
                 "suggestion = ?, reason = ?, evidence = ?, cost_cpu_hours = ?, peek = ?, "
                 "disk = ?, last_seen = ?, last_scan = ?, previous_size = ?, gone = 0 "
                 "WHERE id = ?", values + (old["size"], old["id"]))
-    conn.execute("DELETE FROM items WHERE project = ? AND last_scan IS NOT ? "
-                 "AND decision IS NULL", (summary.project, scan_id))
-    conn.execute("UPDATE items SET gone = 1 WHERE project = ? AND last_scan IS NOT ?",
-                 (summary.project, scan_id))
+    unseen = conn.execute("SELECT id, path, decision FROM items WHERE project = ? "
+                          "AND last_scan IS NOT ?", (summary.project, scan_id)).fetchall()
+    for row in unseen:
+        if roots is not None and not _inside(row["path"], roots):
+            continue
+        if row["decision"] is None:
+            conn.execute("DELETE FROM items WHERE id = ?", (row["id"],))
+        else:
+            conn.execute("UPDATE items SET gone = 1 WHERE id = ?", (row["id"],))
 
     # Gaps are replaced by this scan's, keeping when each was first seen.
     first = {(r["kind"], r["detail"]): r["first_seen"] for r in conn.execute(
@@ -487,7 +510,7 @@ def projects(conn: sqlite3.Connection) -> list[str]:
 __all__ = [
     "TABLE_FILENAME", "TABLE_SCHEMA", "CATEGORIES", "SUGGESTIONS", "DECISIONS",
     "TEMPORARY", "INTERMEDIATE", "COMPRESSIBLE", "DUPLICATE", "OUT_OF_PLACE",
-    "UNATTRIBUTED", "LISTED", "ACCESS", "UNREADABLE",
+    "UNATTRIBUTED", "LISTED", "ACCESS", "UNREADABLE", "UNCLAIMED", "DORMANT",
     "DELETE", "MOTHBALL", "COMPRESS", "MOVE", "KEEP", "ASK_OWNER", "REFER_SECURITY",
     "Item", "SopGap", "Disk", "ScanSummary", "Emergency", "DecisionError",
     "now_iso", "table_path", "connect", "record_scan", "last_scan", "disks", "sop_gaps",

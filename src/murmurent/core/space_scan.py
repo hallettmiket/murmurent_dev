@@ -40,6 +40,7 @@ import shutil
 import stat
 import subprocess
 from collections import defaultdict
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
@@ -220,6 +221,14 @@ def _ext(name: str) -> str:
     return os.path.splitext(lower)[1]
 
 
+def _is_dir(path: Path) -> bool:
+    """``path.is_dir()``, False when the account may not look (instead of raising)."""
+    try:
+        return path.is_dir()
+    except OSError:
+        return False
+
+
 def _within(child: Path, parent: Path) -> bool:
     try:
         child.relative_to(parent)
@@ -242,20 +251,23 @@ def _root_kind(folder: Path, env: dict | None) -> str:
     return ROOT_DATA
 
 
-def project_roots(cp: _cp.CertProject, env: dict | None = None) -> list[Root]:
+def project_roots(cp: _cp.CertProject, env: dict | None = None, *,
+                  include_repos: bool = True) -> list[Root]:
     """The repositories on this machine and the data folders that exist, in order.
 
     A folder inside another root is left out, so nothing is counted twice.
+    ``include_repos=False`` gives the data folders only, as the lab-wide scan
+    walks them.
     """
     found: list[Root] = []
-    for r in cp.repos:
+    for r in (cp.repos if include_repos else ()):
         if (r.host or "local") != "local" or not r.path:
             continue
         path = Path(os.path.normpath(Path(r.path).expanduser()))
-        if path.is_dir():
+        if _is_dir(path):
             found.append(Root(path=path, kind=ROOT_REPO))
     for folder in _pu.effective_data_folders(cp, env):
-        if folder.is_dir():
+        if _is_dir(folder):
             found.append(Root(path=folder, kind=_root_kind(folder, env)))
     kept: list[Root] = []
     for root in found:
@@ -569,6 +581,13 @@ def _unique(copies: list[_Candidate]) -> list[_Candidate]:
 
 def duplicate_items(candidates: list[_Candidate], *, retention_blocked: bool,
                     max_read_bytes: int | None = None) -> list[_st.Item]:
+    """See :func:`find_duplicates`; this returns only the rows."""
+    return find_duplicates(candidates, retention_blocked=retention_blocked,
+                           max_read_bytes=max_read_bytes)[0]
+
+
+def find_duplicates(candidates: list[_Candidate], *, retention_blocked: bool,
+                    max_read_bytes: int | None = None) -> tuple[list[_st.Item], int]:
     """Rows for files with the same size and the same fingerprint.
 
     Within each set of identical files, the copy in the most protected place
@@ -597,6 +616,7 @@ def duplicate_items(candidates: list[_Candidate], *, retention_blocked: bool,
         groups += [_unique(g) for g in by_quick.values() if len(_unique(g)) >= 2]
 
     budget = max_read_bytes
+    spent = 0
     items: list[_st.Item] = []
     for group in sorted(groups, key=lambda g: g[0].size * len(g), reverse=True):
         cost = group[0].size * len(group)
@@ -613,6 +633,7 @@ def duplicate_items(candidates: list[_Candidate], *, retention_blocked: bool,
             continue
         if budget is not None:
             budget -= cost
+        spent += cost
         by_full: dict[str, list[_Candidate]] = defaultdict(list)
         for c in group:
             fp = _fingerprint(c.path, c.size, quick=False)
@@ -637,7 +658,7 @@ def duplicate_items(candidates: list[_Candidate], *, retention_blocked: bool,
                     reason=reason, size=extra.size, owner=extra.owner,
                     changed_at=_iso(extra.mtime), disk=extra.disk,
                     evidence=f"same size and SHA-256 fingerprint ({fp[:16]}…) as {kept.path}"))
-    return items
+    return items, spent
 
 
 # ---------------------------------------------------------------------------
@@ -653,6 +674,13 @@ class ScanOptions:
     progress: Callable[[int, int], None] | None = None
     progress_every: int = 50_000
     now: _dt.datetime | None = None
+    #: False: data folders only (the lab-wide scan).
+    include_repos: bool = True
+    #: Bytes this scan may read in full to confirm duplicates; None = the policy's.
+    max_read_bytes: int | None = None
+    #: Folders listed at once; None = the policy's ``scan_threads``. Measured on
+    #: the lab's drive it changed little (about 10 minutes per million files).
+    threads: int | None = None
 
 
 class _Walker:
@@ -679,19 +707,26 @@ class _Walker:
         self.files = 0
         self.bytes = 0
         self.unreadable: list[str] = []
+        #: {folder: entries in it the account may not look at}
+        self.hidden_entries: dict[str, int] = {}
         self.candidates: list[_Candidate] = []
         self.unattributed: dict[tuple[str, str, str], _Group] = {}
         self.access: dict[tuple[str, str], _Group] = {}
         self.unknown_types: dict[str, _Group] = {}
         self.folder_newest: dict[str, float] = {}
         self.pending_folders: list[tuple[Root, Path, str]] = []
+        self._next_progress = options.progress_every
+        #: {top-level folder: {owner: [bytes, files, newest]}}, for the lab scan's
+        #: report on folders no project claims.
+        self.owners_by_folder: dict[str, dict[str, list[float]]] = {}
         self.environments: list[str] = []
         self.temporary_folders: dict[tuple[Root, str], list[tuple[Path, _Group]]] = {}
 
     # -- helpers -----------------------------------------------------------
 
     def _tick(self) -> None:
-        if self.options.progress and self.files % self.options.progress_every == 0:
+        if self.options.progress and self.files >= self._next_progress:
+            self._next_progress = self.files + self.options.progress_every
             self.options.progress(self.files, self.bytes)
 
     def _skipped(self, path: Path) -> bool:
@@ -717,41 +752,52 @@ class _Walker:
             self._walk_root(root, tracked or set())
 
     def _walk_root(self, root: Root, tracked: set[str]) -> None:
-        stack = [root.path]
-        while stack:
-            folder = stack.pop()
-            try:
-                entries = list(os.scandir(folder))
-            except OSError:
-                self.unreadable.append(str(folder))
+        """Walk one root. Listing folders and reading file details runs in a
+        few threads; everything that decides what a file is runs here, in one
+        thread, so the checks need no locks."""
+        threads = max(1, int(self.options.threads or self.policy.scan_threads))
+        with ThreadPoolExecutor(max_workers=threads) as pool:
+            pending = {pool.submit(_list_folder, root.path)}
+            while pending:
+                done, pending = wait(pending, return_when=FIRST_COMPLETED)
+                for future in done:
+                    folder, listing, refused = future.result()
+                    if listing is None:
+                        self.unreadable.append(str(folder))
+                        continue
+                    if refused:
+                        self.hidden_entries[str(folder)] = refused
+                    for sub in self._folder(root, folder, listing, tracked):
+                        pending.add(pool.submit(_list_folder, sub))
+
+    def _folder(self, root: Root, folder: Path, listing: list[tuple[str, str, os.stat_result]],
+                tracked: set[str]) -> list[Path]:
+        """Look at one folder's entries; return the folders to walk next."""
+        jobs_here = [j for j in self.jobs if folder == j.folder or _within(folder, j.folder)]
+        nested: list[Path] = []
+        for name, full, st in listing:
+            path = Path(full)
+            if stat.S_ISLNK(st.st_mode):
                 continue
-            jobs_here = [j for j in self.jobs if folder == j.folder or _within(folder, j.folder)]
-            for entry in entries:
-                path = Path(entry.path)
-                try:
-                    st = entry.stat(follow_symlinks=False)
-                except OSError:
+            if stat.S_ISDIR(st.st_mode):
+                if name == ".git" and root.kind == ROOT_REPO:
                     continue
-                if stat.S_ISLNK(st.st_mode):
+                if path in self.root_paths or self._skipped(path):
                     continue
-                if stat.S_ISDIR(st.st_mode):
-                    if entry.name == ".git" and root.kind == ROOT_REPO:
-                        continue
-                    if path in self.root_paths or self._skipped(path):
-                        continue
-                    if _is_environment(path, entry.name):
-                        self.environments.append(str(path))
-                        continue
-                    if entry.name in TEMPORARY_FOLDERS:
-                        self._temporary_folder(root, path, entry.name)
-                        continue
-                    if folder == root.path:
-                        self._check_experiment_folder(root, path, st)
-                    stack.append(path)
+                if _is_environment(path, name):
+                    self.environments.append(str(path))
                     continue
-                if not stat.S_ISREG(st.st_mode):
+                if name in TEMPORARY_FOLDERS:
+                    self._temporary_folder(root, path, name)
                     continue
-                self._file(root, path, entry.name, st, tracked, jobs_here)
+                if folder == root.path:
+                    self._check_experiment_folder(root, path, st)
+                nested.append(path)
+                continue
+            if not stat.S_ISREG(st.st_mode):
+                continue
+            self._file(root, path, name, st, tracked, jobs_here)
+        return nested
 
     def _temporary_folder(self, root: Root, path: Path, name: str) -> None:
         group = _Group()
@@ -822,6 +868,10 @@ class _Walker:
         if root.kind != ROOT_REPO:
             key = self._date_key(root, path)
             self.folder_newest[key] = max(self.folder_newest.get(key, 0.0), mtime)
+            tally = self.owners_by_folder.setdefault(key, {}).setdefault(owner, [0, 0, 0.0])
+            tally[0] += size
+            tally[1] += 1
+            tally[2] = max(tally[2], mtime)
             self.folder_newest[str(root.path)] = max(
                 self.folder_newest.get(str(root.path), 0.0), mtime)
         rel = os.path.relpath(spath, root.path) if root.kind == ROOT_REPO else ""
@@ -906,12 +956,40 @@ class _Walker:
                 job.other.add(spath, size, mtime)
 
 
+def _list_folder(folder: Path) -> tuple[Path, list[tuple[str, str, os.stat_result]] | None, int]:
+    """A folder's entries with their details, and how many could not be looked at.
+
+    The listing is None when the folder itself cannot be opened. Runs in a
+    worker thread. Links are not followed. An entry that vanished while being
+    read is not counted; one the account may not look at is.
+    """
+    try:
+        entries = list(os.scandir(folder))
+    except OSError:
+        return folder, None, 0
+    out: list[tuple[str, str, os.stat_result]] = []
+    refused = 0
+    for entry in entries:
+        try:
+            out.append((entry.name, entry.path, entry.stat(follow_symlinks=False)))
+        except FileNotFoundError:
+            continue
+        except OSError:
+            refused += 1
+    return folder, out, refused
+
+
 def _is_environment(path: Path, name: str) -> bool:
     if name in ENVIRONMENT_FOLDERS:
         return True
     if name == "library" and path.parent.name == "renv":
         return True
-    return (path / "pyvenv.cfg").is_file() or (path / "conda-meta").is_dir()
+    # On a shared drive a folder may hold files the scanning account cannot
+    # look at; that must not stop a scan of the whole lab.
+    try:
+        return (path / "pyvenv.cfg").is_file() or (path / "conda-meta").is_dir()
+    except OSError:
+        return False
 
 
 def _disk_key(path: Path) -> str:
@@ -948,7 +1026,7 @@ def scan_project(cp: _cp.CertProject, *, env: dict | None = None,
     roots: list[Root] = []
     summary = _st.ScanSummary(project=cp.name, started_at=started,
                               scanned_by=_pu.local_handle() or os.environ.get("USER", ""))
-    for root in project_roots(cp, env):
+    for root in project_roots(cp, env, include_repos=options.include_repos):
         key = _disk_key(root.path)
         roots.append(Root(path=root.path, kind=root.kind, disk=key))
         if key and key not in summary.disks:
@@ -981,9 +1059,12 @@ def scan_project(cp: _cp.CertProject, *, env: dict | None = None,
             items.append(item)
 
     items += _listed_items(cp, roots)
-    items += duplicate_items(walker.candidates,
-                             retention_blocked=_pu.retention_blocks_deletion(cp),
-                             max_read_bytes=policy.duplicate_max_read_gb * 1024**3)
+    budget = (options.max_read_bytes if options.max_read_bytes is not None
+              else policy.duplicate_max_read_gb * 1024**3)
+    found, summary.bytes_fingerprinted = find_duplicates(
+        walker.candidates, retention_blocked=_pu.retention_blocks_deletion(cp),
+        max_read_bytes=budget)
+    items += found
     items += _unattributed_items(walker, roots)
     for (root_path, what), group in sorted(walker.access.items()):
         disk = next((r.disk for r in roots if str(r.path) == root_path), "")
@@ -992,12 +1073,7 @@ def scan_project(cp: _cp.CertProject, *, env: dict | None = None,
             reason=f"{_files(group.n_files)} here that {what}.", size=group.size,
             n_files=group.n_files, changed_at=_iso(group.newest), disk=disk,
             evidence=f"for example {group.example}"))
-    for folder in walker.unreadable[:_MAX_UNREADABLE_ROWS]:
-        disk = next((r.disk for r in roots if _within(Path(folder), r.path)), "")
-        items.append(_st.Item(
-            path=folder, category=_st.UNREADABLE, suggestion=_st.ASK_OWNER, kind="folder",
-            reason="This folder could not be read, so its size is unknown.",
-            owner=walker._owner_of(Path(folder)), size=0, n_files=0, disk=disk))
+    items += _unreadable_items(walker, roots)
 
     if _pu.retention_blocks_deletion(cp):
         for item in items:
@@ -1007,12 +1083,16 @@ def scan_project(cp: _cp.CertProject, *, env: dict | None = None,
 
     summary.items = _dedupe(items)
     summary.sop_gaps = _sop_gaps(cp, walker)
+    summary.owners_by_folder = walker.owners_by_folder
     summary.files = walker.files
     summary.bytes = walker.bytes
-    summary.unreadable = len(walker.unreadable)
-    if len(walker.unreadable) > _MAX_UNREADABLE_ROWS:
-        summary.notes.append(f"{len(walker.unreadable)} folders could not be read; the first "
-                             f"{_MAX_UNREADABLE_ROWS} are listed.")
+    summary.unreadable = len(walker.unreadable) + sum(walker.hidden_entries.values())
+    places = len(walker.unreadable) + len(walker.hidden_entries)
+    if summary.unreadable:
+        summary.notes.append(
+            f"{_files(summary.unreadable).replace('file', 'item')} could not be read, so no "
+            "total includes them" + (f"; the first {_MAX_UNREADABLE_ROWS} places are listed"
+                                     if places > _MAX_UNREADABLE_ROWS else "") + ".")
     if not options.checksums:
         summary.notes.append("Duplicates were not looked for (--no-checksums).")
     if walker.environments:
@@ -1029,6 +1109,30 @@ def scan_project(cp: _cp.CertProject, *, env: dict | None = None,
     summary.finished_at = _st.now_iso()
     write_data_dates({k: v for k, v in walker.folder_newest.items()}, summary.finished_at)
     return summary
+
+
+def _unreadable_items(walker: _Walker, roots: list[Root]) -> list[_st.Item]:
+    """A row for each folder the scan could not open, or could not fully look into.
+
+    Nothing in them is in any total, so the scan's figures are low by an unknown
+    amount until the owner lets the lab group read them.
+    """
+    places = [(f, 0) for f in walker.unreadable] + sorted(walker.hidden_entries.items())
+    items: list[_st.Item] = []
+    for folder, hidden in places[:_MAX_UNREADABLE_ROWS]:
+        disk = next((r.disk for r in roots if _within(Path(folder), r.path)), "")
+        owner = walker._owner_of(Path(folder))
+        who = f"its owner, {owner}," if owner else "its owner"
+        what = ("The scan could not open this folder" if not hidden else
+                f"{_files(hidden).replace('file', 'item')} in this folder could not be looked at")
+        items.append(_st.Item(
+            path=folder, category=_st.UNREADABLE, suggestion=_st.ASK_OWNER,
+            kind="folder" if not hidden else "files", n_files=hidden, size=0, owner=owner,
+            disk=disk,
+            reason=(f"{what}, so no total includes it. Ask {who} to let the lab group read "
+                    f"it: chmod -R g+rX {folder}"),
+            evidence="permission denied to the scanning account"))
+    return items
 
 
 def _files(n: int) -> str:
@@ -1052,18 +1156,19 @@ def _listed_items(cp: _cp.CertProject, roots: list[Root]) -> list[_st.Item]:
     items: list[_st.Item] = []
     for repo_name, path in ready_to_delete_entries(cp):
         root = next((r for r in roots if path == r.path or _within(path, r.path)), None)
-        if root is None or not path.exists() or path == root.path:
+        if root is None or path == root.path:
             continue
         try:
             st = path.lstat()
         except OSError:
             continue
-        size = st.st_size if path.is_file() else _folder_size(path)
+        is_file = stat.S_ISREG(st.st_mode)
+        size = st.st_size if is_file else _folder_size(path)
         in_immutable = root.kind == ROOT_IMMUTABLE
         items.append(_st.Item(
             path=str(path), category=_st.LISTED,
             suggestion=_st.ASK_OWNER if in_immutable else _st.DELETE,
-            kind="file" if path.is_file() else "folder",
+            kind="file" if is_file else "folder",
             reason=("A member listed this in src/ready_to_delete.md." if not in_immutable else
                     "Listed in src/ready_to_delete.md, but it is in immutable/, which is never "
                     "deleted without the PI."),
@@ -1108,7 +1213,7 @@ def _sop_gaps(cp: _cp.CertProject, walker: _Walker) -> list[_st.SopGap]:
             kind="layout",
             detail=("The code repository has no exp/ folder on this computer, so data folders "
                     "cannot be matched to experiments.")))
-    if not any(r.kind == ROOT_REPO for r in walker.roots):
+    if walker.options.include_repos and not any(r.kind == ROOT_REPO for r in walker.roots):
         gaps.append(_st.SopGap(
             kind="layout",
             detail=("No repository of this project is on this computer, so files cannot be "

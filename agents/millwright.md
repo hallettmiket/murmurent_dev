@@ -360,6 +360,10 @@ project's folders?".
    Never edit the lab's procedures or `policy/millwright.yaml` yourself.
 6. For a clinical project, do not repeat file names in Slack or any shared
    place; give counts and sizes.
+7. For the whole lab, read `murmurent space lab` (on a laptop, `--host
+   <server>`): the weekly scan's report of every project, dormant projects and
+   folders no project claims. Explain what is dormant and what mothballing
+   would free, and which unclaimed folders belong to whom.
 
 ---
 

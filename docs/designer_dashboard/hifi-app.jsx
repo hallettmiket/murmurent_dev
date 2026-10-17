@@ -542,6 +542,22 @@ function CmdBar({ query, setQuery }) {
           ⚿ security ↗
         </a>
       )}
+      {/* /space link: the lab's weekly space report (#151), PI only. */}
+      {persona === "pi" && (
+        <a
+          href={`/space?user=${encodeURIComponent((window.DATA.member && window.DATA.member.handle) || "")}`}
+          title="Open the lab's space report (/space)"
+          target="_blank" rel="noopener"
+          style={{
+            marginLeft: 10, fontFamily: "var(--mono)", fontSize: 11,
+            letterSpacing: 1, textTransform: "uppercase",
+            color: "var(--tiger)", textDecoration: "none",
+            border: "1px solid var(--tiger)", borderRadius: 2,
+            padding: "3px 8px",
+          }}>
+          ▤ space ↗
+        </a>
+      )}
       <a
         href="/"
         className="switch-role"
