@@ -584,10 +584,11 @@ def duplicate_items(candidates: list[_Candidate], *, retention_blocked: bool,
     """See :func:`find_duplicates`; this returns only the rows."""
     return find_duplicates(candidates, retention_blocked=retention_blocked,
                            max_read_bytes=max_read_bytes)[0]
+    # find_duplicates returns (rows, bytes read, files not compared)
 
 
 def find_duplicates(candidates: list[_Candidate], *, retention_blocked: bool,
-                    max_read_bytes: int | None = None) -> tuple[list[_st.Item], int]:
+                    max_read_bytes: int | None = None) -> tuple[list[_st.Item], int, int]:
     """Rows for files with the same size and the same fingerprint.
 
     Within each set of identical files, the copy in the most protected place
@@ -604,10 +605,23 @@ def find_duplicates(candidates: list[_Candidate], *, retention_blocked: bool,
     by_size: dict[int, list[_Candidate]] = defaultdict(list)
     for c in candidates:
         by_size[c.size].append(c)
+    budget = max_read_bytes
+    spent = 0
+    skipped = 0
     groups: list[list[_Candidate]] = []
-    for size, same in by_size.items():
+    # The quick comparison reads up to 2 MB of each file. Across millions of
+    # files those reads add up to hundreds of gigabytes, so they come out of
+    # the same budget as the full reads, largest files first.
+    for size, same in sorted(by_size.items(), key=lambda kv: kv[0], reverse=True):
         if len(_unique(same)) < 2:
             continue
+        quick_cost = len(same) * min(size, 2 * _QUICK_FINGERPRINT_BYTES)
+        if budget is not None and quick_cost > budget:
+            skipped += len(same)
+            continue
+        if budget is not None:
+            budget -= quick_cost
+        spent += quick_cost
         by_quick: dict[str, list[_Candidate]] = defaultdict(list)
         for c in same:
             fp = _fingerprint(c.path, size, quick=True)
@@ -615,8 +629,6 @@ def find_duplicates(candidates: list[_Candidate], *, retention_blocked: bool,
                 by_quick[fp].append(c)
         groups += [_unique(g) for g in by_quick.values() if len(_unique(g)) >= 2]
 
-    budget = max_read_bytes
-    spent = 0
     items: list[_st.Item] = []
     for group in sorted(groups, key=lambda g: g[0].size * len(g), reverse=True):
         cost = group[0].size * len(group)
@@ -658,7 +670,7 @@ def find_duplicates(candidates: list[_Candidate], *, retention_blocked: bool,
                     reason=reason, size=extra.size, owner=extra.owner,
                     changed_at=_iso(extra.mtime), disk=extra.disk,
                     evidence=f"same size and SHA-256 fingerprint ({fp[:16]}…) as {kept.path}"))
-    return items, spent
+    return items, spent, skipped
 
 
 # ---------------------------------------------------------------------------
@@ -1061,10 +1073,14 @@ def scan_project(cp: _cp.CertProject, *, env: dict | None = None,
     items += _listed_items(cp, roots)
     budget = (options.max_read_bytes if options.max_read_bytes is not None
               else policy.duplicate_max_read_gb * 1024**3)
-    found, summary.bytes_fingerprinted = find_duplicates(
+    found, summary.bytes_fingerprinted, not_compared = find_duplicates(
         walker.candidates, retention_blocked=_pu.retention_blocks_deletion(cp),
         max_read_bytes=budget)
     items += found
+    if not_compared:
+        summary.notes.append(f"{not_compared:,} files of matching sizes were not compared for "
+                             "duplicates, to stay within the lab's reading limit "
+                             "(duplicate_max_read_gb).")
     items += _unattributed_items(walker, roots)
     for (root_path, what), group in sorted(walker.access.items()):
         disk = next((r.disk for r in roots if str(r.path) == root_path), "")

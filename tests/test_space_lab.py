@@ -152,6 +152,48 @@ def test_what_cannot_be_read_is_reported_by_owner_with_the_fix(lab):
     assert "3 items could not be read" in sl.slack_summary(report)
 
 
+def test_folder_rows_do_not_count_twice_or_crowd_out_what_to_act_on(lab):
+    report = sl.scan_lab()
+    unclaimed = report["unclaimed"]
+    assert st.UNCLAIMED not in unclaimed["by_category"]           # the folder row itself
+    assert unclaimed["waiting_bytes"] <= unclaimed["bytes"]
+    assert all(t["category"] not in sl.CONTAINERS for t in report["top"])
+    [folder] = report["unclaimed_folders"]
+    assert folder["path"].endswith("append_only/mystery_dump") and ME in folder["owners"]
+    old = next(p for p in report["projects"] if p["name"] == "old_study")
+    assert st.DORMANT not in old["by_category"]
+    assert report["dormant"] and report["dormant"][0]["project"] == "old_study"
+    text = "\n".join(sl.describe(report))
+    assert "Folders no project claims" in text and "Dormant projects" in text
+
+
+def test_a_project_whose_data_folders_are_missing_is_still_reported(lab):
+    cp.upsert("Murmurent", lab="mh", lead="@tester", member="tester")
+    report = sl.scan_lab()
+    entry = next(p for p in report["projects"] if p["name"] == "Murmurent")
+    assert entry["no_data"] and any("append_only/Murmurent" in f for f in entry["looked_in"])
+    assert any("no data folder found" in line for line in sl.describe(report))
+    assert "Projects whose data folders were not found: Murmurent" in sl.slack_summary(report)
+
+
+def test_the_report_can_be_rebuilt_from_the_table_without_rescanning(lab, monkeypatch):
+    sl.scan_lab()
+    report = sl.read_report()
+    report["top"] = []                       # as if made by an older version
+    sl._write_report(report)
+    monkeypatch.setattr(sl.ss if hasattr(sl, "ss") else ss, "scan_project",
+                        lambda *a, **k: (_ for _ in ()).throw(AssertionError("rescanned")))
+    rebuilt = sl.rebuild_report()
+    assert rebuilt["top"] and "rebuilt_at" in rebuilt
+    out = CliRunner().invoke(cli, ["space", "lab", "--rebuild"])
+    assert out.exit_code == 0 and "Lab mh space report" in out.output
+
+
+def test_a_disk_is_named_by_its_mount_point(tmp_path):
+    assert sl.mount_point(str(tmp_path)) in [str(p) for p in [tmp_path, *tmp_path.parents]]
+    assert os.path.ismount(sl.mount_point(str(tmp_path)))
+
+
 def test_two_lab_scans_cannot_run_at_once(lab):
     with sl._lock():
         with pytest.raises(sl.LabScanBusy):

@@ -208,6 +208,9 @@ run while you are logged out, ask the administrator to run
 `loginctl enable-linger <your login>`.
 
 Run it by hand at any time with `murmurent space scan-lab`.
+To redo the report's summaries from the last scan, without walking the drive
+again (for example after murmurent is updated), run `murmurent space lab
+--rebuild` on the server.
 
 **What the scan cannot read is reported, not ignored.** Folders the scanning
 account may not open, and files it may not look at, are in no total, so every

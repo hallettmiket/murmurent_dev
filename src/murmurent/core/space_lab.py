@@ -51,6 +51,14 @@ UNCLAIMED_PROJECT = "(unclaimed)"
 #: Rows in the report's lab-wide "look at these first".
 TOP = 3
 
+#: Rows that describe a whole folder (no project claims it; its project is
+#: dormant). The files inside have rows of their own, so these are left out of
+#: "waiting" totals, the most-pressing list and emergencies, and listed apart.
+CONTAINERS = (_st.UNCLAIMED, _st.DORMANT)
+
+#: Unclaimed folders listed one by one in the report, largest first.
+UNCLAIMED_LISTED = 25
+
 
 class LabScanBusy(RuntimeError):
     """Another lab scan is still running."""
@@ -253,13 +261,20 @@ def scan_lab(*, env: dict | None = None, policy: Policy | None = None,
                         "started_at": started, "data_root": str(_lab_vm.data_root(env)),
                         "projects": [], "notes": []}
         disks: dict[str, _st.Disk] = {}
+        def files_seen(n: int, size: int) -> None:
+            say(f"  ... {n:,} files so far ({_human(size)})")
+
         for cp in projects:
             roots = _ss.project_roots(cp, env, include_repos=False)
             if not roots:
+                # Still reported: a project whose data cannot be found is a
+                # finding, most often a record that names the wrong folders.
+                report["projects"].append(_no_data_entry(cp, env))
                 continue
             say(f"Scanning {cp.name}")
             options = _ss.ScanOptions(checksums=checksums, include_repos=False,
-                                      max_read_bytes=budget, now=now)
+                                      max_read_bytes=budget, now=now,
+                                      progress=files_seen, progress_every=500_000)
             summary = _ss.scan_project(cp, env=env, policy=policy, options=options)
             budget = max(0, budget - summary.bytes_fingerprinted)
             last = _pu.last_used(cp, env)
@@ -279,7 +294,8 @@ def scan_lab(*, env: dict | None = None, policy: Policy | None = None,
                                     sensitivity="clinical",
                                     data_folders=tuple(str(f) for f in unclaimed))
             options = _ss.ScanOptions(checksums=checksums, include_repos=False,
-                                      max_read_bytes=budget, now=now)
+                                      max_read_bytes=budget, now=now,
+                                      progress=files_seen, progress_every=500_000)
             summary = _ss.scan_project(ghost, env=env, policy=policy, options=options)
             roots = [replace(r, disk=_ss._disk_key(r.path))
                      for r in _ss.project_roots(ghost, env, include_repos=False)]
@@ -291,18 +307,97 @@ def scan_lab(*, env: dict | None = None, policy: Policy | None = None,
         report["finished_at"] = _st.now_iso()
         report["disks"] = [{"label": d.label, "total": d.total, "free": d.free,
                             "fill": round(d.fill, 4)} for d in disks.values()]
-        names = [p["name"] for p in report["projects"]] + (
-            [UNCLAIMED_PROJECT] if unclaimed else [])
-        report["emergencies"] = _emergencies(conn, names, policy)
-        report["unreadable"] = _unreadable(conn, names, projects)
-        report["top"] = _lab_top(conn, names, projects)
+        derive(conn, report, projects, policy)
         _write_report(report)
         return report
 
 
+def _no_data_entry(cp: _cp.CertProject, env: dict | None) -> dict:
+    looked = [str(f) for f in _pu.effective_data_folders(cp, env)]
+    return {"name": cp.name, "sensitivity": cp.sensitivity, "activity": _pu.UNKNOWN,
+            "last_used": "", "files": 0, "bytes": 0, "unreadable": 0, "waiting_rows": 0,
+            "waiting_bytes": 0, "by_category": {}, "gaps": [], "no_data": True,
+            "looked_in": looked}
+
+
+def mount_point(path: str) -> str:
+    """The mount point holding ``path``: the disk's own name, not a folder on it."""
+    p = Path(path)
+    try:
+        while not os.path.ismount(p) and p != p.parent:
+            p = p.parent
+    except OSError:
+        return path
+    return str(p)
+
+
+def derive(conn, report: dict, projects: list[_cp.CertProject], policy: Policy) -> dict:
+    """Fill in every part of the report that comes from the table.
+
+    Used at the end of each lab scan, and by :func:`rebuild_report` to redo a
+    report from a scan already recorded, without walking the drive again.
+    """
+    for entry in report.get("projects", []) + ([report["unclaimed"]] if report.get("unclaimed") else []):
+        if entry.get("no_data"):
+            continue
+        waiting = [r for r in _st.rows(conn, entry["name"]) if r["category"] not in CONTAINERS]
+        by_category: dict[str, list[int]] = {}
+        for row in waiting:
+            tally = by_category.setdefault(row["category"], [0, 0])
+            tally[0] += 1
+            tally[1] += int(row["size"] or 0)
+        entry["by_category"] = by_category
+        entry["waiting_rows"] = len(waiting)
+        entry["waiting_bytes"] = sum(int(r["size"] or 0) for r in waiting)
+    for disk in report.get("disks", []):
+        disk["label"] = mount_point(disk["label"])
+    names = [p["name"] for p in report.get("projects", []) if not p.get("no_data")] + (
+        [UNCLAIMED_PROJECT] if report.get("unclaimed") else [])
+    report["emergencies"] = _emergencies(conn, names, policy)
+    report["unreadable"] = _unreadable(conn, names, projects)
+    report["top"] = _lab_top(conn, names, projects)
+    report["unclaimed_folders"] = _unclaimed_list(conn)
+    report["dormant"] = _dormant_list(conn, names)
+    return report
+
+
+def rebuild_report(*, env: dict | None = None, policy: Policy | None = None,
+                   lab: str = "") -> dict | None:
+    """Redo the last report's summaries from the table; None when there is no report."""
+    report = read_report()
+    if report is None:
+        return None
+    policy = policy or load_policy(env)
+    conn = _st.connect()
+    derive(conn, report, lab_projects(lab or report.get("lab", ""), env), policy)
+    report["rebuilt_at"] = _st.now_iso()
+    _write_report(report)
+    return report
+
+
+def _unclaimed_list(conn) -> list[dict]:
+    """Folders no project claims, largest first, with who owns most of each."""
+    rows = sorted(_st.rows(conn, UNCLAIMED_PROJECT, category=_st.UNCLAIMED),
+                  key=lambda r: int(r["size"] or 0), reverse=True)
+    return [{"row": int(r["id"]), "path": r["path"], "size": int(r["size"] or 0),
+             "files": int(r["n_files"] or 0), "owner": r["owner"] or "",
+             "owners": str(r["evidence"] or "").removeprefix("owners: "),
+             "changed_at": r["changed_at"] or ""} for r in rows[:UNCLAIMED_LISTED]]
+
+
+def _dormant_list(conn, names: list[str]) -> list[dict]:
+    out: list[dict] = []
+    for name in names:
+        rows = _st.rows(conn, name, category=_st.DORMANT)
+        if rows:
+            out.append({"project": name, "size": sum(int(r["size"] or 0) for r in rows),
+                        "folders": len(rows)})
+    return sorted(out, key=lambda d: d["size"], reverse=True)
+
+
 def _project_entry(conn, cp: _cp.CertProject, summary: _st.ScanSummary, activity: str,
                    last: _pu.UsageEvidence | None) -> dict:
-    waiting = _st.rows(conn, cp.name)
+    waiting = [r for r in _st.rows(conn, cp.name) if r["category"] not in CONTAINERS]
     by_category: dict[str, list[int]] = {}
     for row in waiting:
         entry = by_category.setdefault(row["category"], [0, 0])
@@ -328,6 +423,8 @@ def _emergencies(conn, names: list[str], policy: Policy) -> list[dict]:
                 entry = {"text": e.text, "short": e.text}
             else:
                 row = _st.get_row(conn, e.item_id)
+                if row is not None and row["category"] in CONTAINERS:
+                    continue   # a whole folder that has stood for years is not news
                 size = _human(int(row["size"] or 0)) if row else "one item"
                 entry = {"text": f"{name}: {e.text}",
                          "short": (f"{name}: one {row['category'] if row else ''} item of "
@@ -339,8 +436,13 @@ def _emergencies(conn, names: list[str], policy: Policy) -> list[dict]:
 
 
 def _unreadable(conn, names: list[str], projects: list[_cp.CertProject]) -> dict:
-    """Everything the scan could not read, by owner. None of it is in any total."""
-    clinical = {p.name for p in projects if p.sensitivity == "clinical"} | {UNCLAIMED_PROJECT}
+    """Everything the scan could not read, by owner. None of it is in any total.
+
+    These are folders, and the PI needs their names to get them fixed, so they
+    are named even for unclaimed folders; only clinical projects' are left out.
+    (The Slack summary never names any.)
+    """
+    clinical = {p.name for p in projects if p.sensitivity == "clinical"}
     by_owner: dict[str, int] = {}
     places: list[dict] = []
     items = 0
@@ -361,7 +463,8 @@ def _unreadable(conn, names: list[str], projects: list[_cp.CertProject]) -> dict
 def _lab_top(conn, names: list[str], projects: list[_cp.CertProject]) -> list[dict]:
     """The most pressing rows across the lab. Paths are left out for clinical data."""
     clinical = {p.name for p in projects if p.sensitivity == "clinical"} | {UNCLAIMED_PROJECT}
-    scored = [(score, name, row) for name in names for score, row in _st.ranked(conn, name)]
+    scored = [(score, name, row) for name in names for score, row in _st.ranked(conn, name)
+              if row["category"] not in CONTAINERS]
     scored.sort(key=lambda t: t[0], reverse=True)
     return [{"project": name, "row": int(row["id"]), "category": row["category"],
              "suggestion": row["suggestion"], "size": int(row["size"] or 0),
@@ -440,6 +543,10 @@ def describe(report: dict) -> list[str]:
     lines.append("")
     lines.append("Projects")
     for p in sorted(projects, key=lambda p: p["waiting_bytes"], reverse=True):
+        if p.get("no_data"):
+            lines.append(f"  {p['name']:<28} no data folder found; the record points to "
+                         + ", ".join(p.get("looked_in") or []) + ". Set data_folders in its record.")
+            continue
         used = f"last used {p['last_used']}" if p["last_used"] else "no sign of use"
         lines.append(f"  {p['name']:<28} {_human(p['bytes']):>9}  {p['activity']:<8} {used:<22}"
                      f" waiting: {p['waiting_rows']} rows, {_human(p['waiting_bytes'])}")
@@ -447,6 +554,18 @@ def describe(report: dict) -> list[str]:
         lines.append(f"  {'(no project claims these)':<28} {_human(unclaimed['bytes']):>9}"
                      f"  waiting: {unclaimed['waiting_rows']} rows, "
                      f"{_human(unclaimed['waiting_bytes'])}")
+    folders = report.get("unclaimed_folders") or []
+    if folders:
+        lines.append("")
+        lines.append(f"Folders no project claims (largest {len(folders)}); add each to a "
+                     "project's data_folders, or ask its owner")
+        for f in folders:
+            lines.append(f"  {_human(f['size']):>9}  {f['path']}  ({f['owners']})")
+    dormant = report.get("dormant") or []
+    if dormant:
+        lines.append("")
+        lines.append("Dormant projects: mothballing suggested")
+        lines += [f"  {_human(d['size']):>9}  {d['project']}" for d in dormant]
     lines.append("")
     lines.append("Details for one project: murmurent space show <project>")
     return lines
@@ -472,11 +591,16 @@ def slack_summary(report: dict) -> str:
         owners = ", ".join(f"{n:,} owned by {o}" for o, n in list(blind["by_owner"].items())[:5])
         parts.append(f"{blind['items']:,} items could not be read, so the totals miss them: "
                      f"{owners}. Each owner can fix it by letting the lab group read them.")
-    dormant = [p["name"] for p in projects if p["activity"] == _pu.DORMANT]
+    dormant = [d["project"] for d in report.get("dormant") or []] or \
+        [p["name"] for p in projects if p["activity"] == _pu.DORMANT]
     if dormant:
         parts.append("Dormant, mothballing suggested: " + ", ".join(dormant))
     if unclaimed and unclaimed["bytes"]:
-        parts.append(f"No project claims {_human(unclaimed['bytes'])}.")
+        parts.append(f"No project claims {_human(unclaimed['bytes'])}, in "
+                     f"{len(report.get('unclaimed_folders') or [])} or more folders.")
+    missing = [p["name"] for p in projects if p.get("no_data")]
+    if missing:
+        parts.append("Projects whose data folders were not found: " + ", ".join(missing))
     parts.append("Details: `murmurent space lab` on the server, or the Space page of your "
                  "dashboard.")
     return "\n".join(parts)
@@ -542,7 +666,7 @@ def notify_pi(report: dict, *, lab: str = "",
 
 
 __all__ = [
-    "notify_pi", "FetchError", "fetch_report", "REPORT_FILENAME", "REPORT_SCHEMA", "UNCLAIMED_PROJECT", "LabScanBusy",
+    "notify_pi", "derive", "rebuild_report", "mount_point", "CONTAINERS", "FetchError", "fetch_report", "REPORT_FILENAME", "REPORT_SCHEMA", "UNCLAIMED_PROJECT", "LabScanBusy",
     "report_path", "lab_projects", "top_level_folders", "unclaimed_folders",
     "scan_lab", "read_report", "describe", "slack_summary",
 ]
