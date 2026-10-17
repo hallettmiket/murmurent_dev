@@ -68,6 +68,15 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
   in your own `~/.murmurent/space/`, readable by you only. The thresholds are in
   `policy/millwright.yaml`. Guide: [Tidying a project's
   space](https://hallettmiket.github.io/murmurent/space_table/).
+- **A weekly lab-wide space scan, and the report on your laptop** (#151). On
+  the server, `murmurent space schedule --install` runs `murmurent space
+  scan-lab` every Sunday at 02:00: it scans every project's data folders and
+  every folder under the data root that no project claims, suggests mothballing
+  for projects unused for 24 months, and sends the PI a Slack summary with no
+  file names. Other labs' folders are never scanned. On a laptop, `murmurent
+  space lab --host <server>`, or the new Space page of the PI's dashboard,
+  fetches the report over SSH. A full scan takes about 10 minutes per million
+  files on the lab's network drive.
 - **`murmurent run --input`** records what a job reads, so the space scan can
   tell later whether its output could be made again.
 

@@ -321,6 +321,9 @@ The full guide is [Running long jobs](run_launcher.md).
 | `murmurent space show [project] [--category C] [--owner O] [--min-size 10G] [--all]` | The table from the last scan: emergencies, the top three, then every row waiting for a decision |
 | `murmurent space decide <row> keep\|delete\|mothball\|compress\|move\|undo [--note …]` | Record your decision on one row. Nothing is carried out |
 | `murmurent space gaps [project]` | Cases the lab's procedures do not cover, each with an example |
+| `murmurent space scan-lab [--notify]` | (PI, on the server) Scan every project's data folders and the folders no project claims; write the lab report; with `--notify`, send the PI a Slack summary without file names |
+| `murmurent space lab [--host <server>] [--json]` | The lab's last report: emergencies, what to look at first, every project. With `--host`, fetch it from the server over SSH |
+| `murmurent space schedule [--install\|--remove] [--day sun --at 02:00]` | Show, set up or remove the weekly lab scan (a systemd user timer); recorded in the lab records repository |
 
 The full guide is [Tidying a project's space](space_table.md).
 

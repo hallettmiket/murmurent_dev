@@ -2960,6 +2960,30 @@ def create_app() -> FastAPI:
                     continue
             tf.extract(member, dest_dir)
 
+    @app.get("/api/space/lab")
+    def space_lab_endpoint(
+        host: str = Query("", description="Registered host the scan runs on; blank = here."),
+        user: str = Query("", description="Actor handle; falls back to $MURMURENT_USER."),
+    ) -> dict:
+        """The lab's last space report (#151, step 3), for the PI only.
+
+        Fetched from ``host`` over SSH when named, so a PI can read on a laptop
+        the report the weekly scan wrote on the server. The report holds file
+        names, so it is never cached here.
+        """
+        from ..core import membership as _m
+        from ..core import space_lab as _sl
+        actor = _resolve_actor(user)
+        _require_active(actor)
+        if actor.lower() != _m.pi_handle().lower():
+            raise HTTPException(status_code=403, detail="Only the PI can see the lab's space report.")
+        try:
+            report = _sl.fetch_report(host)
+        except _sl.FetchError as exc:
+            raise HTTPException(status_code=502, detail=str(exc))
+        return {"host": host, "report": report,
+                "lines": _sl.describe(report) if report else []}
+
     @app.get("/api/security/findings")
     @_scoped_to_viewer
     def security_findings_endpoint(
@@ -8146,6 +8170,15 @@ def create_app() -> FastAPI:
             render). Per the cores rollout design notes §10.
             """
             return _html_page("core.html")
+
+        @app.get("/space", response_class=HTMLResponse)
+        def space_index() -> HTMLResponse:
+            """The lab's space report (#151, step 3): PI only, fetched from the
+            machine the weekly scan runs on."""
+            return HTMLResponse(
+                (STATIC_DIR / "space.html").read_text(encoding="utf-8"),
+                headers=_NO_CACHE,
+            )
 
         @app.get("/security", response_class=HTMLResponse)
         def security_index() -> HTMLResponse:

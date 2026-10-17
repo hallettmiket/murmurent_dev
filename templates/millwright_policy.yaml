@@ -91,6 +91,11 @@ duplicate_min_mb: 10
 # duplicates, for a person to confirm.
 duplicate_max_read_gb: 100
 
+# Folders the scan lists at once. On the lab's network drive this made little
+# difference (about 10 minutes per million files either way); a drive that
+# answers slowly but in parallel may gain more.
+scan_threads: 8
+
 # An intermediate file made by a job you ran with `murmurent run`, from code
 # that is committed and inputs that still exist, is suggested for deletion when
 # making it again would take fewer CPU hours than this. Costlier ones are marked

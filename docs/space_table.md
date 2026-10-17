@@ -168,13 +168,67 @@ lab's management repository, alongside the rules for `murmurent run`:
 | `remake_cheap_below_cpu_hours` | 10 | Below this, a job's output may be suggested for deletion |
 | `disk_emergency_fill_fraction` | 0.90 | A disk fuller than this is an emergency |
 | `emergency_item_share_of_free` | 0.25 | One item bigger than this share of free space is an emergency |
+| `scan_threads` | 8 | Folders listed at once. On the lab's drive this made little difference (about 10 minutes per million files either way) |
 
 `murmurent jobs policy` prints the settings in force.
 
+## The weekly lab scan (for the PI)
+
+A project nobody opens any more is never scanned by `murmurent space scan`, so
+the lab also runs one scan of everything, once a week, on the server where the
+data lives:
+
+- every project's data folders (not repositories, which live in members' home
+  folders);
+- every folder under the data root that no project claims, with who owns how
+  much of it;
+- for a project unused for 24 months (the lab can change this), a suggestion to
+  mothball its data: back it up, then remove it from the server.
+
+Other labs' folders are never scanned. The scan runs under the PI's account at
+the lowest priority, only reads, and sends the PI one Slack direct message:
+totals, emergencies and project names, never a file name.
+
+Set it up once, on the server, as the PI:
+
+```bash
+murmurent space schedule --install    # every Sunday at 02:00; --day and --at change it
+murmurent space schedule              # when it runs next, and whether it needs you logged in
+```
+
+This writes what runs, under whose account and what it may do into
+`policy/scheduled_jobs.md` in the lab records repository; commit and push it
+so the lab can see it.
+
+**Logged in or not.** The scan uses the server's own scheduler for your
+account. Unless the administrator has turned on "lingering" for your account,
+it runs only while you have a session on the server, and a missed run happens
+at your next login. `murmurent space schedule` says which applies. To have it
+run while you are logged out, ask the administrator to run
+`loginctl enable-linger <your login>`.
+
+Run it by hand at any time with `murmurent space scan-lab`.
+
+## Seeing the lab report on your laptop
+
+The report stays on the server, readable only by you. Your laptop fetches it
+when you ask, through the same SSH connection murmurent already uses for that
+server (`murmurent host list`):
+
+```bash
+murmurent space lab --host <server>   # in a terminal on your laptop
+```
+
+Or open **Space** at the top of your dashboard (PI view), choose the server and
+click **Fetch report**. Both show emergencies, the three most pressing items
+across the lab, and every project with how much is waiting for a decision. To
+see every row of one project or record a decision, use `murmurent space show`
+and `murmurent space decide` on the server.
+
+For clinical projects, and for folders no project claims, the lab-wide list of
+pressing items gives sizes but no file names.
+
 ## What it cannot do yet
 
-- It scans one project, when you ask. A scheduled scan of the whole lab's data
-  folder, which also covers projects nobody opens any more, is the next step.
-- The table is not yet shown in the dashboard, and an emergency is not yet sent
-  as a direct message.
 - It does not carry out decisions.
+- Rows cannot yet be decided from the dashboard; use `murmurent space decide`.

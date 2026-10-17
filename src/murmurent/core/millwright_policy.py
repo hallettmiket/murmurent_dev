@@ -139,6 +139,9 @@ class Policy:
         The most a scan reads in full to confirm duplicates. Past it, files with
         the same size and the same first and last megabyte are listed as
         probable duplicates, not confirmed (step 2).
+    scan_threads : int
+        Folders the space scan lists at once (step 3). Each waits on the
+        drive more than it uses a core.
     remake_cheap_below_cpu_hours : int
         An intermediate file that took less than this many CPU hours to make,
         from committed code and inputs that still exist, is suggested for
@@ -175,6 +178,7 @@ class Policy:
     compress_min_mb: int = 100
     duplicate_min_mb: int = 10
     duplicate_max_read_gb: int = 100
+    scan_threads: int = 8
     remake_cheap_below_cpu_hours: int = 10
     disk_emergency_fill_fraction: float = 0.90
     emergency_item_share_of_free: float = 0.25
@@ -289,6 +293,7 @@ _CHECKERS = {
     "compress_min_mb": _check_int(1),
     "duplicate_min_mb": _check_int(1),
     "duplicate_max_read_gb": _check_int(0),
+    "scan_threads": _check_int(1, 32),
     "remake_cheap_below_cpu_hours": _check_int(0),
     "disk_emergency_fill_fraction": _check_fraction,
     "emergency_item_share_of_free": _check_fraction,
