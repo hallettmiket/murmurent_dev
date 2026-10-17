@@ -645,11 +645,51 @@ def fetch_report(host_name: str = "") -> dict | None:
 
 
 def _report_from_output(text: str) -> dict | None:
-    """The report in a remote command's output, skipping anything printed before it.
+    """The report in a remote command's output, skipping anything printed before it."""
+    return _json_from_output(text, lambda d: d.get("schema") == REPORT_SCHEMA)
+
+
+def fetch_rows(host_name: str = "", **filters) -> dict:
+    """One page of the space table, from this computer or a registered host over SSH.
+
+    ``filters`` are :func:`core.space_table.rows_page`'s (project, category,
+    suggestion, owner, min_size, limit, offset).
+    """
+    if not host_name:
+        return _st.rows_page(_st.connect(), **filters)
+    import shlex
+    from . import hosts as _hosts
+    from .remote import Remote, RemoteError
+    try:
+        host = _hosts.resolve(host_name)
+    except Exception as exc:  # noqa: BLE001
+        raise FetchError(f"no host named {host_name!r}. List them with: "
+                         "murmurent host list") from exc
+    if not host.is_remote():
+        return _st.rows_page(_st.connect(), **filters)
+    parts = ["murmurent", "space", "rows", "--json"]
+    for key, value in filters.items():
+        if value not in (None, "", 0):
+            parts += [f"--{key.replace('_', '-')}", str(value)]
+    try:
+        out = Remote(host).run(" ".join(shlex.quote(p) for p in parts), timeout=60)
+    except RemoteError as exc:
+        text = (exc.stderr or exc.stdout or str(exc)).strip()
+        last = text.splitlines()[-1] if text else str(exc)
+        raise FetchError(f"could not fetch the list from {host_name}: {last}") from exc
+    data = _json_from_output(out.stdout, lambda d: d.get("kind") == "space_rows")
+    if data is None:
+        raise FetchError(f"{host_name} did not send a list murmurent can read; is "
+                         "murmurent up to date there?")
+    return data
+
+
+def _json_from_output(text: str, accept: Callable[[dict], bool]) -> dict | None:
+    """The first JSON object in a remote command's output that ``accept`` approves.
 
     A server's login scripts may print a notice first (the lab's server reminds
     everyone to use nice 19), and the remote command runs in a login shell. The
-    report is the first line that opens a JSON object, through to its end.
+    object starts at the beginning of a line and runs to its end.
     """
     decoder = json.JSONDecoder()
     start = 0
@@ -662,7 +702,7 @@ def _report_from_output(text: str) -> dict | None:
                 data, _end = decoder.raw_decode(text, at)
             except ValueError:
                 data = None
-            if isinstance(data, dict) and data.get("schema") == REPORT_SCHEMA:
+            if isinstance(data, dict) and accept(data):
                 return data
         start = at + 1
 
@@ -688,7 +728,7 @@ def notify_pi(report: dict, *, lab: str = "",
 
 
 __all__ = [
-    "notify_pi", "derive", "rebuild_report", "mount_point", "CONTAINERS", "FetchError", "fetch_report", "REPORT_FILENAME", "REPORT_SCHEMA", "UNCLAIMED_PROJECT", "LabScanBusy",
+    "notify_pi", "fetch_rows", "derive", "rebuild_report", "mount_point", "CONTAINERS", "FetchError", "fetch_report", "REPORT_FILENAME", "REPORT_SCHEMA", "UNCLAIMED_PROJECT", "LabScanBusy",
     "report_path", "lab_projects", "top_level_folders", "unclaimed_folders",
     "scan_lab", "read_report", "describe", "slack_summary",
 ]

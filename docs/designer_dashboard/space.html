@@ -64,6 +64,12 @@
       .pill.dormant { border-color: var(--red); color: var(--red); }
       .pill.quiet { border-color: var(--tiger); color: #8a5a1c; }
       .note { font-size: 13px; color: var(--muted); }
+      .filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+      .filters label { font-size: 13px; color: var(--muted); }
+      .rows td.path { font-family: var(--mono); font-size: 12px; word-break: break-all; }
+      .rows td.why { font-size: 13px; color: var(--muted); }
+      .rows td { vertical-align: top; }
+      .more { margin-top: 10px; }
       code { font-family: var(--mono); font-size: 12px; background: var(--paper-2);
              padding: 1px 4px; border-radius: 2px; }
       @media (max-width: 640px) { .container { padding: 0 16px; } .banner { padding: 12px 16px; } }
@@ -84,6 +90,28 @@
         </div>
       </div>
       <div id="report"></div>
+      <div class="card" id="rows-card" hidden>
+        <header>Every suggestion</header>
+        <div class="body">
+          <div class="filters">
+            <label>Project <select id="f-project"><option value="">any</option></select></label>
+            <label>Category <select id="f-category"><option value="">any</option></select></label>
+            <label>Suggestion <select id="f-suggestion"><option value="">any</option></select></label>
+            <label>Owner <select id="f-owner"><option value="">any</option></select></label>
+            <label>At least <select id="f-size">
+              <option value="0">any size</option><option value="1073741824">1 GB</option>
+              <option value="10737418240" selected>10 GB</option><option value="107374182400">100 GB</option>
+              <option value="1099511627776">1 TB</option></select></label>
+            <button id="f-show">Show</button>
+            <span class="status" id="rows-status"></span>
+          </div>
+          <table class="rows"><thead><tr><th class="num">Size</th><th>Suggestion</th><th>Where</th><th>Owner</th><th>Why</th></tr></thead>
+            <tbody id="rows-body"></tbody></table>
+          <button class="more" id="rows-more" hidden>Show more</button>
+          <p class="note">Nothing here is changed by looking. Record a decision on the server with
+            <code>murmurent space decide &lt;row&gt; keep|delete|mothball|compress|move</code>.</p>
+        </div>
+      </div>
       <p class="note">
         The weekly scan only suggests: nothing is changed, moved or deleted. To see every row of one
         project, or to record a decision, run <code>murmurent space show &lt;project&gt;</code> on the
@@ -242,8 +270,67 @@
               esc(h.name) + "</option>").join("");
           load();
         })
-        .catch(() => { hostEl.innerHTML = '<option value="">this computer</option>'; load(); });
+        .catch(() => { hostEl.innerHTML = '<option value="">this computer</option>'; load(); })
+        .finally(() => loadRows(false));
       loadEl.addEventListener("click", load);
+
+      // ── Every suggestion: one page at a time, largest first ──
+      const rowsCard = document.getElementById("rows-card");
+      const rowsBody = document.getElementById("rows-body");
+      const rowsStatus = document.getElementById("rows-status");
+      const moreEl = document.getElementById("rows-more");
+      const PAGE = 200;
+      let offset = 0, facetsFilled = false;
+      const pick = id => document.getElementById(id).value;
+
+      function fillFacet(id, pairs, label) {
+        const el = document.getElementById(id);
+        const keep = el.value;
+        el.innerHTML = '<option value="">any</option>' + (pairs || []).map(([v, n]) =>
+          '<option value="' + esc(v) + '">' + esc(label ? label(v) : v) + " (" + Number(n).toLocaleString() + ")</option>").join("");
+        el.value = keep;
+      }
+
+      function loadRows(append) {
+        if (!append) offset = 0;
+        const qs = new URLSearchParams();
+        if (hostEl.value) qs.set("host", hostEl.value);
+        if (user) qs.set("user", user);
+        for (const [k, id] of [["project", "f-project"], ["category", "f-category"],
+                               ["suggestion", "f-suggestion"], ["owner", "f-owner"]]) {
+          if (pick(id)) qs.set(k, pick(id));
+        }
+        if (Number(pick("f-size"))) qs.set("min_size", pick("f-size"));
+        qs.set("limit", PAGE); qs.set("offset", offset);
+        rowsStatus.className = "status"; rowsStatus.textContent = "fetching…";
+        fetch("/api/space/rows?" + qs.toString(), { credentials: "same-origin", headers: { Accept: "application/json" } })
+          .then(r => r.json().then(j => ({ ok: r.ok, body: j })))
+          .then(({ ok, body }) => {
+            if (!ok) { rowsStatus.className = "status error"; rowsStatus.textContent = (body && body.detail) || "could not fetch the list"; return; }
+            rowsCard.hidden = false;
+            if (!facetsFilled) {
+              fillFacet("f-project", body.facets.projects, v => v === "(unclaimed)" ? "no project claims these" : v);
+              fillFacet("f-category", body.facets.categories);
+              fillFacet("f-suggestion", body.facets.suggestions);
+              fillFacet("f-owner", body.facets.owners);
+              facetsFilled = true;
+            }
+            const html = body.rows.map(r =>
+              '<tr><td class="num">' + esc(size(r.size)) + (r.files > 1 ? '<div class="note">' + esc(r.files.toLocaleString()) + " files</div>" : "") +
+              "</td><td><strong>" + esc(r.suggestion) + '</strong><div class="note">' + esc(r.category) + " · " +
+              esc(r.project === "(unclaimed)" ? "unclaimed" : r.project) + " · row " + esc(r.id) + "</div></td>" +
+              '<td class="path">' + esc(r.path) + "</td><td>" + esc(r.owner) + '</td><td class="why">' + esc(r.reason) + "</td></tr>").join("");
+            rowsBody.innerHTML = append ? rowsBody.innerHTML + html : html;
+            offset += body.rows.length;
+            rowsStatus.textContent = body.total.toLocaleString() + " rows, " + size(body.total_bytes) +
+              "; showing " + offset.toLocaleString() + ".";
+            moreEl.hidden = offset >= body.total;
+          })
+          .catch(err => { rowsStatus.className = "status error"; rowsStatus.textContent = "network error: " + err; });
+      }
+      document.getElementById("f-show").addEventListener("click", () => loadRows(false));
+      moreEl.addEventListener("click", () => loadRows(true));
+      loadEl.addEventListener("click", () => { facetsFilled = false; loadRows(false); });
     </script>
   </body>
 </html>
