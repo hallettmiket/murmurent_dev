@@ -254,6 +254,18 @@ def test_the_report_can_be_fetched_from_another_machine(lab, monkeypatch):
     assert out.exit_code == 0 and "old_study" in out.output
 
 
+def test_a_notice_printed_at_login_does_not_spoil_the_report(lab, monkeypatch):
+    from murmurent.core import hosts
+    from murmurent.core import remote
+    report = sl.scan_lab()
+    monkeypatch.setattr(hosts, "resolve", lambda name: hosts.Host(name=name, kind="ssh"))
+    noisy = ("REMINDER: Please run CPU-intensive processes with 'nice -n 19 command'\n"
+             "Example: nice -n 19 python my_script.py {not json}\n" + json.dumps(report, indent=2))
+    monkeypatch.setattr(remote.Remote, "run", lambda self, command, **kw: remote.RemoteResult(
+        host="server", command=command, returncode=0, stdout=noisy, stderr=""))
+    assert sl.fetch_report("server")["lab"] == "mh"
+
+
 def test_a_machine_with_no_report_yet_says_so(lab, monkeypatch):
     from murmurent.core import hosts
     from murmurent.core import remote
