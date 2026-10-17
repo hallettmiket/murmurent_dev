@@ -131,4 +131,4 @@ def test_dashboard_refuses_revoked_card(monkeypatch, tmp_path):
     client = TestClient(create_app())
     res = client.get("/api/dashboard?user=yxia266")
     assert res.status_code == 403
-    assert "failed verification" in res.json()["detail"]
+    assert "has been withdrawn" in res.json()["detail"]

@@ -123,10 +123,15 @@ window.__murmurentFetchData = function (persona) {
     .then((r) => {
       if (r.status === 401 || r.status === 403) {
         // Not an authorised identity for this machine/centre. Do NOT render a
-        // stale/empty dashboard as if signed in — send them back to login.
-        const err = new Error("HTTP " + r.status);
-        err.__authFailure = true;
-        throw err;
+        // stale/empty dashboard as if signed in; send them back to login,
+        // carrying the server's reason (an expired card, say) so the sign-in
+        // page can show it instead of looking as if sign-in simply failed.
+        return r.json().catch(() => ({})).then((body) => {
+          const err = new Error("HTTP " + r.status);
+          err.__authFailure = true;
+          err.__detail = body && typeof body.detail === "string" ? body.detail : "";
+          throw err;
+        });
       }
       if (!r.ok) throw new Error("HTTP " + r.status);
       return r.json();
@@ -143,6 +148,9 @@ window.__murmurentFetchData = function (persona) {
       window.__wigamigDataLive = false;
       if (err && err.__authFailure) {
         console.warn("[murmurent] /api/dashboard refused this identity; returning to login");
+        try {
+          if (err.__detail) sessionStorage.setItem("murmurent.refusal", err.__detail);
+        } catch (e) { /* storage blocked: the sign-in page checks the card itself */ }
         window.location.href = "/";   // login page is served at "/", not "/login"
         return;
       }
