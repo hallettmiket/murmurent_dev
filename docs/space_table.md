@@ -209,6 +209,12 @@ run while you are logged out, ask the administrator to run
 
 Run it by hand at any time with `murmurent space scan-lab`.
 
+**What the scan cannot read is reported, not ignored.** Folders the scanning
+account may not open, and files it may not look at, are in no total, so every
+figure is low by an unknown amount. The report, the Slack message and the Space
+page list them by owner, and each row gives the fix for the owner to run:
+`chmod -R g+rX <folder>`, which lets the lab group read it.
+
 ## Seeing the lab report on your laptop
 
 The report stays on the server, readable only by you. Your laptop fetches it

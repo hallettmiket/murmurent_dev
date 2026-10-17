@@ -221,6 +221,14 @@ def _ext(name: str) -> str:
     return os.path.splitext(lower)[1]
 
 
+def _is_dir(path: Path) -> bool:
+    """``path.is_dir()``, False when the account may not look (instead of raising)."""
+    try:
+        return path.is_dir()
+    except OSError:
+        return False
+
+
 def _within(child: Path, parent: Path) -> bool:
     try:
         child.relative_to(parent)
@@ -256,10 +264,10 @@ def project_roots(cp: _cp.CertProject, env: dict | None = None, *,
         if (r.host or "local") != "local" or not r.path:
             continue
         path = Path(os.path.normpath(Path(r.path).expanduser()))
-        if path.is_dir():
+        if _is_dir(path):
             found.append(Root(path=path, kind=ROOT_REPO))
     for folder in _pu.effective_data_folders(cp, env):
-        if folder.is_dir():
+        if _is_dir(folder):
             found.append(Root(path=folder, kind=_root_kind(folder, env)))
     kept: list[Root] = []
     for root in found:
@@ -699,6 +707,8 @@ class _Walker:
         self.files = 0
         self.bytes = 0
         self.unreadable: list[str] = []
+        #: {folder: entries in it the account may not look at}
+        self.hidden_entries: dict[str, int] = {}
         self.candidates: list[_Candidate] = []
         self.unattributed: dict[tuple[str, str, str], _Group] = {}
         self.access: dict[tuple[str, str], _Group] = {}
@@ -751,10 +761,12 @@ class _Walker:
             while pending:
                 done, pending = wait(pending, return_when=FIRST_COMPLETED)
                 for future in done:
-                    folder, listing = future.result()
+                    folder, listing, refused = future.result()
                     if listing is None:
                         self.unreadable.append(str(folder))
                         continue
+                    if refused:
+                        self.hidden_entries[str(folder)] = refused
                     for sub in self._folder(root, folder, listing, tracked):
                         pending.add(pool.submit(_list_folder, sub))
 
@@ -944,23 +956,27 @@ class _Walker:
                 job.other.add(spath, size, mtime)
 
 
-def _list_folder(folder: Path) -> tuple[Path, list[tuple[str, str, os.stat_result]] | None]:
-    """A folder's entries with their details, or None when it cannot be read.
+def _list_folder(folder: Path) -> tuple[Path, list[tuple[str, str, os.stat_result]] | None, int]:
+    """A folder's entries with their details, and how many could not be looked at.
 
-    Runs in a worker thread. Links are not followed; an entry that vanishes
-    while being read is passed over.
+    The listing is None when the folder itself cannot be opened. Runs in a
+    worker thread. Links are not followed. An entry that vanished while being
+    read is not counted; one the account may not look at is.
     """
     try:
         entries = list(os.scandir(folder))
     except OSError:
-        return folder, None
+        return folder, None, 0
     out: list[tuple[str, str, os.stat_result]] = []
+    refused = 0
     for entry in entries:
         try:
             out.append((entry.name, entry.path, entry.stat(follow_symlinks=False)))
-        except OSError:
+        except FileNotFoundError:
             continue
-    return folder, out
+        except OSError:
+            refused += 1
+    return folder, out, refused
 
 
 def _is_environment(path: Path, name: str) -> bool:
@@ -968,7 +984,12 @@ def _is_environment(path: Path, name: str) -> bool:
         return True
     if name == "library" and path.parent.name == "renv":
         return True
-    return (path / "pyvenv.cfg").is_file() or (path / "conda-meta").is_dir()
+    # On a shared drive a folder may hold files the scanning account cannot
+    # look at; that must not stop a scan of the whole lab.
+    try:
+        return (path / "pyvenv.cfg").is_file() or (path / "conda-meta").is_dir()
+    except OSError:
+        return False
 
 
 def _disk_key(path: Path) -> str:
@@ -1052,12 +1073,7 @@ def scan_project(cp: _cp.CertProject, *, env: dict | None = None,
             reason=f"{_files(group.n_files)} here that {what}.", size=group.size,
             n_files=group.n_files, changed_at=_iso(group.newest), disk=disk,
             evidence=f"for example {group.example}"))
-    for folder in walker.unreadable[:_MAX_UNREADABLE_ROWS]:
-        disk = next((r.disk for r in roots if _within(Path(folder), r.path)), "")
-        items.append(_st.Item(
-            path=folder, category=_st.UNREADABLE, suggestion=_st.ASK_OWNER, kind="folder",
-            reason="This folder could not be read, so its size is unknown.",
-            owner=walker._owner_of(Path(folder)), size=0, n_files=0, disk=disk))
+    items += _unreadable_items(walker, roots)
 
     if _pu.retention_blocks_deletion(cp):
         for item in items:
@@ -1070,10 +1086,13 @@ def scan_project(cp: _cp.CertProject, *, env: dict | None = None,
     summary.owners_by_folder = walker.owners_by_folder
     summary.files = walker.files
     summary.bytes = walker.bytes
-    summary.unreadable = len(walker.unreadable)
-    if len(walker.unreadable) > _MAX_UNREADABLE_ROWS:
-        summary.notes.append(f"{len(walker.unreadable)} folders could not be read; the first "
-                             f"{_MAX_UNREADABLE_ROWS} are listed.")
+    summary.unreadable = len(walker.unreadable) + sum(walker.hidden_entries.values())
+    places = len(walker.unreadable) + len(walker.hidden_entries)
+    if summary.unreadable:
+        summary.notes.append(
+            f"{_files(summary.unreadable).replace('file', 'item')} could not be read, so no "
+            "total includes them" + (f"; the first {_MAX_UNREADABLE_ROWS} places are listed"
+                                     if places > _MAX_UNREADABLE_ROWS else "") + ".")
     if not options.checksums:
         summary.notes.append("Duplicates were not looked for (--no-checksums).")
     if walker.environments:
@@ -1090,6 +1109,30 @@ def scan_project(cp: _cp.CertProject, *, env: dict | None = None,
     summary.finished_at = _st.now_iso()
     write_data_dates({k: v for k, v in walker.folder_newest.items()}, summary.finished_at)
     return summary
+
+
+def _unreadable_items(walker: _Walker, roots: list[Root]) -> list[_st.Item]:
+    """A row for each folder the scan could not open, or could not fully look into.
+
+    Nothing in them is in any total, so the scan's figures are low by an unknown
+    amount until the owner lets the lab group read them.
+    """
+    places = [(f, 0) for f in walker.unreadable] + sorted(walker.hidden_entries.items())
+    items: list[_st.Item] = []
+    for folder, hidden in places[:_MAX_UNREADABLE_ROWS]:
+        disk = next((r.disk for r in roots if _within(Path(folder), r.path)), "")
+        owner = walker._owner_of(Path(folder))
+        who = f"its owner, {owner}," if owner else "its owner"
+        what = ("The scan could not open this folder" if not hidden else
+                f"{_files(hidden).replace('file', 'item')} in this folder could not be looked at")
+        items.append(_st.Item(
+            path=folder, category=_st.UNREADABLE, suggestion=_st.ASK_OWNER,
+            kind="folder" if not hidden else "files", n_files=hidden, size=0, owner=owner,
+            disk=disk,
+            reason=(f"{what}, so no total includes it. Ask {who} to let the lab group read "
+                    f"it: chmod -R g+rX {folder}"),
+            evidence="permission denied to the scanning account"))
+    return items
 
 
 def _files(n: int) -> str:
@@ -1113,18 +1156,19 @@ def _listed_items(cp: _cp.CertProject, roots: list[Root]) -> list[_st.Item]:
     items: list[_st.Item] = []
     for repo_name, path in ready_to_delete_entries(cp):
         root = next((r for r in roots if path == r.path or _within(path, r.path)), None)
-        if root is None or not path.exists() or path == root.path:
+        if root is None or path == root.path:
             continue
         try:
             st = path.lstat()
         except OSError:
             continue
-        size = st.st_size if path.is_file() else _folder_size(path)
+        is_file = stat.S_ISREG(st.st_mode)
+        size = st.st_size if is_file else _folder_size(path)
         in_immutable = root.kind == ROOT_IMMUTABLE
         items.append(_st.Item(
             path=str(path), category=_st.LISTED,
             suggestion=_st.ASK_OWNER if in_immutable else _st.DELETE,
-            kind="file" if path.is_file() else "folder",
+            kind="file" if is_file else "folder",
             reason=("A member listed this in src/ready_to_delete.md." if not in_immutable else
                     "Listed in src/ready_to_delete.md, but it is in immutable/, which is never "
                     "deleted without the PI."),

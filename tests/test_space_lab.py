@@ -116,6 +116,42 @@ def test_folders_under_the_older_names_are_listed_one_by_one(lab):
     assert "refined" not in folders and "append_only" not in folders
 
 
+def test_a_file_the_scan_may_not_look_at_does_not_stop_it(lab, monkeypatch):
+    real = Path.is_file
+
+    def guarded(self):
+        if self.name == "pyvenv.cfg":
+            raise PermissionError(13, "Permission denied", str(self))
+        return real(self)
+
+    monkeypatch.setattr(Path, "is_file", guarded)
+    report = sl.scan_lab()
+    assert {p["name"] for p in report["projects"]} == {"brca", "old_study"}
+
+
+@pytest.mark.skipif(os.geteuid() == 0, reason="permissions do not bind the root account")
+def test_what_cannot_be_read_is_reported_by_owner_with_the_fix(lab):
+    locked = lab["data"] / "append_only" / "brca" / "02_locked"
+    lab["write"]("append_only/brca/02_locked/hidden.csv", 100)
+    peek_only = lab["data"] / "append_only" / "brca" / "03_names_only"
+    lab["write"]("append_only/brca/03_names_only/a.csv", 100)
+    lab["write"]("append_only/brca/03_names_only/b.csv", 100)
+    locked.chmod(0o000)
+    peek_only.chmod(0o444)          # names can be listed, nothing can be looked at
+    try:
+        report = sl.scan_lab()
+    finally:
+        locked.chmod(0o755)
+        peek_only.chmod(0o755)
+    blind = report["unreadable"]
+    assert blind["items"] == 3 and blind["by_owner"] == {ME: 3}
+    rows = {r["path"]: r for r in st.rows(st.connect(), "brca", category=st.UNREADABLE)}
+    assert "chmod -R g+rX" in rows[str(locked)]["reason"]
+    assert rows[str(peek_only)]["n_files"] == 2
+    assert any(line.startswith("Not readable: 3 items") for line in sl.describe(report))
+    assert "3 items could not be read" in sl.slack_summary(report)
+
+
 def test_two_lab_scans_cannot_run_at_once(lab):
     with sl._lock():
         with pytest.raises(sl.LabScanBusy):

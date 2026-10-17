@@ -107,12 +107,14 @@ def top_level_folders(env: dict | None = None) -> list[Path]:
     # project folders, not one item.
     names = (_lab_vm.IMMUTABLE_SUBDIR, _lab_vm.APPEND_ONLY_SUBDIR,
              _lab_vm.LEGACY_IMMUTABLE_SUBDIR, _lab_vm.LEGACY_APPEND_ONLY_SUBDIR)
-    tiers = [root / n for n in names if (root / n).is_dir() and not (root / n).is_symlink()]
+    tiers = [root / n for n in names
+             if _ss._is_dir(root / n) and not (root / n).is_symlink()]
     found: list[Path] = []
     for parent in tiers + [root]:
         try:
             children = sorted(p for p in parent.iterdir()
-                              if p.is_dir() and not p.is_symlink() and not p.name.startswith("."))
+                              if not p.name.startswith(".") and not p.is_symlink()
+                              and _ss._is_dir(p))
         except OSError:
             continue
         for child in children:
@@ -292,6 +294,7 @@ def scan_lab(*, env: dict | None = None, policy: Policy | None = None,
         names = [p["name"] for p in report["projects"]] + (
             [UNCLAIMED_PROJECT] if unclaimed else [])
         report["emergencies"] = _emergencies(conn, names, policy)
+        report["unreadable"] = _unreadable(conn, names, projects)
         report["top"] = _lab_top(conn, names, projects)
         _write_report(report)
         return report
@@ -333,6 +336,26 @@ def _emergencies(conn, names: list[str], policy: Policy) -> list[dict]:
             if entry not in seen:
                 seen.append(entry)
     return seen
+
+
+def _unreadable(conn, names: list[str], projects: list[_cp.CertProject]) -> dict:
+    """Everything the scan could not read, by owner. None of it is in any total."""
+    clinical = {p.name for p in projects if p.sensitivity == "clinical"} | {UNCLAIMED_PROJECT}
+    by_owner: dict[str, int] = {}
+    places: list[dict] = []
+    items = 0
+    for name in names:
+        for row in _st.rows(conn, name, category=_st.UNREADABLE):
+            count = max(1, int(row["n_files"] or 0))
+            items += count
+            owner = row["owner"] or "unknown"
+            by_owner[owner] = by_owner.get(owner, 0) + count
+            places.append({"project": name, "owner": owner, "items": count, "row": int(row["id"]),
+                           "path": row["path"] if name not in clinical else "",
+                           "fix": (f"chmod -R g+rX {row['path']}" if name not in clinical else "")})
+    return {"items": items, "places": len(places),
+            "by_owner": dict(sorted(by_owner.items(), key=lambda kv: kv[1], reverse=True)),
+            "list": places[:50]}
 
 
 def _lab_top(conn, names: list[str], projects: list[_cp.CertProject]) -> list[dict]:
@@ -404,6 +427,16 @@ def describe(report: dict) -> list[str]:
             lines.append(f"  {i}. {_human(t['size']):>9}  {t['project']}: {what}  [row {t['row']}]")
             if t.get("path"):
                 lines.append(f"       {t['path']}")
+    blind = report.get("unreadable") or {}
+    if blind.get("items"):
+        lines.append("")
+        lines.append(f"Not readable: {blind['items']:,} items in {blind['places']} places are in "
+                     "no total, so the figures above are low by an unknown amount")
+        lines.append("  By owner: " + ", ".join(f"{o} {n:,}" for o, n in blind["by_owner"].items()))
+        for place in blind.get("list", [])[:10]:
+            where = place["path"] or f"a folder of {place['project']}"
+            lines.append(f"  {where} (owner {place['owner']}) [row {place['row']}]")
+        lines.append("  Each owner can fix theirs with: chmod -R g+rX <folder>")
     lines.append("")
     lines.append("Projects")
     for p in sorted(projects, key=lambda p: p["waiting_bytes"], reverse=True):
@@ -434,6 +467,11 @@ def slack_summary(report: dict) -> str:
     for i, t in enumerate(report.get("top") or [], start=1):
         parts.append(f"{i}. {t['project']}: {_human(t['size'])}, {t['category']}, "
                      f"suggest {t['suggestion']} (row {t['row']})")
+    blind = report.get("unreadable") or {}
+    if blind.get("items"):
+        owners = ", ".join(f"{n:,} owned by {o}" for o, n in list(blind["by_owner"].items())[:5])
+        parts.append(f"{blind['items']:,} items could not be read, so the totals miss them: "
+                     f"{owners}. Each owner can fix it by letting the lab group read them.")
     dormant = [p["name"] for p in projects if p["activity"] == _pu.DORMANT]
     if dormant:
         parts.append("Dormant, mothballing suggested: " + ", ".join(dormant))

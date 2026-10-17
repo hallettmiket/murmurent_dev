@@ -149,6 +149,24 @@
           });
           html += "</div></div>";
         }
+        const blind = report.unreadable || {};
+        if (blind.items) {
+          html += '<div class="card"><header>Not readable: ' + esc(blind.items.toLocaleString()) +
+            ' items, in no total</header><div class="body"><p>The scan could not read these, so every ' +
+            'figure on this page is low by an unknown amount. Each owner can fix theirs with ' +
+            '<code>chmod -R g+rX &lt;folder&gt;</code>.</p><p>By owner: ' +
+            Object.entries(blind.by_owner || {}).map(([o, n]) => esc(o) + " " + esc(n.toLocaleString())).join(", ") +
+            "</p>";
+          if ((blind.list || []).length) {
+            html += "<table><thead><tr><th>Where</th><th>Owner</th><th class=\"num\">Items</th></tr></thead><tbody>";
+            for (const p of blind.list) {
+              html += "<tr><td>" + (p.path ? "<code>" + esc(p.path) + "</code>" : "a folder of " + esc(p.project)) +
+                "</td><td>" + esc(p.owner) + '</td><td class="num">' + esc(p.items) + "</td></tr>";
+            }
+            html += "</tbody></table>";
+          }
+          html += "</div></div>";
+        }
         html += '<div class="card"><header>Projects</header><div class="body"><table><thead><tr>' +
           '<th>Project</th><th class="num">Size</th><th>Activity</th><th>Last used</th>' +
           '<th class="num">Waiting rows</th><th class="num">Waiting size</th></tr></thead><tbody>';
