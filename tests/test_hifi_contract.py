@@ -619,4 +619,7 @@ def test_healthz(world):
 
     app = create_app()
     client = TestClient(app)
-    assert client.get("/healthz").json() == {"status": "ok"}
+    body = client.get("/healthz").json()
+    assert body["status"] == "ok"
+    # The process id the update banner waits on to change (#185).
+    assert body["boot"] and body["boot"] == client.get("/healthz").json()["boot"]

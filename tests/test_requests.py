@@ -328,3 +328,66 @@ def test_approve_without_attach_repos_keeps_legacy_scaffold(world):
     )
     req_core.approve(req, approver="@the_pi")
     assert (world / "repos" / "fresh_proj" / "CHARTER.md").is_file()
+
+
+def _attach_world(world, monkeypatch, names=("dcis_code",), *, ready=()):
+    """Clones under the projects root, with git, some already murmurent-ready.
+    Records adopt_clone calls instead of running the real bootstrap."""
+    from murmurent.core import adopt as _adopt
+    from murmurent.core.repo import repos_root
+    for rname in names:
+        clone = repos_root() / rname
+        (clone / ".git").mkdir(parents=True, exist_ok=True)
+        if rname in ready:
+            (clone / ".murmurent.yaml").write_text("lab: hallett\n", encoding="utf-8")
+    calls: list[str] = []
+    monkeypatch.setattr(_adopt, "adopt_clone",
+                        lambda **kw: calls.append(kw["clone_path"]))
+    return calls
+
+
+def test_approve_makes_attached_repos_ready(world, monkeypatch):
+    """#185 item 9: choosing repos for a project makes each one ready; one that
+    is already ready is left alone."""
+    calls = _attach_world(world, monkeypatch, ("dcis_code", "dcis_ready"),
+                          ready=("dcis_ready",))
+    req = req_core.file_create_request(
+        requester="@allie", project="dcis_18", proposed_members=["@allie"],
+        attach_repos=["dcis_code", "dcis_ready"],
+    )
+    req_core.approve(req, approver="@the_pi")
+    assert [p.rsplit("/", 1)[-1] for p in calls] == ["dcis_code"]
+
+
+def test_approve_survives_a_failed_make_ready(world, monkeypatch):
+    from murmurent.core import adopt as _adopt
+    from murmurent.core import cert_projects as CP
+    _attach_world(world, monkeypatch, ("dcis_code",))
+
+    def boom(**kw):
+        raise _adopt.AdoptError("bootstrap failed")
+    monkeypatch.setattr(_adopt, "adopt_clone", boom)
+    req = req_core.file_create_request(
+        requester="@allie", project="dcis_19", proposed_members=["@allie"],
+        attach_repos=["dcis_code"],
+    )
+    req_core.approve(req, approver="@the_pi")
+    assert CP.get("dcis_19") is not None
+
+
+def test_endpoint_approve_attach_repos_skips_remote_provisioning(world, monkeypatch):
+    """#185: a project built from existing repos has no project-named working
+    tree, so approval must not report a failed git-remote step."""
+    _attach_world(world, monkeypatch, ("dcis_code",))
+    client = _client()
+    res = client.post("/api/request/create-project?user=the_pi", json={
+        "project": "dcis_20", "proposed_members": ["@the_pi"],
+        "attach_repos": ["dcis_code"],
+    })
+    assert res.status_code == 200, res.text
+    rid = res.json()["request"]["id"]
+    res = client.post(f"/api/request/{rid}/approve?user=the_pi")
+    assert res.status_code == 200, res.text
+    probes = {p["name"]: p for p in res.json().get("probes", [])}
+    assert probes["git remote"]["status"] == "ok"
+    assert "local clone" not in probes and "remote provisioning" not in probes

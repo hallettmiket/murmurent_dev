@@ -208,3 +208,53 @@ def test_endpoint_edit_context(client, world):
     assert r.status_code == 200, r.text
     body = r.json()
     assert body["editable"] and body["fields"]["role"] == "the workhorse"
+
+
+# --------------------------------------------------------------------------- #
+# agent-card switch + model menu (#185): never write the shared commons file
+# --------------------------------------------------------------------------- #
+
+def test_set_model_forks_and_leaves_commons_untouched(client, world):
+    shared = world["commons"] / "blacksmith.md"
+    before = shared.read_text(encoding="utf-8")
+    r = client.post("/api/agents/blacksmith/set_model?model=opus")
+    assert r.status_code == 200, r.text
+    assert r.json()["model"] == "opus" and r.json()["forked"] is True
+    assert shared.read_text(encoding="utf-8") == before
+    own = world["forks"] / "blacksmith.md"
+    assert "model: opus" in own.read_text(encoding="utf-8")
+    installed = world["cc"] / "blacksmith.md"
+    assert not installed.is_symlink() and "model: opus" in installed.read_text(encoding="utf-8")
+
+
+def test_disable_keeps_an_earlier_model_change(client, world):
+    client.post("/api/agents/blacksmith/set_model?model=haiku")
+    r = client.post("/api/agents/blacksmith/disable")
+    assert r.status_code == 200, r.text
+    assert r.json()["disabled"] is True and r.json()["model"] == "haiku"
+    assert "disabled:" not in (world["commons"] / "blacksmith.md").read_text(encoding="utf-8")
+
+
+def test_switch_refuses_frozen_and_guardian(client):
+    assert client.post("/api/agents/security_guard/disable").status_code == 403
+    assert client.post("/api/agents/adversary/set_model?model=haiku").status_code == 403
+
+
+def test_switch_works_for_a_personal_agent(client, world):
+    pa.create_personal_agent("helper", "a helper")
+    r = client.post("/api/agents/helper/set_model?model=sonnet")
+    assert r.status_code == 200, r.text
+    assert "model: sonnet" in (world["vagents"] / "helper.md").read_text(encoding="utf-8")
+
+
+def test_switch_unknown_agent_is_404(client):
+    assert client.post("/api/agents/nobody/disable").status_code == 404
+
+
+def test_hand_written_local_copy_is_not_overwritten(client, world):
+    installed = world["cc"] / "blacksmith.md"
+    installed.unlink()
+    installed.write_text("my own blacksmith\n", encoding="utf-8")
+    r = client.post("/api/agents/blacksmith/set_model?model=opus")
+    assert r.status_code == 409
+    assert installed.read_text(encoding="utf-8") == "my own blacksmith\n"

@@ -23,7 +23,7 @@ def repo(monkeypatch, tmp_path):
     """A murmurent repo root that looks like a git checkout."""
     root = tmp_path / "murmurent"
     (root / ".git").mkdir(parents=True)
-    monkeypatch.setattr(MM, "murmurent_repo_root", lambda: root)
+    monkeypatch.setattr(MM, "install_root", lambda: root)
     return root
 
 
@@ -92,7 +92,7 @@ def test_diverged_local(repo, monkeypatch):
 
 
 def test_not_a_git_checkout(monkeypatch, tmp_path):
-    monkeypatch.setattr(MM, "murmurent_repo_root", lambda: tmp_path / "plain")
+    monkeypatch.setattr(MM, "install_root", lambda: tmp_path / "plain")
     s = MM.check_update()
     assert s.is_git is False and s.behind == 0
 
@@ -134,3 +134,38 @@ def test_apply_update_not_a_git_checkout(monkeypatch, tmp_path):
     monkeypatch.setattr(MM, "murmurent_repo_root", lambda: tmp_path / "plain")
     out = MM.apply_update()
     assert out["ok"] is False and out["restart"] is False
+
+
+def test_install_root_is_the_running_checkout(monkeypatch):
+    """Without an override, the checked repo is the one this code runs from,
+    not the default ~/repos/murmurent (#185)."""
+    monkeypatch.delenv("MURMURENT_REPO_ROOT", raising=False)
+    root = MM.install_root()
+    assert (root / "src" / "murmurent" / "core" / "mm_update.py").is_file()
+
+
+def test_install_root_honours_override(monkeypatch, tmp_path):
+    monkeypatch.setenv("MURMURENT_REPO_ROOT", str(tmp_path))
+    assert MM.install_root() == tmp_path
+
+
+def test_status_names_the_checked_root(repo, monkeypatch):
+    _wire(monkeypatch, behind=1)
+    assert MM.check_update().root == str(repo)
+
+
+def test_reexec_reruns_the_interpreter_with_original_args(monkeypatch):
+    calls = []
+    monkeypatch.setattr(MM.os, "execv", lambda exe, args: calls.append((exe, args)))
+    monkeypatch.setattr(MM.sys, "orig_argv", ["python3", "-m", "murmurent.cli", "dashboard"])
+    MM.reexec()
+    assert calls == [(MM.sys.executable,
+                      [MM.sys.executable, "-m", "murmurent.cli", "dashboard"])]
+
+
+def test_reexec_failure_is_logged_not_raised(monkeypatch, caplog):
+    def boom(exe, args):
+        raise OSError("nope")
+    monkeypatch.setattr(MM.os, "execv", boom)
+    MM.reexec()
+    assert "restart failed" in caplog.text

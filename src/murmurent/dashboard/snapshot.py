@@ -293,8 +293,12 @@ _LAB_DEFAULT_LOCATION = C.MemberLocation()
 
 
 def _identity(handle: str, full_name: str | None, role: str) -> C.IdentityBlock:
-    """Build the current-member ``IdentityBlock`` with frontmatter overrides."""
-    profile = _load_member_profile(handle)
+    """Build the current-member ``IdentityBlock`` with frontmatter overrides.
+
+    The member's own staged profile edits are laid over the roster record, so
+    the footer shows the same values as the profile window after a save (#185).
+    """
+    profile = _overlay_staged_profile(_load_member_profile(handle), handle)
     is_active = str(profile.get("status", "active")) == "active" if profile else True
     return C.IdentityBlock(
         handle=handle,
