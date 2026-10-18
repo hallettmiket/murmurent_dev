@@ -129,6 +129,9 @@ choose).
   <https://mikehallett.science/murmurent/> near the top.
 
 ### Fixed
+- **The released murmurent's dashboard showed only an error** ("static dir
+  not found"). Its pages were left out of the release and of the installed
+  package; both now include them.
 - **The update button updated the wrong copy** when the dashboard ran from
   murmurent_dev, and could report success without restarting.
 - **The agent card's disable switch and model menu edited the shared agent

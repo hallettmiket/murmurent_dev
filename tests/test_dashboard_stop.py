@@ -80,3 +80,17 @@ def test_cli_stop_with_nothing_running(monkeypatch, tmp_path, capsys):
     assert dc.stop_dashboard(8799) == 0
     assert "No dashboard is running" in capsys.readouterr().out
     assert not stale.exists()
+
+
+def test_dashboard_pages_found_in_an_installed_package(monkeypatch, tmp_path):
+    """2026.10.1: without a checkout, the pages come from murmurent/commons/."""
+    from murmurent.core import commons
+    from murmurent.dashboard import server
+    packaged = tmp_path / "commons"
+    (packaged / "dashboard").mkdir(parents=True)
+    monkeypatch.setattr(commons, "packaged_commons_root", lambda: packaged)
+    missing = tmp_path / "no_checkout" / "docs" / "designer_dashboard"
+    assert server._dashboard_file_dir(missing, "dashboard") == packaged / "dashboard"
+    here = tmp_path / "checkout"
+    here.mkdir()
+    assert server._dashboard_file_dir(here, "dashboard") == here

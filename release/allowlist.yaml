@@ -92,7 +92,11 @@ withhold:
   - rules/local/                  # a centre's own rules: private repos, Slack IDs, local
                                   # conventions. setup.sh links these when present; a
                                   # public clone has no such directory and skips them.
-  - docs/designer_dashboard/      # hi-fi mockups, wireframes, HANDOFF.md
+  # The dashboard's own pages in docs/designer_dashboard/ SHIP (under docs/):
+  # without them a release's dashboard showed only "static dir not found".
+  # Only the design hand-over files stay behind.
+  - "docs/designer_dashboard/Murmurent Dashboard Wireframes.html"   # design mockup
+  - docs/designer_dashboard/HANDOFF.md                             # designer hand-over notes
   - docs/diagrams/README.md
 
   # --- internal test runbooks (not in the nav, no runtime use) ----------
@@ -147,5 +151,5 @@ dangling:
   - "docs/keyring.md:152: links the two withheld keyring test runbooks."
   - "CLAUDE.md:7: 'Full vision' links assets/chair_renewal_1.3.pdf, a grant
      document that does not ship."
-  - "scripts/bootstrap.sh:123 mentions docs/designer_dashboard/ in a comment
-     that already says it is not shipped. No action needed."
+  - "scripts/bootstrap.sh:123 mentions docs/designer_dashboard/ in a comment.
+     The folder ships since 2026.10.1, apart from two design files."
