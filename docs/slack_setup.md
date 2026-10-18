@@ -163,4 +163,6 @@ to a Slack account automatically; anyone missing that field is reported as
   with `lab_` is not repeated: `lab_mh` → `#lab-mh`. Groups created before this
   naming keep the channel they already have.
 - Adding a member to the channel needs their **email** on their member file,
-  to find their Slack account. The registrar's add-core-member form takes one.
+  to find their Slack account. Adding a core member accepts an optional
+  `email` for this (`POST /api/registrar/core/<core>/members`; the dashboard
+  has no form for it yet).
