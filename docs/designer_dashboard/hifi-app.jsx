@@ -3353,6 +3353,13 @@ function AgentToggleButton({ agent }) {
 // keep in sync there. Frozen agents are also uneditable (flagged by a.freeze).
 const GUARDIAN_AGENTS = ["security_guard", "adversary", "conscience"];
 
+// Badge colours for "which version is in use" (#186 step 1). Problems
+// (a broken link, nothing installed) stand out; the normal cases stay quiet.
+const IN_USE_TONE = {
+  "centre": "", "yours": "purple", "project": "green",
+  "local-file": "amber", "broken-link": "red", "missing": "red",
+};
+
 function AgentCard({ a }) {
   const [modify, setModify] = useState(false);
   // Show the Modify affordance only where an edit could land: not frozen, not a
@@ -3378,6 +3385,18 @@ function AgentCard({ a }) {
       <div className="muted" style={{fontSize:12, marginTop:3, lineHeight:1.4}}>
         {a.description}
       </div>
+      {a.in_use_label && (
+        <div style={{marginTop:4, fontSize:11}} title={a.in_use_detail}>
+          <Pill tone={IN_USE_TONE[a.in_use_level] || ""}>in use: {a.in_use_label}</Pill>
+          {a.upstream_changed && (
+            <span className="muted" style={{marginLeft:6}}>centre version changed since you copied it</span>
+          )}
+          {(a.in_use_level === "broken-link" || a.in_use_level === "missing"
+            || a.in_use_level === "local-file") && (
+            <div className="muted" style={{marginTop:2, lineHeight:1.4}}>{a.in_use_detail}</div>
+          )}
+        </div>
+      )}
       <div className="mono muted" style={{fontSize:10, marginTop:4, letterSpacing:1,
            display:"flex", alignItems:"center", gap:0}}>
         {a.model && <span>{a.model.toUpperCase()}</span>}
