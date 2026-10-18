@@ -6760,6 +6760,58 @@ def create_app() -> FastAPI:
         dest.write_text(obj.to_markdown(), encoding="utf-8")
         return {"ok": True, "id": dest.stem, "path": str(dest)}
 
+    # -- Published choreographies (#185 item 15) -----------------------------
+
+    @app.get("/api/choreographies/published")
+    def published_choreographies() -> dict:
+        """The choreographies listed in the public murmurent_public index, and
+        whether each is already on this machine. Names and locations only: a
+        choreography describes itself in its own repo, read at install."""
+        from ..commands import choreography_install_cmd as _ci
+        from ..core.repo import repos_root
+        try:
+            rows = _ci._fetch_index(_ci.INDEX_URL, timeout=10.0)
+        except _ci.IndexUnavailable as exc:
+            return {"rows": [], "error": str(exc).split("\n")[0]}
+        root = repos_root()
+        return {"rows": [{"name": n, "url": u, "installed": (root / n).exists(),
+                          "path": str(root / n)} for n, u in rows], "error": ""}
+
+    @app.post("/api/choreographies/install")
+    def install_choreography(body: dict = Body(default_factory=dict)) -> dict:
+        """Install a published choreography by name: copy its repository into
+        the repositories folder and make it murmurent-ready."""
+        from ..commands import choreography_install_cmd as _ci
+        from ..core import adopt as _adopt
+        from ..core import choreography_registry as _cr
+        name = str(body.get("name") or "").strip()
+        if not name:
+            raise HTTPException(status_code=422, detail="name required")
+        try:
+            url = _ci._resolve_name(name, index_url=_ci.INDEX_URL, timeout=10.0)
+            clone = _cr.clone_choreography(url)
+        except (_ci.IndexUnavailable, _cr.ChoreographyError) as exc:
+            raise HTTPException(status_code=409, detail=str(exc).split("\n")[0])
+        try:
+            info = _cr.read_marker(clone)
+        except _cr.ChoreographyError as exc:
+            return {"ok": False, "path": str(clone),
+                    "detail": f"Copied to {clone}, but it does not declare itself a "
+                              f"choreography ({exc}); it was left alone."}
+        missing = _cr.missing_agents(info)
+        try:
+            _adopt.adopt_clone(clone_path=str(clone), agents=info.agents or None)
+            adopted = True
+            note = ""
+        except _adopt.AdoptError as exc:
+            adopted = False
+            note = f" It was not made murmurent-ready ({exc}); run: murmurent repo adopt {clone}"
+        return {"ok": True, "path": str(clone), "title": info.title or info.name,
+                "summary": info.summary, "missing_agents": missing, "adopted": adopted,
+                "detail": f"Installed {info.title or info.name} at {clone}." + note
+                          + (f" It asks for agents this machine does not have: "
+                             f"{', '.join(missing)}." if missing else "")}
+
     @app.post("/api/choreography/init")
     def init_choreography_endpoint(
         body: InitChoreographyBody,
