@@ -634,7 +634,25 @@ class SeaActionBody(BaseModel):
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 #: Identifies this server process; reported by /healthz.
 _BOOT_ID = f"{os.getpid()}-{time.time_ns()}"
-STATIC_DIR = REPO_ROOT / "docs" / "designer_dashboard"
+def _dashboard_file_dir(dev_path: Path, packaged_name: str) -> Path:
+    """A dashboard file or folder: the copy in a development or release
+    checkout when there is one, else the copy packaged with an installed
+    murmurent (``murmurent/commons/``, from pyproject's force-include). Before
+    2026.10.1 an installed release had neither, and its dashboard showed only
+    "static dir not found"."""
+    if dev_path.exists():
+        return dev_path
+    try:
+        from ..core.commons import packaged_commons_root
+        packaged = packaged_commons_root() / packaged_name
+        if packaged.exists():
+            return packaged
+    except Exception:  # noqa: BLE001
+        pass
+    return dev_path
+
+
+STATIC_DIR = _dashboard_file_dir(REPO_ROOT / "docs" / "designer_dashboard", "dashboard")
 
 
 def _card_health():
@@ -8361,7 +8379,9 @@ def create_app() -> FastAPI:
         # dashboard header widget (``<iframe src="/murmuration?logo">``) and for
         # any VSCode / browser window that wants it. ``?logo`` renders it chrome-
         # free (no intro veil / HUD / audio).
-        _MURMURATION = REPO_ROOT / "assets" / "murmurent_uniform_wordmark.html"
+        _MURMURATION = _dashboard_file_dir(
+            REPO_ROOT / "assets" / "murmurent_uniform_wordmark.html",
+            "assets/murmurent_uniform_wordmark.html")
 
         @app.get("/murmuration")
         def murmuration():
