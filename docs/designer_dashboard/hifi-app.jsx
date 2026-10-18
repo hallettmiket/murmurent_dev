@@ -2338,7 +2338,17 @@ function ProjectsPanel({ projects, span="c-5" }) {
                   <td><Pill tone={p.sens==="clinical"?"red":""}>{p.sens}</Pill></td>
                   <td className="mono" style={{fontSize:12, paddingLeft:14}}>{p.lead}</td>
                   <td className="num">{p.members}</td>
-                  <td className="muted" style={{fontSize:12}}>{p.last_activity}</td>
+                  <td className="muted" style={{fontSize:12}}>
+                    {p.last_activity}
+                    {(p.activity === "quiet" || p.activity === "dormant") && (
+                      <span style={{marginLeft:6}}
+                            title={p.activity === "dormant"
+                              ? "Not used for the lab's dormant period: worth mothballing what is large"
+                              : "Not used for the lab's quiet period"}>
+                        <Pill tone={p.activity === "dormant" ? "amber" : ""}>{p.activity}</Pill>
+                      </span>
+                    )}
+                  </td>
                   {isPI && (
                     <td style={{textAlign:"right", whiteSpace:"nowrap"}} onClick={(e) => e.stopPropagation()}>
                       {p.is_cert && (

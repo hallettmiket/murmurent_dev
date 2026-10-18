@@ -132,6 +132,7 @@ Personal preferences profile lives at `~/.claude/murmurent-preferences.yaml` (lo
 | `murmurent project list` | List projects you are a member of |
 | `murmurent project describe <name>` | Charter, MEMBERS, status |
 | `murmurent project status [<name>]` | One project as a whole: its repositories, data folders, what it reads without owning, its keep-until date, when it was last used, and whether it is active, quiet or dormant. With no name, the project of the repository you are in. See [Every repository is in a project](ready_vs_projects.md#every-repository-is-in-a-project) |
+| `murmurent project set <name> [--data-folder F]... [--reads-from F]... [--retain-until DATE] [--clear data-folders\|reads-from]` | Set a project's data folders, what it reads without owning, and its keep-until date | Commits and pushes the project record |
 | `murmurent project migrate [--apply] [--yes]` | List every repository and every folder directly under `immutable/` and `append_only/` that no project claims, and propose project records for them (`x`, `x_manuscript` and `x_seminar` become one project `x`). Writes nothing without `--apply`, and asks before writing (`--yes` skips the question). Never moves, renames or deletes anything |
 | `murmurent project new <name> --charter <file> --members <list>` *PI/proposer* | Create a new project |
 | `murmurent project members <name>` | Print MEMBERS |
