@@ -2773,6 +2773,9 @@ def create_app() -> FastAPI:
             "bundle": bundle,
             "import_hint": import_hint,
             "dm": {"sent": dm_ok, "detail": dm_detail},
+            # #188: a new member joins the group's Slack channel.
+            "slack": _invite_to_group_channel(
+                group, handle, str(payload.get("email") or "")),
         }
 
     @app.get("/api/members/audit")
@@ -3474,11 +3477,21 @@ def create_app() -> FastAPI:
         except OSError:
             pass
         report = getattr(_m, "last_report_path", None)
+        # #188: a deactivated member leaves the lab's Slack channel; a
+        # reactivated one is added back.
+        try:
+            from ..core.lab import load_lab_config
+            lab = load_lab_config().lab or ""
+        except Exception:  # noqa: BLE001
+            lab = ""
+        slack = (_invite_to_group_channel(lab, rec.handle) if action == "activate"
+                 else _remove_from_group_channel(lab, rec.handle))
         return {
             "ok": True,
             "handle": rec.handle,
             "status": rec.status,
             "report": str(report) if report else None,
+            "slack": slack,
         }
 
     # -----------------------------------------------------------------
@@ -6751,6 +6764,56 @@ def create_app() -> FastAPI:
             )
         return _reg_snap.build_registrar_response(actor)
 
+    def _group_slack_token() -> str:
+        """The centre bot token for group channels: env, then the dashboard's
+        token file. Registrar and PI actions are deliberate, so the file is
+        allowed (as in `join-request approve`)."""
+        from ..core import centre_provision as _cp
+        return _cp.resolve_slack_token(allow_file=True)
+
+    def _group_slack_sync(group: str) -> dict:
+        """Create the group's #lab-<group> channel if needed and sync its
+        members (#188). Never fails the request: the result is reported."""
+        from ..core import centre_provision as _cp
+        return _cp.sync_group_slack_channel(group, token=_group_slack_token()).to_dict()
+
+    def _group_has_channel(group: str) -> bool:
+        from ..core import centre_provision as _cp
+        try:
+            entry = _cp._group_entry(group)
+        except Exception:  # noqa: BLE001
+            return False
+        return bool(entry is not None and getattr(entry, "slack_channel_id", None))
+
+    def _invite_to_group_channel(group: str, handle: str, email: str = "") -> dict | None:
+        """Add one member to their group's channel. ``None`` when this machine
+        does not know the group's channel (e.g. a PI's laptop without the
+        centre registry), so nothing is reported."""
+        from ..core import centre_provision as _cp
+        if not group or not _group_has_channel(group):
+            return None
+        try:
+            probes = _cp.provision_member_to_group(
+                group, handle=handle, email=email, token=_group_slack_token())
+            return probes[0].to_dict() if probes else None
+        except Exception as exc:  # noqa: BLE001
+            return {"name": "member-channel", "status": "warn", "detail": str(exc)}
+
+    def _remove_from_group_channel(group: str, handle: str) -> dict | None:
+        """Remove one member from their group's channel; ``None`` when this
+        machine does not know the group's channel."""
+        from ..core import centre_provision as _cp
+        from ..core import registrar as _reg
+        if not group or not _group_has_channel(group):
+            return None
+        try:
+            info = _reg.read_group_member(group, handle) or {}
+            return _cp.remove_member_from_group_channel(
+                group, handle=handle, email=info.get("email", ""),
+                token=_group_slack_token()).to_dict()
+        except Exception as exc:  # noqa: BLE001
+            return {"name": "slack-channel", "status": "warn", "detail": str(exc)}
+
     @app.post("/api/registrar/lab")
     def registrar_create_lab(
         body: RegistrarLabCreateBody,
@@ -6796,6 +6859,7 @@ def create_app() -> FastAPI:
                 "lab_mgmt_path": entry.lab_mgmt_path,
                 "created": entry.created,
             },
+            "slack": _group_slack_sync(entry.name),
         }
 
     def _require_registrar(user: str) -> str:
@@ -6887,7 +6951,8 @@ def create_app() -> FastAPI:
             raise HTTPException(status_code=409, detail=str(exc))
         except _reg.RegistrarError as exc:
             raise HTTPException(status_code=400, detail=str(exc))
-        return {"ok": True, "core": _core_entry_to_dict(entry)}
+        return {"ok": True, "core": _core_entry_to_dict(entry),
+                "slack": _group_slack_sync(entry.name)}
 
     @app.post("/api/registrar/core/{name}/archive")
     def registrar_archive_core(
@@ -6971,8 +7036,9 @@ def create_app() -> FastAPI:
         body: dict,
         user: str = Query("", description="Actor handle; falls back to $MURMURENT_USER."),
     ) -> dict:
-        """Add a staff member to a core. Body: {handle, full_name, role}.
-        ``role`` defaults to 'staff'. Registrar-only."""
+        """Add a staff member to a core. Body: {handle, full_name, role, email}.
+        ``role`` defaults to 'staff'. ``email`` (optional) finds their Slack
+        account so they can be added to the core's channel. Registrar-only."""
         from ..core import registrar as _reg
         from ..core.membership import MembershipError
         from . import slack_notify as _notify
@@ -6982,10 +7048,11 @@ def create_app() -> FastAPI:
             raise HTTPException(status_code=422, detail="handle required")
         full_name = body.get("full_name") or None
         role = str(body.get("role") or "staff").strip() or "staff"
+        email = str(body.get("email") or "").strip()
         try:
             path = _reg.add_core_member(
                 core_name=name, handle=handle,
-                full_name=full_name, role=role,
+                full_name=full_name, role=role, email=email,
             )
         except _reg.LabNotFound as exc:
             raise HTTPException(status_code=404, detail=str(exc))
@@ -6997,7 +7064,8 @@ def create_app() -> FastAPI:
             role=role,
         )
         return {"ok": True, "core": name, "handle": handle.lstrip("@"),
-                "path": str(path)}
+                "path": str(path),
+                "slack": _invite_to_group_channel(name, handle, email)}
 
     @app.post("/api/registrar/core/{name}/members/{handle}/remove")
     def registrar_remove_core_member(
@@ -7015,10 +7083,12 @@ def create_app() -> FastAPI:
             raise HTTPException(status_code=404, detail=str(exc))
         except _reg.PIAlreadyLeadsAnother as exc:
             raise HTTPException(status_code=409, detail=str(exc))
+        slack = None
         if changed:
             _notify.core_member_removed(core=name, handle=handle.lstrip("@"))
+            slack = _remove_from_group_channel(name, handle)
         return {"ok": True, "core": name, "handle": handle.lstrip("@"),
-                "changed": changed}
+                "changed": changed, "slack": slack}
 
     @app.post("/api/registrar/core/{name}/leader")
     def registrar_rotate_core_leader(
