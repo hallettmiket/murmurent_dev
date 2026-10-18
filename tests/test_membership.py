@@ -198,3 +198,29 @@ def test_inactive_member_visible_in_pi_group_panel(world):
     bob = next((p for p in resp.peers if p.handle == "bob"), None)
     assert bob is not None
     assert bob.status == "inactive"
+
+
+def test_endpoint_deactivate_leaves_and_activate_rejoins_lab_channel(world, monkeypatch):
+    """#188: on a machine that knows the lab's Slack channel, deactivating a
+    member removes them from it and reactivating adds them back."""
+    from types import SimpleNamespace
+
+    from murmurent.core import centre_provision as CP
+    from murmurent.core.lab import load_lab_config
+    from murmurent.core.preflight import Probe
+
+    lab = load_lab_config().lab
+    monkeypatch.setattr(CP, "_group_entry",
+        lambda group, env=None: SimpleNamespace(slack_channel_id="C0LAB") if group == lab else None)
+    calls = []
+    monkeypatch.setattr(CP, "remove_member_from_group_channel",
+        lambda group, **kw: calls.append(("remove", group, kw["handle"]))
+            or Probe(name="slack-channel", status="ok", detail="removed"))
+    monkeypatch.setattr(CP, "provision_member_to_group",
+        lambda group, **kw: calls.append(("invite", group, kw["handle"]))
+            or [Probe(name="member-channel", status="ok", detail="added")])
+    M.add(handle="bob", full_name="B", role="postdoc")
+    client = _client()
+    assert client.post("/api/members/bob/deactivate?user=the_pi").json()["slack"]["status"] == "ok"
+    assert client.post("/api/members/bob/activate?user=the_pi").json()["slack"]["status"] == "ok"
+    assert calls == [("remove", lab, "bob"), ("invite", lab, "bob")]

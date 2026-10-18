@@ -67,7 +67,7 @@ def test_ensure_group_channel_creates_and_invites(world, monkeypatch):
                 "unresolved": [], "error": None}
     out = SC.ensure_group_channel("lab_mh", {"harry": "harry@demo.edu"},
                                   creator=creator, inviter=inviter)
-    assert seen["name"] == "lab_mh"          # channel named after the group
+    assert seen["name"] == "lab-mh"          # #lab-<group>, no repeated lab_ (#188)
     assert seen["private"] is True           # private
     assert out["channel_id"] == "C0NEW" and out["created"] is True
     assert out["invited"] == ["harry"]
@@ -93,8 +93,8 @@ def test_provision_creates_group_channel_and_persists_id(world, monkeypatch):
         "lab_mh", slack_creator=fake_slack, member_inviter=fake_inviter,
         acl_runner=lambda *a, **k: (0, "", ""),
     )
-    # channel named after the group (not lab-<name>)
-    assert created_with["name"] == "lab_mh"
+    # #lab-<group> (#188); the group's own lab_ prefix is not repeated
+    assert created_with["name"] == "lab-mh"
     # channel id persisted on the lab entry
     lab = next(l for l in R.read_registry().labs if l.name == "lab_mh")
     assert lab.slack_channel_id == "C0LABMH"
@@ -118,7 +118,7 @@ def test_provision_skips_invite_without_token_or_inviter(world, monkeypatch):
     lab = next(l for l in R.read_registry().labs if l.name == "lab_mh")
     assert lab.slack_channel_id == "C0LABMH"           # created + stored
     slack_probe = next(p for p in probes if p.name == "slack-channel")
-    assert "members: 0" in slack_probe.detail          # invite not attempted
+    assert "0 member(s)" in slack_probe.detail         # invite not attempted
 
 
 # ---- provision_centre_slack (mayor channel + broadcast seeding) -------
@@ -170,7 +170,9 @@ def test_resolve_slack_token_env_then_file(monkeypatch, tmp_path):
     cfg = tmp_path / ".config" / "murmurent"
     cfg.mkdir(parents=True)
     (cfg / "slack-token").write_text("xoxb-fromfile\n")
-    monkeypatch.setattr("pathlib.Path.home", lambda: tmp_path)
+    # The file is the dashboard's token file (one setting for both paths).
+    from murmurent.dashboard import slack_notify as _sn
+    monkeypatch.setattr(_sn, "_TOKEN_FILE", cfg / "slack-token")
 
     # env-only (allow_file=False, the automatic-path default): file is ignored
     assert CP.resolve_slack_token() == ""
@@ -252,3 +254,81 @@ def test_provision_centre_slack_needs_workspace(world):
     probes = CP.provision_centre_slack()
     assert len(probes) == 1 and probes[0].status == "warn"
     assert "slack_workspace" in probes[0].detail
+
+
+# ---- #188: #lab-<group> naming + sync_group_slack_channel ---------------
+
+def test_channel_name_is_lab_dash_group():
+    assert SC.channel_name_for("mh") == "lab-mh"
+    assert SC.channel_name_for("biocore") == "lab-biocore"
+    assert SC.channel_name_for("lab_mh") == "lab-mh"       # no lab-lab_mh
+    assert SC.channel_name_for("MH") == "lab-mh"
+    assert len(SC.channel_name_for("x" * 100)) == 80
+    assert SC.channel_name_for("") is None
+
+
+def _ok(name, cid="C0NEW"):
+    return CP.SlackChannelResult(ok=True, channel_id=cid, channel_name=name,
+                                 detail="created (HTTP 200)")
+
+
+def test_sync_creates_records_and_invites(world):
+    R.create_lab(name="mh", display_name="MH", pi_handle="@harry",
+                 pi_email="harry@demo.edu")
+    made, invited = [], []
+    probe = CP.sync_group_slack_channel(
+        "mh", token="xoxb-test",
+        creator=lambda n: (made.append(n), _ok(n))[1],
+        inviter=lambda cid, hs, member_email_map: (invited.append((cid, hs)),
+                                                   {"invited": hs})[1])
+    assert made == ["lab-mh"]
+    assert invited == [("C0NEW", ["harry"])]
+    assert probe.status == "ok" and "created channel C0NEW" in probe.detail
+    lab = next(l for l in R.read_registry().labs if l.name == "mh")
+    assert lab.slack_channel_id == "C0NEW"
+
+
+def test_sync_keeps_an_existing_channel(world):
+    """A group named under the old scheme keeps its channel: no second one."""
+    R.create_lab(name="mh", display_name="MH", pi_handle="@harry",
+                 pi_email="harry@demo.edu")
+    R.set_group_slack_channel("mh", "C0OLD")
+    made = []
+    probe = CP.sync_group_slack_channel(
+        "mh", token="xoxb-test", creator=lambda n: made.append(n),
+        inviter=lambda cid, hs, member_email_map: {"already_in": hs})
+    assert made == []
+    assert "using channel C0OLD" in probe.detail
+
+
+def test_sync_reuses_a_taken_name(world, monkeypatch):
+    from murmurent.dashboard import slack_notify as _sn
+    R.create_lab(name="mh", display_name="MH", pi_handle="@harry")
+    monkeypatch.setattr(_sn, "_lookup_channel_id_by_name",
+                        lambda name, token=None: "C0TAKEN" if name == "lab-mh" else None)
+    taken = CP.SlackChannelResult(ok=False, channel_name="lab-mh",
+                                  error="name_taken", detail="exists")
+    CP.sync_group_slack_channel("mh", token="xoxb-test", creator=lambda n: taken,
+                                inviter=lambda *a, **k: {})
+    lab = next(l for l in R.read_registry().labs if l.name == "mh")
+    assert lab.slack_channel_id == "C0TAKEN"
+
+
+def test_sync_without_token_does_nothing(world):
+    R.create_lab(name="mh", display_name="MH", pi_handle="@harry")
+    probe = CP.sync_group_slack_channel(
+        "mh", token="", creator=lambda n: pytest.fail("must not create"))
+    assert probe.status == "warn" and "not set up" in probe.detail
+
+
+def test_remove_member_from_group_channel(world):
+    R.create_lab(name="mh", display_name="MH", pi_handle="@harry")
+    R.set_group_slack_channel("mh", "C0LAB")
+    kicked = []
+    probe = CP.remove_member_from_group_channel(
+        "mh", handle="@bob", email="bob@demo.edu", token="",
+        kicker=lambda cid, em: (kicked.append((cid, em)), (True, "kicked"))[1])
+    assert kicked == [("C0LAB", "bob@demo.edu")] and probe.status == "ok"
+    no_email = CP.remove_member_from_group_channel(
+        "mh", handle="bob", email="", token="xoxb-test")
+    assert no_email.status == "warn" and "no email" in no_email.detail

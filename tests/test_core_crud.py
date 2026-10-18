@@ -233,3 +233,59 @@ def test_http_unknown_core_returns_404(world):
         json={"handle": "alice"},
     )
     assert res.status_code == 404
+
+
+# ---- #188: Slack channel follows the group --------------------------------
+
+def test_http_create_core_reports_slack_without_failing(world):
+    """No Slack token in tests: the core is still created and the response
+    says why no channel was made."""
+    client = TestClient(create_app())
+    res = client.post("/api/registrar/core?user=the_pi", json={
+        "name": "imgcore", "display_name": "Imaging", "leader_handle": "@ivy"})
+    assert res.status_code == 200, res.text
+    assert res.json()["slack"]["status"] == "warn"
+    assert "not set up" in res.json()["slack"]["detail"]
+
+
+@patch("murmurent.dashboard.slack_notify._post")
+def test_http_add_member_records_email_and_invites(mock_post, world, monkeypatch):
+    from murmurent.core import centre_provision as CP
+    from murmurent.core.preflight import Probe
+    R.set_group_slack_channel("biocore", "C0BIO")
+    calls = []
+    monkeypatch.setattr(CP, "provision_member_to_group",
+        lambda group, *, handle, email, token=None, env=None:
+            calls.append((group, handle, email)) or [Probe(name="member-channel", status="ok", detail="added")])
+    client = TestClient(create_app())
+    res = client.post("/api/registrar/core/biocore/members?user=the_pi",
+                      json={"handle": "alice", "email": "alice@demo.edu"})
+    assert res.status_code == 200, res.text
+    assert calls == [("biocore", "alice", "alice@demo.edu")]
+    assert res.json()["slack"]["status"] == "ok"
+    meta = parse_file(_members_dir() / "alice.md").meta or {}
+    assert meta["email"] == "alice@demo.edu"
+
+
+@patch("murmurent.dashboard.slack_notify._post")
+def test_http_remove_member_leaves_channel(mock_post, world, monkeypatch):
+    from murmurent.core import centre_provision as CP
+    from murmurent.core.preflight import Probe
+    R.add_core_member(core_name="biocore", handle="alice", email="alice@demo.edu")
+    R.set_group_slack_channel("biocore", "C0BIO")
+    calls = []
+    monkeypatch.setattr(CP, "remove_member_from_group_channel",
+        lambda group, *, handle, email, token, env=None, kicker=None:
+            calls.append((group, handle, email)) or Probe(name="slack-channel", status="ok", detail="removed"))
+    client = TestClient(create_app())
+    res = client.post("/api/registrar/core/biocore/members/alice/remove?user=the_pi")
+    assert res.status_code == 200, res.text
+    assert calls == [("biocore", "alice", "alice@demo.edu")]
+
+
+@patch("murmurent.dashboard.slack_notify._post")
+def test_http_member_changes_skip_slack_when_group_has_no_channel(mock_post, world):
+    client = TestClient(create_app())
+    res = client.post("/api/registrar/core/biocore/members?user=the_pi",
+                      json={"handle": "alice"})
+    assert res.status_code == 200 and res.json()["slack"] is None
