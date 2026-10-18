@@ -548,6 +548,9 @@ class LabSettings(BaseModel):
     # Slack wiring the registrar/`group-slack-setup` recorded in lab.md.
     slack_workspace: str = ""                  # workspace id, e.g. TDUD7D20Y
     slack_invite_url: str = ""                 # shareable join link
+    # The millwright's weekly space audit: "on", "off", or "" when the PI has
+    # not chosen. The dashboard advertises the audit only when "on" (#185).
+    space_audit: str = ""
     # Phase 0 of the cores rollout (the cores rollout design notes §3): distinguishes
     # a research lab from a service core. The Pydantic field stays
     # ``pi_handle`` but the dashboard renders the label as "Leader" when
@@ -1101,6 +1104,9 @@ class DashboardResponse(BaseModel):
     # murmurent release version (murmurent.__version__) — the header badge reads
     # this so it can't drift from the single source (issue #24).
     version: str = ""
+    # Which code the dashboard runs (core.mm_update.describe_running_code):
+    # label, kind (dev / checkout / release), folder, branch, commit, dirty.
+    build: dict = {}
     today: TodayBlock
     persona: Persona = "member"
     member: IdentityBlock

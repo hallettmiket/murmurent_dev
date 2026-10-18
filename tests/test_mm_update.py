@@ -7,6 +7,7 @@ local, and a non-git checkout — all degrade to a benign status, never raise.
 
 from __future__ import annotations
 
+import subprocess
 from types import SimpleNamespace
 
 import pytest
@@ -169,3 +170,22 @@ def test_reexec_failure_is_logged_not_raised(monkeypatch, caplog):
     monkeypatch.setattr(MM.os, "execv", boom)
     MM.reexec()
     assert "restart failed" in caplog.text
+
+
+def test_describe_running_code_for_a_checkout(monkeypatch, tmp_path):
+    root = tmp_path / "murmurent_dev"
+    root.mkdir()
+    subprocess.run(["git", "init", "-q", "-b", "main", str(root)], check=True)
+    subprocess.run(["git", "-C", str(root), "-c", "user.email=a@b", "-c", "user.name=a",
+                    "commit", "-q", "--allow-empty", "-m", "x"], check=True)
+    monkeypatch.setattr(MM, "install_root", lambda: root)
+    info = MM.describe_running_code()
+    assert info["kind"] == "dev" and info["branch"] == "main"
+    assert info["label"].startswith("murmurent_dev · main @ ")
+
+
+def test_describe_running_code_for_a_release(monkeypatch, tmp_path):
+    monkeypatch.setattr(MM, "install_root", lambda: tmp_path)
+    from murmurent import __version__
+    info = MM.describe_running_code()
+    assert info == {**info, "kind": "release", "label": f"release v{__version__}"}

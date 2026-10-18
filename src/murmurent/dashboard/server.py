@@ -344,6 +344,9 @@ class LabSettingsBody(BaseModel):
     # don't touch, empty string = clear.
     slack_workspace: str | None = None               # workspace id, e.g. TDUD7D20Y
     slack_invite_url: str | None = None              # shareable join link
+    # The millwright's weekly space audit: "on", "off", or "" to clear the
+    # choice. ``None`` = don't touch.
+    space_audit: str | None = None
     # Storage locations (2026-07-06): notebooks + Obsidian each get a machine +
     # path; ``lab_base`` remains the files umbrella. ``None`` = don't touch,
     # empty string = clear.
@@ -2218,6 +2221,12 @@ def create_app() -> FastAPI:
             updates["slack_workspace"] = body.slack_workspace or None
         if body.slack_invite_url is not None:
             updates["slack_invite_url"] = body.slack_invite_url or None
+        if body.space_audit is not None:
+            choice = body.space_audit.strip().lower()
+            if choice not in ("on", "off", ""):
+                raise HTTPException(status_code=422, detail="space_audit must be on, off or empty")
+            # Stored quoted as text: an unquoted on/off reads back as a boolean.
+            updates["space_audit"] = choice or None
         if body.git_providers is not None:
             # Validate kinds + ids before persisting. An empty list
             # explicitly clears the providers block (so the resolver
@@ -3001,6 +3010,8 @@ def create_app() -> FastAPI:
         _require_active(actor)
         if actor.lower() != _m.pi_handle().lower():
             raise HTTPException(status_code=403, detail="Only the PI can see the lab's space report.")
+        if _sl.audit_setting() == "off":
+            raise HTTPException(status_code=409, detail=_sl.TURNED_OFF)
         try:
             report = _sl.fetch_report(host)
         except _sl.FetchError as exc:
@@ -3025,6 +3036,8 @@ def create_app() -> FastAPI:
         _require_active(actor)
         if actor.lower() != _m.pi_handle().lower():
             raise HTTPException(status_code=403, detail="Only the PI can see the lab's space table.")
+        if _sl.audit_setting() == "off":
+            raise HTTPException(status_code=409, detail=_sl.TURNED_OFF)
         try:
             return _sl.fetch_rows(host, project=project or None, category=category or None,
                                   suggestion=suggestion or None, owner=owner or None,

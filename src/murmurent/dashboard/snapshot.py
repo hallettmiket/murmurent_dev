@@ -191,6 +191,7 @@ def build_response(
 
     return C.DashboardResponse(
         version=_mm_version,
+        build=_running_code(),
         today=_today_block(today_d),
         persona=effective_persona,  # type: ignore[arg-type]
         member=member_block,
@@ -647,6 +648,7 @@ def _lab_settings(lab_name: str) -> C.LabSettings:
                 pi_github=_pi_github(_pi),
                 slack_workspace=str(meta.get("slack_workspace") or ""),
                 slack_invite_url=str(meta.get("slack_invite_url") or ""),
+                space_audit=_space_audit_choice(meta.get("space_audit")),
                 kind=kind,
                 website=meta.get("website") or None,
                 admins=list(meta.get("admins") or []),
@@ -1467,6 +1469,33 @@ def _peer_role(handle: str) -> str:
 # ---------------------------------------------------------------------------
 # Agents (Phase 7)
 # ---------------------------------------------------------------------------
+
+
+def _space_audit_choice(value) -> str:
+    """lab.md ``space_audit:`` as "on", "off" or "" (not chosen). YAML may read
+    an unquoted on/off as a boolean."""
+    if value is True:
+        return "on"
+    if value is False:
+        return "off"
+    value = str(value or "").strip().lower()
+    return value if value in ("on", "off") else ""
+
+
+_RUNNING_CODE: dict | None = None
+
+
+def _running_code() -> dict:
+    """Describe the running code once per process: it cannot change without a
+    restart, and the dashboard reloads its data often."""
+    global _RUNNING_CODE
+    if _RUNNING_CODE is None:
+        try:
+            from ..core import mm_update as _mm
+            _RUNNING_CODE = _mm.describe_running_code()
+        except Exception:
+            _RUNNING_CODE = {}
+    return _RUNNING_CODE
 
 
 def _agents() -> list[C.AgentRow]:

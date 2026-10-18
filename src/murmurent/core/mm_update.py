@@ -76,6 +76,41 @@ def _run_git(root, *args: str) -> subprocess.CompletedProcess:
     )
 
 
+def describe_running_code() -> dict:
+    """What code this process runs: which checkout, development or release,
+    branch and commit. Shown in the dashboard's top bar so a member can tell
+    a murmurent_dev checkout from a release install (#185 follow-up).
+
+    ``{label, kind, folder, branch, commit, dirty}``; ``kind`` is ``dev``
+    (a checkout of murmurent_dev), ``checkout`` (another git checkout, such as
+    a clone of the public release repo) or ``release`` (installed without
+    git). Never raises; local git only, no network.
+    """
+    from .. import __version__
+    root = install_root()
+    out = {"label": f"release v{__version__}", "kind": "release",
+           "folder": str(root), "branch": "", "commit": "", "dirty": False}
+    if not (root / ".git").exists():
+        return out
+    try:
+        def git(*a: str) -> str:
+            r = subprocess.run(["git", "-C", str(root), *a], capture_output=True,
+                               text=True, timeout=5)
+            return r.stdout.strip() if r.returncode == 0 else ""
+        remote = git("remote", "get-url", "origin")
+        branch = git("rev-parse", "--abbrev-ref", "HEAD")
+        commit = git("rev-parse", "--short", "HEAD")
+        dirty = bool(git("status", "--porcelain", "--untracked-files=no"))
+    except (OSError, subprocess.SubprocessError):
+        return out
+    is_dev = "murmurent_dev" in remote or root.name == "murmurent_dev"
+    name = "murmurent_dev" if is_dev else root.name
+    label = f"{name} · {branch} @ {commit}" + (" (edited)" if dirty else "")
+    out.update(label=label, kind="dev" if is_dev else "checkout",
+               branch=branch, commit=commit, dirty=dirty)
+    return out
+
+
 def check_update(*, fetch: bool = True) -> UpdateStatus:
     """Whether the local murmurent install is behind upstream.
 

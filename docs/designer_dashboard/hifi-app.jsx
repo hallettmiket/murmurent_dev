@@ -385,6 +385,28 @@ function UpdateBanner() {
   );
 }
 
+// Which murmurent code this dashboard runs: the development copy (folder,
+// branch, commit) or an installed release. The release number alone hid that
+// a laptop was running murmurent_dev (#185 follow-up).
+function RunningCodeBadge() {
+  const b = window.DATA.build || {};
+  if (!b.label) return null;
+  const isDev = b.kind === "dev";
+  const tip = (isDev ? "Development copy" : (b.kind === "checkout" ? "Git checkout" : "Installed release"))
+    + " · running from " + (b.folder || "?")
+    + (b.dirty ? " · has uncommitted changes" : "");
+  return (
+    <span title={tip} style={{
+      marginLeft:14, fontFamily:"var(--mono)", fontSize:11, padding:"1px 8px",
+      borderRadius:10, whiteSpace:"nowrap",
+      color: isDev ? "#7a3fb0" : "var(--muted)",
+      border: "1px solid " + (isDev ? "#7a3fb0" : "var(--rule-strong)"),
+    }}>
+      running {b.label}
+    </span>
+  );
+}
+
 function TopBar() {
   const m = window.DATA.member || {};
   const ls = window.DATA.lab_settings || {};
@@ -401,6 +423,7 @@ function TopBar() {
                  borderBottom:"1px dotted var(--purple)"}}>
         📖 docs
       </a>
+      <RunningCodeBadge />
       <span className="who">
         signed in as <code>@{m.handle}</code> · {kindLabel}: <code>{m.lab || ls.name}</code>
       </span>
@@ -555,8 +578,9 @@ function CmdBar({ query, setQuery }) {
           ⚿ security audit ↗
         </a>
       )}
-      {/* /space link: the lab's weekly space report (#151), PI only. */}
-      {persona === "pi" && (
+      {/* /space link: the lab's weekly space report (#151), PI only, and only
+          when the PI turned the audit on in Lab settings (#185). */}
+      {persona === "pi" && (window.DATA.lab_settings || {}).space_audit === "on" && (
         <a
           href={`/space?user=${encodeURIComponent((window.DATA.member && window.DATA.member.handle) || "")}`}
           title="Open the space audit: how much disk each project and member uses (/space)"
@@ -2818,6 +2842,7 @@ async function postLabSudo(handle, grant) {
 }
 
 function SecurityAccessPanel({ peers, span = "c-12" }) {
+  const spaceAudit = (window.DATA.lab_settings || {}).space_audit || "";
   // Compute lab_sudo set from the peers list. Peers carry ``lab_sudo``
   // (boolean) when present in member frontmatter. PI is implicitly
   // included regardless of flag — they're always authorised.
@@ -2845,12 +2870,14 @@ function SecurityAccessPanel({ peers, span = "c-12" }) {
   return (
     <div className={"panel " + span}>
       <header>
-        <h2>Lab audits · security and space</h2>
+        <h2>Lab audits</h2>
         <div className="row" style={{gap:8}}>
           <a className="btn sm" href={`/security?user=${encodeURIComponent(me.handle || "")}`}
              target="_blank" rel="noopener">open security audit ↗</a>
-          <a className="btn sm" href={`/space?user=${encodeURIComponent(me.handle || "")}`}
-             target="_blank" rel="noopener">open space audit ↗</a>
+          {spaceAudit === "on" && (
+            <a className="btn sm" href={`/space?user=${encodeURIComponent(me.handle || "")}`}
+               target="_blank" rel="noopener">open space audit ↗</a>
+          )}
         </div>
       </header>
       <div className="body" style={{padding:"10px 14px", fontSize:12, lineHeight:1.55}}>
@@ -2862,12 +2889,21 @@ function SecurityAccessPanel({ peers, span = "c-12" }) {
           machine, then press refresh to run a fresh check. It only reads; it
           never changes a file.
         </p>
+        <p className="muted" style={{margin:"0 0 6px 0"}}>
+          {spaceAudit === "on" && (<>The <strong>space audit</strong> is the
+            millwright's weekly report of how much disk each project uses on the
+            lab's data server, with suggestions for what could be tidied. </>)}
+          {spaceAudit === "" && (<>A <strong>space audit</strong> is also available:
+            a weekly report of how much disk each project uses, with suggestions
+            for what could be tidied. It needs a one-time setup on the lab's data
+            server and is optional; choose on or off in ⚙ Lab settings. </>)}
+          {spaceAudit === "off" && (<>The space audit is turned off in ⚙ Lab
+            settings. </>)}
+        </p>
         <p className="muted" style={{margin:"0 0 10px 0"}}>
-          The <strong>space audit</strong> is the millwright's weekly report of how
-          much disk each project and member uses. You always have access to both.
-          Below, you can let a member open the security audit too. This is a
-          murmurent permission only; it does not give them administrator rights
-          on the server.
+          You always have access to the security audit. Below, you can let a
+          member open it too. This is a murmurent permission only; it does not
+          give them administrator rights on the server.
         </p>
 
         <div style={{marginBottom:14}}>
@@ -7223,6 +7259,7 @@ function LabSettingsModal({ onClose }) {
     // Slack — the PI's workspace is the lab's workspace.
     slack_workspace:   ls.slack_workspace   || "",
     slack_invite_url:  ls.slack_invite_url  || "",
+    space_audit:       ls.space_audit       || "",
     // Storage servers — three machine + path pairs. Files = the umbrella
     // (lab_base); notebooks + Obsidian get their own if the lab wants.
     files_host:        _fb.host,
@@ -7250,6 +7287,7 @@ function LabSettingsModal({ onClose }) {
         git_providers:     form.git_providers,
         slack_workspace:   form.slack_workspace,
         slack_invite_url:  form.slack_invite_url,
+        space_audit:       form.space_audit,
         // Files → the umbrella lab_base (host:/path).
         lab_base:          _joinHostPath(form.files_host, form.files_path),
         notebook_host:     form.notebook_host,
@@ -7404,6 +7442,26 @@ function LabSettingsModal({ onClose }) {
                 <a href={form.slack_invite_url} target="_blank" rel="noopener" style={{color:"var(--purple)"}}>join link ↗</a>
               </div>
             : null}
+        </div>
+
+        {/* 5 · Space audit (#185): optional; needs a one-time setup on the
+            lab's data server, so a PI chooses whether to use it. */}
+        <div style={sectionStyle}>
+          <h4 style={sectionHeader}>Space audit</h4>
+          <div style={{fontSize:11, color:"var(--muted)", marginTop:3, marginBottom:6, lineHeight:1.5}}>
+            A weekly report of how much disk each project uses on the lab's data
+            server, with suggestions for what could be tidied. It runs under your
+            own account on that server, only reads, and never needs administrator
+            rights, but it has to be set up there once
+            (<code>murmurent space schedule --install</code>; see the docs page
+            "Tidying a project's space"). Turn it off if your lab does not want it:
+            the dashboard then stops showing it and the weekly scan does nothing.
+          </div>
+          <select style={inputStyle} value={form.space_audit} onChange={update("space_audit")}>
+            <option value="">not chosen (not shown on the dashboard)</option>
+            <option value="on">on</option>
+            <option value="off">off</option>
+          </select>
         </div>
 
         {/* Storage servers section removed (GH #23): storage/lab-VM roots are
