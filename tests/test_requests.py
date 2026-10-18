@@ -391,3 +391,33 @@ def test_endpoint_approve_attach_repos_skips_remote_provisioning(world, monkeypa
     probes = {p["name"]: p for p in res.json().get("probes", [])}
     assert probes["git remote"]["status"] == "ok"
     assert "local clone" not in probes and "remote provisioning" not in probes
+
+
+def test_approve_copies_a_github_only_repo(world, monkeypatch):
+    """#185 item 8: a repo picked from the lab's GitHub organisation is copied
+    to this machine on approval, then registered and made ready."""
+    import subprocess as _sp
+    from murmurent.core import cert_projects as CP
+    from murmurent.core.repo import repos_root
+    calls = _attach_world(world, monkeypatch, ())          # nothing local yet
+    monkeypatch.setattr(req_core, "_github_full_name", lambda name: f"lab-org/{name}")
+    real_run = _sp.run
+
+    def fake_run(argv, *a, **kw):
+        if list(argv[:3]) == ["gh", "repo", "clone"]:
+            dest = argv[4]
+            (__import__("pathlib").Path(dest) / ".git").mkdir(parents=True)
+            return _sp.CompletedProcess(argv, 0, "", "")
+        return real_run(argv, *a, **kw)
+
+    monkeypatch.setattr(_sp, "run", fake_run)
+    req = req_core.file_create_request(
+        requester="@allie", project="dcis_21", proposed_members=["@allie"],
+        attach_repos=["gh_only"],
+    )
+    req_core.approve(req, approver="@the_pi")
+    dest = repos_root() / "gh_only"
+    assert (dest / ".git").exists()
+    repo = next(r for r in CP.get("dcis_21").repos if r.name == "gh_only")
+    assert repo.path == str(dest)
+    assert [c.rsplit("/", 1)[-1] for c in calls] == ["gh_only"]
