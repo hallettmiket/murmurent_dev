@@ -1587,6 +1587,11 @@ def breach_cmd(project_name: str, description: str) -> None:
     metavar="PORT",
     help="Local port for --tunnel if the default (--port, 8770) is taken.",
 )
+@click.option(
+    "--stop", is_flag=True,
+    help="Stop the dashboard running on this machine (on --port), for example "
+    "one started in the background by the dashboard icon.",
+)
 def dashboard_cmd(
     pi_view: bool,
     snapshot: bool,
@@ -1596,6 +1601,7 @@ def dashboard_cmd(
     port: int,
     tunnel: str,
     tunnel_port: int | None,
+    stop: bool,
 ) -> None:
     dashboard_impl.cmd_dashboard(
         pi_view=pi_view,
@@ -1606,6 +1612,7 @@ def dashboard_cmd(
         port=port,
         tunnel=tunnel,
         tunnel_port=tunnel_port,
+        stop=stop,
     )
 
 
