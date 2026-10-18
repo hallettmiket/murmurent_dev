@@ -15,7 +15,9 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, BeforeValidator, Field
+
+from ..core import sensitivity as _sens
 
 
 # ---------------------------------------------------------------------------
@@ -273,7 +275,11 @@ class StatStrip(BaseModel):
 # ---------------------------------------------------------------------------
 
 
-Sensitivity = Literal["clinical", "restricted", "standard"]
+# The three tiers (core/sensitivity.py). A record that still says the former
+# name ``clinical`` is turned into ``protected`` before validation, so an old
+# record never fails to load.
+Sensitivity = Annotated[Literal["protected", "restricted", "standard"],
+                        BeforeValidator(_sens.normalize)]
 RepoDestination = Literal["github", "local"]
 
 

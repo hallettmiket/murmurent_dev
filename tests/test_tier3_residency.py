@@ -1,6 +1,6 @@
 """Tests for the tier-3 data-residency preflight (issue #80 Wave 3, Part B).
 
-Policy: clinical / tier-3 data is server-resident and must never be bound as a
+Policy: protected (formerly clinical) / tier-3 data is server-resident and must never be bound as a
 laptop's data root — reach it over SSH, don't replicate it. The decision
 combines the machine ROLE (``machine_registry.machine_kind``) with the project
 sensitivity (``cert_projects``). These are pure-function tests: no git, no
@@ -15,7 +15,14 @@ from murmurent.core.preflight import probe_tier3_residency
 
 # --- the preflight decision itself -----------------------------------------
 
+def test_refuses_protected_on_laptop():
+    p = probe_tier3_residency(sensitivity="protected", role="laptop", project="dcis_clin")
+    assert p.status == "fail"
+    assert p.required is True
+
+
 def test_refuses_clinical_on_laptop():
+    # ``clinical`` is the former name of ``protected`` and is still read as it.
     p = probe_tier3_residency(sensitivity="clinical", role="laptop", project="dcis_clin")
     assert p.status == "fail"
     assert p.required is True
@@ -36,7 +43,7 @@ def test_allows_standard_on_laptop():
 
 
 def test_allows_restricted_on_laptop():
-    # Only clinical is tier-3 today; restricted is unrestricted on any machine.
+    # Only protected is tier-3 today; restricted is unrestricted on any machine.
     p = probe_tier3_residency(sensitivity="restricted", role="laptop", project="cohort")
     assert p.status == "ok"
     assert p.required is False

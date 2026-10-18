@@ -40,6 +40,7 @@ from pathlib import Path
 
 from . import cert_projects as _cp
 from . import lab_vm as _lab_vm
+from . import sensitivity as _sens
 from .preflight import Probe
 
 _log = logging.getLogger(__name__)
@@ -584,19 +585,22 @@ def local_handle() -> str:
 
 
 def marker_sensitivity(repo: Path) -> str:
-    """The sensitivity a repository declares in its ``.murmurent.yaml``, or ""."""
+    """The sensitivity a repository declares in its ``.murmurent.yaml``, or "".
+
+    A marker that still says the former name ``clinical`` reads as ``protected``.
+    """
     try:
         from .repo_ready import read_marker
-        value = str((read_marker(Path(repo)) or {}).get("sensitivity") or "").strip().lower()
+        value = _sens.normalize((read_marker(Path(repo)) or {}).get("sensitivity"))
     except Exception:  # noqa: BLE001
         return ""
     return value if value in _cp.VALID_SENSITIVITY_TIERS else ""
 
 
 def most_sensitive(tiers: list[str]) -> str:
-    """The most sensitive of ``tiers`` (clinical, then restricted, then standard)."""
+    """The most sensitive of ``tiers`` (protected, then restricted, then standard)."""
     order = list(_cp.VALID_SENSITIVITY_TIERS)
-    known = [t for t in tiers if t in order]
+    known = [_sens.normalize(t) for t in tiers if _sens.normalize(t) in order]
     return max(known, key=order.index) if known else "standard"
 
 

@@ -18,9 +18,9 @@ exceptions the PI agreed to on 2026-10-16:
 1. To find duplicates, files of the same size (above a set size) are
    fingerprinted, which reads them. The fingerprint is a number; nothing in the
    file is kept or shown. ``--no-checksums`` turns this off.
-2. For a file no project member owns, in a project not marked clinical, the
+2. For a file no project member owns, in a project not marked protected, the
    first three lines are kept in the table, so the PI can tell what it is. For
-   a clinical project, nothing inside a file is ever read for this.
+   a protected project, nothing inside a file is ever read for this.
 
 What the scan never does. It changes no file, follows no link out of the
 project, and never walks a folder the project only reads (``reads_from``).
@@ -49,6 +49,7 @@ from typing import Callable
 from . import cert_projects as _cp
 from . import lab_vm as _lab_vm
 from . import project_unit as _pu
+from . import sensitivity as _sens
 from . import space_table as _st
 from .millwright_policy import Policy, load_policy
 
@@ -707,7 +708,7 @@ class _Walker:
         self.options = options
         self.env = env
         self.now = (options.now or _dt.datetime.now().astimezone()).timestamp()
-        self.clinical = cp.sensitivity == "clinical"
+        self.protected = _sens.is_protected(cp.sensitivity)
         self.skip = [Path(os.path.normpath(p)) for p in _pu.resolve_reads_from(cp, env).folders]
         self.logins, self.unknown_members = member_logins(cp)
         self.experiments = experiment_names(cp)
@@ -956,7 +957,7 @@ class _Walker:
         if st.st_mode & stat.S_IWOTH:
             self.access.setdefault((str(root.path), "anyone on the server can change"),
                                    _Group()).add(spath, size, mtime)
-        elif self.clinical and st.st_mode & stat.S_IROTH:
+        elif self.protected and st.st_mode & stat.S_IROTH:
             self.access.setdefault((str(root.path), "anyone on the server can read"),
                                    _Group()).add(spath, size, mtime)
 
@@ -1197,7 +1198,7 @@ def _unattributed_items(walker: _Walker, roots: list[Root]) -> list[_st.Item]:
     items: list[_st.Item] = []
     for (owner, group_path, disk), group in sorted(walker.unattributed.items()):
         single = group.n_files == 1 and group.example == group_path
-        text = "" if walker.clinical else peek(group.example)
+        text = "" if walker.protected else peek(group.example)
         reason = (f"Owned by {owner}, who is not a member of this project we can match."
                   if not walker.unknown_members else
                   f"Owned by {owner}, who is not a member of this project we can match "

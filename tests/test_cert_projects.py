@@ -69,7 +69,7 @@ def test_enrichment_fields_round_trip():
     CP.upsert("p", lab="lab_mh", lead="@the_pi", sensitivity="Clinical",
               choreography="hub", code_repo="~/repos/p", github_repo="org/p")
     p = CP.get("p")
-    assert p.lead == "@the_pi" and p.sensitivity == "clinical"   # normalized
+    assert p.lead == "@the_pi" and p.sensitivity == "protected"  # normalized; the former name reads as protected
     assert p.choreography == "hub" and p.code_repo == _local("p")
     assert p.github_repo == "org/p"
 
@@ -87,10 +87,10 @@ def test_membership_upsert_preserves_metadata():
 
 
 def test_set_status_preserves_metadata():
-    CP.upsert("p", lab="lab_mh", sensitivity="clinical", code_repo="~/repos/p")
+    CP.upsert("p", lab="lab_mh", sensitivity="protected", code_repo="~/repos/p")
     CP.set_status("p", "archived")
     p = CP.get("p")
-    assert p.status == "archived" and p.sensitivity == "clinical"
+    assert p.status == "archived" and p.sensitivity == "protected"
     assert p.code_repo == _local("p")
 
 
@@ -244,7 +244,7 @@ def test_backfill_from_charter(monkeypatch, tmp_path):
     touched = CP.backfill_from_charter()
     assert "dcis_sc" in touched
     p = CP.get("dcis_sc")
-    assert p.lab == "hallett" and p.sensitivity == "clinical" and p.lead == "@allie"
+    assert p.lab == "hallett" and p.sensitivity == "protected" and p.lead == "@allie"
     assert p.choreography == "clinical_cohort"
     assert str(repo) in p.code_repo
     assert set(p.members) == {"@allie", "@bob"}
@@ -255,7 +255,7 @@ def test_backfill_from_charter(monkeypatch, tmp_path):
 
 def test_enrichment_fields_stage1_round_trip():
     """Stage 1: the fields migrated off CHARTER survive a write→read cycle."""
-    CP.upsert("p", lab="lab_mh", sensitivity="clinical",
+    CP.upsert("p", lab="lab_mh", sensitivity="protected",
               reb_number="WREM-42", reb_expires="2027-01-01", data_residency="ca",
               repo_kind="local", local_repo_root="/srv/repos",
               remote_url="/srv/repos/p.git", slack_channel_name="proj-p",
@@ -275,7 +275,7 @@ def test_enrichment_fields_stage1_round_trip():
 
 
 def test_membership_upsert_preserves_stage1_fields():
-    CP.upsert("p", lab="lab_mh", sensitivity="clinical", reb_number="R1",
+    CP.upsert("p", lab="lab_mh", sensitivity="protected", reb_number="R1",
               reb_expires="2027-01-01", data_residency="ca", repo_kind="local")
     CP.upsert("p", lab="lab_mh", member="@allie",
               cert={"fingerprint": "f", "card_id": "c"})
@@ -284,11 +284,11 @@ def test_membership_upsert_preserves_stage1_fields():
     assert p.repo_kind == "local" and "@allie" in p.members
 
 
-def test_validate_project_clinical_requires_reb():
-    CP.upsert("p", lab="lab_mh", sensitivity="clinical")
+def test_validate_project_protected_requires_reb():
+    CP.upsert("p", lab="lab_mh", sensitivity="protected")
     with pytest.raises(CP.CertProjectValidationError, match="reb_number"):
         CP.validate_project(CP.get("p"))
-    CP.upsert("p", lab="lab_mh", sensitivity="clinical", reb_number="R1",
+    CP.upsert("p", lab="lab_mh", sensitivity="protected", reb_number="R1",
               reb_expires="2027-01-01", data_residency="ca")
     CP.validate_project(CP.get("p"))     # now valid — no raise
 
@@ -317,7 +317,7 @@ def test_backfill_copies_all_charter_fields(monkeypatch, tmp_path):
     touched = CP.backfill_from_charter()
     assert "dcis_sc" in touched
     p = CP.get("dcis_sc")
-    assert p.sensitivity == "clinical" and p.reb_number == "WREM-1"
+    assert p.sensitivity == "protected" and p.reb_number == "WREM-1"
     assert p.reb_expires == "2027-01-01" and p.data_residency == "ca"
     assert p.repo_kind == "local" and p.local_repo_root == "/srv/repos"
     assert p.remote_url == "/srv/repos/dcis_sc.git"
@@ -325,7 +325,7 @@ def test_backfill_copies_all_charter_fields(monkeypatch, tmp_path):
     assert p.github_repo == "org/dcis_sc"
     assert p.choreography == "clinical_cohort"
     assert set(p.members) == {"@allie", "@bob"}
-    CP.validate_project(p)               # a fully-migrated clinical project validates
+    CP.validate_project(p)               # a fully-migrated legacy clinical project validates as protected
 
 
 def test_migrate_charters_backfills_then_deletes(monkeypatch, tmp_path):

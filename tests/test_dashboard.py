@@ -54,8 +54,8 @@ def world(monkeypatch, tmp_path):
         "dcis_test",
         charter_path=None,
         members_csv="@the_pi,@allie,@bob,@cassie",
-        description="Fake clinical project.",
-        sensitivity="clinical",
+        description="Fake protected project.",
+        sensitivity="protected",
         choreography="clinical_cohort",
         reb_number="WREM-1",
         reb_expires="2027-01-01",
@@ -121,10 +121,10 @@ def test_outstanding_red_on_old_complete(world):
     assert "red" in severities, [(i.scope, i.target, i.severity) for i in snap.outstanding]
 
 
-def test_compliance_for_cassie_flags_clinical(world):
+def test_compliance_for_cassie_flags_protected(world):
     snap = dashboard.build_snapshot("cassie", today=_dt.date(2026, 5, 7))
     rows = {row.project: row for row in snap.compliance}
-    assert rows["dcis_test"].sensitivity == "clinical"
+    assert rows["dcis_test"].sensitivity == "protected"
     notes = " ".join(rows["dcis_test"].notes)
     assert "TCPS_2 missing" in notes
 
@@ -135,10 +135,10 @@ def test_compliance_for_bob_marks_expiring(world):
     assert any(c.status == "expiring" for c in tcps)
 
 
-def test_pi_view_includes_clinical_grid(world):
+def test_pi_view_includes_protected_grid(world):
     snap = dashboard.build_snapshot("the_pi", today=_dt.date(2026, 5, 7))
     assert snap.is_pi
-    grid = snap.pi_view.get("clinical_compliance", [])
+    grid = snap.pi_view.get("protected_compliance", [])
     assert any(row["member"] == "@cassie" and row["tcps_status"] == "missing" for row in grid)
 
 

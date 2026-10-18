@@ -42,31 +42,31 @@ def test_invalid_sensitivity_rejected():
         )
 
 
-def test_render_charter_clinical_includes_reb():
+def test_render_charter_protected_includes_reb():
     text = render_charter(
         project="dcis_sc_tutorial",
         lead="@allie",
         members=["@allie", "@bob"],
-        sensitivity="clinical",
+        sensitivity="protected",
         description="A fake clinical project.",
         choreography="clinical_cohort",
         reb_number="WREM-2026-9999",
         reb_expires="2027-09-01",
         data_residency="ca",
     )
-    assert "sensitivity: clinical" in text
+    assert "sensitivity: protected" in text
     assert "reb_number: WREM-2026-9999" in text
     assert "reb_expires: 2027-09-01" in text
     assert "data_residency: ca" in text
     assert "choreography: clinical_cohort" in text
 
 
-def test_render_charter_rejects_clinical_without_reb():
+def test_render_charter_rejects_protected_without_reb():
     with pytest.raises(CharterError):
         render_charter(
             project="p",
             lead="@a",
             members=["@a"],
-            sensitivity="clinical",
+            sensitivity="protected",
             description="x",
         )

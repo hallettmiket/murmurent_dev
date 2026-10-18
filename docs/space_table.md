@@ -52,7 +52,7 @@ a large project it can take a while; it prints a line every 50,000 files.
 | out of place | A large file inside a repository; a file loose at the top of the project's append-only folder; a data folder with no matching experiment folder in `exp/`. | move, or ask the owner |
 | unattributed | Files owned by someone who is not a member of the project. Grouped by owner and folder. | ask the owner |
 | listed | Files a member already listed in `src/ready_to_delete.md`. | delete |
-| access | Files anyone on the server can change (or, for a clinical project, read). These go to the security guard, not to you. | refer to security guard |
+| access | Files anyone on the server can change (or, for a protected project, read). These go to the security guard, not to you. | refer to security guard |
 | unreadable | A folder the scan could not look into, so its size is unknown. | ask the owner |
 
 A **fingerprint** (a checksum) is a short number worked out from a file's
@@ -146,9 +146,9 @@ These are for the PI, to decide whether a rule needs writing.
 - The scan reads sizes, dates, owners and names. To find duplicates it reads
   large files of the same size to fingerprint them, up to a limit the lab sets
   (100 GB unless it says otherwise); add `--no-checksums` to skip that.
-- For files owned by a non-member in a project **not** marked clinical, the
+- For files owned by a non-member in a project **not** marked protected, the
   table keeps the first three lines, so you can tell what the file is. In a
-  clinical project nothing inside a file is read for this.
+  protected project nothing inside a file is read for this.
 - The table is kept in your own murmurent folder (`~/.murmurent/space/`),
   readable only by you. It is never posted to Slack or GitHub, and nothing is
   written to the project's repositories.
@@ -257,7 +257,7 @@ across the lab, and every project with how much is waiting for a decision. To
 see every row of one project or record a decision, use `murmurent space show`
 and `murmurent space decide` on the server.
 
-For clinical projects, and for folders no project claims, the lab-wide list of
+For protected projects, and for folders no project claims, the lab-wide list of
 pressing items gives sizes but no file names.
 
 ## What it cannot do yet

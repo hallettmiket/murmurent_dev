@@ -110,7 +110,7 @@ Clicking a cell should open a side drawer with the member's full cert list and "
 
 ## Resolved decisions
 1. **Notebook storage** — per-user. Read from each user's home dir (`~/lab-notebook/YYYY-MM-DD.md`). No shared vault. The dashboard panel renders the signed-in user's own notes; PI persona does NOT cross-read peers' notebooks.
-2. **Compliance `mis` rule** — blocks **clinical projects only**. A missing TCPS_2 does not gate `standard`-sensitivity projects. The heatmap should still surface `mis` cells on standard rows as a warning, but the access enforcement layer only refuses for `sens === "clinical"`.
+2. **Compliance `mis` rule** — blocks **protected projects only** (formerly called clinical). A missing TCPS_2 does not gate `standard`-sensitivity projects. The heatmap should still surface `mis` cells on standard rows as a warning, but the access enforcement layer only refuses for `sens === "protected"`.
 3. **PI persona** — auto-detect from group membership. If the signed-in user is the PI of any project, expose the persona toggle and default it to whichever was last used (localStorage). Non-PI users never see the toggle. No explicit admin override.
 
 ## Implementation notes
