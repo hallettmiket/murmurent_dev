@@ -136,6 +136,16 @@
         while (v >= 1024 && i < units.length - 1) { v /= 1024; i++; }
         return i === 0 ? v + " bytes" : v.toFixed(1) + " " + units[i];
       }
+      // Parse a response as JSON even when the server sent an error page, so a
+      // failure reads as a sentence, not "SyntaxError".
+      function readJson(r) {
+        return r.text().then(t => {
+          let body = null;
+          try { body = JSON.parse(t); } catch (e) { body = { detail: "the dashboard server hit an error (HTTP " + r.status + ")" }; }
+          return { ok: r.ok, body: body };
+        });
+      }
+
       function setStatus(text, isError) {
         statusEl.textContent = text || "";
         statusEl.className = "status" + (isError ? " error" : "");
@@ -143,8 +153,11 @@
 
       function render(report) {
         if (!report) {
-          reportEl.innerHTML = '<div class="card"><div class="body">No report there yet. The weekly ' +
-            'scan writes one; to make one now, run <code>murmurent space scan-lab</code> on that machine.</div></div>';
+          reportEl.innerHTML = '<div class="card"><div class="body">No report on that machine yet. ' +
+            'The space audit runs on the lab\'s data server: pick that machine above. If it has never ' +
+            'been set up, run <code>murmurent space schedule --install</code> there once (it runs under ' +
+            'your own account and only reads), or <code>murmurent space scan-lab</code> for a report now. ' +
+            'If your lab does not want the audit, turn it off in the dashboard under Lab settings.</div></div>';
           return;
         }
         const projects = report.projects || [];
@@ -246,7 +259,7 @@
         if (host) qs.set("host", host);
         if (user) qs.set("user", user);
         fetch("/api/space/lab?" + qs.toString(), { credentials: "same-origin", headers: { Accept: "application/json" } })
-          .then(r => r.json().then(j => ({ ok: r.ok, body: j })))
+          .then(readJson)
           .then(({ ok, body }) => {
             loadEl.disabled = false;
             if (!ok) { setStatus((body && body.detail) || "could not fetch the report", true); return; }
@@ -260,10 +273,11 @@
         .then(r => r.json())
         .then(data => {
           const hosts = (data && data.hosts) || [];
-          let remembered = "";
-          try { remembered = localStorage.getItem(STORE_KEY) || ""; } catch (e) { /* none */ }
+          // null = never chosen; "" = "this computer" was chosen and must be kept.
+          let remembered = null;
+          try { remembered = localStorage.getItem(STORE_KEY); } catch (e) { /* none */ }
           const firstRemote = (hosts.find(h => h.kind === "ssh") || {}).name || "";
-          const choice = remembered || firstRemote;
+          const choice = remembered !== null ? remembered : firstRemote;
           hostEl.innerHTML = '<option value="">this computer</option>' + hosts
             .filter(h => h.kind === "ssh")
             .map(h => '<option value="' + esc(h.name) + '"' + (h.name === choice ? " selected" : "") + ">" +
@@ -304,9 +318,11 @@
         qs.set("limit", PAGE); qs.set("offset", offset);
         rowsStatus.className = "status"; rowsStatus.textContent = "fetching…";
         fetch("/api/space/rows?" + qs.toString(), { credentials: "same-origin", headers: { Accept: "application/json" } })
-          .then(r => r.json().then(j => ({ ok: r.ok, body: j })))
+          .then(readJson)
           .then(({ ok, body }) => {
-            if (!ok) { rowsStatus.className = "status error"; rowsStatus.textContent = (body && body.detail) || "could not fetch the list"; return; }
+            // A failure here is almost always the one the report already shows
+            // at the top, so do not repeat it; just hide the list.
+            if (!ok || body.no_table) { rowsCard.hidden = true; rowsStatus.textContent = ""; return; }
             rowsCard.hidden = false;
             if (!facetsFilled) {
               fillFacet("f-project", body.facets.projects, v => v === "(unclaimed)" ? "no project claims these" : v);

@@ -365,6 +365,21 @@ def rows(conn: sqlite3.Connection, project: str | None = None, *,
 PAGE_LIMIT = 500
 
 
+def read_page(**filters) -> dict:
+    """:func:`rows_page` from the table, or an empty page when there is no table
+    yet. Only reads: looking at the list never creates the table (#185 follow-up;
+    the dashboard's Space page used to create it by being opened)."""
+    path = table_path()
+    if not path.is_file():
+        limit = filters.get("limit", 200)
+        return {"kind": "space_rows", "total": 0, "total_bytes": 0,
+                "offset": max(0, int(filters.get("offset", 0))), "limit": limit,
+                "rows": [], "facets": {"projects": [], "categories": [],
+                                       "suggestions": [], "owners": []},
+                "no_table": True}
+    return rows_page(connect(path), **filters)
+
+
 def rows_page(conn: sqlite3.Connection, *, project: str | None = None,
               category: str | None = None, suggestion: str | None = None,
               owner: str | None = None, min_size: int = 0, limit: int = 200,

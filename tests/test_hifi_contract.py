@@ -144,6 +144,7 @@ def world(monkeypatch, tmp_path):
 
 HIFI_TOP_LEVEL_KEYS = {
     "version",
+    "build",          # which code the dashboard runs (top-bar label)
     "today",
     "persona",
     "member",

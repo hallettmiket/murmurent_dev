@@ -269,6 +269,11 @@ def space_gaps(project: str | None) -> None:
               help="Send the PI a Slack direct message with the summary (no file names).")
 def space_scan_lab(no_checksums: bool, notify: bool) -> None:
     from ..core import space_lab as _sl
+    if _sl.audit_setting() == "off":
+        # Exit quietly and successfully, so a weekly timer left behind after
+        # the PI turned the audit off does nothing and reports no failure.
+        click.echo(_sl.TURNED_OFF + " Nothing was scanned.")
+        return
     _lower_priority()
     try:
         report = _sl.scan_lab(checksums=not no_checksums,
@@ -347,7 +352,7 @@ def space_rows(project: str, category: str | None, suggestion: str | None, owner
         smallest = parse_size(min_size) if min_size else 0
     except LaunchError as exc:
         raise click.ClickException(str(exc)) from exc
-    page = _st.rows_page(_st.connect(), project=project or None, category=category,
+    page = _st.read_page(project=project or None, category=category,
                          suggestion=suggestion, owner=owner or None, min_size=smallest,
                          limit=limit, offset=offset)
     if as_json:
@@ -370,10 +375,13 @@ def space_rows(project: str, category: str | None, suggestion: str | None, owner
 @click.option("--day", default="sun", show_default=True, help="Day of the week.")
 @click.option("--at", "at", default="02:00", show_default=True, help="Time of day.")
 def space_schedule(install: bool, remove_it: bool, day: str, at: str) -> None:
+    from ..core import space_lab as _sl
     from ..core import space_schedule as _sch
     try:
         if install and remove_it:
             raise click.UsageError("choose --install or --remove, not both")
+        if install and _sl.audit_setting() == "off":
+            raise click.ClickException(_sl.TURNED_OFF + " The weekly scan was not set up.")
         if install:
             result = _sch.install(day, at)
         elif remove_it:
@@ -382,6 +390,11 @@ def space_schedule(install: bool, remove_it: bool, day: str, at: str) -> None:
             result = _sch.status()
     except (ValueError, RuntimeError) as exc:
         raise click.ClickException(str(exc)) from exc
+    except FileNotFoundError as exc:
+        # No systemctl: not a Linux server with systemd (a Mac, for example).
+        raise click.ClickException(
+            "This computer has no systemd, so the weekly scan cannot be scheduled "
+            "here. Set it up on the lab's Linux data server instead.") from exc
     for line in result.lines():
         click.echo(line)
     if result.record:

@@ -610,6 +610,50 @@ class FetchError(RuntimeError):
     """The report could not be fetched from another machine."""
 
 
+def audit_setting(env: dict[str, str] | None = None) -> str:
+    """The lab's choice for the space audit, from ``space_audit:`` in lab.md:
+    ``on``, ``off``, or ``""`` when the PI has not chosen. Never raises."""
+    try:
+        from .frontmatter import parse_file
+        from .repo import lab_mgmt_repo_root
+        meta = parse_file(lab_mgmt_repo_root(env) / "lab.md").meta or {}
+    except Exception:  # noqa: BLE001
+        return ""
+    value = meta.get("space_audit")
+    if value is True:
+        return "on"
+    if value is False:
+        return "off"
+    value = str(value or "").strip().lower()
+    return value if value in ("on", "off") else ""
+
+
+#: Said wherever the audit is refused because the PI turned it off.
+TURNED_OFF = ("The space audit is turned off for this lab. The PI can turn it on "
+              "in the dashboard under Lab settings.")
+
+
+def _plain_fetch_error(host_name: str, text: str, what: str) -> str:
+    """Turn the last line of a failed remote command into advice a person can act on."""
+    low = text.lower()
+    last = text.splitlines()[-1] if text else ""
+    if "command not found" in low or "murmurent: not found" in low:
+        return (f"murmurent is not installed on {host_name} (or not on its PATH), so "
+                f"it cannot send the {what}. Choose the machine where the weekly scan "
+                "runs, or install murmurent there.")
+    if "no such command" in low:
+        return (f"murmurent on {host_name} is too old to send the {what}. Update it "
+                f"there, then try again.")
+    if any(k in low for k in ("permission denied (publickey", "could not resolve hostname",
+                              "connection refused", "connection timed out",
+                              "no route to host", "host key verification failed")):
+        return (f"could not connect to {host_name} ({last}). Check that `ssh "
+                f"{host_name}` works from this computer.")
+    if "timed out" in low or "timeout" in low:
+        return f"{host_name} took too long to answer. Try again in a minute."
+    return f"could not fetch the {what} from {host_name}: {last}"
+
+
 def fetch_report(host_name: str = "") -> dict | None:
     """The last lab report: this computer's, or a registered host's over SSH.
 
@@ -635,8 +679,7 @@ def fetch_report(host_name: str = "") -> dict | None:
         text = (exc.stderr or exc.stdout or str(exc)).strip()
         if "no lab space report" in text:
             return None
-        last = text.splitlines()[-1] if text else str(exc)
-        raise FetchError(f"could not fetch the report from {host_name}: {last}") from exc
+        raise FetchError(_plain_fetch_error(host_name, text or str(exc), "report")) from exc
     data = _report_from_output(out.stdout)
     if data is None:
         raise FetchError(f"{host_name} did not send a report murmurent can read; is "
@@ -656,7 +699,7 @@ def fetch_rows(host_name: str = "", **filters) -> dict:
     suggestion, owner, min_size, limit, offset).
     """
     if not host_name:
-        return _st.rows_page(_st.connect(), **filters)
+        return _local_rows(**filters)
     import shlex
     from . import hosts as _hosts
     from .remote import Remote, RemoteError
@@ -666,7 +709,7 @@ def fetch_rows(host_name: str = "", **filters) -> dict:
         raise FetchError(f"no host named {host_name!r}. List them with: "
                          "murmurent host list") from exc
     if not host.is_remote():
-        return _st.rows_page(_st.connect(), **filters)
+        return _local_rows(**filters)
     parts = ["murmurent", "space", "rows", "--json"]
     for key, value in filters.items():
         if value not in (None, "", 0):
@@ -675,13 +718,20 @@ def fetch_rows(host_name: str = "", **filters) -> dict:
         out = Remote(host).run(" ".join(shlex.quote(p) for p in parts), timeout=60)
     except RemoteError as exc:
         text = (exc.stderr or exc.stdout or str(exc)).strip()
-        last = text.splitlines()[-1] if text else str(exc)
-        raise FetchError(f"could not fetch the list from {host_name}: {last}") from exc
+        raise FetchError(_plain_fetch_error(host_name, text or str(exc), "list")) from exc
     data = _json_from_output(out.stdout, lambda d: d.get("kind") == "space_rows")
     if data is None:
         raise FetchError(f"{host_name} did not send a list murmurent can read; is "
                          "murmurent up to date there?")
     return data
+
+
+def _local_rows(**filters) -> dict:
+    """This computer's space table, read without creating it."""
+    try:
+        return _st.read_page(**filters)
+    except Exception as exc:  # noqa: BLE001 - a broken table is reported, not a 500
+        raise FetchError(f"could not read this computer's space table: {exc}") from exc
 
 
 def _json_from_output(text: str, accept: Callable[[dict], bool]) -> dict | None:

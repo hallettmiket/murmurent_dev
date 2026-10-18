@@ -172,6 +172,29 @@ lab's management repository, alongside the rules for `murmurent run`:
 
 `murmurent jobs policy` prints the settings in force.
 
+## Turning the space audit on or off (for the PI)
+
+The weekly lab scan below, and the dashboard's **space audit** page, are
+optional. They suit a lab whose PI has an account on the lab's data server and
+wants a weekly view of its disk use. Choose in the dashboard under
+**⚙ Lab settings → Space audit**:
+
+- **not chosen** (the starting point): the dashboard does not show the space
+  audit. The Lab audits panel says it exists and how to turn it on.
+- **on**: the dashboard shows the "space audit" button and the Space page.
+  Then set up the weekly scan once on the data server (next section).
+- **off**: the dashboard stops showing it, and the weekly scan does nothing
+  if one was set up before (`murmurent space schedule --remove` deletes it).
+
+The audit never needs administrator rights. What it does need: an account on
+the data server, murmurent installed there, read access to the members'
+project folders through the lab's group, and, for the scan to run while you
+are logged out, an administrator to run `loginctl enable-linger <your login>`
+once. Without that last step it runs only while you are logged in.
+
+The per-project commands (`murmurent space scan`, `show`, `decide`) work in
+any case: they are personal and need none of this.
+
 ## The weekly lab scan (for the PI)
 
 A project nobody opens any more is never scanned by `murmurent space scan`, so

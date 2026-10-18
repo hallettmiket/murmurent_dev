@@ -467,3 +467,17 @@ def test_snapshot_response_includes_machine_settings(world):
     payload = res.json()
     assert payload["machine_settings"]["obsidian_vault_path"] == "/my/laptop/vault"
     assert payload["machine_settings"]["obsidian_vault_name"] == "vault"
+
+
+def test_lab_settings_space_audit_round_trip(world):
+    """#185: the PI chooses on / off for the space audit; empty clears it."""
+    client = TestClient(create_app())
+    for choice in ("on", "off"):
+        res = client.post("/api/lab/settings", json={"space_audit": choice})
+        assert res.status_code == 200, res.text
+        lab_md = world["lab_mgmt"] / "lab.md"
+        assert parse_file(lab_md).meta["space_audit"] in (choice, choice == "on")
+        assert client.get("/api/dashboard").json()["lab_settings"]["space_audit"] == choice
+    client.post("/api/lab/settings", json={"space_audit": ""})
+    assert "space_audit" not in parse_file(world["lab_mgmt"] / "lab.md").meta
+    assert client.post("/api/lab/settings", json={"space_audit": "maybe"}).status_code == 422

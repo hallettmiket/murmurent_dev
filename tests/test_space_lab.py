@@ -411,3 +411,82 @@ def test_the_page_of_rows_is_for_the_pi_only(lab, monkeypatch):
     assert client.get("/api/space/rows?user=student").status_code == 403
     ok = client.get("/api/space/rows?user=the_pi&category=compressible")
     assert ok.status_code == 200 and ok.json()["total"] == 1
+
+
+# ---------------------------------------------------------------------------
+# The PI can turn the audit off; when it is not set up, it fails plainly (#185)
+# ---------------------------------------------------------------------------
+
+
+def _set_audit(lab_mgmt: Path, value: str | None) -> None:
+    meta = {"lab": "mh", "pi": "@the_pi"}
+    if value is not None:
+        meta["space_audit"] = value
+    (lab_mgmt / "lab.md").write_text("---\n" + yaml.safe_dump(meta) + "---\n")
+
+
+def test_audit_setting_reads_lab_md(lab, tmp_path):
+    lab_mgmt = tmp_path / "lab_mgmt"
+    _set_audit(lab_mgmt, None)
+    assert sl.audit_setting() == ""
+    _set_audit(lab_mgmt, "on")
+    assert sl.audit_setting() == "on"
+    (lab_mgmt / "lab.md").write_text("---\nlab: mh\nspace_audit: off\n---\n")  # YAML boolean
+    assert sl.audit_setting() == "off"
+
+
+def test_turned_off_stops_the_scan_and_the_schedule(lab, tmp_path):
+    _set_audit(tmp_path / "lab_mgmt", "off")
+    report = tmp_path / "home" / "space" / "lab_report.json"
+    report.unlink(missing_ok=True)
+    out = CliRunner().invoke(cli, ["space", "scan-lab"])
+    assert out.exit_code == 0 and "turned off" in out.output
+    assert not report.exists()
+    sched = CliRunner().invoke(cli, ["space", "schedule", "--install"])
+    assert sched.exit_code != 0 and "turned off" in sched.output
+
+
+def test_turned_off_endpoints_refuse_plainly(lab, monkeypatch, tmp_path):
+    from fastapi.testclient import TestClient
+
+    from murmurent.core import membership
+    from murmurent.dashboard.server import create_app
+    _set_audit(tmp_path / "lab_mgmt", "off")
+    monkeypatch.setattr(membership, "pi_handle", lambda: "the_pi")
+    client = TestClient(create_app())
+    for url in ("/api/space/lab?user=the_pi", "/api/space/rows?user=the_pi"):
+        res = client.get(url)
+        assert res.status_code == 409 and "turned off" in res.json()["detail"]
+
+
+def test_opening_the_list_does_not_create_the_table(lab, tmp_path):
+    table = st.table_path()
+    table.unlink(missing_ok=True)
+    page = sl.fetch_rows("")
+    assert page["total"] == 0 and page.get("no_table") and not table.exists()
+
+
+@pytest.mark.parametrize("stderr, expect", [
+    ("bash: line 1: murmurent: command not found", "not installed on server"),
+    ("Error: No such command 'space'.", "too old"),
+    ("mhallet@server: Permission denied (publickey).", "ssh server"),
+])
+def test_remote_failures_read_as_advice(lab, monkeypatch, stderr, expect):
+    from murmurent.core import hosts, remote
+    monkeypatch.setattr(hosts, "resolve", lambda name: hosts.Host(name=name, kind="ssh"))
+
+    def fake_run(self, command, **kw):
+        raise remote.RemoteError("x", returncode=1, stdout="", stderr=stderr)
+
+    monkeypatch.setattr(remote.Remote, "run", fake_run)
+    with pytest.raises(sl.FetchError) as exc:
+        sl.fetch_report("server")
+    assert expect in str(exc.value)
+
+
+def test_schedule_without_systemd_says_so(lab, monkeypatch):
+    def no_systemctl(*a, **k):
+        raise FileNotFoundError("systemctl")
+    monkeypatch.setattr(sch.subprocess, "run", no_systemctl)
+    out = CliRunner().invoke(cli, ["space", "schedule", "--install"])
+    assert out.exit_code != 0 and "no systemd" in out.output

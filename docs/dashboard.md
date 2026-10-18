@@ -60,6 +60,12 @@ At a high level, it shows:
 - your lab's **members**, and
 - your **Oracle** and daily **lab-notebook** panels.
 
+**Which murmurent is running.** The top bar says which code the dashboard
+runs, for example `running murmurent_dev · main @ 787faca` for the
+development copy, or `running release v2026.10.0` for an installed release.
+Hover over it for the folder. If it names a different copy than the one you
+just updated, restart the dashboard from that copy.
+
 Most dashboard actions have a `murmurent ...` CLI twin, and vice versa, so
 you can work from whichever you prefer. A few concrete pairs:
 
