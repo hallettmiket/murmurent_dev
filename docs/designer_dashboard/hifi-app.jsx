@@ -281,7 +281,8 @@ function groupNoun() {
 }
 
 // "Murmurent update available" banner (issue #41 pt 1).
-// Detects when this install (~/repos/murmurent) is behind upstream and offers a
+// Detects when this install (the checkout the dashboard runs from) is behind
+// upstream and offers a
 // one-click update: `git pull --ff-only` + restart the dashboard. Only the code
 // repo is touched — never ~/.murmurent, the roster clone, or the data root (all
 // outside it), and --ff-only refuses rather than overwrite.
@@ -307,17 +308,28 @@ function UpdateBanner() {
   // that would 404. An older (skewed) server gets restart guidance instead.
   const canSelfUpdate = !!st.can_self_update;
 
-  // After the server restarts, poll /healthz until it answers, then hard-reload.
-  const waitForRestartAndReload = async () => {
+  // The server's process id, from /healthz. It changes on restart, so we can
+  // tell the new server from the old one, which keeps answering for about a
+  // second after the update (#185). Older servers send no id: fall back to
+  // "answers at all".
+  const bootId = async () => {
+    const h = await fetch("/healthz", { cache: "no-store" });
+    if (!h.ok) throw new Error("HTTP " + h.status);
+    return (await h.json()).boot || null;
+  };
+
+  // After the server restarts, poll /healthz until a NEW process answers,
+  // then hard-reload.
+  const waitForRestartAndReload = async (before) => {
     for (let i = 0; i < 60; i++) {
       await new Promise(r => setTimeout(r, 1000));
       try {
-        const h = await fetch("/healthz", { cache: "no-store" });
-        if (h.ok) { window.location.reload(); return; }
+        const now = await bootId();
+        if (!before || (now && now !== before)) { window.location.reload(); return; }
       } catch (_) { /* still restarting */ }
     }
     setBusy(false);
-    setMsg("Update pulled, but the dashboard didn't come back in time — reload manually.");
+    setMsg("Update pulled, but the dashboard did not restart. Restart it with: murmurent dashboard --hifi");
   };
 
   const doUpdate = async () => {
@@ -327,9 +339,11 @@ function UpdateBanner() {
       "progress on your current build.")) return;
     setBusy(true); setMsg("");
     try {
+      let before = null;
+      try { before = await bootId(); } catch (_) {}
       const r = await fetch("/api/murmurent/update", { method: "POST", headers: { Accept: "application/json" } });
       const d = await r.json();
-      if (d.restart) { await waitForRestartAndReload(); return; }
+      if (d.restart) { await waitForRestartAndReload(before); return; }
       // Didn't restart → ff refused / diverged / already current: simple notice.
       setBusy(false);
       setMsg(d.detail || "Update did not run.");
@@ -350,11 +364,13 @@ function UpdateBanner() {
       <span style={{fontWeight:600}}>
         {(diverged || failed) ? "⚠ Murmurent update" : "⬆ Murmurent update available"}
       </span>
-      <span className="muted">{st.behind} new commit{st.behind === 1 ? "" : "s"} upstream ({st.current}→{st.latest}).</span>
+      <span className="muted" title={st.root ? "checked " + st.root : ""}>
+        {st.behind} new commit{st.behind === 1 ? "" : "s"} upstream ({st.current}→{st.latest}).
+      </span>
       {failed
         ? <span className="muted" style={{color:"var(--tiger-deep)"}}>{msg}</span>
         : diverged
-          ? <span className="muted">Your install has local changes — reconcile <code>~/repos/murmurent</code> manually first.</span>
+          ? <span className="muted">Your install has local changes. Bring <code>{st.root || "your murmurent folder"}</code> up to date by hand first.</span>
           : !canSelfUpdate
             ? <span className="muted">Your dashboard is running older code than what's on disk — restart it to enable one-click update: <code className="mono">murmurent dashboard --hifi</code>, then reload.</span>
             : <>
@@ -442,14 +458,11 @@ function CmdBar({ query, setQuery }) {
   // role badge below the search is informational (it reflects the lens
   // the user picked at sign-in).
   const persona = window.DATA.persona || "member";
-  // A PI (or a designated settings-admin) can edit the lab's parameters. This
-  // top-bar button is a copy of the footer "⚙ lab" control so the PI can reach
-  // Lab settings without scrolling — setting the lab parameters is a first job.
-  const _m = window.DATA.member || {};
-  const _ls = window.DATA.lab_settings || {};
-  const _myHandle = (_m.handle || "").toLowerCase();
-  const canEditLab = persona === "pi"
-    || (_ls.admins || []).map(h => h.toLowerCase()).includes(_myHandle);
+  // This top-bar button is a copy of the footer "⚙ lab" control so the PI can
+  // reach Lab settings without scrolling. PI only: only the PI can push lab.md
+  // to the lab management repo, so a listed admin's save would fail to share
+  // (#185, #34).
+  const canEditLab = persona === "pi";
   const [showLabTop, setShowLabTop] = useState(false);
   return (
     <div className="cmdbar">
@@ -530,7 +543,7 @@ function CmdBar({ query, setQuery }) {
       {(window.DATA.member && window.DATA.member.lab_sudo) && (
         <a
           href={`/security?user=${encodeURIComponent(window.DATA.member.handle || "")}`}
-          title="Open the per-lab security dashboard (/security)"
+          title="Open the security audit: file permissions, secrets and setup checks (/security)"
           target="_blank" rel="noopener"
           style={{
             marginLeft: 10, fontFamily: "var(--mono)", fontSize: 11,
@@ -539,14 +552,14 @@ function CmdBar({ query, setQuery }) {
             border: "1px solid var(--tiger)", borderRadius: 2,
             padding: "3px 8px",
           }}>
-          ⚿ security ↗
+          ⚿ security audit ↗
         </a>
       )}
       {/* /space link: the lab's weekly space report (#151), PI only. */}
       {persona === "pi" && (
         <a
           href={`/space?user=${encodeURIComponent((window.DATA.member && window.DATA.member.handle) || "")}`}
-          title="Open the lab's space report (/space)"
+          title="Open the space audit: how much disk each project and member uses (/space)"
           target="_blank" rel="noopener"
           style={{
             marginLeft: 10, fontFamily: "var(--mono)", fontSize: 11,
@@ -555,7 +568,7 @@ function CmdBar({ query, setQuery }) {
             border: "1px solid var(--tiger)", borderRadius: 2,
             padding: "3px 8px",
           }}>
-          ▤ space ↗
+          ▤ space audit ↗
         </a>
       )}
       <a
@@ -573,29 +586,6 @@ function CmdBar({ query, setQuery }) {
       </a>
     </div>
   );
-}
-
-/* ───────── workspace launcher row + initialization wizard ─────────
-   Three modes share this row:
-     open workspace  — pick project + agents → POST /api/workspace/launch
-     initialize      — multi-step wizard to onboard a member on a machine
-     installations   — inline table of all provisioned environments       */
-
-async function postWorkspaceLaunch(body) {
-  const params = new URLSearchParams(window.location.search);
-  const userParam = params.get("user");
-  const url = "/api/workspace/launch" + (userParam ? "?user=" + encodeURIComponent(userParam) : "");
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    let detail = "HTTP " + res.status;
-    try { detail = (await res.json()).detail || detail; } catch (_) {}
-    throw new Error(detail);
-  }
-  return res.json();
 }
 
 /* Launch a bare Claude Code CLI session in a native terminal — no repo
@@ -666,23 +656,12 @@ function CCLaunchBar({ span = "c-12" }) {
   );
 }
 
-/* Infrastructure checklist items for the initialization wizard. */
-const INFRA_ITEMS = [
-  { id: "git",         label: "git",             note: "version control (required)" },
-  { id: "vscode",      label: "VS Code",          note: "IDE with Claude Code extension" },
-  { id: "github_cli",  label: "GitHub CLI (gh)",  note: "repo cloning & auth" },
-  { id: "claude_code", label: "Claude Code (CC)", note: "AI runtime — needs API key" },
-  { id: "obsidian",    label: "Obsidian",          note: "lab-notebook vault" },
-];
-
-/* ── RepoInventoryPanel: cross-machine + GitHub repo audit.
+/* ── RepoInventoryPanel: this machine's repos + the lab's GitHub org,
+   grouped by project (#185).
 
    Loads /api/inventory/repos (cached) on mount; the dashboard's
    startup hook runs a fresh scan weekly. Refresh button forces a live
-   re-scan (one ``gh repo list`` + one SSH ``find .git`` per registered
-   host). Per-row "Install on <machine>" opens the existing
-   InstallModal with project + machine pre-filled so the user gets
-   every safeguard the install wizard already has. */
+   re-scan (one ``gh repo list`` + one local ``find .git``). */
 function RepoInventoryPanel({ span = "c-12" }) {
   const [report, setReport] = useState(null);
   const [busy, setBusy] = useState(true);
@@ -772,6 +751,29 @@ function RepoInventoryPanel({ span = "c-12" }) {
     return [...infraVisible, ...restVisible];  // infra pinned to the top
   })();
 
+  // Group the visible rows by project (#185 item 12): one heading per project
+  // with its repos under it. A repo in two projects is listed under both;
+  // repos in no project come last. murmurent's own repos keep their own group.
+  const groups = (() => {
+    const projects = (window.DATA.projects || []).filter(pr => pr.status !== "archived");
+    const out = [];
+    const placed = new Set();
+    if (showInfra) {
+      const infraRows = visibleRows.filter(rowIsMurmurentInfra);
+      if (infraRows.length) out.push({ title: "Murmurent's own repos", rows: infraRows });
+      infraRows.forEach(r => placed.add(r));
+    }
+    for (const pr of projects) {
+      const names = new Set((pr.repos || []).map(r => r.name));
+      const rows = visibleRows.filter(r => !rowIsMurmurentInfra(r) && names.has(r.name));
+      if (rows.length) out.push({ title: pr.name, isProject: true, rows });
+      rows.forEach(r => placed.add(r));
+    }
+    const loose = visibleRows.filter(r => !placed.has(r));
+    if (loose.length) out.push({ title: "Not in any project", rows: loose });
+    return out;
+  })();
+
   return (
     <div className={"card " + span}>
       <header className="card-header" style={{display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:8}}>
@@ -830,9 +832,14 @@ function RepoInventoryPanel({ span = "c-12" }) {
             </li>
           </ul>
           <div style={{marginTop:6}}>
-            Murmurent-ready is about one repo. A project is a bigger thing — a named
-            set of repos and members — created via New Project, which attaches ready
-            repos. Making a repo ready does not create a project.
+            Repos are grouped by the project they belong to. A project is a named
+            set of repos and members, made with ＋ new project in the Projects
+            panel; the repos you pick there are made ready for you.
+          </div>
+          <div style={{marginTop:6}}>
+            <strong>▶ Claude Code</strong> opens a new terminal window running
+            Claude Code inside that repo, so the session starts with the repo's
+            files, agents and rules.
           </div>
         </div>
         {err && (
@@ -876,16 +883,31 @@ function RepoInventoryPanel({ span = "c-12" }) {
               <th style={{width:28}}></th>
             </tr></thead>
             <tbody>
-              {visibleRows.map((r, i) => (
-                <RepoInventoryRow
-                  key={r.key + ":" + i}
-                  row={r}
-                  knownHosts={knownHosts}
-                  onAdopt={(ctx) => setAdoptCtx(ctx)}
-                  onUpgrade={doUpgrade}
-                  upgrading={upgrading}
-                  onRemove={(ctx) => setRemoveCtx(ctx)}
-                />
+              {groups.map(g => (
+                <React.Fragment key={"g:" + g.title}>
+                  <tr>
+                    <td colSpan={3 + knownHosts.length}
+                        style={{paddingTop:12, fontWeight:600, fontSize:12.5,
+                                color: g.isProject ? "var(--purple-deep)" : "var(--muted)",
+                                borderBottom:"1px solid var(--rule-strong)"}}>
+                      {g.isProject ? "project: " : ""}{g.title}
+                      <span className="mono muted" style={{fontWeight:400, fontSize:10.5, marginLeft:8}}>
+                        {g.rows.length} repo{g.rows.length === 1 ? "" : "s"}
+                      </span>
+                    </td>
+                  </tr>
+                  {g.rows.map((r, i) => (
+                    <RepoInventoryRow
+                      key={g.title + ":" + r.key + ":" + i}
+                      row={r}
+                      knownHosts={knownHosts}
+                      onAdopt={(ctx) => setAdoptCtx(ctx)}
+                      onUpgrade={doUpgrade}
+                      upgrading={upgrading}
+                      onRemove={(ctx) => setRemoveCtx(ctx)}
+                    />
+                  ))}
+                </React.Fragment>
               ))}
             </tbody>
           </table>
@@ -1114,9 +1136,9 @@ function RepoInventoryRow({ row, knownHosts, onAdopt, onUpgrade, upgrading, onRe
           <button className="btn sm"
             style={{marginLeft:8, fontSize:11, padding:"2px 8px", whiteSpace:"nowrap"}}
             disabled={ccBusy}
-            title={"Launch a Claude Code session in " + localClone.path}
+            title={"Open a terminal running Claude Code in " + localClone.path}
             onClick={launchCC}>
-            {ccBusy ? "…" : "launch"}
+            {ccBusy ? "…" : "▶ Claude Code"}
           </button>
         )}
         {ccMsg && (
@@ -1267,231 +1289,6 @@ function AdoptCloneModal({ clone, onClose }) {
   );
 }
 
-/* ── InstallationsBox: persistent panel — always visible.
-   Members see only their own rows; PI sees all.
-   Each row has an "open workspace" button that launches with that
-   installation's project, machine context, and saved agent set.         */
-function InstallationsBox({ span = "c-12" }) {
-  const allInstallations = window.DATA.installations || [];
-  const persona    = window.DATA.persona || "member";
-  const myHandle   = "@" + (window.DATA.member?.handle || "");
-  const rows       = persona === "pi"
-    ? allInstallations
-    : allInstallations.filter(i => i.member === myHandle);
-
-  const [openRow,      setOpenRow]      = useState(null);
-  const [launchingIdx, setLaunchingIdx] = useState(null);
-  const [rowMsg,       setRowMsg]       = useState({});
-  const [showInstall,  setShowInstall]  = useState(false);
-  // Cleanup-list popup shown after a successful soft-delete. ``null``
-  // means closed; a populated object means "show the modal with these
-  // items so the user knows what to remove by hand".
-  const [cleanup,      setCleanup]      = useState(null);
-
-  const cols = (persona === "pi" ? 2 : 1) + 3; // member? + project + machine + status + launch
-
-  const launchRow = async (inst, i) => {
-    setLaunchingIdx(i);
-    setRowMsg(m => ({ ...m, [i]: null }));
-    try {
-      const r = await postWorkspaceLaunch({
-        project: inst.project,
-        agents:  inst.agents || [],
-      });
-      // Remote project: backend returns vscode_url (no agents field).
-      // Local project: backend returns agents = list of panes opened.
-      const msg = r.vscode_url
-        ? `opened VSCode Remote-SSH on ${r.host}`
-        : r.launched                                   // Linux/other: single code window
-        ? "opened VS Code"
-        : `opened ${(r.agents || []).length} pane(s)`; // macOS 4-quadrant launcher
-      setRowMsg(m => ({ ...m, [i]: msg }));
-      setTimeout(() => setRowMsg(m => ({ ...m, [i]: null })), 3000);
-    } catch (ex) {
-      setRowMsg(m => ({ ...m, [i]: String(ex.message || ex) }));
-    } finally {
-      setLaunchingIdx(null);
-    }
-  };
-
-  // Soft-delete an installation: murmurent removes ~/.murmurent/
-  // installations/<project>.yaml and writes a cleanup report. It
-  // intentionally does NOT touch any data on the target machine —
-  // raw/, refined/, notebook/ stay. After the API returns we pop the
-  // cleanup-list modal so the user sees exactly which paths they need
-  // to delete themselves (if anything).
-  const removeRow = async (inst) => {
-    const ok = window.confirm(
-      `Disconnect the "${inst.project}" installation on ` +
-      (inst.machine_type === "lab_server"
-        ? `${inst.username}@${inst.hostname}`
-        : `laptop (${inst.username})`) + "?\n\n" +
-      "murmurent will remove the row from this panel and write a cleanup\n" +
-      "report. It will NOT delete any data on the target machine; the\n" +
-      "next popup lists what you can delete yourself."
-    );
-    if (!ok) return;
-    try {
-      const params = new URLSearchParams(window.location.search);
-      const userParam = params.get("user");
-      const url = "/api/installations/" + encodeURIComponent(inst.project)
-                + (userParam ? "?user=" + encodeURIComponent(userParam) : "");
-      const r = await fetch(url, { method: "DELETE" });
-      const j = await r.json().catch(() => ({}));
-      if (!r.ok) throw new Error(j.detail || ("HTTP " + r.status));
-      setCleanup({
-        project: inst.project,
-        report:  j.report,
-        items:   j.cleanup_items || [],
-      });
-      if (typeof window.__murmurentFetchData === "function") {
-        await window.__murmurentFetchData(window.DATA.persona);
-      }
-    } catch (ex) {
-      window.alert("Disconnect failed: " + (ex.message || ex));
-    }
-  };
-
-  return (
-    <div className={"card " + span}>
-      <header className="card-header" style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
-        <h3>Installations</h3>
-        <div style={{display:"flex", alignItems:"center", gap:10}}>
-          <span className="mono muted" style={{fontSize:10, letterSpacing:1.2, textTransform:"uppercase"}}>
-            {persona === "pi" ? "all members" : "your environments"}
-          </span>
-          <button className="btn sm" onClick={() => setShowInstall(true)}>＋ install</button>
-        </div>
-      </header>
-      <div className="body" style={{padding:0}}>
-        {rows.length === 0 ? (
-          <div style={{padding:"14px 16px", color:"var(--muted)", fontSize:12, fontFamily:"var(--mono)"}}>
-            No installations yet.{" "}
-            <button type="button" onClick={() => setShowInstall(true)}
-              style={{background:"none", border:0, padding:0, cursor:"pointer",
-                      color:"var(--purple)", fontSize:12, textDecoration:"underline"}}>
-              Install now
-            </button>{" "}to provision this machine for a project.
-          </div>
-        ) : (
-          <table className="dt">
-            <thead><tr>
-              {persona === "pi" && <th>member</th>}
-              <th>project</th>
-              <th>machine</th>
-              <th style={{width:72}}>status</th>
-              <th style={{width:120}}></th>
-            </tr></thead>
-            <tbody>
-              {rows.map((inst, i) => (
-                <React.Fragment key={i}>
-                  <tr>
-                    {persona === "pi" && (
-                      <td className="mono" style={{fontSize:12}}>{inst.member}</td>
-                    )}
-                    <td title="click to expand details" style={{
-                          fontSize:12, cursor:"pointer",
-                          textDecoration: openRow === i ? "none" : "underline",
-                          textDecorationColor: "var(--rule-strong)",
-                          textDecorationStyle: "dotted",
-                          textUnderlineOffset: "3px",
-                        }}
-                        onClick={() => setOpenRow(openRow === i ? null : i)}>
-                      <span style={{
-                        display:"inline-block", width:12, color:"var(--muted)",
-                        transition:"transform 0.15s",
-                        transform: openRow === i ? "rotate(90deg)" : "none",
-                      }}>▸</span>
-                      {" "}{inst.project}
-                    </td>
-                    <td className="mono" title="click to expand details" style={{
-                          fontSize:11, cursor:"pointer",
-                          textDecoration: openRow === i ? "none" : "underline",
-                          textDecorationColor: "var(--rule-strong)",
-                          textDecorationStyle: "dotted",
-                          textUnderlineOffset: "3px",
-                        }}
-                        onClick={() => setOpenRow(openRow === i ? null : i)}>
-                      {inst.machine_type === "lab_server"
-                        ? `${inst.username}@${inst.hostname}`
-                        : `laptop (${inst.username})`}
-                    </td>
-                    <td>
-                      <Pill tone={inst.status === "active" ? "green" : inst.status === "issues" ? "red" : ""}>
-                        {inst.status}
-                      </Pill>
-                    </td>
-                    <td style={{textAlign:"right", paddingRight:10}}>
-                      {rowMsg[i] ? (
-                        <span style={{fontSize:10, color:/open/i.test(rowMsg[i]) ? "var(--muted)" : "var(--red)"}}>
-                          {rowMsg[i]}
-                        </span>
-                      ) : (
-                        <button className="btn sm primary"
-                          disabled={launchingIdx !== null}
-                          onClick={() => launchRow(inst, i)}>
-                          {launchingIdx === i ? "…" : "open workspace"}
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                  {openRow === i && (
-                    <tr>
-                      <td colSpan={cols} style={{
-                        background:"var(--paper-2)", padding:"10px 14px",
-                        fontSize:11, fontFamily:"var(--mono)",
-                        borderBottom:"1px solid var(--rule)",
-                      }}>
-                        <div style={{display:"grid", gridTemplateColumns:"repeat(2,1fr)", gap:"4px 24px"}}>
-                          <div><span className="muted" style={{display:"inline-block",width:90}}>access</span>
-                            <Pill tone={inst.access === "ssh" ? "purple" : "green"}>{inst.access}</Pill>
-                          </div>
-                          <div><span className="muted" style={{display:"inline-block",width:90}}>checked</span>{inst.last_checked}</div>
-                          <div><span className="muted" style={{display:"inline-block",width:90}}>lab_base</span>{inst.lab_base}</div>
-                          <div><span className="muted" style={{display:"inline-block",width:90}}>raw/</span>{_joinPath(inst.raw_path, inst.project)}</div>
-                          <div><span className="muted" style={{display:"inline-block",width:90}}>refined/</span>{_joinPath(inst.refined_path, inst.project)}</div>
-                          <div><span className="muted" style={{display:"inline-block",width:90}}>notebook/</span>{inst.notebook_path}</div>
-                          <div><span className="muted" style={{display:"inline-block",width:90}}>components</span>{(inst.components||[]).join(", ")}</div>
-                          <div><span className="muted" style={{display:"inline-block",width:90}}>agents</span>{(inst.agents||[]).join(", ")}</div>
-                          {inst.issues?.length > 0 && (
-                            <div style={{gridColumn:"span 2", color:"var(--red)", marginTop:4}}>
-                              <span style={{display:"inline-block",width:90}}>issues</span>{inst.issues.join("; ")}
-                            </div>
-                          )}
-                        </div>
-                        <div style={{marginTop:8, paddingTop:6, borderTop:"1px dashed var(--rule)",
-                                     display:"flex", justifyContent:"flex-end"}}>
-                          <button
-                            type="button"
-                            onClick={() => removeRow(inst)}
-                            title="Disconnect this installation. Writes a manual-cleanup report; does NOT delete files on the target machine."
-                            style={{
-                              background:"transparent", border:"1px solid var(--rule-strong)",
-                              borderRadius:2, padding:"2px 8px", cursor:"pointer",
-                              fontSize:11, color:"var(--red)", fontFamily:"var(--mono)",
-                            }}>
-                            × disconnect from murmurent
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </React.Fragment>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-      {showInstall && (
-        <InstallModal onClose={() => setShowInstall(false)} />
-      )}
-      {cleanup && (
-        <InstallCleanupModal cleanup={cleanup} onClose={() => setCleanup(null)} />
-      )}
-    </div>
-  );
-}
-
 /* RemoveRepoModal — danger-zone removal of a repo's LOCAL clone.
    Mirrors GitHub's "type the name to confirm" gate: the delete button stays
    disabled until the typed text exactly matches the repo name. Server-side the
@@ -1582,505 +1379,6 @@ function RemoveRepoModal({ repo, onClose }) {
           </>
         )}
       </form>
-    </div>
-  );
-}
-
-/* InstallCleanupModal — shown immediately after a soft-delete. Lists
-   the paths murmurent deliberately did NOT touch (raw/, refined/,
-   notebook/, sshfs mount, etc) so the user can clean them up by hand
-   if they want. The installation row in the table is already gone by
-   the time this opens. Each item has a "copy" button so the user can
-   paste the path into a terminal. */
-function InstallCleanupModal({ cleanup, onClose }) {
-  const items = cleanup.items || [];
-  const copy = (text) => {
-    try {
-      navigator.clipboard.writeText(text);
-    } catch (_) {
-      // Older browsers / no permission — fall back to selecting the
-      // path so the user can ⌘C manually.
-      window.prompt("Copy path:", text);
-    }
-  };
-  const sevColor = (s) =>
-    s === "private" ? "var(--red)"   :
-    s === "info"    ? "var(--muted)" : "var(--tiger)";
-  return (
-    <div onClick={onClose} style={{
-      position:"fixed", inset:0, background:"rgba(32,20,54,0.55)",
-      display:"flex", alignItems:"flex-start", justifyContent:"center",
-      zIndex:200, padding:"40px 20px", overflowY:"auto",
-    }}>
-      <div onClick={(e) => e.stopPropagation()} style={{
-        background:"var(--card)", border:"1px solid var(--rule-strong)",
-        borderRadius:2, padding:18, width:"min(640px, 96vw)",
-      }}>
-        <div className="row" style={{justifyContent:"space-between", alignItems:"baseline"}}>
-          <h2 style={{margin:0, fontFamily:"var(--serif)", fontSize:18, color:"var(--purple-deep)"}}>
-            <span style={{color:"var(--green)", marginRight:6}}>✓</span>
-            Installation <code>{cleanup.project}</code> disconnected
-          </h2>
-          <button type="button" className="btn sm ghost" onClick={onClose}>✕ close</button>
-        </div>
-        <p className="muted" style={{fontSize:12, margin:"6px 0 12px", lineHeight:1.55}}>
-          The row is gone from <strong>Installations</strong>. murmurent did
-          <strong> not </strong> delete any data on the target machine — the
-          paths below stay until you remove them yourself. A full report
-          was written to <code className="mono" style={{fontSize:11}}>
-            {cleanup.report || "~/.murmurent/decommissions/"}
-          </code>.
-        </p>
-        {items.length === 0 ? (
-          <div className="muted" style={{fontSize:12, padding:"12px 0"}}>
-            Nothing to clean up — this installation had no on-disk data
-            registered with it.
-          </div>
-        ) : (
-          <div style={{border:"1px solid var(--rule)", borderRadius:2}}>
-            {items.map((it, i) => (
-              <div key={i} style={{
-                padding:"10px 12px",
-                borderTop: i === 0 ? "0" : "1px solid var(--rule)",
-                display:"flex", flexDirection:"column", gap:3,
-              }}>
-                <div style={{display:"flex", gap:8, alignItems:"baseline"}}>
-                  <span style={{
-                    fontSize:9.5, letterSpacing:1, textTransform:"uppercase",
-                    fontFamily:"var(--mono)", color:sevColor(it.severity),
-                    width:60,
-                  }}>
-                    {it.severity || "review"}
-                  </span>
-                  <code className="mono" style={{
-                    fontSize:12, color:"var(--ink)", wordBreak:"break-all", flex:1,
-                  }}>
-                    {it.path}
-                  </code>
-                  <button type="button" className="btn sm ghost"
-                          title="Copy to clipboard"
-                          onClick={() => copy(it.path)}>
-                    copy
-                  </button>
-                </div>
-                <div className="muted" style={{fontSize:11.5, marginLeft:68, lineHeight:1.45}}>
-                  {it.note}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-        <div className="row" style={{justifyContent:"flex-end", marginTop:14}}>
-          <button type="button" className="btn sm primary" onClick={onClose}>got it</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ── InstallModal: machine × project picker — derives install paths from the
-   selected machine's wigamig_base and the selected project's metadata
-   (including sensitivity → which git remote to clone from). The user only
-   has to pick the machine and project; everything else is derived. ── */
-function InstallModal({ initialProject, initialMachine, initialRepoUrl, onClose }) {
-  const who = "@" + ((window.DATA.member || {}).handle || "");
-  const projects = window.DATA.projects || [];
-  const ls       = window.DATA.lab_settings   || {};
-  const ms       = window.DATA.machine_settings || {};
-
-  /* Machines available to install onto. Includes "this machine" (the host
-     running the dashboard) plus every registered SSH host. Loaded async. */
-  const [machines, setMachines] = useState([]);
-  const [thisMachine, setThisMachine] = useState({ short_hostname: "", local_user: "" });
-  const [selectedMachine, setSelectedMachine] = useState(initialMachine || "this");
-  const [project, setProject] = useState(initialProject || projects[0]?.name || "");
-
-  /* "New project" mode: the user clicked + install on a Repos-panel row
-     whose repo has never been adopted anywhere. Project name comes from
-     the GitHub repo name; install does clone + adopt + install in one
-     server round-trip. The project dropdown is suppressed because the
-     project doesn't exist in lab_mgmt yet. */
-  const isNewProject = !!(initialProject && !projects.some(p => p.name === initialProject));
-
-  /* Default infra + agent set so the wizard can submit immediately. The user
-     can untick things in the advanced section. */
-  const [infra, setInfra] = useState(INFRA_ITEMS.map(x => x.id));
-  const [pickedAgents, setPickedAgents] = useState(() => {
-    const all = (window.DATA.agents || []).filter(a => !a.disabled).map(a => a.name);
-    const p = window.DATA.persona || "member";
-    return p === "pi" ? all : all.filter(n => n !== "receptionist");
-  });
-  const [showAdvanced, setShowAdvanced] = useState(false);
-
-  const [busy, setBusy] = useState(false);
-  const [err, setErr]   = useState(null);
-  const [done, setDone] = useState(false);
-
-  /* Load hosts + this-machine info on mount. */
-  useEffect(() => {
-    fetch("/api/environment/this_machine")
-      .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d) setThisMachine(d); })
-      .catch(() => {});
-    fetch("/api/hosts")
-      .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d && Array.isArray(d.hosts)) setMachines(d.hosts); })
-      .catch(() => {});
-  }, []);
-
-  /* Resolve the selected machine to its parameters. "this" is the local
-     dashboard host (whose paths come from machine_settings). Anything else
-     is keyed by host name in the registered hosts list. */
-  const machineConfig = useMemo(() => {
-    if (selectedMachine === "this") {
-      return {
-        kind: "laptop",
-        name: thisMachine.short_hostname || "this machine",
-        hostname: null,
-        username: thisMachine.local_user || "",
-        wigamig_base: ms.wigamig_base || "~/wigamig",
-        obsidian_vault: ms.obsidian_vault_path || "",
-        is_remote: false,
-      };
-    }
-    const h = machines.find(m => m.name === selectedMachine);
-    if (!h) return null;
-    return {
-      kind: "lab_server",
-      name: h.name,
-      hostname: h.ssh_host || h.name,
-      username: h.remote_user || "",
-      wigamig_base: h.wigamig_base || h.lab_vm_root || "~/wigamig",
-      obsidian_vault: h.vault_root || "",
-      is_remote: !!h.is_remote,
-    };
-  }, [selectedMachine, machines, ms, thisMachine]);
-
-  /* Project metadata — used to pick the right git remote and to surface
-     "sensitive" / "public" in the review. */
-  const projectMeta = useMemo(
-    () => projects.find(p => p.name === project) || {},
-    [project, projects]
-  );
-  /* ProjectRow.sens is Literal["clinical","restricted","standard"]. We
-     treat clinical + restricted as "sensitive → push to lab-base bare repo
-     remote"; standard means GitHub is the origin. */
-  const sens = (projectMeta.sens || "standard").toLowerCase();
-  const isSensitive = sens === "clinical" || sens === "restricted";
-
-  /* Where the project clone will come from. Sensitive → bare repo under
-     lab_base/repos on the lab server. Non-sensitive → public GitHub under
-     the lab's github_org. */
-  const subpath = (ls.git_repos_subpath || "repos").replace(/^\/+|\/+$/g, "");
-  /* repo_kind="local" forces the bare-repo remote regardless of sens; this
-     handles projects that are already configured with a non-GitHub origin. */
-  const forceLocalRepo = projectMeta.repo_kind === "local";
-  const cloneRemote = (isSensitive || forceLocalRepo)
-    ? _underLabBase(ls.lab_base, subpath + "/" + project + ".git")
-    : (projectMeta.remote_url
-        || `https://github.com/${ls.github_org || "your-org"}/${project}`);
-
-  const wb       = machineConfig ? machineConfig.wigamig_base : "";
-  const rawPath      = _joinUnder(wb, "raw/" + project);
-  const refinedPath  = _joinUnder(wb, "refined/" + project);
-  const notebookPath = _joinUnder(wb, "lab_notebooks");
-  // Working clones live in ~/repos/<project> on each machine (generic_cc
-  // convention) — *not* under wigamig_base. Derived for display only;
-  // the server resolves $HOME on the actual host.
-  const repoPath     = "~/repos/" + project;
-
-  const toggleInfra  = (id)   => setInfra(f       => f.includes(id)   ? f.filter(x => x !== id)   : [...f, id]);
-  const toggleAgent  = (name) => setPickedAgents(a => a.includes(name) ? a.filter(x => x !== name) : [...a, name]);
-
-  const canProvision = !!(project && machineConfig && wb);
-
-  const [probes, setProbes] = useState(null);
-  const [overall, setOverall] = useState(null);
-
-  const provision = async () => {
-    if (!machineConfig) return;
-    setBusy(true); setErr(null); setProbes(null); setOverall(null);
-    try {
-      const res = await fetch("/api/workspace/initialize", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          member: who, project,
-          machine_type: machineConfig.kind,
-          hostname: machineConfig.hostname,
-          username: machineConfig.username,
-          has_direct_access: !machineConfig.is_remote,
-          lab_base: wb,
-          raw_path: _joinUnder(wb, "raw"),
-          refined_path: _joinUnder(wb, "refined"),
-          notebook_path: notebookPath,
-          ssh_remote: machineConfig.is_remote ? machineConfig.hostname : null,
-          mount_point: null,
-          infra_components: infra, agents: pickedAgents,
-          // Repos-panel "+ install" on a never-adopted repo: the server
-          // git-clones from this URL before projectizing. Ignored for
-          // already-registered projects (the server falls back to its
-          // CHARTER-derived URL).
-          repo_url: initialRepoUrl || null,
-          clone_if_missing: isNewProject,
-        }),
-      });
-      if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
-        throw new Error(d.detail || ("HTTP " + res.status));
-      }
-      const body = await res.json();
-      setProbes(body.probes || []);
-      setOverall(body.overall || "ok");
-      if (typeof window.__murmurentFetchData === "function") {
-        try { await window.__murmurentFetchData(window.DATA.persona); } catch (_) {}
-      }
-      // Server returns ok=false when a required probe failed; in that
-      // case keep the wizard open so the user can see what to fix.
-      if (body.ok === false) {
-        setErr(
-          "Preflight blocked the install — fix the red rows below " +
-          "(or talk to whoever owns the host) and click provision again."
-        );
-      } else {
-        setDone(true);
-      }
-    } catch (ex) { setErr(String(ex.message || ex)); }
-    finally { setBusy(false); }
-  };
-
-  const SEL = { style:{padding:"6px 8px", border:"1px solid var(--rule-strong)", borderRadius:2,
-    fontFamily:"var(--mono)", fontSize:12, width:"100%"} };
-  const LBL = { style:{fontSize:10.5, letterSpacing:1, textTransform:"uppercase",
-    fontFamily:"var(--mono)", color:"var(--muted)", marginBottom:3, display:"block"} };
-  const derivedStyle = {
-    padding:"5px 8px", border:"1px dashed var(--rule)",
-    borderRadius:2, fontFamily:"var(--mono)", fontSize:12,
-    background:"var(--paper-2)", color:"var(--ink-2)",
-  };
-
-  return (
-    <div onClick={onClose} style={{
-      position:"fixed", inset:0, background:"rgba(32,20,54,0.55)",
-      display:"flex", alignItems:"center", justifyContent:"center", zIndex:100,
-    }}>
-      <div onClick={e => e.stopPropagation()} style={{
-        background:"var(--card)", border:"1px solid var(--rule-strong)",
-        borderRadius:2, width:"min(640px, 95vw)",
-        display:"flex", flexDirection:"column", maxHeight:"92vh",
-      }}>
-
-        <div style={{background:"var(--paper-2)", borderBottom:"1px solid var(--rule)", padding:"12px 16px"}}>
-          <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-            <h2 style={{margin:0, fontFamily:"var(--serif)", fontSize:17, color:"var(--purple-deep)"}}>
-              Install project on machine
-            </h2>
-            <button type="button" onClick={onClose}
-                    style={{background:"none", border:0, cursor:"pointer", color:"var(--muted)", fontSize:20, lineHeight:1}}>
-              ×
-            </button>
-          </div>
-        </div>
-
-        <div style={{padding:"16px", overflowY:"auto", flex:1, display:"flex", flexDirection:"column", gap:12}}>
-          {probes && probes.length > 0 && (
-            <div style={{
-              padding:"10px 12px", borderRadius:2,
-              background:"var(--paper-2)", border:"1px solid var(--rule)",
-            }}>
-              <div style={{fontSize:11, marginBottom:6, color:"var(--muted)"}}>
-                Folder check: <strong style={{
-                  color: overall === "ok" ? "var(--green)" :
-                         overall === "warn" ? "var(--tiger)" : "var(--red)",
-                }}>{
-                  overall === "ok" ? "all good" :
-                  overall === "warn" ? "proceeding — see the note(s) below" :
-                  "needs attention"
-                }</strong>
-                {" "}<span style={{color:"var(--muted)"}}>
-                  (✗ blocks; ! is a heads-up)
-                </span>
-              </div>
-              {probes.filter(p => p.name !== "raw" && p.name !== "refined").map((p, i) => (
-                <div key={p.name + i} style={{
-                  fontSize:12, fontFamily:"var(--mono)",
-                  display:"flex", gap:8, alignItems:"baseline", marginTop:2,
-                }}>
-                  <span style={{
-                    color: p.status === "ok" ? "var(--green)" :
-                           p.status === "warn" ? "var(--tiger)" : "var(--red)",
-                    width:14,
-                  }}>
-                    {p.status === "ok" ? "✓" : p.status === "warn" ? "!" : "✗"}
-                  </span>
-                  <span style={{width:140, color:"var(--muted)"}}>{p.name}</span>
-                  <span style={{flex:1, color:"var(--ink)"}}>{p.detail}</span>
-                </div>
-              ))}
-            </div>
-          )}
-          {done ? (
-            <div style={{textAlign:"center", padding:"28px 0"}}>
-              <div style={{fontSize:30, marginBottom:8, color:"var(--green)"}}>✓</div>
-              <div style={{fontFamily:"var(--serif)", fontSize:16, color:"var(--purple-deep)", marginBottom:6}}>
-                Provisioning checklist generated
-              </div>
-              <p className="muted" style={{fontSize:12, maxWidth:380, margin:"0 auto"}}>
-                The new installation will appear in the Installations panel below.
-              </p>
-            </div>
-          ) : (
-            <>
-              <p className="muted" style={{fontSize:12, margin:0}}>
-                Pick a machine and a project — both already configured. The
-                machine's large-file location dictates where data will
-                land; the project's sensitivity dictates which git remote to
-                clone from.
-              </p>
-
-              <div>
-                <label {...LBL}>Machine</label>
-                <select value={selectedMachine}
-                        onChange={e => setSelectedMachine(e.target.value)}
-                        style={SEL.style}>
-                  <option value="this">
-                    this machine{thisMachine.short_hostname ? ` (${thisMachine.short_hostname})` : ""}
-                  </option>
-                  {machines.filter(m => m.name !== "local").map(m => (
-                    <option key={m.name} value={m.name}>
-                      {m.name}{m.ssh_host && m.ssh_host !== m.name ? ` · ${m.ssh_host}` : ""}
-                    </option>
-                  ))}
-                </select>
-                <div style={{fontSize:11, color:"var(--muted)", marginTop:3}}>
-                  Manage machines in <strong>Member Profile → ⚙ machines</strong>.
-                </div>
-              </div>
-
-              <div>
-                <label {...LBL}>Project</label>
-                {isNewProject ? (
-                  <>
-                    <div style={derivedStyle}>
-                      <strong>{project}</strong> <span className="muted">(new — will be cloned & adopted)</span>
-                    </div>
-                    <div style={{fontSize:11, color:"var(--muted)", marginTop:3}}>
-                      one-shot clone + adopt + install: CHARTER, lab_mgmt registry,
-                      installation manifest, and <code>.claude/agents/</code> all
-                      land in one round-trip. You become the lead; sensitivity
-                      defaults to <code>standard</code> (edit CHARTER.md after).
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <select value={project} onChange={e => setProject(e.target.value)} style={SEL.style}>
-                      {projects.map(p => <option key={p.name} value={p.name}>{p.name}</option>)}
-                    </select>
-                    {projectMeta && projectMeta.name && (
-                      <div style={{fontSize:11, color:"var(--muted)", marginTop:3}}>
-                        sensitivity: <Pill tone={isSensitive ? "red" : "green"}>{sens}</Pill>
-                        {projectMeta.repo_kind === "local" && (
-                          <> · repo is local (forced sensitive)</>
-                        )}
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-
-              {/* Derived install plan */}
-              <div style={{borderTop:"1px solid var(--rule)", paddingTop:10}}>
-                <h4 style={{margin:0, fontFamily:"var(--mono)", fontSize:10, letterSpacing:1.5,
-                            textTransform:"uppercase", color:"var(--purple-deep)"}}>
-                  Install plan (derived)
-                </h4>
-                <div style={{marginTop:6}}>
-                  <label {...LBL}>git remote (clone from)</label>
-                  <div style={derivedStyle}>{cloneRemote}</div>
-                  <label {...LBL}>raw data</label>
-                  <div style={derivedStyle}>{rawPath}</div>
-                  <label {...LBL}>refined data</label>
-                  <div style={derivedStyle}>{refinedPath}</div>
-                  <label {...LBL}>lab notebook</label>
-                  <div style={derivedStyle}>{notebookPath}</div>
-                  <label {...LBL}>repo working clone</label>
-                  <div style={derivedStyle}>{repoPath}</div>
-                </div>
-              </div>
-
-              <div>
-                <button type="button" className="btn sm ghost"
-                        onClick={() => setShowAdvanced(v => !v)}>
-                  {showAdvanced ? "▼ hide advanced" : "▶ infrastructure & agents (advanced)"}
-                </button>
-              </div>
-
-              {showAdvanced && (
-                <>
-                  <div>
-                    <label {...LBL}>Infrastructure components</label>
-                    <div style={{display:"flex", flexDirection:"column", gap:5}}>
-                      {INFRA_ITEMS.map(item => (
-                        <label key={item.id} style={{
-                          display:"flex", alignItems:"center", gap:10, cursor:"pointer",
-                          padding:"7px 10px", border:"1px solid var(--rule)", borderRadius:2,
-                          background: infra.includes(item.id) ? "rgba(79,38,131,0.06)" : "var(--paper-2)",
-                        }}>
-                          <input type="checkbox" checked={infra.includes(item.id)}
-                                 onChange={() => toggleInfra(item.id)} />
-                          <span style={{fontFamily:"var(--mono)", fontSize:12, minWidth:140}}>{item.label}</span>
-                          <span style={{fontSize:11, color:"var(--muted)"}}>{item.note}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <label {...LBL}>Murmurent agents to deploy</label>
-                    <div style={{display:"flex", flexWrap:"wrap", gap:6}}>
-                      {(window.DATA.agents || []).filter(a => !a.disabled).map(a => (
-                        <button key={a.name} type="button" onClick={() => toggleAgent(a.name)}
-                          className="mono" style={{
-                            fontSize:11, padding:"4px 10px", border:"1px solid var(--rule-strong)",
-                            borderRadius:2, cursor:"pointer",
-                            background: pickedAgents.includes(a.name) ? "var(--purple)" : "var(--paper-2)",
-                            color: pickedAgents.includes(a.name) ? "#fff" : "var(--ink-2)",
-                          }}>
-                          {a.name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              )}
-            </>
-          )}
-        </div>
-
-        {!done ? (
-          <div style={{
-            padding:"10px 16px", borderTop:"1px solid var(--rule)",
-            display:"flex", justifyContent:"space-between", alignItems:"center",
-            background:"var(--paper-2)",
-          }}>
-            <span style={{fontSize:11, color:err ? "var(--red)" : "var(--muted)"}}>
-              {err || (canProvision ? "ready" : "pick a machine and project")}
-            </span>
-            <div style={{display:"flex", gap:8}}>
-              <button className="btn sm ghost" onClick={onClose}>cancel</button>
-              <button className="btn sm primary" disabled={busy || !canProvision} onClick={provision}>
-                {busy ? "provisioning…" : "provision"}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div style={{
-            padding:"10px 16px", borderTop:"1px solid var(--rule)",
-            display:"flex", justifyContent:"flex-end", background:"var(--paper-2)",
-          }}>
-            <button className="btn sm primary" onClick={onClose}>done</button>
-          </div>
-        )}
-      </div>
     </div>
   );
 }
@@ -3026,157 +2324,6 @@ function ProjectsPanel({ projects, span="c-5" }) {
   );
 }
 
-/* ───────── Training compliance panel ─────────
-   Each member × each required cert grid. Status colours match the
-   Compliance heatmap (ok / amb / exp / mis) plus a "n/a" cell for
-   optional certs and "✓" for one-time certs already completed. */
-function TrainingCompliancePanel({ data, span="c-12" }) {
-  const persona = window.DATA.persona || "member";
-  const isPI = persona === "pi";
-  const me = (window.DATA.member || {}).handle;
-  const required = (data && data.required) || [];
-  const allMembers = (data && data.members) || [];
-  // Members see only their own row; PI sees everyone.
-  const members = isPI ? allMembers : allMembers.filter(m => m.handle === me);
-  if (required.length === 0) {
-    return (
-      <div className={"panel "+span}>
-        <header><h2>Compliance · required training</h2></header>
-        <div className="body" style={{padding:14, fontSize:13, color:"var(--muted)"}}>
-          No compliance config. Seed <code>&lt;lab-mgmt&gt;/compliance.md</code> with the
-          required-training catalog for your institution.
-        </div>
-      </div>
-    );
-  }
-
-  const cellSym = {
-    ok: "✓", expiring: "~", expired: "!", missing: "?", "n/a": "·", one_time: "✓",
-  };
-  const cellClass = {
-    ok: "ok", expiring: "amb", expired: "exp", missing: "mis",
-    "n/a": "na", one_time: "ok",
-  };
-
-  // Roll-up summary across members for the meta header.
-  const counts = {expired:0, expiring:0, missing:0};
-  for (const m of members) for (const c of m.certs) {
-    if (c.status === "expired") counts.expired++;
-    else if (c.status === "expiring") counts.expiring++;
-    else if (c.status === "missing") counts.missing++;
-  }
-
-  return (
-    <div className={"panel "+span}>
-      <header>
-        <h2>Compliance · required training</h2>
-        <span className="meta">
-          {counts.expired} expired · {counts.expiring} expiring · {counts.missing} missing
-        </span>
-      </header>
-      <div className="body" style={{overflowX:"auto"}}>
-        <table className="heat" style={{minWidth:"max-content"}}>
-          <thead>
-            <tr>
-              <th style={{textAlign:"left", minWidth:160}}>member</th>
-              {required.map(s => (
-                <th key={s.code}
-                    title={s.name + " (" + s.code + ")"
-                      + (s.cadence_years ? " · renew every " + s.cadence_years + "y" : " · one-time")}>
-                  {s.short}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {members.map(m => (
-              <tr key={m.handle} style={{opacity: m.member_status === "inactive" ? 0.4 : 1}}>
-                <td style={{textAlign:"left"}}>
-                  <div>{m.name}</div>
-                  <div className="mono muted" style={{fontSize:10}}>
-                    @{m.handle} · {m.role}
-                  </div>
-                </td>
-                {m.certs.map(cell => (
-                  <td key={cell.code}>
-                    <span
-                      className={"cell " + (cellClass[cell.status] || "na")}
-                      title={cell.code + ": " + cell.status
-                             + (cell.expires ? " (expires " + cell.expires + ")" : "")}>
-                      {cellSym[cell.status] || "·"}
-                    </span>
-                  </td>
-                ))}
-              </tr>
-            ))}
-            {members.length === 0 && (
-              <tr><td colSpan={required.length + 1} className="muted"
-                      style={{padding:14, textAlign:"left"}}>
-                No members declared yet.
-              </td></tr>
-            )}
-          </tbody>
-        </table>
-        <div className="row" style={{marginTop:10, fontSize:11, color:"var(--muted)", flexWrap:"wrap"}}>
-          <span><span className="cell ok">✓</span> compliant / completed</span>
-          <span><span className="cell amb">~</span> expiring</span>
-          <span><span className="cell exp">!</span> expired</span>
-          <span><span className="cell mis">?</span> missing</span>
-          <span><span className="cell na">·</span> n/a</span>
-          <span style={{marginLeft:"auto", fontStyle:"italic"}}>
-            sourced from <code>&lt;lab-mgmt&gt;/compliance.md</code>
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ───────── compliance heatmap ───────── */
-function Heatmap({ data, persona, span="c-7" }) {
-  const cellLabel = { ok:"✓", exp:"!", amb:"~", mis:"?", na:"·" };
-  return (
-    <div className={"panel "+span}>
-      <header>
-        <h2>Compliance · access matrix</h2>
-        <span className="meta">{persona==="pi" ? "lab-wide" : "your projects"}</span>
-      </header>
-      <div className="body">
-        <table className="heat">
-          <thead>
-            <tr>
-              <th>project</th>
-              {data.members.map(m => <th key={m}>{m.replace("@","")}</th>)}
-            </tr>
-          </thead>
-          <tbody>
-            {data.rows.map(r => (
-              <tr key={r.project}>
-                <td>
-                  <div>{r.project}</div>
-                  <div className="mono muted" style={{fontSize:10}}>{r.sens}</div>
-                </td>
-                {r.cells.map((c, i) => (
-                  <td key={i}>
-                    <span className={"cell "+c} title={`${data.members[i]} · ${c}`}>{cellLabel[c]}</span>
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <div className="row" style={{marginTop:10, fontSize:11, color:"var(--muted)"}}>
-          <span><span className="cell ok">✓</span> compliant</span>
-          <span><span className="cell amb">~</span> expiring</span>
-          <span><span className="cell exp">!</span> expired</span>
-          <span><span className="cell mis">?</span> missing</span>
-          <span><span className="cell na">·</span> n/a</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 /* ───────── lab members panel ───────── */
 async function postMemberAdd(body) {
   const params = new URLSearchParams(window.location.search);
@@ -3434,7 +2581,6 @@ function AddMemberModal({ onClose }) {
 }
 
 function LabMembersPanel({ peers, span="c-6" }) {
-  const tcpsTone = { ok:"green", expiring:"amber", missing:"red" };
   const persona = window.DATA.persona || "member";
   const isPI = persona === "pi";
   const myHandle = ((window.DATA.member || {}).handle || "").toLowerCase();
@@ -3603,7 +2749,6 @@ function LabMembersPanel({ peers, span="c-6" }) {
                     {CERT_LABEL[p.cert] || p.cert}
                   </Pill>
                 )}
-                <Pill tone={tcpsTone[p.tcps]}>tcps {p.tcps}</Pill>
               </div>
             </div>
             {(p.projects && p.projects.length > 0) && (
@@ -3619,9 +2764,7 @@ function LabMembersPanel({ peers, span="c-6" }) {
               </div>
             )}
             <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:5}}>
-              <div className="mono muted" style={{fontSize:11, display:"flex", gap:14}}>
-                <span><strong style={{color:"var(--ink-2)"}}>{p.experiments}</strong> experiments</span>
-              </div>
+              <span />
               {p.handle.toLowerCase() === myHandle && (
                 <span className="mono muted" style={{fontSize:11}}>
                   {isPI ? "you (PI)" : "you"}
@@ -3687,8 +2830,8 @@ function SecurityAccessPanel({ peers, span = "c-12" }) {
                                               && p.handle !== piHandle);
   const onToggle = async (peer, grant) => {
     if (!grant && !window.confirm(
-      `Revoke lab_sudo for @${peer.handle}?\n\n` +
-      "They will lose access to /security dashboard. Granted again later restores access."
+      `Revoke security audit access for @${peer.handle}?\n\n` +
+      "They will no longer be able to open the security audit. You can grant it again later."
     )) return;
     setBusy(peer.handle);
     try {
@@ -3696,24 +2839,35 @@ function SecurityAccessPanel({ peers, span = "c-12" }) {
       if (typeof window.__murmurentFetchData === "function") {
         try { await window.__murmurentFetchData(window.DATA.persona); } catch (_) {}
       }
-    } catch (ex) { alert("lab_sudo update failed: " + (ex.message || ex)); }
+    } catch (ex) { alert("Security audit access update failed: " + (ex.message || ex)); }
     finally { setBusy(null); }
   };
   return (
     <div className={"panel " + span}>
       <header>
-        <h2>Security dashboard access (lab_sudo)</h2>
+        <h2>Lab audits · security and space</h2>
         <div className="row" style={{gap:8}}>
           <a className="btn sm" href={`/security?user=${encodeURIComponent(me.handle || "")}`}
-             target="_blank" rel="noopener">open /security ↗</a>
+             target="_blank" rel="noopener">open security audit ↗</a>
+          <a className="btn sm" href={`/space?user=${encodeURIComponent(me.handle || "")}`}
+             target="_blank" rel="noopener">open space audit ↗</a>
         </div>
       </header>
       <div className="body" style={{padding:"10px 14px", fontSize:12, lineHeight:1.55}}>
+        <p className="muted" style={{margin:"0 0 6px 0"}}>
+          The <strong>security audit</strong> checks a lab machine for files that
+          should not be readable or writable by others (for example original data
+          that can still be changed, or results anyone on the server can read),
+          secrets committed to repositories, and your own Claude Code setup. Pick a
+          machine, then press refresh to run a fresh check. It only reads; it
+          never changes a file.
+        </p>
         <p className="muted" style={{margin:"0 0 10px 0"}}>
-          Lab members with <code>lab_sudo: true</code> can open the per-lab
-          security dashboard at <code>/security</code>. You (PI) always have
-          access. This is the wigamig-level flag — OS-level sudo on the lab
-          server is a separate sysadmin grant (see <code>docs/security-dashboard.md</code>).
+          The <strong>space audit</strong> is the millwright's weekly report of how
+          much disk each project and member uses. You always have access to both.
+          Below, you can let a member open the security audit too. This is a
+          murmurent permission only; it does not give them administrator rights
+          on the server.
         </p>
 
         <div style={{marginBottom:14}}>
@@ -3807,85 +2961,6 @@ async function refreshDashboard() {
   if (typeof window.__murmurentFetchData === "function") {
     try { await window.__murmurentFetchData(window.DATA.persona); } catch (_) {}
   }
-}
-
-// A contribution's typed output contract, as a compact one-line signature. This is
-// what makes contributions joinable: two contributions combine iff they share candidate_key.
-function ContractSignature({ c }) {
-  if (!c) return <span className="mono muted" style={{fontSize:10}}>no contract</span>;
-  const arrow = c.direction === "lower_better" ? "↓" : (c.direction === "higher_better" ? "↑" : "");
-  return (
-    <span className="mono" style={{fontSize:10, letterSpacing:0.3}}>
-      <span style={{color:"var(--purple-deep)"}}>{c.candidate_key || "—"}</span>
-      <span className="muted"> → </span>
-      <span>{c.metric || "—"}{c.units ? " ("+c.units+")" : ""} {arrow}</span>
-      {c.uncertainty && c.uncertainty !== "none" && (
-        <span className="muted"> ± {c.uncertainty}</span>
-      )}
-    </span>
-  );
-}
-
-function MyContributionsPanel({ contributions, span="c-12" }) {
-  const list = contributions || [];
-  const [busy, setBusy] = useState(null);
-  const [err, setErr]   = useState(null);
-  const onState = async (slug) => {
-    setBusy(slug); setErr(null);
-    try { await postJSON("/api/contributions/" + encodeURIComponent(slug) + "/state"); await refreshDashboard(); }
-    catch (ex) { setErr(String(ex.message || ex)); }
-    finally { setBusy(null); }
-  };
-  return (
-    <div className={"panel "+span}>
-      <header>
-        <h2>My contributions</h2>
-        <span className="meta">
-          {list.length} authored · {list.filter(p => p.stated).length} stated to group
-        </span>
-      </header>
-      <div className="body" style={{padding:0}}>
-        {err && <div style={{padding:"6px 14px", color:"var(--red)", fontSize:12}}>{err}</div>}
-        {list.length === 0 && (
-          <div className="muted" style={{padding:"14px", fontSize:13}}>
-            No contributions yet. Author one in your vault with{" "}
-            <code className="mono">murmurent contribution spec new</code> — a contribution is a
-            small recipe (steps + transitions) with a typed output contract.
-          </div>
-        )}
-        {list.map(p => (
-          <div key={p.slug || p.contribution} style={{
-            padding:"9px 14px", borderBottom:"1px solid var(--rule)",
-            display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:10,
-          }}>
-            <div style={{minWidth:0}}>
-              <div style={{fontWeight:500}}>{p.contribution}</div>
-              {p.question && <div className="muted" style={{fontSize:12, marginTop:2}}>{p.question}</div>}
-              <div style={{marginTop:4}}><ContractSignature c={p.contract} /></div>
-              <div className="mono muted" style={{fontSize:10, marginTop:3}}>
-                {p.steps} step{p.steps === 1 ? "" : "s"} · {p.transitions} transition{p.transitions === 1 ? "" : "s"}
-                {p.author ? " · " + p.author : ""}
-              </div>
-            </div>
-            <div style={{flexShrink:0}}>
-              {p.stated ? (
-                <span className="mono" style={{fontSize:10, letterSpacing:1, color:"var(--green,#2e7d32)"}}
-                      title="Published to your group so others can build a choreography from it">
-                  STATED
-                </span>
-              ) : (
-                <button className="btn sm" disabled={busy === p.slug}
-                        title="Publish this contribution to your group so other members can build a choreography from it"
-                        onClick={() => onState(p.slug)}>
-                  {busy === p.slug ? "…" : "state to group"}
-                </button>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
 }
 
 function NewChoreographyModal({ onClose }) {
@@ -4259,11 +3334,12 @@ function AgentToggleButton({ agent }) {
         {/* Values are floating aliases (what gets written to the agent's
             model: frontmatter); the parenthetical is just the current tier
             version for display — keep in sync with VALID_MODELS in
-            dashboard/server.py when models bump. */}
-        <option value="fable">fable (5)</option>
-        <option value="opus">opus (4.8)</option>
-        <option value="sonnet">sonnet (5)</option>
-        <option value="haiku">haiku (4.5)</option>
+            core/personal_agents.py when models bump. */}
+        <option value="fable">fable (5.1)</option>
+        <option value="opus">opus (5.5)</option>
+        <option value="sonnet">sonnet (5.5)</option>
+        <option value="haiku">haiku (5.5)</option>
+        <option value="inherit">inherit (same as the session)</option>
       </select>
       <button className="btn sm" disabled={busy} onClick={onToggle}>
         {busy ? "…" : (agent.disabled ? "enable" : "disable")}
@@ -4434,10 +3510,11 @@ function AgentWizardFields({ form, set, locked }) {
             <select value={form.model} onChange={set("model")}
                     style={{...WIZ_MONO, width:"auto", background:"#fff"}}>
               <option value="">default (inherit)</option>
-              <option value="fable">fable (5)</option>
-              <option value="opus">opus (4.8)</option>
-              <option value="sonnet">sonnet (5)</option>
-              <option value="haiku">haiku (4.5)</option>
+              <option value="fable">fable (5.1)</option>
+              <option value="opus">opus (5.5)</option>
+              <option value="sonnet">sonnet (5.5)</option>
+              <option value="haiku">haiku (5.5)</option>
+              <option value="inherit">inherit (same as the session)</option>
             </select>
           </WizField>
         </div>
@@ -4711,44 +3788,37 @@ function NewProjectModal({ onClose }) {
   const [selectedMembers, setSelectedMembers] = useState([]);  // chips
   const [otherInput, setOtherInput] = useState("");            // free-text
   const [sensitivity, setSensitivity] = useState("standard");
-  const [justification, setJustification] = useState("");
+  // Stored as the request's ``justification`` field; shown to the user as
+  // "description" (#185 item 10).
+  const [description, setDescription] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState(null);
+  // Approval results when the PI creates a project directly (#185 item 11).
+  const [probes, setProbes] = useState(null);
+  const isPI = (window.DATA.persona || "member") === "pi";
   const groupMembers = window.DATA.group_members || [];
-  // Phase 16: pick where the git repo lives. ``local`` is required for
-  // clinical / industrial data that must not leave the lab VM.
-  const [repoKind, setRepoKind] = useState("github");
-  const ms = window.DATA.machine_settings || {};
-  const ls = window.DATA.lab_settings || {};
-  const defaultLocalRoot = (ms.lab_base && ls.git_repos_subpath)
-    ? ms.lab_base.replace(/\/$/, "") + "/" + ls.git_repos_subpath
-    : (ms.lab_base ? ms.lab_base.replace(/\/$/, "") + "/git_repos" : "");
-  const [localRepoRoot, setLocalRepoRoot] = useState(defaultLocalRoot);
   // Slack channel name override. Empty = murmurent default of
   // ``proj-<project>``. The placeholder updates live as the user types
   // the project name so it's obvious what will be created if they
   // leave this blank. Validation is server-side (normalize_channel_name).
   const [slackChannelName, setSlackChannelName] = useState("");
-  // (5) A project is a set of EXISTING repos + a set of machines. ``machines``
-  // is the full host set the project lives on (populated from /api/hosts).
-  // ``attachRepos`` is the project's repo set, picked from the clones the
-  // user already has (folders come from the machine's Repo location dirs —
-  // ~/repos etc.); project creation never scaffolds a new repo. Each option
-  // carries the hosts it exists on so the picker shows where a repo lives.
-  const [hosts, setHosts] = useState([{ name: "local", kind: "local", is_remote: false, description: "this laptop" }]);
-  const [selectedMachines, setSelectedMachines] = useState(["local"]);
+  // A project is a set of EXISTING repos + members. ``attachRepos`` is the
+  // repo set, picked from the clones on this machine; creating a project never
+  // scaffolds a new repo. The Machines picker was removed in #185: only this
+  // machine was ever used. On approval each chosen repo is made
+  // murmurent-ready automatically (core.requests._make_ready_quietly).
   const [repoOptions, setRepoOptions] = useState([]);
+  const [repoScan, setRepoScan] = useState({ loading: true, errors: [] });
   const [attachRepos, setAttachRepos] = useState([]);
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/hosts", { credentials: "same-origin", headers: { Accept: "application/json" } })
-      .then(r => r.ok ? r.json() : Promise.reject(new Error("HTTP " + r.status)))
-      .then(j => { if (!cancelled && Array.isArray(j.hosts) && j.hosts.length) setHosts(j.hosts); })
-      .catch(err => console.warn("[murmurent] /api/hosts failed; defaulting to local", err));
-    fetch("/api/inventory/repos", { credentials: "same-origin", headers: { Accept: "application/json" } })
+    // refresh=true: rescan this machine now. The cached report can be up to a
+    // week old, which showed "no repos found" on a machine full of repos (#185).
+    fetch("/api/inventory/repos?refresh=true", { credentials: "same-origin", headers: { Accept: "application/json" } })
       .then(r => r.ok ? r.json() : Promise.reject(new Error("HTTP " + r.status)))
       .then(j => {
         if (cancelled) return;
+        setRepoScan({ loading: false, errors: (j.errors || []).map(String) });
         const opts = [];
         for (const row of (j.rows || [])) {
           const nm = (row && row.name) || "";
@@ -4762,11 +3832,11 @@ function NewProjectModal({ onClose }) {
         }
         setRepoOptions(opts);
       })
-      .catch(err => console.warn("[murmurent] /api/inventory/repos failed", err));
+      .catch(ex => {
+        if (!cancelled) setRepoScan({ loading: false, errors: [String(ex.message || ex)] });
+      });
     return () => { cancelled = true; };
   }, []);
-  const toggleMachine = (nm) =>
-    setSelectedMachines(sel => sel.includes(nm) ? sel.filter(m => m !== nm) : [...sel, nm]);
   const toggleRepo = (nm) =>
     setAttachRepos(sel => sel.includes(nm) ? sel.filter(r => r !== nm) : [...sel, nm]);
 
@@ -4798,7 +3868,6 @@ function NewProjectModal({ onClose }) {
     e.preventDefault();
     if (!name.trim()) { setErr("project name is required"); return; }
     if (selectedMembers.length === 0) { setErr("add at least one member"); return; }
-    if (selectedMachines.length === 0) { setErr("select at least one machine"); return; }
     if (attachRepos.length === 0) {
       setErr("select at least one repo — projects are built from repos you " +
              "already have (clone or create the repo first)");
@@ -4810,21 +3879,31 @@ function NewProjectModal({ onClose }) {
     }
     setBusy(true); setErr(null);
     try {
-      await postCreateProjectRequest({
+      const filed = await postCreateProjectRequest({
         project: name.trim(),
         proposed_members: selectedMembers,
         sensitivity,
-        justification: justification.trim(),
-        repo_kind: repoKind,
-        local_repo_root: repoKind === "local" ? (localRepoRoot.trim() || null) : null,
-        host: selectedMachines[0] || "local",
-        machines: selectedMachines,
+        justification: description.trim(),
+        host: "local",
+        machines: ["local"],
         attach_repos: attachRepos,
         slack_channel_name: slackChannelName.trim() || null,
         slack_workspace: slackWorkspace.trim() || null,
       });
+      // The PI's own project needs no approval step: approve it straight
+      // away so "create" means create. A member's project still waits for
+      // the PI (#185 item 11).
+      let out = null;
+      if (isPI && filed.request && filed.request.id != null) {
+        out = await postRequestAction(filed.request.id, "approve");
+      }
       if (typeof window.__murmurentFetchData === "function") {
         await window.__murmurentFetchData(window.DATA.persona);
+      }
+      // Stay open only when a step needs the PI's attention.
+      if (out && out.probes && out.probes.some(pr => pr.status !== "ok")) {
+        setProbes(out.probes);
+        return;
       }
       onClose();
     } catch (ex) { setErr(String(ex.message || ex)); }
@@ -4846,15 +3925,16 @@ function NewProjectModal({ onClose }) {
         maxHeight:"90vh", overflowY:"auto",
       }}>
         <h2 style={{margin:0, fontFamily:"var(--serif)", fontSize:18, color:"var(--purple-deep)"}}>
-          Propose new project
+          Create new project
         </h2>
-        <p className="muted" style={{fontSize:12, margin:0}}>
-          PI approval required. On approval, murmurent scaffolds the project repo
-          and adds the proposed members to MEMBERS.
-        </p>
         <label className="mono muted" style={{fontSize:11, letterSpacing:1, textTransform:"uppercase", marginTop:6}}>name (snake_case)</label>
         <input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. new_project"
                style={{padding:"6px 8px", border:"1px solid var(--rule-strong)", borderRadius:2, fontFamily:"var(--mono)"}}/>
+
+        <label className="mono muted" style={{fontSize:11, letterSpacing:1, textTransform:"uppercase"}}>description</label>
+        <textarea value={description} onChange={e => setDescription(e.target.value)}
+                  rows={3} placeholder="What the project is about."
+                  style={{padding:"6px 8px", border:"1px solid var(--rule-strong)", borderRadius:2, fontFamily:"var(--serif)", fontSize:14}}/>
 
         <label className="mono muted" style={{fontSize:11, letterSpacing:1, textTransform:"uppercase"}}>slack channel (optional)</label>
         <input value={slackChannelName}
@@ -4947,51 +4027,24 @@ function NewProjectModal({ onClose }) {
           <option value="clinical">clinical</option>
         </select>
 
-        <label className="mono muted" style={{fontSize:11, letterSpacing:1, textTransform:"uppercase"}}>machines</label>
-        <div className="muted" style={{fontSize:11, marginTop:-2, marginBottom:2, lineHeight:1.5}}>
-          A project is a set of machines. Pick every host the project lives on;
-          the first selected is the primary scaffold target.
-        </div>
-        <div style={{display:"flex", flexWrap:"wrap", gap:6}}>
-          {hosts.map(h => {
-            const on = selectedMachines.includes(h.name);
-            const primary = on && selectedMachines[0] === h.name;
-            return (
-              <label key={h.name}
-                     style={{display:"inline-flex", alignItems:"center", gap:5,
-                             fontSize:12, padding:"3px 8px", cursor:"pointer",
-                             border:"1px solid " + (on ? "var(--purple)" : "var(--rule-strong)"),
-                             background: on ? "rgba(79,38,131,0.10)" : "transparent",
-                             color: on ? "var(--purple)" : "var(--ink-2)", borderRadius:2}}>
-                <input type="checkbox" checked={on} onChange={() => toggleMachine(h.name)} />
-                <span className="mono">{h.name}</span>
-                {h.is_remote
-                  ? <span className="muted" style={{fontSize:10}}>({h.ssh_host || h.name})</span>
-                  : <span className="muted" style={{fontSize:10}}>this laptop</span>}
-                {primary && <span style={{fontSize:10, color:"var(--tiger)"}}>· primary</span>}
-              </label>
-            );
-          })}
-        </div>
-        {selectedMachines.some(m => m !== "local") && (
-          <div className="muted" style={{fontSize:11, marginTop:2}}>
-            The full machine set is recorded on the project;
-            <code> {selectedMachines[0]}</code> is the primary host.
-          </div>
-        )}
-
         <label className="mono muted" style={{fontSize:11, letterSpacing:1, textTransform:"uppercase", marginTop:6}}>repos (select at least one)</label>
         <div className="muted" style={{fontSize:11, marginTop:-2, marginBottom:2, lineHeight:1.5}}>
-          A project is a set of repos you <strong>already have</strong> — pick
-          them from your machines' repo folders (creating a project never
-          creates a repo; clone or <code>git init</code> it first, then come
-          back). Pair code with its manuscript repo, the way murmurent itself
-          is code + manuscript.
+          Pick the repos on this machine that belong to the project. Each one is
+          made murmurent-ready for you. Creating a project never creates a new
+          repo, so clone it first if it is not listed.
         </div>
-        {repoOptions.length === 0 ? (
-          <div className="muted" style={{fontSize:11}}>
-            No repos found on your machines — clone one into a Repo location
-            dir (e.g. <code>~/repos</code>) first, then refresh the Repos panel.
+        {repoScan.loading ? (
+          <div className="muted" style={{fontSize:11}}>Looking for repos on this machine…</div>
+        ) : repoOptions.length === 0 ? (
+          <div className="muted" style={{fontSize:11, lineHeight:1.5}}>
+            No repos found on this machine. murmurent looks in your repositories
+            folder (<code>murmurent config repos-root</code> prints it) and any
+            folders added under ⚙ Machines.
+            {repoScan.errors.length > 0 && (
+              <div style={{color:"var(--red)", marginTop:4}}>
+                The search reported: {repoScan.errors.join("; ")}
+              </div>
+            )}
           </div>
         ) : (
           <div style={{display:"flex", flexWrap:"wrap", gap:6, maxHeight:140,
@@ -5016,73 +4069,29 @@ function NewProjectModal({ onClose }) {
           </div>
         )}
 
-        <label className="mono muted" style={{fontSize:11, letterSpacing:1, textTransform:"uppercase"}}>git provider</label>
-        {(() => {
-          // Phase 4: dropdown of the lab's declared providers (Phase 2).
-          // Falls back to the github/local-bare radio shape when no
-          // providers are declared — keeps pre-refactor labs working.
-          const labProviders = (window.DATA.lab_settings || {}).git_providers || [];
-          if (labProviders.length > 0) {
-            return (
-              <>
-                <select value={repoKind}
-                        onChange={(e) => setRepoKind(e.target.value)}
-                        style={{padding:"6px 8px", border:"1px solid var(--rule-strong)", borderRadius:2,
-                                fontFamily:"var(--mono)", width:"100%", boxSizing:"border-box", fontSize:12, marginTop:2}}>
-                  {labProviders.map(p => (
-                    <option key={p.id} value={p.id}>
-                      {p.id} — {p.kind}{p.target ? " · " + p.target : ""}{p.label ? "  (" + p.label + ")" : ""}
-                    </option>
-                  ))}
-                </select>
-                <div className="muted" style={{fontSize:11, marginTop:3}}>
-                  Picks from the lab's declared providers. Edit the list in
-                  <strong> ⚙ lab → Git providers</strong>.
-                </div>
-              </>
-            );
-          }
-          return (
-            <div className="row" style={{gap:14, alignItems:"flex-start", marginTop:2}}>
-              <label style={{display:"flex", alignItems:"center", gap:6, cursor:"pointer", fontSize:12}}>
-                <input type="radio" name="repo_kind" value="github"
-                       checked={repoKind === "github"}
-                       onChange={() => setRepoKind("github")} />
-                GitHub <span className="mono muted" style={{fontSize:11}}>(default — pushes to github.com/{ls.github_org || "your-org"})</span>
-              </label>
-              <label style={{display:"flex", alignItems:"center", gap:6, cursor:"pointer", fontSize:12}}>
-                <input type="radio" name="repo_kind" value="local"
-                       checked={repoKind === "local"}
-                       onChange={() => setRepoKind("local")} />
-                Local bare repo <span className="mono muted" style={{fontSize:11}}>(stays on the lab VM)</span>
-              </label>
-            </div>
-          );
-        })()}
-        {repoKind === "local" && (
-          <div style={{marginTop:4}}>
-            <input value={localRepoRoot}
-                   onChange={e => setLocalRepoRoot(e.target.value)}
-                   placeholder="/data/lab_vm/git_repos"
-                   style={{padding:"6px 8px", border:"1px solid var(--rule-strong)", borderRadius:2, fontFamily:"var(--mono)", width:"100%", boxSizing:"border-box", fontSize:12}}/>
-            <div className="muted" style={{fontSize:11, marginTop:3}}>
-              The bare repo will be created at <code>{(localRepoRoot.replace(/\/$/, "") || "<path>")}/{name.trim() || "<project>"}.git</code> —
-              required for clinical or industrial data that must not leave the lab VM.
-              No GitHub remote is created.
-            </div>
+        {probes && (
+          <div style={{fontSize:12, lineHeight:1.5, border:"1px solid var(--rule-strong)", padding:"6px 8px"}}>
+            <div style={{fontWeight:600, marginBottom:2}}>Project created. Some steps need attention:</div>
+            {probes.filter(pr => pr.status !== "ok").map((pr, i) => (
+              <div key={i}><span className="mono">{pr.name}</span>: {pr.detail}</div>
+            ))}
           </div>
         )}
-
-        <label className="mono muted" style={{fontSize:11, letterSpacing:1, textTransform:"uppercase"}}>justification</label>
-        <textarea value={justification} onChange={e => setJustification(e.target.value)}
-                  rows={3} placeholder="Brief description of the project, scope, expected duration."
-                  style={{padding:"6px 8px", border:"1px solid var(--rule-strong)", borderRadius:2, fontFamily:"var(--serif)", fontSize:14}}/>
         {err && <div style={{color:"var(--red)", fontSize:12}}>{err}</div>}
         <div className="row" style={{justifyContent:"flex-end", gap:6, marginTop:6}}>
-          <button type="button" className="btn sm ghost" onClick={onClose}>cancel</button>
-          <button type="submit" className="btn sm primary" disabled={busy}>
-            {busy ? "…" : "submit for approval"}
+          {!isPI && (
+            <span className="muted" style={{fontSize:11, marginRight:"auto", alignSelf:"center"}}>
+              Your PI confirms new projects before they are set up.
+            </span>
+          )}
+          <button type="button" className="btn sm ghost" onClick={onClose}>
+            {probes ? "close" : "cancel"}
           </button>
+          {!probes && (
+            <button type="submit" className="btn sm primary" disabled={busy}>
+              {busy ? "…" : "create"}
+            </button>
+          )}
         </div>
       </form>
     </div>
@@ -5139,12 +4148,9 @@ function RequestActionRow({ req, isPI }) {
           members: {req.proposed_members.join(", ")} · sens: {req.proposed_sensitivity || "standard"}
         </div>
       )}
-      {isCreate && (req.machines && req.machines.length > 0) && (
+      {isCreate && (req.attach_repos && req.attach_repos.length > 0) && (
         <div className="mono muted" style={{fontSize:11, marginTop:2}}>
-          machines: {req.machines.join(", ")}
-          {req.attach_repos && req.attach_repos.length > 0
-            ? " · repos: " + req.attach_repos.join(", ")
-            : ""}
+          repos: {req.attach_repos.join(", ")}
         </div>
       )}
       {req.justification && (
@@ -6740,104 +5746,6 @@ function PersonalOraclePanel({ data, span="c-4" }) {
   );
 }
 
-// A deterministic, vivid colour per agent name — same agent always gets the
-// same hue, so the live feed is scannable at a glance. The commons agents get
-// hand-picked hues spread across the wheel (the old hash-into-a-12-colour
-// palette collided: bookworm + blacksmith + lab_oracle all landed on
-// near-identical teals). All colours are dark enough that the white chip
-// text stays readable.
-const AGENT_COLOURS = {
-  adversary:      "#b91c1c", // red
-  artist:         "#c2410c", // orange
-  blacksmith:     "#a16207", // gold
-  millwright:     "#4d7c0f", // olive
-  conscience:     "#15803d", // green
-  lawyer:         "#0f766e", // teal
-  receptionist:   "#0284c7", // sky
-  bookworm:       "#1e40af", // indigo
-  oracle:         "#6d28d9", // violet
-  lab_oracle:     "#a21caf", // fuchsia
-  judge:          "#be185d", // magenta
-  registrar:      "#78350f", // brown
-  security_guard: "#475569", // slate
-};
-function agentColour(name) {
-  if (AGENT_COLOURS[name]) return AGENT_COLOURS[name];
-  // Unknown agents: golden-angle hue walk off the name hash, so any two
-  // distinct names land far apart on the wheel instead of sharing a bucket.
-  let h = 0;
-  for (let i = 0; i < (name || "").length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
-  return "hsl(" + Math.round((h * 137.508) % 360) + ", 62%, 34%)";
-}
-
-// Short day label for an agent-activity entry: "today" / "yesterday" /
-// "Jul 10" from the entry's date, so days-old activity doesn't read as if it
-// just happened. Legacy time-only lines (no date) fall back to "earlier".
-function _agentDayLabel(dateStr) {
-  if (!dateStr) return "earlier";
-  const todayIso = (window.DATA.today && window.DATA.today.iso) || "";
-  if (dateStr === todayIso) return "today";
-  try {
-    const d = new Date(dateStr + "T00:00:00");
-    const t = todayIso ? new Date(todayIso + "T00:00:00") : new Date();
-    const diffDays = Math.round((t - d) / 86400000);
-    if (diffDays === 1) return "yesterday";
-    const mon = d.toLocaleString("en-US", { month: "short" });
-    const yr = d.getFullYear() !== t.getFullYear() ? " " + d.getFullYear() : "";
-    return mon + " " + d.getDate() + yr;
-  } catch (_) { return dateStr; }
-}
-
-function AgentsActivityPanel({ activity, span="c-12" }) {
-  const feed = activity || [];
-  return (
-    <div className={"panel "+span}>
-      <header>
-        <h2>Agents · live</h2>
-        <span className="meta">{feed.length ? feed.length + " recent" : "idle"}</span>
-      </header>
-      <div className="muted" style={{padding:"2px 14px 6px", fontSize:11,
-           borderBottom:"1px solid var(--rule)"}}>
-        subagent activity from <code className="mono">~/.murmurent/agents.log</code>
-        {" "}· newest first
-      </div>
-      <div className="body" style={{padding:"6px 0", maxHeight:280, overflowY:"auto"}}>
-        {feed.map((a, i) => {
-          const col = agentColour(a.agent);
-          return (
-            <div key={i} style={{display:"flex", gap:10, alignItems:"baseline",
-                 padding:"7px 14px", borderBottom:"1px solid var(--rule)",
-                 borderLeft:"3px solid "+col, opacity: a.started ? 0.72 : 1}}>
-              <span className="mono muted" style={{fontSize:10, whiteSpace:"nowrap",
-                    display:"flex", flexDirection:"column", alignItems:"flex-start", lineHeight:1.3}}>
-                <span style={{fontWeight:600, opacity:0.9}}>{_agentDayLabel(a.date)}</span>
-                <span>{a.time}</span>
-              </span>
-              <span style={{fontFamily:"var(--mono)", fontSize:11, fontWeight:700,
-                    letterSpacing:0.3, color:"#fff", background:col,
-                    padding:"1px 7px", borderRadius:3, whiteSpace:"nowrap"}}>
-                {a.agent}
-              </span>
-              <span style={{fontSize:12.5, lineHeight:1.4, color:"var(--ink)",
-                    fontStyle: a.started ? "italic" : "normal",
-                    fontWeight: a.started ? 400 : 500}}>
-                {a.started ? "▸ " : ""}{a.text}
-              </span>
-            </div>
-          );
-        })}
-        {feed.length === 0 && (
-          <div className="muted" style={{padding:"14px", fontSize:13}}>
-            No recent agent activity. When you dispatch an agent (or one finishes),
-            its verdict shows up here. Requires the agent-log hook
-            (<code className="mono">murmurent install --hooks</code>).
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
 function LabOraclePanel({ entries, drafts, labFolder, span="c-6" }) {
   const list = entries || [];
   const pendingDrafts = drafts || [];
@@ -6910,46 +5818,6 @@ function LabOraclePanel({ entries, drafts, labFolder, span="c-6" }) {
             <code className="mono">murmurent publish &lt;path&gt; --to oracle</code>.
           </div>
         )}
-      </div>
-    </div>
-  );
-}
-
-/* ───────── inventory panel ───────── */
-function InventoryPanel({ inv, span="c-3" }) {
-  return (
-    <div className={"panel "+span}>
-      <header>
-        <h2>Inventory</h2>
-        <span className="meta">{inv.expired.length} expired · {inv.low.length} low</span>
-      </header>
-      <div className="body">
-        <div className="hbar">
-          <span className="lbl">reagents</span>
-          <div className="track"><div className="fill" style={{width: (inv.stock.reagents[0]/inv.stock.reagents[1]*100)+"%"}}/></div>
-          <span className="val">{inv.stock.reagents[0]}/{inv.stock.reagents[1]}</span>
-        </div>
-        <div className="hbar">
-          <span className="lbl">kits</span>
-          <div className="track"><div className="fill tiger" style={{width: (inv.stock.kits[0]/inv.stock.kits[1]*100)+"%"}}/></div>
-          <span className="val">{inv.stock.kits[0]}/{inv.stock.kits[1]}</span>
-        </div>
-
-        <h4 style={{margin:"12px 0 6px", fontFamily:"var(--mono)", fontSize:10, letterSpacing:1.5, color:"var(--red)", textTransform:"uppercase"}}>expired</h4>
-        {inv.expired.map(x => (
-          <div key={x.name} style={{display:"flex",justifyContent:"space-between",fontSize:13,padding:"3px 0",borderBottom:"1px dotted var(--rule)"}}>
-            <span>{x.name}</span><span className="mono muted">{x.expiry}</span>
-          </div>
-        ))}
-
-        <h4 style={{margin:"12px 0 6px", fontFamily:"var(--mono)", fontSize:10, letterSpacing:1.5, color:"var(--tiger-deep)", textTransform:"uppercase"}}>low stock</h4>
-        {inv.low.map(x => (
-          <div key={x.name} style={{display:"flex",justifyContent:"space-between",fontSize:13,padding:"3px 0",borderBottom:"1px dotted var(--rule)"}}>
-            <span>{x.name}</span><span className="mono muted">{x.qty}</span>
-          </div>
-        ))}
-
-        <button className="btn sm" style={{marginTop:10, width:"100%"}}>↗ open inventory</button>
       </div>
     </div>
   );
@@ -7157,7 +6025,10 @@ function MemberProfileModal({ onClose }) {
       const git_logins = { ...form.git_logins };
       if (gh) git_logins.github = gh; else delete git_logins.github;
       const payload = { ...form, github: gh, git_logins };
-      const res = await fetch("/api/member/settings", {
+      // Keep the viewer's identity (?user=) so the save lands on the record
+      // this page is showing, not the server user's (#185).
+      const userParam = new URLSearchParams(window.location.search).get("user");
+      const res = await fetch("/api/member/settings" + (userParam ? "?user=" + encodeURIComponent(userParam) : ""), {
         method: "POST",
         credentials: "same-origin",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
@@ -7169,7 +6040,15 @@ function MemberProfileModal({ onClose }) {
       }
       const body = await res.json();
       setProbes(body.probes || []);
-      setMsg("saved");
+      // A member's edit is only staged on this computer; say so rather than
+      // a bare "saved" (#185).
+      setMsg(body.staged ? (body.message || "saved on this computer only") : "saved");
+      if (body.staged) {
+        if (typeof window.__murmurentFetchData === "function") {
+          try { await window.__murmurentFetchData(window.DATA.persona); } catch (_) {}
+        }
+        return;
+      }
       if (typeof window.__murmurentFetchData === "function") {
         try { await window.__murmurentFetchData(window.DATA.persona); } catch (_) {}
       }
@@ -8378,7 +7257,8 @@ function LabSettingsModal({ onClose }) {
         obsidian_host:     form.obsidian_host,
         obsidian_path:     form.obsidian_path,
       };
-      const res = await fetch("/api/lab/settings", {
+      const userParam = new URLSearchParams(window.location.search).get("user");
+      const res = await fetch("/api/lab/settings" + (userParam ? "?user=" + encodeURIComponent(userParam) : ""), {
         method: "POST",
         credentials: "same-origin",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
@@ -8388,10 +7268,18 @@ function LabSettingsModal({ onClose }) {
         const d = await res.json().catch(() => ({}));
         throw new Error(d.detail || ("HTTP " + res.status));
       }
-      setMsg("saved");
+      const body = await res.json().catch(() => ({}));
       if (typeof window.__murmurentFetchData === "function") {
         try { await window.__murmurentFetchData(window.DATA.persona); } catch (_) {}
       }
+      // Stay open when the commit or push did not go through, so the change
+      // is not silently left on this computer only (#185).
+      const failed = (body.probes || []).filter(pr => pr.status !== "ok");
+      if (failed.length) {
+        setMsg("Saved here, but not shared: " + failed.map(pr => pr.name + ": " + pr.detail).join("; "));
+        return;
+      }
+      setMsg("saved");
       setTimeout(onClose, 800);
     } catch (ex) { setMsg(String(ex.message || ex)); }
     finally { setBusy(false); }
@@ -8550,8 +7438,7 @@ function FooterMeta() {
   const ls = window.DATA.lab_settings || {};
   const persona = window.DATA.persona || "member";
   const isPI = persona === "pi";
-  const myHandle = (m.handle || "").toLowerCase();
-  const canEditLab = isPI || (ls.admins || []).map(h => h.toLowerCase()).includes(myHandle);
+  const canEditLab = isPI;  // PI only; see CmdBar
   const [showLabSettings, setShowLabSettings] = useState(false);
   const [showMachine, setShowMachine] = useState(false);
 
@@ -8775,33 +7662,11 @@ function App() {
           <RepoInventoryPanel span="c-12" />
         </div>
 
-        {/* Installations: this machine's provisioned environments + the launch
-            actions. Per-row "open workspace" opens the repo in VS Code; the
-            header "▶ Claude Code" opens a bare CC session (no repo). */}
-        <div className="grid" style={{marginBottom:14}}>
-          <InstallationsBox span="c-12" />
-        </div>
-
-        {/* Live subagent feed — the browser equivalent of the tmux BR pane. */}
-        <div className="grid" style={{marginBottom:14}}>
-          <AgentsActivityPanel activity={D.agents_activity} span="c-12" />
-        </div>
-
-        {/* Choreographies (group-shared) + my contributions (member-owned) replace
-            the removed SEA windows (#38): murmurent moved from SEA exchange to
-            compositional choreographies. A member states contributions; the group
-            assembles them into a choreography that joins on a candidate key. */}
+        {/* Choreographies (group-shared) replace the removed SEA windows (#38).
+            The live agent feed, "my contributions" and inventory panels were
+            removed in #185. */}
         <div className="grid" style={{marginBottom:14}}>
           <ChoreographiesPanel choreographies={D.choreographies} span="c-12" />
-        </div>
-        <div className="grid" style={{marginBottom:14}}>
-          <MyContributionsPanel contributions={D.my_contributions} span="c-12" />
-        </div>
-
-        {/* Inventory: things you check, but not every day. (Lab members moved
-            to the top of the page.) */}
-        <div className="grid" style={{marginBottom:14}}>
-          <InventoryPanel inv={D.inventory} span="c-12" />
         </div>
 
         {/* Core services browse + my bookings (Phase 3e of cores rollout).
@@ -8820,10 +7685,10 @@ function App() {
           </div>
         )}
 
-        {/* Lab security access — PI grants/revokes the wigamig-level
-            ``lab_sudo`` flag that controls /security dashboard visibility.
-            Independent of OS-level sudo on the lab server (which is a
-            separate sysadmin grant; see docs/security-dashboard.md). */}
+        {/* Lab audits — the security audit (/security) and the millwright's
+            space audit (/space) side by side (#185), plus the PI's grant of
+            the murmurent-level ``lab_sudo`` flag that opens /security to a
+            member. Independent of OS-level sudo on the lab server. */}
         {persona === "pi" && (
           <div className="grid" style={{marginBottom:14}}>
             <SecurityAccessPanel peers={D.peers} span="c-12" />
@@ -8838,18 +7703,8 @@ function App() {
         )}
 
         {/* Agents (large, low-frequency) lives toward the bottom. */}
-        <div className="grid" style={{marginBottom:14}}>
-          <AgentsPanel agents={D.agents} span="c-12" />
-        </div>
-
-        {/* Compliance - most sporadic; lives at the bottom.
-            Top: TCPS_2 access matrix per project (clinical access).
-            Bottom: full Western training roster per member. */}
-        <div className="grid" style={{marginBottom:14}}>
-          <Heatmap data={D.heatmap} persona={persona} span="c-12" />
-        </div>
         <div className="grid">
-          <TrainingCompliancePanel data={D.training_compliance} span="c-12" />
+          <AgentsPanel agents={D.agents} span="c-12" />
         </div>
       </div>
       <FooterMeta />

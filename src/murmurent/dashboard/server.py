@@ -23,6 +23,7 @@ from ..core import repo_paths as _repo_paths_srv
 
 import datetime as _dt
 import os
+import time
 from pathlib import Path
 
 from fastapi import Body, FastAPI, HTTPException, Query
@@ -628,6 +629,8 @@ class SeaActionBody(BaseModel):
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+#: Identifies this server process; reported by /healthz.
+_BOOT_ID = f"{os.getpid()}-{time.time_ns()}"
 STATIC_DIR = REPO_ROOT / "docs" / "designer_dashboard"
 
 
@@ -1221,41 +1224,51 @@ def create_app() -> FastAPI:
                     detail=str(cert_exc), required=False,
                 ).to_dict())
 
-            # Provision the git origin. Phase 4: resolve the project's
-            # ``repo_kind`` (which is now a provider id) against the
-            # lab's git_providers list. Falls back to the legacy
-            # github/local synthesized provider when the id matches
-            # those literals — keeps pre-refactor charters working.
-            from ..core import git_providers as _gpr2
-            local_repo = _repo_paths_srv.find_or_default(req.project)
-            kind_or_id = req.repo_kind or "github"
-            lab_settings = snap_mod._current_lab_settings()
-            provider = _gpr2.find_provider(
-                [_pp._GP.GitProvider(**p.model_dump()) for p in lab_settings.git_providers],
-                kind_or_id,
-            )
-            ctx = _pp.ProvisionContext(
-                project=req.project,
-                local_repo=local_repo,
-                kind=kind_or_id,
-                org=lab_settings.github_org,
-                bare_repo_path=(
-                    Path(req.local_repo_root).expanduser() / f"{req.project}.git"
-                    if kind_or_id == "local" and req.local_repo_root else None
-                ),
-                members=list(req.proposed_members or []),
-                lab_mgmt_root=_lmgmt(),
-                provider=provider,
-                provider_id=kind_or_id,
-            )
-            try:
-                probes.extend(p.to_dict() for p in _pp.provision_project_remote(ctx))
-            except Exception as exc:  # noqa: BLE001
-                _log.warning("remote provisioning failed for %s: %s", req.project, exc)
+            # A project built from EXISTING repos (the dashboard flow) keeps
+            # each repo's own remote. There is no project-named working tree
+            # to push, so provisioning would only report a failure (#185).
+            if req.attach_repos:
                 probes.append(_Probe(
-                    name="remote provisioning", status="fail",
-                    detail=str(exc), required=True,
+                    name="git remote", status="ok",
+                    detail="each repo keeps its existing remote",
+                    required=False,
                 ).to_dict())
+            else:
+                # Provision the git origin. Phase 4: resolve the project's
+                # ``repo_kind`` (which is now a provider id) against the
+                # lab's git_providers list. Falls back to the legacy
+                # github/local synthesized provider when the id matches
+                # those literals — keeps pre-refactor charters working.
+                from ..core import git_providers as _gpr2
+                local_repo = _repo_paths_srv.find_or_default(req.project)
+                kind_or_id = req.repo_kind or "github"
+                lab_settings = snap_mod._current_lab_settings()
+                provider = _gpr2.find_provider(
+                    [_pp._GP.GitProvider(**p.model_dump()) for p in lab_settings.git_providers],
+                    kind_or_id,
+                )
+                ctx = _pp.ProvisionContext(
+                    project=req.project,
+                    local_repo=local_repo,
+                    kind=kind_or_id,
+                    org=lab_settings.github_org,
+                    bare_repo_path=(
+                        Path(req.local_repo_root).expanduser() / f"{req.project}.git"
+                        if kind_or_id == "local" and req.local_repo_root else None
+                    ),
+                    members=list(req.proposed_members or []),
+                    lab_mgmt_root=_lmgmt(),
+                    provider=provider,
+                    provider_id=kind_or_id,
+                )
+                try:
+                    probes.extend(p.to_dict() for p in _pp.provision_project_remote(ctx))
+                except Exception as exc:  # noqa: BLE001
+                    _log.warning("remote provisioning failed for %s: %s", req.project, exc)
+                    probes.append(_Probe(
+                        name="remote provisioning", status="fail",
+                        detail=str(exc), required=True,
+                    ).to_dict())
         response = _request_response(result.request)
         if probes:
             from ..core import preflight as _pf2
@@ -1987,9 +2000,9 @@ def create_app() -> FastAPI:
                 return {
                     "ok": True, "staged": True, "path": str(path),
                     "message": (
-                        "Saved to your profile. Members hold the lab roster "
-                        "read-only, so this doesn't touch it — your PI applies "
-                        "it to the roster on the next sync."
+                        "Saved on this computer. The shared lab roster is "
+                        "changed only by your PI, so other members will not "
+                        "see this yet. Ask your PI to update your roster entry."
                     ),
                     "probes": [],
                 }
@@ -2146,6 +2159,10 @@ def create_app() -> FastAPI:
         user: str = Query("", description="Actor handle; falls back to $MURMURENT_USER."),
     ) -> dict:
         """Write lab-wide settings to ``<lab-mgmt>/lab.md`` frontmatter (PI only).
+
+        PI only because only the PI can push to the lab management repo;
+        members hold read-only clones, so anyone else's save would commit
+        locally and then fail to push (the #34 problem).
 
         Preserves the body, ``lab:`` (the short ID), ``created:``,
         ``institution``, ``department``, and any other unknown keys.
@@ -2548,7 +2565,7 @@ def create_app() -> FastAPI:
         """One-click update: ``git pull --ff-only`` the murmurent install, then
         restart the dashboard so the new code takes effect.
 
-        Only touches the murmurent CODE repo (``~/repos/murmurent``) — never
+        Only touches the murmurent CODE repo the dashboard runs from — never
         ~/.murmurent, the roster clone, or the data root (all outside the repo),
         and ``--ff-only`` refuses to overwrite a diverged/dirty tree. The one
         thing at risk is uncommitted local changes to murmurent's own code
@@ -3041,7 +3058,7 @@ def create_app() -> FastAPI:
         # Gate: PI or lab_sudo
         try:
             rec = _m.get(actor)
-            meta = _m.parse_member(rec.path).path  # ensure record exists
+            _m.parse_member(rec.path)  # ensure record exists
         except Exception:
             raise HTTPException(status_code=403, detail="member not found")
         is_pi = actor.lower() == _m.pi_handle().lower()
@@ -3050,7 +3067,7 @@ def create_app() -> FastAPI:
         if not (is_pi or bool(meta_dict.get("lab_sudo"))):
             raise HTTPException(
                 status_code=403,
-                detail="lab_sudo required (ask your PI to grant via the LabSudoPanel)",
+                detail="lab_sudo required (ask your PI to grant it under Security access on the dashboard)",
             )
 
         try:
@@ -3164,7 +3181,7 @@ def create_app() -> FastAPI:
         actionable error instead of a hang.
 
         On success, the snapshot lives at
-        ``<host>:/data/lab_vm/wigamig/.snapshot/<UTC-date>/`` and is
+        ``<host>:/var/lib/murmurent/.snapshot/<UTC-date>/`` and is
         group-readable for the lab. The next call to
         ``GET /api/security/findings`` picks it up automatically (the
         scan path also reads the snapshot when present and merges Tier 2
@@ -3211,10 +3228,10 @@ def create_app() -> FastAPI:
                 "ok": False,
                 "error": "sudoers entry not installed on " + host_name,
                 "remediation": (
-                    "Ask your sysadmin to install "
-                    "/etc/sudoers.d/murmurent_sec_dump from the template at "
-                    "scripts/sudoers.d/murmurent_sec_dump in this repo. "
-                    "See docs/security-dashboard.md#tier-2-setup."
+                    "The security snapshot is not installed on this server "
+                    "(or was installed under the old name, wigamig). On the "
+                    "server, from a murmurent folder, run: "
+                    "sudo bash scripts/install_security_snapshot.sh"
                 ),
                 "stderr": res.stderr.strip()[:500],
             }
@@ -6460,25 +6477,23 @@ def create_app() -> FastAPI:
         action: str,
         model: str | None = Query(
             None,
-            description="When action='set_model', the new model shorthand (fable|opus|sonnet|haiku).",
+            description="When action='set_model', the new model alias (fable|opus|sonnet|haiku|inherit).",
         ),
     ) -> dict:
-        """Manage a personal agent's frontmatter.
+        """Change an agent's ``disabled`` flag or model for THIS member.
 
         Actions:
           - ``enable`` / ``disable`` — flip the ``disabled:`` flag
-          - ``set_model`` — pick a model shorthand (``fable|opus|sonnet|haiku``)
+          - ``set_model`` — pick a model alias
 
-        Frozen agents (centre-controlled) cannot be modified here; they
-        require a PR against the agents/ registry.
+        A commons agent is forked into the member's vault first, exactly as the
+        Modify wizard does, so the shared file other members link to is never
+        written (#185: two members were overwriting each other's agents).
+        Frozen and guardian agents are refused.
         """
-        from ..core import agents as agents_core
-        from ..core.repo import murmurent_repo_root
+        from ..core import agent_edit as _ae
+        from ..core.personal_agents import VALID_MODELS
 
-        # ``fable`` (claude-fable-5) is the most-capable tier; offered so a
-        # member can put a personal agent (or the Oracle) on it. Kept in sync
-        # with the model dropdown in docs/designer_dashboard/hifi-app.jsx.
-        VALID_MODELS = {"fable", "opus", "sonnet", "haiku"}
         if action not in {"enable", "disable", "set_model"}:
             raise HTTPException(status_code=422, detail=f"unknown action: {action}")
         if action == "set_model" and (not model or model not in VALID_MODELS):
@@ -6486,42 +6501,16 @@ def create_app() -> FastAPI:
                 status_code=422,
                 detail=f"set_model needs ?model={'|'.join(sorted(VALID_MODELS))}",
             )
-
-        from ..core.commons import commons_root as _commons_root
-        registry_dir = _commons_root() / "agents"
-        try:
-            registry = agents_core.load_registry(registry_dir)
-        except Exception as exc:
-            raise HTTPException(status_code=500, detail=str(exc))
-
-        match = next((a for a in registry if a.name == name), None)
-        if match is None:
+        if not _ae.editability(name)["exists"]:
             raise HTTPException(status_code=404, detail=f"agent not found: {name}")
-        if match.freeze == "frozen":
-            raise HTTPException(
-                status_code=403,
-                detail=(
-                    f"agent {name!r} is frozen (centre-controlled). "
-                    f"Modify via PR against agents/{name}.md."
-                ),
-            )
-
-        path = match.path
-        if path is None:
-            raise HTTPException(status_code=500, detail="agent path missing")
-        from ..core.frontmatter import dump_document, parse_file
-        parsed = parse_file(path)
-        if action in {"enable", "disable"}:
-            parsed.meta["disabled"] = action == "disable"
-        elif action == "set_model":
-            parsed.meta["model"] = model
-        path.write_text(dump_document(parsed.meta, parsed.body), encoding="utf-8")
-        return {
-            "ok": True,
-            "name": name,
-            "disabled": bool(parsed.meta.get("disabled", False)),
-            "model": parsed.meta.get("model"),
-        }
+        try:
+            if action == "set_model":
+                return _ae.set_agent_fields(name, model=model)
+            return _ae.set_agent_fields(name, disabled=(action == "disable"))
+        except _ae.AgentNotEditableError as exc:
+            raise HTTPException(status_code=403, detail=str(exc))
+        except _ae.AgentEditError as exc:
+            raise HTTPException(status_code=409, detail=str(exc))
 
     @app.post("/api/agents/new")
     def new_personal_agent_endpoint(body: NewPersonalAgentBody) -> dict:
@@ -8040,7 +8029,9 @@ def create_app() -> FastAPI:
 
     @app.get("/healthz")
     def healthz() -> dict[str, str]:
-        return {"status": "ok"}
+        # ``boot`` changes on every process start, so the update banner can
+        # tell the restarted server from the old one still answering (#185).
+        return {"status": "ok", "boot": _BOOT_ID}
 
     @app.get("/api/environment/local_user")
     def environment_local_user() -> dict[str, str]:

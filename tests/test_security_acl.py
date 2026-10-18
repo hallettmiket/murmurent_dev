@@ -349,7 +349,33 @@ def test_consume_snapshot_missing_files_does_not_abort(tmp_path):
     # No findings (nothing to consume) but no exception either.
     assert isinstance(res.findings, list)
     # Warnings list every missing section.
-    assert any("acls_raw" in w for w in res.warnings)
+    assert any("immutable/" in w and "raw/" in w for w in res.warnings)
+    assert any("append_only/" in w and "modifiable/" in w for w in res.warnings)
+
+
+def test_consume_snapshot_checks_new_data_folders(tmp_path):
+    """#185: immutable/ is checked with the read-only template and
+    append_only/ + modifiable/ with the lab-shared one; findings carry the
+    new folder name as their category."""
+    snap = tmp_path / "new_layout"
+    snap.mkdir()
+    (snap / "manifest.json").write_text(json.dumps({
+        "script_version": "1", "generated_at": "2026-05-19T12:00:00Z",
+        "attempts": [],
+    }), encoding="utf-8")
+    # A writable file under immutable/: forbidden write bits for OWNER@.
+    (snap / "acls_immutable.txt").write_text(
+        "# file: /srv/acl-view/lab_vm/immutable/p1/data.csv\n"
+        "A::OWNER@:rwaDxtTcCy\n", encoding="utf-8")
+    (snap / "acls_append_only.txt").write_text(
+        "# file: /srv/acl-view/lab_vm/append_only\n", encoding="utf-8")
+    res = T2.consume_snapshot(snap, host="lab-server")
+    cats = {(f.category, f.rule) for f in res.findings}
+    assert ("immutable", "RAW-FILE-WRITABLE-01") in cats
+    assert ("append_only", "REFINED-PATTERN-DRIFT-01") in cats
+    assert all(f.project in (None, "", "p1") for f in res.findings
+               if f.category == "immutable")
+    assert not any("no ACL file" in w for w in res.warnings)
 
 
 def test_consume_snapshot_warns_on_unsupported_script_version(tmp_path):
