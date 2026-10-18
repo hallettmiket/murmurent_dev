@@ -855,7 +855,7 @@ function RepoInventoryPanel({ span = "c-12" }) {
       rows.forEach(r => placed.add(r));
     }
     const loose = visibleRows.filter(r => !placed.has(r));
-    if (loose.length) out.push({ title: "Not in any project", rows: loose });
+    if (loose.length) out.push({ title: "Not in a project", rows: loose });
     return out;
   })();
 
@@ -917,9 +917,13 @@ function RepoInventoryPanel({ span = "c-12" }) {
             </li>
           </ul>
           <div style={{marginTop:6}}>
-            Repos are grouped by the project they belong to. A project is a named
-            set of repos and members, made with ＋ new project in the Projects
-            panel; the repos you pick there are made ready for you.
+            Repos are grouped by the project they belong to; a project whose only
+            repo has its own name is one line marked <strong>project</strong>.
+            A repo belongs to a project only when that project's record lists
+            it. Making a repo murmurent-ready puts it in a one-repo project of its
+            own, and ＋ new project groups repos together. So a repo that is not
+            ready is under <strong>Not in a project</strong> unless a project
+            lists it.
           </div>
           <div style={{marginTop:6}}>
             <strong>▶ Claude Code</strong> opens a new terminal window running
@@ -968,7 +972,19 @@ function RepoInventoryPanel({ span = "c-12" }) {
               <th style={{width:28}}></th>
             </tr></thead>
             <tbody>
-              {groups.map(g => (
+              {groups.map(g => {
+                // A project whose only repo has its own name is shown as one
+                // line, marked "project", not a heading plus a repo (#207).
+                const single = g.isProject && g.rows.length === 1 && g.rows[0].name === g.title;
+                if (single) {
+                  const r = g.rows[0];
+                  return (
+                    <RepoInventoryRow key={"g:" + g.title} row={r} knownHosts={knownHosts}
+                      projectBadge onAdopt={(ctx) => setAdoptCtx(ctx)} onUpgrade={doUpgrade}
+                      upgrading={upgrading} onRemove={(ctx) => setRemoveCtx(ctx)} />
+                  );
+                }
+                return (
                 <React.Fragment key={"g:" + g.title}>
                   <tr>
                     <td colSpan={3 + knownHosts.length}
@@ -993,7 +1009,8 @@ function RepoInventoryPanel({ span = "c-12" }) {
                     />
                   ))}
                 </React.Fragment>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         )}
@@ -1056,7 +1073,7 @@ function rowIsMurmurentInfra(row) {
   return false;
 }
 
-function RepoInventoryRow({ row, knownHosts, onAdopt, onUpgrade, upgrading, onRemove }) {
+function RepoInventoryRow({ row, knownHosts, onAdopt, onUpgrade, upgrading, onRemove, projectBadge }) {
   const gh = row.github;
   const cloneByHost = {};
   for (const c of (row.clones || [])) cloneByHost[c.host] = c;
@@ -1200,6 +1217,11 @@ function RepoInventoryRow({ row, knownHosts, onAdopt, onUpgrade, upgrading, onRe
   return (
     <tr>
       <td style={{fontSize:12}}>
+        {projectBadge && (
+          <span style={{marginRight:6}} title="This repo is a project of its own (same name)">
+            <Pill tone="purple">project</Pill>
+          </span>
+        )}
         <strong>{row.name}</strong>
         {rowInfra && (
           <span title="murmurent infrastructure — not a project; cannot be made ready"
@@ -1534,6 +1556,10 @@ function ProjectMembersBlock({ proj: p }) {
   const viewer = ((window.DATA.member || {}).handle || "").replace(/^@/, "").toLowerCase();
   const leadNorm = (p.lead || "").replace(/^@/, "").toLowerCase();
   const canManage = isPI || (viewer && viewer === leadNorm);
+  // A member from another group: typed, since they are not on this lab's
+  // roster (#207). Without a recorded key, add_member asks for their
+  // enrollment request and the enrollment window opens.
+  const [outside, setOutside] = useState("");
   const certMembers = p.cert_members || [];
   const uncertified = p.uncertified_members || [];
   const groupMembers = window.DATA.group_members || [];
@@ -1680,6 +1706,21 @@ function ProjectMembersBlock({ proj: p }) {
             <option value="">＋ add member…</option>
             {addable.map(h => <option key={h} value={h}>{h}</option>)}
           </select>
+        )}
+        {canManage && (
+          <span style={{display:"inline-flex", gap:4}}>
+            <input value={outside} onChange={e => setOutside(e.target.value)}
+                   onKeyDown={e => { if (e.key === "Enter" && outside.trim()) {
+                     addMember(outside.trim().replace(/^@/, "")); setOutside(""); } }}
+                   placeholder="@handle from another group"
+                   title="Someone outside this lab: type their murmurent handle. If their key is not on record, you will be asked for the enrollment request they send you."
+                   style={{fontSize:11, padding:"2px 4px", fontFamily:"var(--mono)", width:170,
+                           border:"1px solid var(--rule-strong)", borderRadius:2}} />
+            <button type="button" className="btn sm" disabled={!!busy || !outside.trim()}
+                    onClick={() => { addMember(outside.trim().replace(/^@/, "")); setOutside(""); }}>
+              add
+            </button>
+          </span>
         )}
         {!canManage && (
           <span className="muted" style={{fontSize:10}}
@@ -2294,7 +2335,6 @@ function ProjectsPanel({ projects, span="c-5" }) {
           <thead><tr>
             <th>project</th><th style={{width:70}}>sens.</th><th style={{width:90}}>lead</th>
             <th style={{width:60}} className="num">team</th><th style={{width:80}}>activity</th>
-            {isPI && <th style={{width:60}}></th>}
           </tr></thead>
           <tbody>
             {projects.map(p => (
@@ -2349,8 +2389,25 @@ function ProjectsPanel({ projects, span="c-5" }) {
                       </span>
                     )}
                   </td>
-                  {isPI && (
-                    <td style={{textAlign:"right", whiteSpace:"nowrap"}} onClick={(e) => e.stopPropagation()}>
+                </tr>
+                {openProj === p.name && (
+                  <tr>
+                    <td colSpan={5} style={{
+                      background:"var(--paper-2)",
+                      padding:"10px 12px",
+                      fontSize:12, fontFamily:"var(--mono)",
+                      borderBottom:"1px solid var(--rule)",
+                      wordBreak:"break-all",
+                      overflowWrap:"anywhere",
+                    }}>
+                      {isPI && (
+                        // Moved here from a 60px column where "delete" was
+                        // pushed out of sight (#207).
+                        <div style={{display:"flex", gap:6, alignItems:"center", flexWrap:"wrap",
+                                     marginBottom:8, paddingBottom:8,
+                                     borderBottom:"1px solid var(--rule)"}}
+                             onClick={(e) => e.stopPropagation()}>
+                          <span className="muted" style={{fontSize:11}}>Manage this project:</span>
                       {p.is_cert && (
                         <>
                           <button
@@ -2391,19 +2448,8 @@ function ProjectsPanel({ projects, span="c-5" }) {
                         }}>
                         {busyDecom === p.name ? "…" : "delete"}
                       </button>
-                    </td>
-                  )}
-                </tr>
-                {openProj === p.name && (
-                  <tr>
-                    <td colSpan={isPI ? 6 : 5} style={{
-                      background:"var(--paper-2)",
-                      padding:"10px 12px",
-                      fontSize:12, fontFamily:"var(--mono)",
-                      borderBottom:"1px solid var(--rule)",
-                      wordBreak:"break-all",
-                      overflowWrap:"anywhere",
-                    }}>
+                        </div>
+                      )}
                       <ProjectDetailRows proj={p} />
                     </td>
                   </tr>
@@ -3341,8 +3387,10 @@ function slugify(text) {
 }
 
 // Choreographies published in the public murmurent_public index (#185 item
-// 15): list them and install one into the repositories folder.
-function PublishedChoreographiesModal({ onClose }) {
+// 15), listed in the panel without a button (#207), at most 100: install one
+// into the repositories folder with a click.
+const PUBLISHED_LIMIT = 100;
+function PublishedChoreographies() {
   const [data, setData] = useState(null);
   const [busy, setBusy] = useState("");
   const [msg, setMsg] = useState("");
@@ -3359,42 +3407,35 @@ function PublishedChoreographiesModal({ onClose }) {
       load();
     } finally { setBusy(""); }
   };
-  const rows = (data && data.rows) || [];
+  const rows = ((data && data.rows) || []).slice(0, PUBLISHED_LIMIT);
   return (
-    <div onClick={onClose} style={{position:"fixed", inset:0, background:"rgba(32,20,54,0.55)",
-         display:"flex", alignItems:"center", justifyContent:"center", zIndex:100}}>
-      <div onClick={e => e.stopPropagation()} style={{background:"var(--card)", padding:18,
-           border:"1px solid var(--rule-strong)", borderRadius:2, width:"min(560px, 92vw)",
-           display:"flex", flexDirection:"column", gap:8, fontSize:13}}>
-        <h2 style={{margin:0, fontFamily:"var(--serif)", fontSize:18, color:"var(--purple-deep)"}}>
-          Published choreographies
-        </h2>
-        <div className="muted" style={{fontSize:12, lineHeight:1.5}}>
-          From the public murmurent directory. Installing copies the repository
-          into your repositories folder and makes it murmurent-ready; data is
-          never included. Each choreography's README says what it does.
-        </div>
-        {!data && <div className="muted">Loading…</div>}
-        {data && data.error && <div style={{color:"var(--red)"}}>{data.error}</div>}
-        {data && !data.error && rows.length === 0 && <div className="muted">None published yet.</div>}
-        {rows.map(r => (
-          <div key={r.name} className="row" style={{justifyContent:"space-between", gap:8,
-               borderBottom:"1px solid var(--rule)", padding:"4px 0"}}>
-            <span><strong>{r.name}</strong>{" "}
-              <a href={r.url.replace(/\.git$/, "")} target="_blank" rel="noopener"
-                 className="mono muted" style={{fontSize:11}}>source ↗</a></span>
-            {r.installed
-              ? <span className="mono muted" style={{fontSize:11}} title={r.path}>installed</span>
-              : <button className="btn sm" disabled={!!busy} onClick={() => install(r.name)}>
-                  {busy === r.name ? "installing…" : "install"}
-                </button>}
-          </div>
-        ))}
-        {msg && <div style={{fontSize:12, lineHeight:1.5}}>{msg}</div>}
-        <div className="row" style={{justifyContent:"flex-end"}}>
-          <button className="btn sm ghost" onClick={onClose}>close</button>
-        </div>
+    <div style={{padding:"10px 14px", borderTop:"1px solid var(--rule)", fontSize:13}}>
+      <div className="mono muted" style={{fontSize:11, letterSpacing:1, textTransform:"uppercase",
+                                           marginBottom:4}}>
+        Published by other labs
       </div>
+      <div className="muted" style={{fontSize:12, lineHeight:1.5, marginBottom:6}}>
+        From the public murmurent directory. Installing copies the repository into
+        your repositories folder and makes it murmurent-ready; data is never
+        included. Each one's README says what it does.
+      </div>
+      {!data && <div className="muted">Loading…</div>}
+      {data && data.error && <div style={{color:"var(--red)"}}>{data.error}</div>}
+      {data && !data.error && rows.length === 0 && <div className="muted">None published yet.</div>}
+      {rows.map(r => (
+        <div key={r.name} className="row" style={{justifyContent:"space-between", gap:8,
+             borderBottom:"1px solid var(--rule)", padding:"4px 0"}}>
+          <span><strong>{r.name}</strong>{" "}
+            <a href={r.url.replace(/\.git$/, "")} target="_blank" rel="noopener"
+               className="mono muted" style={{fontSize:11}}>source ↗</a></span>
+          {r.installed
+            ? <span className="mono muted" style={{fontSize:11}} title={r.path}>installed</span>
+            : <button className="btn sm" disabled={!!busy} onClick={() => install(r.name)}>
+                {busy === r.name ? "installing…" : "install"}
+              </button>}
+        </div>
+      ))}
+      {msg && <div style={{fontSize:12, lineHeight:1.5, marginTop:4}}>{msg}</div>}
     </div>
   );
 }
@@ -3403,7 +3444,6 @@ function ChoreographiesPanel({ choreographies, span="c-12" }) {
   const list = choreographies || [];
   const [modal, setModal] = useState(false);
   const [starting, setStarting] = useState(false);
-  const [browsing, setBrowsing] = useState(false);
   return (
     <div className={"panel "+span}>
       <header>
@@ -3418,10 +3458,6 @@ function ChoreographiesPanel({ choreographies, span="c-12" }) {
                   title="Pose a question on its own, with no repository behind it">
             + pose a question
           </button>
-          <button className="btn sm" onClick={() => setBrowsing(true)}
-                  title="Choreographies other labs published in the public murmurent directory">
-            browse published
-          </button>
         </span>
       </header>
       <div className="body" style={{padding:0}}>
@@ -3433,10 +3469,11 @@ function ChoreographiesPanel({ choreographies, span="c-12" }) {
           </div>
         )}
         {list.map(c => <ChoreographyCard key={c.id || c.title} c={c} />)}
+        <PublishedChoreographies />
       </div>
       {modal && <NewChoreographyModal onClose={() => setModal(false)} />}
       {starting && <StartChoreographyModal onClose={() => setStarting(false)} />}
-      {browsing && <PublishedChoreographiesModal onClose={() => setBrowsing(false)} />}
+
     </div>
   );
 }
@@ -4283,7 +4320,7 @@ function NewProjectModal({ onClose }) {
         <div className="row" style={{gap:6}}>
           <input value={otherInput} onChange={e => setOtherInput(e.target.value)}
                  onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addFromInput(); }}}
-                 placeholder="…or type an unknown @handle"
+                 placeholder="…or someone from another group: type their @handle"
                  style={{flex:1, padding:"6px 8px", border:"1px solid var(--rule-strong)",
                          borderRadius:2, fontFamily:"var(--mono)"}}/>
           <button type="button" className="btn sm" onClick={addFromInput}>add</button>
@@ -7966,11 +8003,6 @@ function App() {
           <LabMembersPanel peers={D.peers} span="c-12" />
         </div>
 
-        {/* Where you work: Projects (a set of repos + machines) + Machines. */}
-        <div className="grid" style={{marginBottom:14}}>
-          <ProjectsPanel projects={D.projects} span="c-7" />
-          <MachinesPanel span="c-5" />
-        </div>
 
         <div className="grid" style={{marginBottom:14}}>
           <PersonalOraclePanel data={D.personal_oracle} span="c-3" />
@@ -7979,9 +8011,15 @@ function App() {
                           labFolder={D.lab_oracle_folder} span="c-4" />
         </div>
 
-        {/* Launch Claude Code — prominent entry point above the repos list. */}
+        {/* Machines, and the Claude Code launcher. */}
         <div className="grid" style={{marginBottom:14}}>
-          <CCLaunchBar span="c-12" />
+          <MachinesPanel span="c-5" />
+          <CCLaunchBar span="c-7" />
+        </div>
+
+        {/* Projects directly above the repos they group (#207). */}
+        <div className="grid" style={{marginBottom:14}}>
+          <ProjectsPanel projects={D.projects} span="c-12" />
         </div>
 
         {/* Repo inventory: cross-machine + GitHub audit — one column per
