@@ -7523,16 +7523,9 @@ function LabSettingsModal({ onClose }) {
     obsidian_host:     ls.obsidian_host     || "",
     obsidian_path:     ls.obsidian_path     || "",
   });
-  const [busy, setBusy] = useState(false);
-  const [msg, setMsg]   = useState(null);
-
-  const update = (k) => (e) => setForm((prev) => ({ ...prev, [k]: e.target.value }));
-
-  const submit = async (e) => {
-    e.preventDefault();
-    setBusy(true); setMsg(null);
-    try {
-      const payload = {
+  // The save payload for a form state; the first one is kept so a save can
+  // send only the fields that changed.
+  const buildLabPayload = (form) => ({
         display_name:      form.display_name,
         website:           form.website,
         admins:            form.admins.split(",").map(s => s.trim()).filter(Boolean),
@@ -7548,7 +7541,24 @@ function LabSettingsModal({ onClose }) {
         notebook_path:     form.notebook_path,
         obsidian_host:     form.obsidian_host,
         obsidian_path:     form.obsidian_path,
-      };
+  });
+  const [initialPayload] = useState(() => buildLabPayload(form));
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg]   = useState(null);
+
+  const update = (k) => (e) => setForm((prev) => ({ ...prev, [k]: e.target.value }));
+
+  const submit = async (e) => {
+    e.preventDefault();
+    setBusy(true); setMsg(null);
+    try {
+      // Send only what the PI changed (#187): re-sending untouched fields
+      // rewrote lab.md (for example github_org from the PI's own login, or
+      // reshaped storage paths) without anyone asking.
+      const all = buildLabPayload(form);
+      const payload = Object.fromEntries(Object.entries(all).filter(
+        ([k, v]) => JSON.stringify(v) !== JSON.stringify(initialPayload[k])));
+      if (Object.keys(payload).length === 0) { setMsg("nothing changed"); setBusy(false); return; }
       const userParam = new URLSearchParams(window.location.search).get("user");
       const res = await fetch("/api/lab/settings" + (userParam ? "?user=" + encodeURIComponent(userParam) : ""), {
         method: "POST",
