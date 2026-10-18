@@ -1594,6 +1594,16 @@ def create_app() -> FastAPI:
                 raise HTTPException(status_code=404, detail=f"project not found: {body.project}")
             cwd = str(project_path(body.project))
 
+        if cwd and (Path(cwd) / ".git").exists():
+            # Install the agent versions that should win in this repo (lab,
+            # project, your own for this project) before the session reads
+            # them (#186). Best-effort: never blocks the launch.
+            try:
+                from ..core import agent_levels as _lv
+                _lv.sync_user_level()
+                _lv.sync_repo(Path(cwd))
+            except Exception:  # noqa: BLE001
+                pass
         res = _launchers.launch_claude_session(cwd=cwd)
         # ``already_open`` is a success: an existing session was raised instead
         # of spawning a duplicate. Only a genuine failure (no terminal, spawn
