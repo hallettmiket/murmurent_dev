@@ -386,6 +386,83 @@ def _apply_off(repo: Path, off: set[str]) -> set[str]:
     return off
 
 
+# ---------------------------------------------------------------------------
+# Actions shared by the commands and the dashboard
+# ---------------------------------------------------------------------------
+
+class LevelError(RuntimeError):
+    """An action on an agent's version that cannot be done; the message is
+    meant for a person."""
+
+
+def project_repos(project: str) -> list[Path]:
+    return [p for name, p in local_project_repos() if name == project]
+
+
+def fork_for_project(name: str, project: str) -> tuple[Path, bool]:
+    """Copy the version in use into the vault as your version for one project.
+    Returns ``(path, created)``; then syncs that project's repos here."""
+    import shutil
+    if is_locked(name):
+        raise LevelError(f"{name} is centre-controlled and cannot have its own version.")
+    dest_dir = person_project_dir(project)
+    if dest_dir is None:
+        raise LevelError("a version for one project is kept in your personal vault; "
+                         "set one up first with `murmurent vault init`.")
+    dest = dest_dir / f"{name}.md"
+    created = False
+    if not dest.exists():
+        win = resolve(name, user_level_only=True)
+        if win is None:
+            raise LevelError(f"no agent named {name!r}.")
+        dest_dir.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(win.path, dest)
+        created = True
+    for repo in project_repos(project):
+        sync_repo(repo, project)
+    return dest, created
+
+
+def switch(name: str, project: str, off: bool) -> None:
+    """Switch an agent off (or on) for you in one project, and sync its repos."""
+    try:
+        set_switched_off(project, name, off)
+    except RuntimeError as exc:
+        raise LevelError(str(exc)) from exc
+    for repo in project_repos(project):
+        sync_repo(repo, project)
+
+
+def share_with_lab(name: str) -> tuple[Path, list]:
+    """PI only: make the version in use the lab's, committed and pushed."""
+    import shutil
+    from . import git_persist
+    from .identity import resolve as _who
+    from .lab import pi_handle
+    from .repo import lab_mgmt_repo_root
+    if is_locked(name):
+        raise LevelError(f"{name} is centre-controlled and cannot be replaced.")
+    me = (_who(allow_unknown=True).handle or "").lstrip("@").lower()
+    if me != pi_handle().lstrip("@").lower():
+        raise LevelError("only the PI can set the lab's version of an agent.")
+    win = resolve(name, user_level_only=True)
+    if win is None:
+        raise LevelError(f"no agent named {name!r}.")
+    dest = lab_mgmt_repo_root() / "agents" / f"{name}.md"
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    if win.path.resolve() != dest.resolve():
+        shutil.copyfile(win.path, dest)
+    probes = git_persist.commit_and_push(dest, message=f"lab version of agent {name} (#186)")
+    sync_user_level()
+    return dest, probes
+
+
+def switched_off_for(project: str) -> list[str]:
+    """Agents you switched off in ``project``."""
+    d = person_project_dir(project)
+    return sorted(_read_list(d.parent / OFF_FILE)) if d is not None else []
+
+
 def local_project_repos() -> list[tuple[str, Path]]:
     """``(project, repo path)`` for every project repo cloned on this machine."""
     out: list[tuple[str, Path]] = []

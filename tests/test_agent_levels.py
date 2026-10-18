@@ -134,3 +134,37 @@ def test_cli_fork_for_one_project(world, monkeypatch):
     mine = world["vault"] / "projects" / "proj" / "agents" / "blacksmith.md"
     assert mine.is_file()
     assert os.readlink(world["repo"] / ".claude" / "agents" / "blacksmith.md") == str(mine)
+
+
+# ---- the dashboard's versions window -------------------------------------
+
+@pytest.fixture
+def client(world, monkeypatch):
+    from fastapi.testclient import TestClient
+    from murmurent.dashboard.server import create_app
+    (world["lab"] / "lab.md").write_text("---\nlab: mh\npi: '@the_pi'\n---\n")
+    monkeypatch.setattr(lv, "local_project_repos", lambda: [("proj", world["repo"])])
+    return TestClient(create_app())
+
+
+def test_versions_window_actions(client, world, monkeypatch):
+    monkeypatch.setenv("MURMURENT_USER", "bob")
+    v = client.get("/api/agents/blacksmith/levels?project=proj").json()
+    assert v["in_use"]["level"] == lv.CENTRE and not v["switched_off"] and not v["is_pi"]
+    r = client.post("/api/agents/blacksmith/fork_project", json={"project": "proj"})
+    assert r.status_code == 200 and r.json()["created"]
+    assert client.get("/api/agents/blacksmith/levels?project=proj").json()["in_use"]["level"] \
+        == lv.PERSON_PROJECT
+    assert client.post("/api/agents/artist/switch", json={"project": "proj", "off": True}).status_code == 200
+    assert client.get("/api/agents/artist/levels?project=proj").json()["switched_off"]
+    assert client.post("/api/agents/security_guard/switch",
+                       json={"project": "proj", "off": True}).status_code == 409
+    assert client.post("/api/agents/artist/share_lab").status_code == 403   # not the PI
+
+
+def test_pi_makes_the_lab_version(client, world, monkeypatch):
+    monkeypatch.setenv("MURMURENT_USER", "the_pi")
+    r = client.post("/api/agents/artist/share_lab")
+    assert r.status_code == 200, r.text
+    assert (world["lab"] / "agents" / "artist.md").is_file()
+    assert os.readlink(world["cc"] / "artist.md") == str(world["lab"] / "agents" / "artist.md")

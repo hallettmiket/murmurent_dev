@@ -6529,6 +6529,72 @@ def create_app() -> FastAPI:
             ),
         }
 
+    # -- Agent versions per project (#186) -----------------------------------
+
+    @app.get("/api/agents/{name}/levels")
+    def agent_levels_view(name: str, project: str = Query("")) -> dict:
+        """Which version of ``name`` you use in ``project`` (or everywhere),
+        whether you switched it off there, and what you may do about it."""
+        from ..core import agent_levels as _lv
+        from ..core.identity import resolve as _who
+        from ..core.lab import pi_handle
+        repos = _lv.project_repos(project) if project else []
+        repo = repos[0] if repos else None
+        win = _lv.resolve(name, project=project or None, repo=repo)
+        everywhere = _lv.resolve(name, user_level_only=True)
+        me = (_who(allow_unknown=True).handle or "").lstrip("@").lower()
+        return {
+            "name": name,
+            "project": project,
+            "project_has_repo_here": bool(repo),
+            "in_use": {"level": win.level, "label": win.label} if win else None,
+            "everywhere": {"level": everywhere.level, "label": everywhere.label} if everywhere else None,
+            "switched_off": bool(project) and name in _lv.switched_off_for(project),
+            "locked": _lv.is_locked(name),
+            "guardian": _lv.is_guardian(name),
+            "is_pi": me == pi_handle().lstrip("@").lower(),
+        }
+
+    @app.post("/api/agents/{name}/fork_project")
+    def agent_fork_project(name: str, body: dict = Body(default_factory=dict)) -> dict:
+        """Make your own version of ``name`` for one project (in your vault)."""
+        from ..core import agent_levels as _lv
+        project = str(body.get("project") or "").strip()
+        if not project:
+            raise HTTPException(status_code=422, detail="choose a project")
+        try:
+            path, created = _lv.fork_for_project(name, project)
+        except _lv.LevelError as exc:
+            raise HTTPException(status_code=409, detail=str(exc))
+        return {"ok": True, "path": str(path), "created": created,
+                "detail": (f"Your own {name} for {project} is {path}. Edit it there; "
+                           "run `murmurent vault sync` to keep it on your other machines.")}
+
+    @app.post("/api/agents/{name}/switch")
+    def agent_switch(name: str, body: dict = Body(default_factory=dict)) -> dict:
+        """Switch ``name`` off (or back on) for you in one project."""
+        from ..core import agent_levels as _lv
+        project = str(body.get("project") or "").strip()
+        if not project:
+            raise HTTPException(status_code=422, detail="choose a project")
+        off = bool(body.get("off", True))
+        try:
+            _lv.switch(name, project, off)
+        except _lv.LevelError as exc:
+            raise HTTPException(status_code=409, detail=str(exc))
+        return {"ok": True, "off": off}
+
+    @app.post("/api/agents/{name}/share_lab")
+    def agent_share_lab(name: str) -> dict:
+        """PI only: make the version you use the lab's."""
+        from ..core import agent_levels as _lv
+        try:
+            path, probes = _lv.share_with_lab(name)
+        except _lv.LevelError as exc:
+            raise HTTPException(status_code=403 if "only the PI" in str(exc) else 409,
+                                detail=str(exc))
+        return {"ok": True, "path": str(path), "probes": [p.to_dict() for p in probes]}
+
     @app.post("/api/agents/{name}/{action}")
     def agent_toggle(
         name: str,
