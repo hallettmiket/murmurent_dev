@@ -367,6 +367,27 @@ def space_rows(project: str, category: str | None, suggestion: str | None, owner
 
 
 @space_group.command(
+    "layout",
+    help="Check the lab folder against the lab's folder protocol: each top-level "
+         "folder's purpose, subfolders named after projects (or logins in cottage/), "
+         "no loose files, and folders being phased out. Reads names only; changes "
+         "nothing. Report to the PI; never fix by hand-moving files.")
+@click.option("--json", "as_json", is_flag=True, help="Print the findings as JSON.")
+def space_layout(as_json: bool) -> None:
+    import json as _json
+
+    from ..core import lab_layout as _ll
+    projects, logins = _ll.lab_projects_and_logins()
+    findings = _ll.check(_lv.data_root(), projects=projects, logins=logins)
+    if as_json:
+        click.echo(_json.dumps([f.to_dict() for f in findings], indent=2))
+        return
+    click.echo(f"Lab folder: {_lv.data_root()}")
+    for line in _ll.describe(findings):
+        click.echo(line)
+
+
+@space_group.command(
     "schedule",
     help="Show, set up or remove the weekly lab space scan. It runs under your "
          "account at the lowest priority, reads only, and sends you a Slack summary.")

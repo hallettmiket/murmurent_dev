@@ -57,6 +57,14 @@ def _isolate_wigamig_home(monkeypatch, tmp_path):
     (a leaked ``identity.yaml`` there used to 403 unrelated dashboard tests).
     Tests that need a specific home simply set ``MURMURENT_HOME`` again."""
     monkeypatch.setenv("MURMURENT_HOME", str(tmp_path / "_wig_home"))
+    # Never the real lab data folder: an account whose environment points
+    # MURMURENT_DATA_ROOT at the lab's data root once left test folders
+    # (p_act, demo_local, ...) in its append_only/ (#206). A test that needs
+    # its own data root sets it again.
+    monkeypatch.delenv("MURMURENT_DATA_ROOT", raising=False)
+    monkeypatch.delenv("MURMURENT_LAB_VM_ROOT", raising=False)
+    from murmurent.core import lab_vm as _lab_vm
+    monkeypatch.setattr(_lab_vm, "DEFAULT_LAB_VM_ROOT", tmp_path / "_data_root")
 
 
 @pytest.fixture(autouse=True)
