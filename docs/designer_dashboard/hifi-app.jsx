@@ -3453,8 +3453,8 @@ const GUARDIAN_AGENTS = ["security_guard", "adversary", "conscience"];
 // Badge colours for "which version is in use" (#186 step 1). Problems
 // (a broken link, nothing installed) stand out; the normal cases stay quiet.
 const IN_USE_TONE = {
-  "centre": "", "yours": "purple", "project": "green",
-  "local-file": "amber", "broken-link": "red", "missing": "red",
+  "centre": "", "lab": "green", "yours": "purple", "person-project": "purple",
+  "project": "green", "local-file": "amber", "broken-link": "red", "missing": "red",
 };
 
 function AgentCard({ a }) {
