@@ -1512,9 +1512,13 @@ def _agents() -> list[C.AgentRow]:
     except Exception:
         registry = []
     for record in registry:
-        # The AgentRecord doesn't expose model + disabled directly, so
-        # re-parse the source file for the extra fields.
-        model, disabled = _agent_extras(record.path)
+        # Show the definition Claude Code actually loads (#186): after a member
+        # makes their own copy, its model and disabled flag are theirs, not
+        # the centre file's. Fall back to the centre file when nothing usable
+        # is installed.
+        use = _agent_in_use(record.name)
+        source = Path(use.path) if use and use.path else record.path
+        model, disabled = _agent_extras(source)
         rows.append(
             C.AgentRow(
                 name=record.name,
@@ -1525,10 +1529,27 @@ def _agents() -> list[C.AgentRow]:
                 disabled=disabled,
                 origin="commons",
                 category=getattr(record, "category", "member"),  # type: ignore[arg-type]
+                **_in_use_fields(use),
             )
         )
     rows.extend(_personal_agents())
     return rows
+
+
+def _agent_in_use(name: str):
+    """core.agent_in_use.which(name) for this machine; None if it fails."""
+    try:
+        from ..core import agent_in_use as _aiu
+        return _aiu.which(name)
+    except Exception:
+        return None
+
+
+def _in_use_fields(use) -> dict:
+    if use is None:
+        return {}
+    return {"in_use_level": use.level, "in_use_label": use.label,
+            "in_use_detail": use.detail, "upstream_changed": use.upstream_changed}
 
 
 def _personal_agents() -> list[C.AgentRow]:
@@ -1578,6 +1599,7 @@ def _personal_agents() -> list[C.AgentRow]:
                 disabled=bool(meta.get("disabled", False)),
                 origin="personal",
                 category="member",
+                **_in_use_fields(_agent_in_use(name)),
             )
         )
     return rows
