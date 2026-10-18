@@ -95,7 +95,7 @@ reaches everyone else the next time they update.
 
 ## Changing the documentation website
 
-Everything at <https://hallettmiket.github.io/murmurent/> is built from the
+Everything at <https://mikehallett.science/murmurent/> is built from the
 Markdown files in [`docs/`](docs/). Editing one and merging it is all that's
 needed: the site rebuilds itself.
 

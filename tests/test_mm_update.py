@@ -189,3 +189,51 @@ def test_describe_running_code_for_a_release(monkeypatch, tmp_path):
     from murmurent import __version__
     info = MM.describe_running_code()
     assert info == {**info, "kind": "release", "label": f"release v{__version__}"}
+
+
+def _git(*args, cwd=None):
+    subprocess.run(["git", *args], cwd=cwd, check=True, capture_output=True,
+                   env={**__import__("os").environ, "GIT_AUTHOR_NAME": "a", "GIT_AUTHOR_EMAIL": "a@b",
+                        "GIT_COMMITTER_NAME": "a", "GIT_COMMITTER_EMAIL": "a@b"})
+
+
+def _commit_version(repo, version, msg):
+    f = repo / "src" / "murmurent" / "__init__.py"
+    f.parent.mkdir(parents=True, exist_ok=True)
+    f.write_text(f'__version__ = "{version}"\n# {msg}\n')
+    _git("add", "-A", cwd=repo)
+    _git("commit", "-q", "-m", msg, cwd=repo)
+
+
+@pytest.fixture
+def dev_pair(monkeypatch, tmp_path):
+    """A local murmurent_dev clone one or more commits behind its origin."""
+    origin = tmp_path / "origin.git"
+    _git("init", "-q", "--bare", "-b", "main", str(origin))
+    seed = tmp_path / "seed"
+    _git("clone", "-q", str(origin), str(seed))
+    _commit_version(seed, "2026.10.0", "first")
+    _git("push", "-q", "origin", "HEAD:main", cwd=seed)
+    local = tmp_path / "murmurent_dev"
+    _git("clone", "-q", str(origin), str(local))
+    monkeypatch.setattr(MM, "install_root", lambda: local)
+    return seed, local
+
+
+def test_banner_words_between_releases(dev_pair):
+    """#185 follow-up: name the copy and the changes, not just commit codes."""
+    seed, _ = dev_pair
+    _commit_version(seed, "2026.10.0", "Fix the Space page")
+    _git("push", "-q", "origin", "HEAD:main", cwd=seed)
+    s = MM.check_update(fetch=True)
+    assert s.name == "murmurent_dev" and s.behind == 1
+    assert s.current_version == s.latest_version == "2026.10.0"
+    assert s.changes == ["Fix the Space page"]
+
+
+def test_banner_words_for_a_new_release(dev_pair):
+    seed, _ = dev_pair
+    _commit_version(seed, "2026.10.1", "Release 2026.10.1")
+    _git("push", "-q", "origin", "HEAD:main", cwd=seed)
+    s = MM.check_update(fetch=True)
+    assert (s.current_version, s.latest_version) == ("2026.10.0", "2026.10.1")

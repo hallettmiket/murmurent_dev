@@ -5,6 +5,10 @@ This is where Murmurent is written. **To install and use Murmurent, go to
 
 **▶ [Watch the 7-minute getting-started video](https://mikehallett.science/assets/videos/murmurent_getting_started.html)**
 
+**📖 Documentation: <https://mikehallett.science/murmurent/>** (updated at each
+release). The documentation as it stands in this repository, before release, is
+previewed at <https://mikehallett.science/murmurent_dev/>.
+
 You need [git](https://git-scm.com/), [Claude Code](https://claude.com/claude-code)
 and [uv](https://docs.astral.sh/uv/).
 
