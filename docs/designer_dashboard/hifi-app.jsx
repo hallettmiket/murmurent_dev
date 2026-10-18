@@ -302,6 +302,20 @@ function UpdateBanner() {
   }, []);
   if (!st || !st.ok || st.behind <= 0 || dismissed) return null;
   const diverged = !st.can_ff;
+  // Say it in words (#185 follow-up): which copy, and a new release number if
+  // there is one. Between releases the number does not change, so a
+  // development copy is described by its new changes instead.
+  const copy = st.name || "Murmurent";
+  const newRelease = st.latest_version && st.current_version
+    && st.latest_version !== st.current_version;
+  const n = st.behind;
+  const updateTitle = newRelease
+    ? "Murmurent " + st.latest_version + " is available"
+    : copy + " update available";
+  const updateLine = newRelease
+    ? "You have " + st.current_version + " in " + copy + "."
+    : copy + " has " + n + " new change" + (n === 1 ? "" : "s") + " on GitHub"
+      + (st.current_version ? " (still version " + st.current_version + ")" : "") + ".";
   // Version skew: the JSX is served fresh from disk, so it can be newer than the
   // running server. `can_self_update` is returned only by servers that also have
   // POST /api/murmurent/update — gate the button on it so we never offer a click
@@ -362,11 +376,20 @@ function UpdateBanner() {
       borderBottom:"1px solid var(--rule-strong)",
     }}>
       <span style={{fontWeight:600}}>
-        {(diverged || failed) ? "⚠ Murmurent update" : "⬆ Murmurent update available"}
+        {(diverged || failed) ? "⚠ " + updateTitle : "⬆ " + updateTitle}
       </span>
-      <span className="muted" title={st.root ? "checked " + st.root : ""}>
-        {st.behind} new commit{st.behind === 1 ? "" : "s"} upstream ({st.current}→{st.latest}).
+      <span className="muted"
+            title={(st.root ? "checked " + st.root + " · " : "") + "commit " + st.current + " → " + st.latest}>
+        {updateLine}
       </span>
+      {(st.changes || []).length > 0 && (
+        <details style={{fontSize:12}}>
+          <summary style={{cursor:"pointer"}}>what changed</summary>
+          <ul style={{margin:"4px 0 0 18px", padding:0}}>
+            {st.changes.map((c, i) => <li key={i}>{c}</li>)}
+          </ul>
+        </details>
+      )}
       {failed
         ? <span className="muted" style={{color:"var(--tiger-deep)"}}>{msg}</span>
         : diverged
@@ -407,6 +430,43 @@ function RunningCodeBadge() {
   );
 }
 
+// Stop the dashboard program itself. Closing the browser window leaves it
+// running, and the dashboard icon starts it with no terminal to stop it from.
+function StopDashboardButton() {
+  const b = window.DATA.build || {};
+  const [stopped, setStopped] = useState(false);
+  if (b.stoppable === false) return null;   // run by a system service
+  const stop = async () => {
+    if (!window.confirm(
+      "Stop the dashboard?\n\nThis page stops working until you start it again: " +
+      "click the Murmurent Dashboard icon, or run  murmurent dashboard --hifi")) return;
+    try {
+      const r = await fetch("/api/dashboard/stop", { method: "POST", headers: { Accept: "application/json" } });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) { alert(d.detail || ("Could not stop the dashboard (HTTP " + r.status + ").")); return; }
+      setStopped(true);
+    } catch (e) { setStopped(true); }  // the server may close the connection as it stops
+  };
+  if (stopped) {
+    return (
+      <div style={{position:"fixed", inset:0, background:"var(--paper)", zIndex:1000,
+                   display:"flex", alignItems:"center", justifyContent:"center",
+                   flexDirection:"column", gap:8, fontSize:15}}>
+        <strong>The dashboard has stopped.</strong>
+        <span className="muted">Start it again with the Murmurent Dashboard icon, or
+          run <code>murmurent dashboard --hifi</code>. You can close this window.</span>
+      </div>
+    );
+  }
+  return (
+    <button type="button" onClick={stop} className="btn sm ghost"
+            title="Stop the dashboard program on this machine (closing the window does not)"
+            style={{marginLeft:10, fontSize:11}}>
+      ⏻ stop dashboard
+    </button>
+  );
+}
+
 function TopBar() {
   const m = window.DATA.member || {};
   const ls = window.DATA.lab_settings || {};
@@ -416,7 +476,7 @@ function TopBar() {
   return (
     <div className="topbar">
       <span className="uwo" style={{fontWeight:600}}>{labLabel}</span>
-      <a href="http://mikehallett.science/murmurent/" target="_blank" rel="noopener"
+      <a href="https://mikehallett.science/murmurent/" target="_blank" rel="noopener"
          title="Murmurent documentation — getting started, projects, identity, CLI reference"
          style={{marginLeft:14, fontFamily:"var(--mono)", fontSize:12,
                  color:"var(--purple)", textDecoration:"none",
@@ -424,6 +484,7 @@ function TopBar() {
         📖 docs
       </a>
       <RunningCodeBadge />
+      <StopDashboardButton />
       <span className="who">
         signed in as <code>@{m.handle}</code> · {kindLabel}: <code>{m.lab || ls.name}</code>
       </span>

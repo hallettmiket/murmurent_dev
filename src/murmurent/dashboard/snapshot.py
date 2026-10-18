@@ -1495,6 +1495,10 @@ def _running_code() -> dict:
             _RUNNING_CODE = _mm.describe_running_code()
         except Exception:
             _RUNNING_CODE = {}
+        # The stop button is offered unless the system runs this dashboard as
+        # a service (systemd), which would only start it again.
+        import os as _os
+        _RUNNING_CODE["stoppable"] = not _os.environ.get("INVOCATION_ID")
     return _RUNNING_CODE
 
 

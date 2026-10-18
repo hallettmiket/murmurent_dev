@@ -8110,6 +8110,41 @@ def create_app() -> FastAPI:
             raise HTTPException(status_code=404, detail=str(exc))
         return {"ok": True, "profile": _centre_profile_to_dict(profile)}
 
+    @app.post("/api/dashboard/stop")
+    def dashboard_stop(request: Request) -> dict:
+        """Stop this dashboard (the top bar's stop button). Closing the browser
+        window does not stop it, and when the dashboard icon starts it there
+        is no terminal to press Ctrl+C in.
+
+        Refused when the system runs the dashboard as a service (systemd sets
+        ``INVOCATION_ID``): the service would start it again at once. Only a
+        browser on this machine may stop it (a tunnel counts as this machine).
+        """
+        if os.environ.get("INVOCATION_ID"):
+            raise HTTPException(status_code=409, detail=(
+                "This dashboard is run by the server's system service, which "
+                "starts it again. Ask whoever manages the server to stop it."))
+        client = (request.client.host if request.client else "") or ""
+        if client not in ("127.0.0.1", "::1", "localhost", "testclient"):
+            raise HTTPException(status_code=403, detail=(
+                "Only a browser on the machine running the dashboard can stop it."))
+        import signal
+        import threading
+        # Remove this process's pid file now: uvicorn ends the process by
+        # re-raising the signal after shutdown, so the launcher's own clean-up
+        # does not run on this path.
+        try:
+            from ..core.project_unit import murmurent_home
+            for f in murmurent_home().glob("dashboard_*.pid"):
+                if f.read_text(encoding="utf-8").strip() == str(os.getpid()):
+                    f.unlink(missing_ok=True)
+        except OSError:
+            pass
+        # After the response is sent: the normal "please stop" signal, so the
+        # server shuts down cleanly.
+        threading.Timer(0.5, lambda: os.kill(os.getpid(), signal.SIGTERM)).start()
+        return {"ok": True, "detail": "The dashboard is stopping."}
+
     @app.get("/healthz")
     def healthz() -> dict[str, str]:
         # ``boot`` changes on every process start, so the update banner can
