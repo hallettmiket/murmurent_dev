@@ -700,6 +700,29 @@ def project_status(name: str | None) -> None:
     raise SystemExit(project_cmd.cmd_status(name))
 
 
+@project_group.command("set",
+                       help="Set a project's data folders, the folders or repositories it "
+                            "reads without owning, and its keep-until date (YYYY-MM-DD). "
+                            "Each option replaces that list; --clear empties it. The PI or "
+                            "project lead runs this; it commits and pushes the record.")
+@click.argument("name")
+@click.option("--data-folder", "data_folders", multiple=True, metavar="FOLDER",
+              help="A folder the project owns, in full or relative to the data root "
+                   "(append_only/x). Repeat for several.")
+@click.option("--reads-from", "reads_from", multiple=True, metavar="FOLDER_OR_REPO",
+              help="A folder or repository the project reads but does not own. Repeat for several.")
+@click.option("--retain-until", "retain_until", default=None, metavar="YYYY-MM-DD",
+              help="Nothing may be suggested for deletion before this date; empty clears it.")
+@click.option("--clear", "clear", multiple=True,
+              type=click.Choice(["data-folders", "reads-from"]),
+              help="Empty a list (back to the default data folders, or nothing read).")
+def project_set(name: str, data_folders: tuple, reads_from: tuple,
+                retain_until: str | None, clear: tuple) -> None:
+    raise SystemExit(project_cmd.cmd_set(name, data_folders=data_folders,
+                                         reads_from=reads_from, retain_until=retain_until,
+                                         clear=clear))
+
+
 @project_group.command("migrate",
                        help="List every repository and data folder that no project claims, "
                             "and propose project records for them (x, x_manuscript and "

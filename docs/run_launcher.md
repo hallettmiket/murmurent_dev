@@ -134,6 +134,11 @@ If murmurent cannot find a channel or the lab's Slack bot on your account, it
 posts nothing and says so on the job card. Add `--no-notify` to turn the
 message off for one job.
 
+**Filling its disk.** In its first ten minutes the job's output folder is
+measured to estimate how fast it grows. If, at that rate, the disk would be
+full within a day, one extra line goes to the channel, again without any path.
+`murmurent jobs` shows the estimate at any time.
+
 **Stalled** means the job's log has not grown for an hour (your lab may set a
 different time). The job is not stopped; look at its log and decide. If your
 program writes its progress to its own file instead of the screen, point
