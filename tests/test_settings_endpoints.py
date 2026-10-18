@@ -361,7 +361,12 @@ def test_member_nonwriter_edit_stages_and_never_touches_roster(world, monkeypatc
     })
     assert res.status_code == 200, res.text
     body = res.json()
-    assert body.get("staged") is True and body["probes"] == []
+    assert body.get("staged") is True
+    # No vault and no GitHub copy of the roster in this test: both steps say
+    # so plainly instead of claiming success (#187).
+    names = {p["name"]: p["status"] for p in body["probes"]}
+    assert names == {"your other machines": "warn", "sent to your PI": "warn"}
+    assert "not sent" in body["message"]
 
     # The roster clone was NOT modified (bob's record is untouched; no commit).
     bob_meta = parse_file(world["lab_mgmt"] / "members" / "bob.md").meta

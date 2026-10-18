@@ -6214,11 +6214,16 @@ function MemberProfileModal({ onClose }) {
           </h2>
           <button type="button" className="btn sm ghost" onClick={onClose}>✕ close</button>
         </div>
-        <p className="muted" style={{fontSize:12, margin:"4px 0 0"}}>
-          Edits save to <code>&lt;lab-mgmt&gt;/members/&lt;handle&gt;.md</code> —
-          follows you to any machine. Per-machine paths (Obsidian vault,
-          notebook subfolder) live in the <strong>Machine settings</strong>
-          dialog instead.
+        <p className="muted" style={{fontSize:12, margin:"4px 0 0", lineHeight:1.5}}>
+          <strong>You, on all your machines.</strong>{" "}
+          {(window.DATA.persona || "member") === "pi"
+            ? <>Saved to your entry in the lab roster
+                (<code>&lt;lab-mgmt&gt;/members/&lt;handle&gt;.md</code>) and pushed,
+                so your other machines and the lab see it.</>
+            : <>Saved in your personal vault, so your other machines get it, and
+                sent to your PI, who adds it to the lab roster with
+                <code> murmurent reconcile</code>.</>}
+          {" "}Folders on this computer are in <strong>Machine settings</strong>.
         </p>
 
         {/* Identity (read-only) */}
@@ -7446,9 +7451,9 @@ function LabSettingsModal({ onClose }) {
           <button type="button" className="btn sm ghost" onClick={onClose}>✕ close</button>
         </div>
         <p className="muted" style={{fontSize:12, margin:"4px 0 8px", lineHeight:1.5}}>
-          Lab-wide parameters. Only the PI and designated admins can save. Edits
-          write to <code className="mono">{labMgmtPath}/lab.md</code> and are
-          committed + pushed for you.
+          <strong>The whole lab.</strong> Only the PI can save. Edits write to
+          <code className="mono"> {labMgmtPath}/lab.md</code> and are committed
+          and pushed, so every member's dashboard picks them up.
         </p>
 
         {/* 1 · Identity */}

@@ -723,6 +723,35 @@ def create_app() -> FastAPI:
     # ``~/.murmurent/inventory/`` and the dashboard reads from there.
     # Issue #94: this-machine-only — no foreign-host SSH sweep.
     @app.on_event("startup")
+    def _schedule_auto_pull() -> None:  # pragma: no cover (timing)
+        """Keep the lab roster and the personal vault current (#187): pull both
+        (fast-forward only, so local changes are never overwritten) at startup
+        and every 15 minutes, in a background thread. Before this, a change
+        made on another machine appeared only after pressing "update".
+        ``MURMURENT_NO_AUTO_PULL`` turns it off (the test suite sets it)."""
+        if os.environ.get("MURMURENT_NO_AUTO_PULL"):
+            return
+        import logging as _logging
+        import threading as _threading
+        _log = _logging.getLogger(__name__)
+
+        def _pull_both() -> None:
+            from ..core import roster_sync as _rs
+            from ..core import vault_sync as _vs
+            for name, fn in (("lab roster", _rs.pull_lab_mgmt), ("vault", _vs.pull_personal_vault)):
+                try:
+                    res = fn()
+                    if not res.ok:
+                        _log.info("auto-pull of the %s did not run: %s", name, res.detail)
+                except Exception as exc:  # noqa: BLE001
+                    _log.info("auto-pull of the %s failed: %s", name, exc)
+            timer = _threading.Timer(15 * 60, _pull_both)
+            timer.daemon = True
+            timer.start()
+
+        _threading.Thread(target=_pull_both, daemon=True).start()
+
+    @app.on_event("startup")
     def _schedule_inventory_refresh() -> None:  # pragma: no cover (timing)
         import logging as _logging
         import threading
@@ -2018,20 +2047,46 @@ def create_app() -> FastAPI:
                 if "git_logins" in sent and body.git_logins is not None:
                     edits["git_logins"] = body.git_logins
                 path = _mp.stage_roster_profile(actor, edits)
-                return {
-                    "ok": True, "staged": True, "path": str(path),
-                    "message": (
-                        "Saved on this computer. The shared lab roster is "
-                        "changed only by your PI, so other members will not "
-                        "see this yet. Ask your PI to update your roster entry."
-                    ),
-                    "probes": [],
-                }
+                return _share_staged_profile(actor, path)
 
             return _save_member_settings_to_roster(
                 body, actor, sent, contact_keys, location_keys,
                 parse_file, dump_document,
             )
+
+    def _share_staged_profile(actor: str, path) -> dict:
+        """After a member's edit is staged (#187): save it to their vault so
+        their other machines get it, and send it to the PI as an issue on the
+        lab management repo. Both best-effort; each reports a probe."""
+        from ..core import member_profile as _mp
+        from ..core import profile_relay as _relay
+        from ..core import vault_sync as _vs
+        probes: list[dict] = []
+        in_vault = _mp.vault_profile_path() is not None and str(path) == str(_mp.vault_profile_path())
+        if in_vault:
+            res = _vs.commit_and_push(path, message=f"profile: @{actor}", add_all=False)
+            probes.append({"name": "your other machines",
+                           "status": "ok" if res.ok and res.pushed else "warn",
+                           "detail": ("saved in your vault; your other machines get it "
+                                      "when they next update it" if res.ok and res.pushed
+                                      else f"saved in your vault but not pushed ({res.detail})"),
+                           "required": False})
+        else:
+            probes.append({"name": "your other machines", "status": "warn",
+                           "detail": "this machine has no personal vault, so the change "
+                                     "stays here (set one up with murmurent vault init)",
+                           "required": False})
+        block = _mp.staged_roster_profile(actor)
+        probes.append(_relay.send_profile_update(actor, block).to_probe())
+        sent_ok = probes[-1]["status"] == "ok"
+        return {
+            "ok": True, "staged": True, "path": str(path), "probes": probes,
+            "message": ("Saved. Your PI was sent the change and it reaches the lab "
+                        "roster when they next run murmurent reconcile."
+                        if sent_ok else
+                        "Saved for you, but your PI was not sent the change: "
+                        + probes[-1]["detail"]),
+        }
 
     def _save_member_settings_to_roster(
         body, actor, sent, contact_keys, location_keys, parse_file, dump_document,
@@ -2048,70 +2103,19 @@ def create_app() -> FastAPI:
             )
 
         parsed = parse_file(member_path)
-        meta = dict(parsed.meta or {})
-
-        def _merge(block_name: str, fields: dict) -> None:
-            existing = meta.get(block_name)
-            block = dict(existing) if isinstance(existing, dict) else {}
-            for k, v in fields.items():
-                if v is None or (isinstance(v, str) and not v.strip()):
-                    block.pop(k, None)
-                else:
-                    block[k] = v
-            if block:
-                meta[block_name] = block
-            else:
-                meta.pop(block_name, None)
-
-        _merge("contact", {k: getattr(body, k) for k in contact_keys if k in sent})
-        _merge("location", {k: getattr(body, k) for k in location_keys if k in sent})
-
-        # Handles that live at the top level of the frontmatter (the roster
-        # model owns them, so writing them here keeps the roster + dashboard in
-        # sync). ``slack_handle`` maps onto the roster's ``slack`` key; the
-        # murmurent handle is the file's ``handle`` (never edited here).
-        def _set_top(key: str, value) -> None:
-            if value is None or (isinstance(value, str) and not value.strip()):
-                meta.pop(key, None)
-            else:
-                meta[key] = value.strip().lstrip("@") if isinstance(value, str) else value
-
+        from ..core import member_profile as _mp
+        edits: dict = {
+            "contact": {k: getattr(body, k) for k in contact_keys if k in sent},
+            "location": {k: getattr(body, k) for k in location_keys if k in sent},
+        }
         if "official_handle" in sent:
-            _set_top("official_handle", body.official_handle)
+            edits["official_handle"] = body.official_handle
         if "slack_handle" in sent:
-            _set_top("slack", body.slack_handle)
-
-        # Phase 3: per-provider git_logins map. Replaces the flat
-        # ``contact.github`` for new code, but we keep contact.github
-        # in sync with git_logins["github"] so legacy readers keep
-        # working through the migration.
+            edits["slack"] = body.slack_handle
         if "git_logins" in sent and body.git_logins is not None:
-            from ..core import git_providers as _gpr
-            existing = meta.get("git_logins") if isinstance(meta.get("git_logins"), dict) else {}
-            merged = dict(existing or {})
-            for k, v in body.git_logins.items():
-                if v is None or (isinstance(v, str) and not v.strip()):
-                    merged.pop(k, None)
-                else:
-                    merged[str(k)] = str(v).strip().lstrip("@")
-            cleaned = _gpr.dump_logins(merged)
-            if cleaned:
-                meta["git_logins"] = cleaned
-            else:
-                meta.pop("git_logins", None)
-            # Mirror github login back into contact.github for legacy
-            # readers (the JSX still surfaces it as a contact link).
-            gh = cleaned.get("github")
-            contact_block = meta.get("contact") if isinstance(meta.get("contact"), dict) else {}
-            contact_block = dict(contact_block or {})
-            if gh:
-                contact_block["github"] = gh
-            elif "github" in (existing or {}):
-                contact_block.pop("github", None)
-            if contact_block:
-                meta["contact"] = contact_block
-            else:
-                meta.pop("contact", None)
+            edits["git_logins"] = body.git_logins
+        # The same writer applies a member's update from an issue (#187).
+        meta = _mp.apply_edits_to_meta(parsed.meta or {}, edits)
 
         try:
             member_path.write_text(dump_document(meta, parsed.body or ""), encoding="utf-8")

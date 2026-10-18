@@ -44,7 +44,9 @@ def test_partial_merge_and_clear_semantics(home):
     # A later partial edit updates email, clears orcid, leaves nothing else.
     mp.stage_roster_profile("bob", {"contact": {"email": "new@b.c", "orcid": ""}})
     staged = mp.staged_roster_profile("bob")
-    assert staged["contact"] == {"email": "new@b.c"}
+    # A cleared field is kept as "" so the dashboard shows it cleared instead
+    # of falling back to the roster's old value (#187).
+    assert staged["contact"] == {"email": "new@b.c", "orcid": ""}
 
 
 def test_handle_guard_refuses_other_peoples_staged_block(home):

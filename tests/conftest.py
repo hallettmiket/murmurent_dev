@@ -28,6 +28,9 @@ def _no_live_slack(monkeypatch):
 
     monkeypatch.delenv("MURMURENT_SLACK_TOKEN", raising=False)
     monkeypatch.delenv("SLACK_BOT_TOKEN", raising=False)
+    # The dashboard's background pull of the roster and vault (#187) must
+    # never touch a real repository from a test.
+    monkeypatch.setenv("MURMURENT_NO_AUTO_PULL", "1")
     monkeypatch.setattr(_sn, "_TOKEN_FILE", Path("/nonexistent/wigamig-test-slack-token"))
     # Drop any token cached by a prior test. A test may itself monkeypatch
     # _token to a plain callable (no cache_clear), so guard the attribute.
