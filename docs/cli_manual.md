@@ -312,6 +312,9 @@ The full workflow is in [Assembling a choreography](assembling_choreographies.md
 | `murmurent jobs [--all]` | What is running, waiting and recently ended, with estimates |
 | `murmurent jobs show <id or name>` | Everything recorded about one job |
 | `murmurent jobs stop <id or name>` | Stop a job: asked to end cleanly, then by force 30 seconds later |
+| `murmurent jobs policy [--init]` | The lab's rules in force; `--init` creates `policy/millwright.yaml` from the template if the lab has none |
+| `murmurent etiquette check [--notify]` | Lab members running above nice 19, over their cores or GPUs | Reports only unless `--notify`: a direct message, then the lab channel, then the PI. Never reads command lines or changes jobs |
+| `murmurent etiquette schedule --install [--notify] [--at 11:00]` / `--remove` | Run the check every weekday under your account | Recorded in `policy/scheduled_jobs.md` |
 | `murmurent jobs restart <id or name> [--wait]` | Run a job again from its card |
 | `murmurent jobs policy` | The lab's rules in force (from `<lab-mgmt>/policy/millwright.yaml`) and where they came from |
 
