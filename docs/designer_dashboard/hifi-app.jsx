@@ -430,6 +430,43 @@ function RunningCodeBadge() {
   );
 }
 
+// Stop the dashboard program itself. Closing the browser window leaves it
+// running, and the dashboard icon starts it with no terminal to stop it from.
+function StopDashboardButton() {
+  const b = window.DATA.build || {};
+  const [stopped, setStopped] = useState(false);
+  if (b.stoppable === false) return null;   // run by a system service
+  const stop = async () => {
+    if (!window.confirm(
+      "Stop the dashboard?\n\nThis page stops working until you start it again: " +
+      "click the Murmurent Dashboard icon, or run  murmurent dashboard --hifi")) return;
+    try {
+      const r = await fetch("/api/dashboard/stop", { method: "POST", headers: { Accept: "application/json" } });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) { alert(d.detail || ("Could not stop the dashboard (HTTP " + r.status + ").")); return; }
+      setStopped(true);
+    } catch (e) { setStopped(true); }  // the server may close the connection as it stops
+  };
+  if (stopped) {
+    return (
+      <div style={{position:"fixed", inset:0, background:"var(--paper)", zIndex:1000,
+                   display:"flex", alignItems:"center", justifyContent:"center",
+                   flexDirection:"column", gap:8, fontSize:15}}>
+        <strong>The dashboard has stopped.</strong>
+        <span className="muted">Start it again with the Murmurent Dashboard icon, or
+          run <code>murmurent dashboard --hifi</code>. You can close this window.</span>
+      </div>
+    );
+  }
+  return (
+    <button type="button" onClick={stop} className="btn sm ghost"
+            title="Stop the dashboard program on this machine (closing the window does not)"
+            style={{marginLeft:10, fontSize:11}}>
+      ⏻ stop dashboard
+    </button>
+  );
+}
+
 function TopBar() {
   const m = window.DATA.member || {};
   const ls = window.DATA.lab_settings || {};
@@ -447,6 +484,7 @@ function TopBar() {
         📖 docs
       </a>
       <RunningCodeBadge />
+      <StopDashboardButton />
       <span className="who">
         signed in as <code>@{m.handle}</code> · {kindLabel}: <code>{m.lab || ls.name}</code>
       </span>

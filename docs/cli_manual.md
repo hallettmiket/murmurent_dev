@@ -332,6 +332,7 @@ The full guide is [Tidying a project's space](space_table.md).
 | Command | Effect |
 |---|---|
 | `murmurent dashboard --hifi` | Open the local dashboard (the FastAPI web UI) in your browser |
+| `murmurent dashboard --stop [--port N]` | Stop the dashboard running on this machine | For one started in the background by the dashboard icon; closing the browser window does not stop it. The top bar's **⏻ stop dashboard** button does the same |
 | `murmurent dashboard --pi` | Open the PI view (rejected if you're not a PI); adds escalated-from-members nags |
 | `murmurent dashboard --snapshot` | Print the latest markdown snapshot from the lab-management repo |
 | `murmurent dashboard --outstanding` | Print only the Outstanding analysis panel (terminal-friendly summary) |
