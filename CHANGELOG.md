@@ -17,17 +17,34 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 
 ## [Unreleased]
 
-### Fixed
-- **The dashboard now says when your identity card has expired.** Before, the
-  sign-in page accepted you, the dashboard was then refused, and you landed back
-  on the sign-in page with no reason given. Now the sign-in page checks your
-  card first and, if it has expired, says on which date and gives the command
-  that renews it: `murmurent pi-init <lab>` for a PI, or a new card from the PI
-  for a member. A member whose own card is fine but whose PI's card (which their
-  card carries) has expired is told so. In the two weeks before a card expires,
-  the sign-in page shows a warning with the same command.
+## [2026.10.1] - 2026-10-18
+
+**To upgrade:** `uv tool upgrade murmurent`, then `murmurent install`, then
+restart Claude Code and the dashboard (the new **⏻ stop dashboard** button in
+its top bar, then start it again). Run `murmurent repo upgrade --all` once. If
+you installed from a copy of the repository, `git pull` there instead of the
+first command. On a lab server that uses the security snapshot, run
+`sudo bash scripts/install_security_snapshot.sh` once from that copy: it also
+replaces an install made under the old name, wigamig. PIs: choose **on** or
+**off** for the space audit under **⚙ Lab settings** (it is hidden until you
+choose).
 
 ### Added
+- **The dashboard says which version of each agent is in use** (#186). Each
+  agent card shows "in use:" with the centre version, your own version, the
+  project's version, a file on this machine only, a broken link, or "not
+  installed", and hovering gives the reason. `murmurent agent which [--repo
+  <folder>]` shows the same in a terminal.
+- **Each lab and core gets a `#lab-<name>` Slack channel** (#188), whether it
+  joins through a join request or the registrar creates it, and members are
+  added and removed as they join, leave, are deactivated or reactivated.
+  Existing channels are kept.
+- **A stop button for the dashboard**, and `murmurent dashboard --stop`.
+  Closing the browser window does not stop the dashboard.
+- **The top bar says which murmurent is running**, for example
+  `running murmurent_dev · main @ 787faca` or `running release v2026.10.1`.
+- **`scripts/install_security_snapshot.sh`** installs the security snapshot on
+  a lab server in one step and retires an old wigamig install.
 - **Every repository is now part of a project** (#151). `murmurent repo adopt`
   records a one-repository project for a repository that no project lists,
   with you as lead; adopting again changes nothing, and an existing project is
@@ -89,6 +106,49 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
   files on the lab's network drive.
 - **`murmurent run --input`** records what a job reads, so the space scan can
   tell later whether its output could be made again.
+
+### Changed
+- **The space audit is optional for each lab.** The PI chooses on or off in
+  Lab settings; until then the dashboard does not show it. Off also makes the
+  weekly scan do nothing. When it is not set up, it explains what is missing
+  instead of showing raw errors.
+- **The security scans check `immutable/`, `append_only/` and `modifiable/`**,
+  as well as the old `raw/` and `refined/`. Files in `immutable/` must be
+  read-only on disk.
+- **Dashboard tidied** (#185): the live agent feed, My contributions,
+  Inventory, the compliance panels and Installations are gone. "Create new
+  project" is simpler: a description instead of a justification, no machines
+  or git provider fields, the PI's own project is created at once, the chosen
+  repos are made murmurent-ready automatically, and the repo list is
+  rescanned. Repos are grouped by project. "space" and "security" are now
+  "space audit" and "security audit".
+- **The update banner speaks in words**: "Murmurent 2026.10.2 is available", or
+  "murmurent_dev has 3 new changes on GitHub", with the change titles, instead
+  of commit codes.
+- **Both READMEs link to the documentation** at
+  <https://mikehallett.science/murmurent/> near the top.
+
+### Fixed
+- **The update button updated the wrong copy** when the dashboard ran from
+  murmurent_dev, and could report success without restarting.
+- **The agent card's disable switch and model menu edited the shared agent
+  file**, changing the agent for everyone linked to it. They now make your own
+  copy, as the Modify window does, and never overwrite a hand-written one.
+- **Approving a project built from existing repos reported a failed
+  git-remote step.** Each repo now keeps its own remote.
+- **Profile and lab settings saves** go to the person whose page is open, and
+  say when an edit is saved on this computer only or did not reach the lab's
+  repository.
+- **Files anyone can write in a data folder are marked as blocking** by the
+  security scan; the check never matched before.
+- **The dashboard now says when your identity card has expired.** Before, the
+  sign-in page accepted you, the dashboard was then refused, and you landed back
+  on the sign-in page with no reason given. Now the sign-in page checks your
+  card first and, if it has expired, says on which date and gives the command
+  that renews it: `murmurent pi-init <lab>` for a PI, or a new card from the PI
+  for a member. A member whose own card is fine but whose PI's card (which their
+  card carries) has expired is told so. In the two weeks before a card expires,
+  the sign-in page shows a warning with the same command.
 
 ## [2026.10.0] - 2026-10-14
 
