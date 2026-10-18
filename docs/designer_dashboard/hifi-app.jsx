@@ -3330,10 +3330,70 @@ function slugify(text) {
     .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "contribution";
 }
 
+// Choreographies published in the public murmurent_public index (#185 item
+// 15): list them and install one into the repositories folder.
+function PublishedChoreographiesModal({ onClose }) {
+  const [data, setData] = useState(null);
+  const [busy, setBusy] = useState("");
+  const [msg, setMsg] = useState("");
+  const load = () => fetch("/api/choreographies/published").then(r => r.json())
+    .then(setData).catch(e => setData({ rows: [], error: String(e) }));
+  useEffect(() => { load(); }, []);
+  const install = async (name) => {
+    setBusy(name); setMsg("");
+    try {
+      const r = await fetch("/api/choreographies/install", { method: "POST",
+        headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name }) });
+      const d = await r.json().catch(() => ({}));
+      setMsg(d.detail || (r.ok ? "installed" : "HTTP " + r.status));
+      load();
+    } finally { setBusy(""); }
+  };
+  const rows = (data && data.rows) || [];
+  return (
+    <div onClick={onClose} style={{position:"fixed", inset:0, background:"rgba(32,20,54,0.55)",
+         display:"flex", alignItems:"center", justifyContent:"center", zIndex:100}}>
+      <div onClick={e => e.stopPropagation()} style={{background:"var(--card)", padding:18,
+           border:"1px solid var(--rule-strong)", borderRadius:2, width:"min(560px, 92vw)",
+           display:"flex", flexDirection:"column", gap:8, fontSize:13}}>
+        <h2 style={{margin:0, fontFamily:"var(--serif)", fontSize:18, color:"var(--purple-deep)"}}>
+          Published choreographies
+        </h2>
+        <div className="muted" style={{fontSize:12, lineHeight:1.5}}>
+          From the public murmurent directory. Installing copies the repository
+          into your repositories folder and makes it murmurent-ready; data is
+          never included. Each choreography's README says what it does.
+        </div>
+        {!data && <div className="muted">Loading…</div>}
+        {data && data.error && <div style={{color:"var(--red)"}}>{data.error}</div>}
+        {data && !data.error && rows.length === 0 && <div className="muted">None published yet.</div>}
+        {rows.map(r => (
+          <div key={r.name} className="row" style={{justifyContent:"space-between", gap:8,
+               borderBottom:"1px solid var(--rule)", padding:"4px 0"}}>
+            <span><strong>{r.name}</strong>{" "}
+              <a href={r.url.replace(/\.git$/, "")} target="_blank" rel="noopener"
+                 className="mono muted" style={{fontSize:11}}>source ↗</a></span>
+            {r.installed
+              ? <span className="mono muted" style={{fontSize:11}} title={r.path}>installed</span>
+              : <button className="btn sm" disabled={!!busy} onClick={() => install(r.name)}>
+                  {busy === r.name ? "installing…" : "install"}
+                </button>}
+          </div>
+        ))}
+        {msg && <div style={{fontSize:12, lineHeight:1.5}}>{msg}</div>}
+        <div className="row" style={{justifyContent:"flex-end"}}>
+          <button className="btn sm ghost" onClick={onClose}>close</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ChoreographiesPanel({ choreographies, span="c-12" }) {
   const list = choreographies || [];
   const [modal, setModal] = useState(false);
   const [starting, setStarting] = useState(false);
+  const [browsing, setBrowsing] = useState(false);
   return (
     <div className={"panel "+span}>
       <header>
@@ -3347,6 +3407,10 @@ function ChoreographiesPanel({ choreographies, span="c-12" }) {
           <button className="btn sm" onClick={() => setModal(true)}
                   title="Pose a question on its own, with no repository behind it">
             + pose a question
+          </button>
+          <button className="btn sm" onClick={() => setBrowsing(true)}
+                  title="Choreographies other labs published in the public murmurent directory">
+            browse published
           </button>
         </span>
       </header>
@@ -3362,6 +3426,7 @@ function ChoreographiesPanel({ choreographies, span="c-12" }) {
       </div>
       {modal && <NewChoreographyModal onClose={() => setModal(false)} />}
       {starting && <StartChoreographyModal onClose={() => setStarting(false)} />}
+      {browsing && <PublishedChoreographiesModal onClose={() => setBrowsing(false)} />}
     </div>
   );
 }
