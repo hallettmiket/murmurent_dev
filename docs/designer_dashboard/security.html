@@ -349,7 +349,8 @@
             <strong>POSIX bits not authoritative on this host's data tree</strong> —
             it's served over NFSv3 from an ACL-backed NAS, so the real ACLs live in
             a root-only NFSv4 view. The Tier 1 scanner skipped the
-            <code>raw/</code> and <code>refined/</code> permission walks to avoid noise.
+            data-folder permission walks (<code>immutable/</code>, <code>append_only/</code>,
+            <code>modifiable/</code>) to avoid noise.
             <div style="margin-top:8px">
               <button id="dump-btn" class="btn"
                       style="font-family:var(--mono); font-size:11px;
@@ -362,10 +363,9 @@
                     style="margin-left:8px; font-size:11px"></span>
             </div>
             <div style="margin-top:6px; font-size:11px; color:var(--muted)">
-              First-time setup: ask your sysadmin to install
-              <code>/etc/sudoers.d/wigamig_sec_dump</code> and
-              <code>/opt/murmurent/lab_sec_dump.sh</code> — see
-              <a href="https://github.com/hallettmiket/murmurent/blob/main/docs/security-dashboard.md#tier-2-setup">Tier 2 setup</a>.
+              First-time setup, once per server: on the server, from a murmurent
+              folder, run <code>sudo bash scripts/install_security_snapshot.sh</code>.
+              It also replaces an older install made under the name wigamig.
             </div>
           </div>
           <div class="stats" id="stats-row" style="display:none">
