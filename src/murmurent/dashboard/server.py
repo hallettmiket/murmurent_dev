@@ -1274,6 +1274,25 @@ def create_app() -> FastAPI:
                     detail=str(cert_exc), required=False,
                 ).to_dict())
 
+            # Say which of the project's repos are on this machine, so a repo
+            # that could not be copied from GitHub is not missed (#185 item 8).
+            if req.attach_repos:
+                try:
+                    from ..core import cert_projects as _cps
+                    cp_rec = _cps.get(req.project)
+                    for r in (cp_rec.repos if cp_rec else []):
+                        if (r.host or "local") != "local":
+                            continue
+                        here = bool(r.path) and Path(r.path).expanduser().exists()
+                        probes.append(_Probe(
+                            name=f"repo {r.name}", status="ok" if here else "warn",
+                            detail=(f"on this machine at {r.path}" if here else
+                                    "not on this machine and could not be copied from "
+                                    f"GitHub; copy it with: gh repo clone <org>/{r.name}"),
+                            required=False,
+                        ).to_dict())
+                except Exception:  # noqa: BLE001
+                    pass
             # A project built from EXISTING repos (the dashboard flow) keeps
             # each repo's own remote. There is no project-named working tree
             # to push, so provisioning would only report a failure (#185).

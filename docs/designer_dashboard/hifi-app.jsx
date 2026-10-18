@@ -4103,11 +4103,13 @@ function NewProjectModal({ onClose }) {
         for (const row of (j.rows || [])) {
           const nm = (row && row.name) || "";
           const clones = (row && row.clones) || [];
-          // Only repos that actually EXIST somewhere are selectable —
-          // GitHub-only rows can't form a project (clone them first).
-          if (!nm || clones.length === 0) continue;
-          if (!opts.some(o => o.name === nm)) {
+          if (!nm || rowIsMurmurentInfra(row) || opts.some(o => o.name === nm)) continue;
+          if (clones.length > 0) {
             opts.push({ name: nm, hosts: [...new Set(clones.map(c => c.host))] });
+          } else if (row.github && row.github.full_name) {
+            // On GitHub only (#185 item 8): copied to this machine when the
+            // project is created.
+            opts.push({ name: nm, hosts: [], github: row.github.full_name });
           }
         }
         setRepoOptions(opts);
@@ -4309,9 +4311,10 @@ function NewProjectModal({ onClose }) {
 
         <label className="mono muted" style={{fontSize:11, letterSpacing:1, textTransform:"uppercase", marginTop:6}}>repos (select at least one)</label>
         <div className="muted" style={{fontSize:11, marginTop:-2, marginBottom:2, lineHeight:1.5}}>
-          Pick the repos on this machine that belong to the project. Each one is
-          made murmurent-ready for you. Creating a project never creates a new
-          repo, so clone it first if it is not listed.
+          Pick the repos that belong to the project: on this machine, or in the
+          lab's GitHub organisation (those are copied here when the project is
+          created). Each one is made murmurent-ready for you. Creating a project
+          never creates a new repo.
         </div>
         {repoScan.loading ? (
           <div className="muted" style={{fontSize:11}}>Looking for repos on this machine…</div>
@@ -4341,7 +4344,9 @@ function NewProjectModal({ onClose }) {
                   <input type="checkbox" checked={on} onChange={() => toggleRepo(opt.name)} />
                   <span className="mono">{opt.name}</span>
                   <span className="muted" style={{fontSize:10}}>
-                    ({(opt.hosts || []).join(", ") || "?"})
+                    {opt.github
+                      ? "(on GitHub; copied here when the project is created)"
+                      : "(" + ((opt.hosts || []).join(", ") || "?") + ")"}
                   </span>
                 </label>
               );
