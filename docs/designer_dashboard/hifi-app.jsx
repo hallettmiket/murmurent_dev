@@ -3457,8 +3457,102 @@ const IN_USE_TONE = {
   "project": "green", "local-file": "amber", "broken-link": "red", "missing": "red",
 };
 
+// Versions of one agent per project (#186): which version you use there, and
+// buttons to make your own for that project, switch it off there, or (PI)
+// make yours the lab's. The levels are explained in docs/agent_versions.md.
+function AgentVersionsModal({ name, onClose }) {
+  const projects = (window.DATA.projects || []).filter(p => p.status !== "archived").map(p => p.name);
+  const [project, setProject] = useState(projects[0] || "");
+  const [view, setView] = useState(null);
+  const [msg, setMsg] = useState("");
+  const [busy, setBusy] = useState(false);
+  const load = async (proj) => {
+    setView(null);
+    try {
+      const r = await fetch("/api/agents/" + encodeURIComponent(name) + "/levels?project=" + encodeURIComponent(proj || ""));
+      setView(await r.json());
+    } catch (e) { setMsg("could not load: " + e); }
+  };
+  useEffect(() => { load(project); }, [project]);
+  const act = async (path, body) => {
+    setBusy(true); setMsg("");
+    try {
+      const r = await fetch("/api/agents/" + encodeURIComponent(name) + "/" + path, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body || {}) });
+      const d = await r.json().catch(() => ({}));
+      setMsg(r.ok ? (d.detail || "done. Open a new Claude Code session for it to apply.")
+                  : (d.detail || "HTTP " + r.status));
+      await load(project);
+      if (r.ok && typeof window.__murmurentFetchData === "function") {
+        try { await window.__murmurentFetchData(window.DATA.persona); } catch (_) {}
+      }
+    } finally { setBusy(false); }
+  };
+  const v = view || {};
+  return (
+    <div onClick={onClose} style={{position:"fixed", inset:0, background:"rgba(32,20,54,0.55)",
+         display:"flex", alignItems:"center", justifyContent:"center", zIndex:100}}>
+      <div onClick={e => e.stopPropagation()} style={{background:"var(--card)", padding:18,
+           border:"1px solid var(--rule-strong)", borderRadius:2, width:"min(520px, 92vw)",
+           display:"flex", flexDirection:"column", gap:8, fontSize:13}}>
+        <h2 style={{margin:0, fontFamily:"var(--serif)", fontSize:18, color:"var(--purple-deep)",
+                    textTransform:"capitalize"}}>{name}: versions</h2>
+        <div className="muted" style={{fontSize:12, lineHeight:1.5}}>
+          Most specific wins: your version for one project, the project's, yours
+          for all projects, the lab's, the centre's.
+        </div>
+        {v.everywhere && <div>Everywhere: <strong>{v.everywhere.label}</strong></div>}
+        <label className="mono muted" style={{fontSize:11}}>project</label>
+        <select value={project} onChange={e => setProject(e.target.value)}
+                style={{padding:"5px 8px", border:"1px solid var(--rule-strong)"}}>
+          {projects.length === 0 && <option value="">(no projects)</option>}
+          {projects.map(n => <option key={n} value={n}>{n}</option>)}
+        </select>
+        {project && v.in_use && (
+          <div>In {project}: <strong>{v.switched_off ? "switched off" : v.in_use.label}</strong>
+            {!v.project_has_repo_here && (
+              <span className="muted"> (none of its repos is on this machine, so this
+                applies once one is)</span>
+            )}
+          </div>
+        )}
+        {v.locked ? (
+          <div className="muted">This agent is centre-controlled: every lab, project
+            and person uses the centre version{v.guardian ? ", and it cannot be switched off" : ""}.</div>
+        ) : (
+          <div className="row" style={{gap:6, flexWrap:"wrap"}}>
+            <button className="btn sm" disabled={busy || !project}
+                    onClick={() => act("fork_project", { project })}>
+              my own for {project || "this project"}
+            </button>
+            {!v.guardian && (
+              <button className="btn sm" disabled={busy || !project}
+                      onClick={() => act("switch", { project, off: !v.switched_off })}>
+                {v.switched_off ? "switch on in " : "switch off in "}{project || "this project"}
+              </button>
+            )}
+            {v.is_pi && (
+              <button className="btn sm" disabled={busy}
+                      onClick={() => window.confirm("Make the version you use the lab's " + name +
+                        "? Members use it unless they have their own.") && act("share_lab")}>
+                make mine the lab's
+              </button>
+            )}
+          </div>
+        )}
+        {msg && <div style={{fontSize:12, lineHeight:1.5}}>{msg}</div>}
+        <div className="row" style={{justifyContent:"flex-end"}}>
+          <button className="btn sm ghost" onClick={onClose}>close</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function AgentCard({ a }) {
   const [modify, setModify] = useState(false);
+  const [versions, setVersions] = useState(false);
   // Show the Modify affordance only where an edit could land: not frozen, not a
   // guardian. The server re-checks (403) — this is just to avoid dead clicks.
   const canModify = a.freeze !== "frozen" && !GUARDIAN_AGENTS.includes(a.name);
@@ -3503,6 +3597,10 @@ function AgentCard({ a }) {
           </span>
         )}
         <span style={{marginLeft:"auto"}}>
+          <button className="btn sm ghost" onClick={() => setVersions(true)}
+                  title="Which version you use in each project; your own for one project; switch off per project">
+            versions
+          </button>
           {canModify ? (
             <button className="btn sm" onClick={() => setModify(true)}
                     title="Edit this agent — commons agents fork into your vault on first save">
@@ -3514,6 +3612,7 @@ function AgentCard({ a }) {
         </span>
       </div>
       {modify && <ModifyAgentModal name={a.name} onClose={() => setModify(false)} />}
+      {versions && <AgentVersionsModal name={a.name} onClose={() => setVersions(false)} />}
     </div>
   );
 }

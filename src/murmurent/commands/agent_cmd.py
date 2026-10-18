@@ -217,35 +217,17 @@ def cmd_sync(repo: str | None, all_repos: bool) -> None:
     click.echo("Done. Open a new Claude Code session for the changes to apply.")
 
 
-def _project_repos(project: str) -> list[Path]:
-    from ..core import agent_levels as _lv
-    return [p for name, p in _lv.local_project_repos() if name == project]
-
-
 def cmd_fork_for_project(name: str, project: str) -> None:
     """Copy the version you use now into your vault as your version for one
     project, then install it in that project's repos."""
-    import shutil
     from ..core import agent_levels as _lv
-    if _lv.is_locked(name):
-        raise click.ClickException(f"{name} is centre-controlled and cannot have its own version.")
-    dest_dir = _lv.person_project_dir(project)
-    if dest_dir is None:
-        raise click.ClickException("a version for one project is kept in your personal "
-                                   "vault; set one up first with `murmurent vault init`.")
-    dest = dest_dir / f"{name}.md"
-    if dest.exists():
-        click.echo(f"You already have your own {name} for {project}: {dest}")
-    else:
-        win = _lv.resolve(name, user_level_only=True)
-        if win is None:
-            raise click.ClickException(f"no agent named {name!r}.")
-        dest_dir.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(win.path, dest)
-        click.echo(f"Copied the {win.label} of {name} to {dest}.")
-    for repo in _project_repos(project):
-        _print_sync(str(repo), _lv.sync_repo(repo, project))
-    click.echo(f"Edit {dest}, then run `murmurent vault sync` to keep it on your other "
+    try:
+        dest, created = _lv.fork_for_project(name, project)
+    except _lv.LevelError as exc:
+        raise click.ClickException(str(exc)) from exc
+    click.echo((f"Copied {name} to {dest}." if created
+                else f"You already have your own {name} for {project}: {dest}"))
+    click.echo(f"Edit it, then run `murmurent vault sync` to keep it on your other "
                "machines. Open a new Claude Code session for it to apply.")
 
 
@@ -253,11 +235,9 @@ def cmd_switch(name: str, project: str, off: bool) -> None:
     """Switch an agent off (or back on) for you in one project."""
     from ..core import agent_levels as _lv
     try:
-        _lv.set_switched_off(project, name, off)
-    except RuntimeError as exc:
+        _lv.switch(name, project, off)
+    except _lv.LevelError as exc:
         raise click.ClickException(str(exc)) from exc
-    for repo in _project_repos(project):
-        _print_sync(str(repo), _lv.sync_repo(repo, project))
     click.echo(f"{name} is {'switched off' if off else 'back on'} for you in {project}. "
                "Open a new Claude Code session for it to apply.")
 
@@ -273,17 +253,10 @@ def cmd_share(name: str, to_lab: bool, repo: str | None) -> None:
     if win is None:
         raise click.ClickException(f"no agent named {name!r}.")
     if to_lab:
-        from ..core import git_persist
-        from ..core.identity import resolve as _who
-        from ..core.lab import pi_handle
-        from ..core.repo import lab_mgmt_repo_root
-        me = (_who(allow_unknown=True).handle or "").lstrip("@").lower()
-        if me != pi_handle().lstrip("@").lower():
-            raise click.ClickException("only the PI can set the lab's version of an agent.")
-        dest = lab_mgmt_repo_root() / "agents" / f"{name}.md"
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(win.path, dest)
-        probes = git_persist.commit_and_push(dest, message=f"lab version of agent {name} (#186)")
+        try:
+            dest, probes = _lv.share_with_lab(name)
+        except _lv.LevelError as exc:
+            raise click.ClickException(str(exc)) from exc
         click.echo(f"The lab's {name} is now {dest}.")
         for pr in probes:
             click.echo(f"  {pr.name}: {pr.detail}")

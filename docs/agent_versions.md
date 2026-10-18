@@ -23,9 +23,17 @@ always use the centre version, and the guardians cannot be switched off.
 
 Everything kept in your vault follows you to your other machines.
 
+## On the dashboard
+
+Each agent card says "in use:" and the level. Its **versions** button opens a
+window where you pick a project and see which version you use there, then
+make your own version for that project, switch the agent off or on there, or,
+as PI, make the version you use the lab's. The sections below give the
+terminal commands for the same things.
+
 ## Which version am I using?
 
-Each agent card on the dashboard says "in use:" and the level. In a terminal:
+In a terminal:
 
 ```bash
 murmurent agent which                    # outside any repo
