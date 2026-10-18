@@ -45,6 +45,16 @@ class UpdateStatus:
     latest: str       # short upstream sha
     detail: str       # human-readable one-liner
     root: str = ""    # the checkout that was checked (shown in the banner)
+    # In words for the banner (#185 follow-up): which copy, the version here and
+    # upstream (they differ only after a release), and the new changes' titles.
+    name: str = ""            # "murmurent_dev" or the checkout's folder name
+    current_version: str = ""
+    latest_version: str = ""
+    changes: list = None      # up to 10 commit titles, newest first
+
+    def __post_init__(self) -> None:
+        if self.changes is None:
+            self.changes = []
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -97,18 +107,42 @@ def describe_running_code() -> dict:
             r = subprocess.run(["git", "-C", str(root), *a], capture_output=True,
                                text=True, timeout=5)
             return r.stdout.strip() if r.returncode == 0 else ""
-        remote = git("remote", "get-url", "origin")
         branch = git("rev-parse", "--abbrev-ref", "HEAD")
         commit = git("rev-parse", "--short", "HEAD")
         dirty = bool(git("status", "--porcelain", "--untracked-files=no"))
     except (OSError, subprocess.SubprocessError):
         return out
-    is_dev = "murmurent_dev" in remote or root.name == "murmurent_dev"
-    name = "murmurent_dev" if is_dev else root.name
+    name = _copy_name(root)
+    is_dev = name == "murmurent_dev"
     label = f"{name} · {branch} @ {commit}" + (" (edited)" if dirty else "")
     out.update(label=label, kind="dev" if is_dev else "checkout",
                branch=branch, commit=commit, dirty=dirty)
     return out
+
+
+_VERSION_FILE = "src/murmurent/__init__.py"
+
+
+def _version_at(root, ref: str) -> str:
+    """murmurent's version number as committed at ``ref`` ("" if unreadable)."""
+    import re
+    try:
+        out = _run_git(root, "show", f"{ref}:{_VERSION_FILE}")
+    except (OSError, subprocess.SubprocessError):
+        return ""
+    m = re.search(r'^__version__\s*=\s*["\']([^"\']+)["\']', out.stdout or "", re.M)
+    return m.group(1) if m else ""
+
+
+def _copy_name(root) -> str:
+    """"murmurent_dev" for a development checkout, else the folder's name."""
+    try:
+        remote = _run_git(root, "remote", "get-url", "origin").stdout
+    except (OSError, subprocess.SubprocessError):
+        remote = ""
+    if "murmurent_dev" in remote or Path(root).name == "murmurent_dev":
+        return "murmurent_dev"
+    return Path(root).name
 
 
 def check_update(*, fetch: bool = True) -> UpdateStatus:
@@ -154,9 +188,17 @@ def check_update(*, fetch: bool = True) -> UpdateStatus:
         detail = "up to date" if behind == 0 else f"{behind} new commit(s) upstream"
         if behind and not can_ff:
             detail += " — local has diverged, resolve manually"
+        changes: list[str] = []
+        if behind:
+            log = _run_git(root, "log", "--no-merges", "--format=%s", "-n", "10",
+                           f"HEAD..{upstream}")
+            changes = [ln for ln in log.stdout.splitlines() if ln.strip()] if log.returncode == 0 else []
+        latest_version = _version_at(root, upstream)
         return UpdateStatus(is_git=True, ok=True, behind=behind, can_ff=can_ff,
                             current=current, latest=latest, detail=detail,
-                            root=str(root))
+                            root=str(root), name=_copy_name(root),
+                            current_version=_version_at(root, "HEAD"),
+                            latest_version=latest_version, changes=changes)
     except (OSError, subprocess.SubprocessError, ValueError) as exc:
         return _na(f"update check failed: {exc}")
 

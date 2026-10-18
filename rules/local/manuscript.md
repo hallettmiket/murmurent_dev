@@ -54,13 +54,13 @@ is for documentation, not papers. When in doubt, flag rather than invent.
 
 ## Which murmurent repository
 
-Both exist and both are live. They are not copies of each other.
+- `~/repos/murmurent_dev` (GitHub `hallettmiket/murmurent_dev`) is where
+  development happens. Change code, agents, rules and documentation here.
+- The released version is the GitHub repo **`hallettmiket/murmurent`**, built
+  from murmurent_dev by `release/make_release.sh`. Read it on GitHub to see
+  what members actually have. A local `~/repos/murmurent` folder, if there is
+  one, may be far behind, since Mike works in murmurent_dev; do not treat it as
+  the release, and do not develop in it.
 
-- `~/repos/murmurent_dev` is where development happens. Change code, agents,
-  rules and documentation here.
-- `~/repos/murmurent` is the released version. Read it to see what members
-  actually have installed. Do not develop in it.
-
-The manuscript describes the system, so read `murmurent_dev` when writing
-about how something works now, and `murmurent` when writing about what has
-shipped.
+Read `murmurent_dev` when writing about how something works now, and the
+GitHub `hallettmiket/murmurent` repo when writing about what has shipped.

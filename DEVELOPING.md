@@ -29,7 +29,7 @@ committed directly to the public repo.
 | [`rules/`](rules/) | Five short documents that Claude Code loads into *every* session, covering things like where data may be written. `rules/local/` holds the settings belonging to one particular institution, and is never published. |
 | [`skills/`](skills/) | The slash commands, such as `/murmurent-push`. One folder each, containing a `SKILL.md`. |
 | [`src/murmurent/`](src/murmurent/) | The Python code behind the `murmurent` command: `commands/` has one file per command, `core/` the logic they share, `dashboard/` the web dashboard, `hooks/` the checks that stop a Claude Code session writing where it shouldn't, `mcp/` the servers that let agents search your notes. |
-| [`docs/`](docs/) | Everything on <https://hallettmiket.github.io/murmurent/>. |
+| [`docs/`](docs/) | Everything on <https://mikehallett.science/murmurent/>. |
 | [`tests/`](tests/) | Around 2,300 automatic checks that Murmurent still works. |
 | [`release/`](release/) | The tooling that builds the public version — see "Publishing a new version" below. |
 | [`scripts/`](scripts/) | Installers, launchers, and scripts that fill a test machine with realistic fake labs and people. |

@@ -2,7 +2,7 @@ site_name: Murmurent
 site_description: >-
   Shared agentic-AI infrastructure for research groups — agents, rules,
   cryptographic membership, and institutional memory on top of Claude Code.
-site_url: https://hallettmiket.github.io/murmurent/
+site_url: https://mikehallett.science/murmurent/
 repo_url: https://github.com/hallettmiket/murmurent
 repo_name: hallettmiket/murmurent
 edit_uri: edit/main/docs/
