@@ -2762,6 +2762,8 @@ cli.add_command(_jobs_group)
 # Space: suggest what a project could delete, compress or move; record decisions (#151).
 from .commands.space_cmd import space_group as _space_group
 cli.add_command(_space_group)
+from .commands.etiquette_cmd import etiquette_group as _etiquette_group
+cli.add_command(_etiquette_group)
 
 
 if __name__ == "__main__":  # pragma: no cover
