@@ -62,11 +62,22 @@ function NbHintPopup({ text }) {
 function NbToday() {
   const NB = window.DATA.notebook;
   const t = NB.today;
-  // Cap the rendered day to its most recent ~50 blocks so a long entry doesn't
-  // grow the panel without bound — the file itself always has the full text.
-  const CAP = 50;
+  // Show only the most recent ~25 lines of the day (#207): counted in lines,
+  // not blocks, since one block can be a long paragraph, list or code block.
+  // The file itself always has the full text.
+  const MAX_LINES = 25;
   const all = t.content || [];
-  const shown = all.length > CAP ? all.slice(-CAP) : all;
+  const linesOf = (b) => {
+    if (b.kind === "list") return (b.items || []).length || 1;
+    return String(b.text || "").split("\n").length;
+  };
+  let used = 0, first = all.length;
+  for (let i = all.length - 1; i >= 0; i--) {
+    used += linesOf(all[i]);
+    first = i;
+    if (used >= MAX_LINES) break;
+  }
+  const shown = all.slice(first);
   const hidden = all.length - shown.length;
   return (
     <div className="nb-entry">
@@ -79,7 +90,7 @@ function NbToday() {
 
       {hidden > 0 && (
         <p className="muted" style={{fontSize:12, fontStyle:"italic", margin:"0 0 8px"}}>
-          … showing the last {CAP} of {all.length} blocks — open the file for the full day.
+          Showing the last {MAX_LINES} lines or so. Open the file for the whole day.
         </p>
       )}
       {shown.map((b, i) => {
