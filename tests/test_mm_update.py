@@ -132,7 +132,7 @@ def test_apply_update_pull_refused_surfaces_error(repo, monkeypatch):
 
 
 def test_apply_update_not_a_git_checkout(monkeypatch, tmp_path):
-    monkeypatch.setattr(MM, "murmurent_repo_root", lambda: tmp_path / "plain")
+    monkeypatch.setattr(MM, "install_root", lambda: tmp_path / "plain")
     out = MM.apply_update()
     assert out["ok"] is False and out["restart"] is False
 
