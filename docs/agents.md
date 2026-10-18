@@ -32,6 +32,16 @@ personal agents and forks follow you to every machine: after a vault pull,
 run `murmurent agent relink` (`scripts/setup.sh` also runs it) to load them
 into that machine's `~/.claude/agents/`.
 
+**Which version am I using?** Each agent card on the dashboard says which
+definition Claude Code will actually use on this machine: the centre version,
+your own version, a hand-written file, a broken link, or nothing installed.
+Hover over the label for the reason. In a terminal,
+`murmurent agent which` shows the same for every agent, and
+`murmurent agent which --repo <folder>` shows it for a session started in
+that repo, where the repo's own agent files take priority. A **broken link**
+usually means the repo contains links into another member's home folder;
+`murmurent repo status <folder>` explains how to fix it.
+
 Your own version of an agent applies to all of your projects. There is not
 yet a way to keep a version for one project only, to share a version with a
 project team or a whole lab, or to switch an agent off in one project. The

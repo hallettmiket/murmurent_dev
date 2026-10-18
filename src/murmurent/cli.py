@@ -243,6 +243,21 @@ def agent_list() -> None:
 
 
 @agent_group.command(
+    "which",
+    help="Show which version of each agent Claude Code will use, and where it "
+         "comes from: the centre, your own copy, the project, or a problem such "
+         "as a broken link.",
+)
+@click.option("--repo", "repo", default=None, metavar="PATH",
+              help="Describe a session started in this repo (its own "
+                   ".claude/agents/ wins). Default: a session outside any repo.")
+def agent_which(repo: str | None) -> None:
+    """Which definition of each agent is in use, and why (#186)."""
+    from .commands import agent_cmd as _agent_cmd
+    _agent_cmd.cmd_which(repo)
+
+
+@agent_group.command(
     "new",
     help="Create your OWN (net-new) personal agent — kept in your vault (backed "
          "up to your GitHub on `murmurent vault sync`) and loaded by Claude Code. "

@@ -65,6 +65,7 @@ Stored in `~/.murmurent/machine.yaml`. Each applies to this computer only.
 
 | Command | Effect | Notes |
 |---|---|---|
+| `murmurent agent which [--repo <path>]` | Show which version of each agent Claude Code will use, and where it comes from | One row per agent: **centre version**, **your version** or **your agent** (from your vault), **project version** (committed in the repo), **local file** (this machine only), **broken link**, or **not installed**. `--repo` describes a session started in that repo, whose own `.claude/agents/` wins |
 | `murmurent agent list` | List installed agents in `~/.claude/agents/` | Each shown as **linked** (commons symlink), **forked** (personal copy), or **user-file**; forks also show upstream/local drift status |
 | `murmurent agent fork <name> [--force]` | Replace a commons agent's symlink with an editable personal copy | Preserved across commons upgrades; canonical copy in the vault's `agent_forks/` (rides `murmurent vault sync` to your other machines; legacy `~/.murmurent/agent_forks/` when no vault), hardlinked into `~/.claude/agents/`. `--force` re-snapshots from the current commons |
 | `murmurent agent drift [<name>]` | Merge indicator for forks | Per fork: `UP-TO-DATE` / `LOCAL-ONLY` / `UPSTREAM` / `DIVERGED` / `ORPHANED`, plus a summary of forks needing review |

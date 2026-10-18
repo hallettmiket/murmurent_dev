@@ -392,6 +392,14 @@ class AgentRow(BaseModel):
     disabled: bool = False  # personal agents only; frozen are always active
     origin: Literal["commons", "personal"] = "commons"
     category: Literal["member", "administrative", "choreography-support"] = "member"
+    # #186 step 1: which definition Claude Code actually loads on this machine
+    # (core.agent_in_use). ``in_use_level`` is centre / yours / project /
+    # local-file / broken-link / missing; ``model`` and ``disabled`` above are
+    # read from that same file, not from the centre copy.
+    in_use_level: str = ""
+    in_use_label: str = ""
+    in_use_detail: str = ""
+    upstream_changed: bool = False
 
 
 class OracleEntry(BaseModel):
