@@ -104,13 +104,13 @@ not replicated**.
 
 Residency follows sensitivity tier:
 
-- **Tier-3 (clinical, and very large genomic) data is server-resident.**
+- **Tier-3 (protected, and very large genomic) data is server-resident.**
   It stays on a lab server and is **reached over the network** — an SSH
   session on the server, an ``sshfs`` / remote mount, or running the
   experiment on the server via VS Code Remote-SSH — with
   ``$MURMURENT_DATA_ROOT`` pointing at the server-side tree. It is
   **never replicated onto a laptop**: multi-GB binaries are the wrong
-  payload for git/GitHub regardless, and clinical data must not land on a
+  payload for git/GitHub regardless, and protected data must not land on a
   portable device at all.
 - **Tier-1 / derived small outputs** may live in ``append_only/`` on a
   laptop for offline work and be copied up to the server later. This is
@@ -126,11 +126,12 @@ Registering a project's data root on a machine runs a residency preflight
   `core.machine_registry.machine_kind` (the same role the Wave-2 machine
   badge shows: an explicit ``$MURMURENT_MACHINE_ROLE`` override, else a
   hostname ending in ``server`` ⇒ host, else laptop); and
-- the **project sensitivity** — ``standard | restricted | clinical`` from
-  `cert_projects.CertProject.sensitivity`.
+- the **project sensitivity** — ``standard | restricted | protected`` from
+  `cert_projects.CertProject.sensitivity` (a record that still says
+  `clinical`, the former name, counts as `protected`).
 
-On a **laptop**, binding a **clinical / tier-3** project's data root is
-**refused** with: *"clinical/tier-3 data must stay on a server; reach it
+On a **laptop**, binding a **protected / tier-3** project's data root is
+**refused** with: *"protected/tier-3 data must stay on a server; reach it
 over SSH, don't replicate it to a laptop."* On a **host / server** it is
 allowed (that is the data root's proper home). Standard / restricted
 tiers are unrestricted on any machine — the guard is non-blocking for

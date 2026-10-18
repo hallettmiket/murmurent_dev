@@ -2335,7 +2335,7 @@ function ProjectsPanel({ projects, span="c-5" }) {
                     </div>
                     <div className="mono muted" style={{fontSize:11}}>{p.choreo}</div>
                   </td>
-                  <td><Pill tone={p.sens==="clinical"?"red":""}>{p.sens}</Pill></td>
+                  <td><Pill tone={(p.sens==="protected"||p.sens==="clinical")?"red":""}>{p.sens}</Pill></td>
                   <td className="mono" style={{fontSize:12, paddingLeft:14}}>{p.lead}</td>
                   <td className="num">{p.members}</td>
                   <td className="muted" style={{fontSize:12}}>
@@ -4316,7 +4316,7 @@ function NewProjectModal({ onClose }) {
                 style={{padding:"6px 8px", border:"1px solid var(--rule-strong)", borderRadius:2, fontFamily:"var(--mono)"}}>
           <option value="standard">standard</option>
           <option value="restricted">restricted</option>
-          <option value="clinical">clinical</option>
+          <option value="protected">protected</option>
         </select>
 
         <label className="mono muted" style={{fontSize:11, letterSpacing:1, textTransform:"uppercase", marginTop:6}}>repos (select at least one)</label>

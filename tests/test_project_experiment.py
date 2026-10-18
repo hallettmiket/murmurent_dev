@@ -38,7 +38,7 @@ def test_project_new_creates_repo_and_registry(isolated_env):
         lead="@allie",
         skip_github=True,
     )
-    assert summary.sensitivity == "clinical"
+    assert summary.sensitivity == "protected"
     assert summary.lead == "@allie"
     assert summary.path.is_dir()
     assert (summary.path / "CHARTER.md").is_file()
@@ -117,13 +117,13 @@ def test_experiment_ingest_updates_notebook(isolated_env, tmp_path):
     assert checksums and all(len(v) == 64 for v in checksums.values())
 
 
-def test_project_describe_shows_clinical_metadata(isolated_env):
+def test_project_describe_shows_protected_metadata(isolated_env):
     project_cmd.cmd_new(
         "dcis_sc_tutorial",
         charter_path=None,
         members_csv="@the_pi,@allie,@bob,@cassie",
-        description="Fake clinical.",
-        sensitivity="clinical",
+        description="Fake protected.",
+        sensitivity="protected",
         choreography="clinical_cohort",
         reb_number="WREM-2026-9999",
         reb_expires="2027-09-01",
@@ -134,7 +134,7 @@ def test_project_describe_shows_clinical_metadata(isolated_env):
     runner = CliRunner()
     result = runner.invoke(cli, ["project", "describe", "dcis_sc_tutorial"])
     assert result.exit_code == 0, result.output
-    assert "sensitivity: clinical" in result.output
+    assert "sensitivity: protected" in result.output
     assert "WREM-2026-9999" in result.output
     assert "@cassie" in result.output
 

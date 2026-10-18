@@ -89,8 +89,8 @@ def world(monkeypatch, tmp_path):
         "dcis_test",
         charter_path=None,
         members_csv="@the_pi,@allie,@bob,@cassie",
-        description="Fake clinical project.",
-        sensitivity="clinical",
+        description="Fake protected project.",
+        sensitivity="protected",
         choreography="clinical_cohort",
         reb_number="WREM-1",
         reb_expires="2027-01-01",
@@ -513,7 +513,36 @@ def test_projects_list(world):
     names = {p.name for p in resp.projects}
     assert {"dcis_test", "bbb_test"} <= names
     dcis = next(p for p in resp.projects if p.name == "dcis_test")
-    assert dcis.sens == "clinical"
+    assert dcis.sens == "protected"
+
+
+def test_legacy_clinical_record_shows_as_protected(world):
+    """#205: a cert-project record written before the rename still says
+    ``sensitivity: clinical``. It must load, validate, and reach the dashboard
+    as ``protected`` (the contract no longer accepts the old name as such)."""
+    from murmurent.core import cert_projects as CP
+
+    record = CP.registry_dir() / "dcis_test.md"
+    text = record.read_text(encoding="utf-8")
+    assert "sensitivity: protected" in text          # writers use the new name
+    record.write_text(text.replace("sensitivity: protected", "sensitivity: clinical"),
+                      encoding="utf-8")
+    charter = find_project("dcis_test").charter_path
+    if charter.is_file():                            # an old CHARTER says it too
+        charter.write_text(charter.read_text(encoding="utf-8").replace(
+            "sensitivity: protected", "sensitivity: clinical"), encoding="utf-8")
+
+    loaded = CP.get("dcis_test")
+    assert loaded.sensitivity == "protected"
+    assert {p.name: p.sensitivity for p in CP.iter_projects()}["dcis_test"] == "protected"
+
+    resp = snapshot.build_response("allie", today=_dt.date(2026, 5, 8))
+    dcis = next(p for p in resp.projects if p.name == "dcis_test")
+    assert dcis.sens == "protected"
+    heat = [r for r in resp.heatmap.rows if r.project == "dcis_test"] if resp.heatmap else []
+    assert all(r.sens == "protected" for r in heat)
+    # The old name passes contract validation too (normalized on the way in).
+    assert contract.HeatmapRow(project="x", sens="clinical", cells=[]).sens == "protected"
     assert dcis.lead == "@allie"
     assert dcis.members == 4
 

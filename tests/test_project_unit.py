@@ -386,11 +386,11 @@ def test_adopt_unrelated_suffix_is_its_own_project(world):
     assert [(r.name, r.role) for r in cp.get("cell_data").repos] == [("cell_data", "code")]
 
 
-def test_adopt_records_a_clinical_marker(world):
+def test_adopt_reads_a_legacy_clinical_marker_as_protected(world):
     repo = git_repo(world["repos"] / "cohort")
     (repo / ".murmurent.yaml").write_text("murmurent: 1\nlab: mh\nsensitivity: clinical\n")
     assert _adopt(repo).exit_code == 0
-    assert cp.get("cohort").sensitivity == "clinical"
+    assert cp.get("cohort").sensitivity == "protected"
 
 
 def test_adopt_in_a_project_folder_joins_that_project(world):

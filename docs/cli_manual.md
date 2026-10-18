@@ -275,7 +275,7 @@ The finalisation choreography runs at SEA / experiment / project scope. `<scope>
 
 | Command | Effect | Authority |
 |---|---|---|
-| `murmurent project sensitivity <project> [--set <standard\|restricted\|clinical>]` | Read or change a project's sensitivity tier | PI; raising allowed; lowering requires PR + audit |
+| `murmurent project sensitivity <project> [--set <standard\|restricted\|protected>]` | Read or change a project's sensitivity tier | PI; raising allowed; lowering requires PR + audit |
 | `murmurent compliance status [--project <p>]` | Show your compliance state per project (required + elected controls; missing items in red) | Member |
 | `murmurent compliance certify <cert-name> --expires <date>` | Record a certification (e.g. TCPS 2) on your member profile | Member; PI verifies |
 | `murmurent audit verify <repo>` | Walk the audit chain, verify signatures and tamper-evident hash chain | Anyone with repo access |

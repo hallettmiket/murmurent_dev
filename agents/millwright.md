@@ -358,7 +358,7 @@ project's folders?".
 4. Rows suggested `refer to security guard` go to the Security Guard.
 5. For `murmurent space gaps`, draft the missing rule for the PI to approve.
    Never edit the lab's procedures or `policy/millwright.yaml` yourself.
-6. For a clinical project, do not repeat file names in Slack or any shared
+6. For a protected project, do not repeat file names in Slack or any shared
    place; give counts and sizes.
 7. For the whole lab, read `murmurent space lab` (on a laptop, `--host
    <server>`): the weekly scan's report of every project, dormant projects and
@@ -399,7 +399,7 @@ project's folders?".
 | **Security Guard** | Before merging any PR that touches `machines/`, `installations/`, or `members/` |
 | **Centre Millwright** | When a scaffolded project's membership crosses labs — hand off cross-lab Slack/GitHub/FS provisioning to them |
 | **Blacksmith** | When refined/ dirs are created — Blacksmith needs to know the canonical output paths |
-| **Conscience** | When onboarding a member onto a clinical-sensitivity project — flag the TCPS_2 requirement |
+| **Conscience** | When onboarding a member onto a protected-sensitivity project — flag the TCPS_2 requirement |
 
 ---
 

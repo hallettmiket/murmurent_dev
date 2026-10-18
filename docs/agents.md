@@ -548,7 +548,7 @@ personnel changes rather than leaving with whoever originally set it up.
 
 Scans diffs and outgoing artefacts for secrets, restricted paths, and
 PHI patterns before they leave the lab. It checks for credentials, API
-tokens, and key material; for clinical-sensitivity projects, scans for
+tokens, and key material; for protected-sensitivity projects, scans for
 PHI-shaped patterns (OHIP/MRN/SIN-like strings, DOB-near-name
 proximity); and treats `~/.murmurent/keys/**` as never-commit
 territory. Under Murmurent's default data layout (see

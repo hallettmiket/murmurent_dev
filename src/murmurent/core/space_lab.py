@@ -37,6 +37,7 @@ from typing import Callable, Iterator
 from . import cert_projects as _cp
 from . import lab_vm as _lab_vm
 from . import project_unit as _pu
+from . import sensitivity as _sens
 from . import space_scan as _ss
 from . import space_table as _st
 from .millwright_policy import Policy, load_policy
@@ -291,7 +292,7 @@ def scan_lab(*, env: dict | None = None, policy: Policy | None = None,
         if unclaimed:
             say(f"Scanning {len(unclaimed)} folders no project claims")
             ghost = _cp.CertProject(name=UNCLAIMED_PROJECT, lab=report["lab"],
-                                    sensitivity="clinical",
+                                    sensitivity=_sens.PROTECTED,
                                     data_folders=tuple(str(f) for f in unclaimed))
             options = _ss.ScanOptions(checksums=checksums, include_repos=False,
                                       max_read_bytes=budget, now=now,
@@ -439,10 +440,10 @@ def _unreadable(conn, names: list[str], projects: list[_cp.CertProject]) -> dict
     """Everything the scan could not read, by owner. None of it is in any total.
 
     These are folders, and the PI needs their names to get them fixed, so they
-    are named even for unclaimed folders; only clinical projects' are left out.
+    are named even for unclaimed folders; only protected projects' are left out.
     (The Slack summary never names any.)
     """
-    clinical = {p.name for p in projects if p.sensitivity == "clinical"}
+    protected = {p.name for p in projects if _sens.is_protected(p.sensitivity)}
     by_owner: dict[str, int] = {}
     places: list[dict] = []
     items = 0
@@ -453,24 +454,24 @@ def _unreadable(conn, names: list[str], projects: list[_cp.CertProject]) -> dict
             owner = row["owner"] or "unknown"
             by_owner[owner] = by_owner.get(owner, 0) + count
             places.append({"project": name, "owner": owner, "items": count, "row": int(row["id"]),
-                           "path": row["path"] if name not in clinical else "",
-                           "fix": (f"chmod -R g+rX {row['path']}" if name not in clinical else "")})
+                           "path": row["path"] if name not in protected else "",
+                           "fix": (f"chmod -R g+rX {row['path']}" if name not in protected else "")})
     return {"items": items, "places": len(places),
             "by_owner": dict(sorted(by_owner.items(), key=lambda kv: kv[1], reverse=True)),
             "list": places[:50]}
 
 
 def _lab_top(conn, names: list[str], projects: list[_cp.CertProject]) -> list[dict]:
-    """The most pressing rows across the lab. Paths are left out for clinical data."""
-    clinical = {p.name for p in projects if p.sensitivity == "clinical"} | {UNCLAIMED_PROJECT}
+    """The most pressing rows across the lab. Paths are left out for protected data."""
+    protected = {p.name for p in projects if _sens.is_protected(p.sensitivity)} | {UNCLAIMED_PROJECT}
     scored = [(score, name, row) for name in names for score, row in _st.ranked(conn, name)
               if row["category"] not in CONTAINERS]
     scored.sort(key=lambda t: t[0], reverse=True)
     return [{"project": name, "row": int(row["id"]), "category": row["category"],
              "suggestion": row["suggestion"], "size": int(row["size"] or 0),
              "files": int(row["n_files"] or 0),
-             "path": "" if name in clinical else row["path"],
-             "reason": "" if name in clinical else row["reason"]}
+             "path": "" if name in protected else row["path"],
+             "reason": "" if name in protected else row["reason"]}
             for _score, name, row in scored[:TOP]]
 
 

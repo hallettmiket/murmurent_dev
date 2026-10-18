@@ -144,7 +144,15 @@ def test_dry_run_skips_commit_but_lands_file(world):
 # ---------------------------------------------------------------------------
 
 
+def test_publish_refuses_protected_sensitivity(world):
+    _write_draft(world, "patient_finding", sensitivity="protected")
+    with pytest.raises(_op.SensitivityBlocked, match="protected"):
+        _op.publish_draft("patient_finding", committer="@the_pi")
+    assert list((world["lab"] / "oracle").iterdir()) == []
+
+
 def test_publish_refuses_clinical_sensitivity(world):
+    """``clinical`` is the former name of ``protected`` and is still refused."""
     _write_draft(world, "clinical_finding", sensitivity="clinical")
     with pytest.raises(_op.SensitivityBlocked, match="clinical"):
         _op.publish_draft("clinical_finding", committer="@the_pi")

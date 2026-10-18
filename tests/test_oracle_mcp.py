@@ -242,10 +242,21 @@ def test_search_filter_by_source_handle(world):
 
 def test_search_filter_by_sensitivity(world):
     """All test entries are 'standard'; an unmatched sensitivity returns []."""
-    rows = srv.tool_search("", sensitivity="clinical")
+    rows = srv.tool_search("", sensitivity="protected")
     assert rows == []
     rows = srv.tool_search("", sensitivity="standard")
     assert len(rows) == 4
+
+
+def test_legacy_clinical_entry_reads_as_protected(world, tmp_path):
+    """An entry still tagged with the former name ``clinical`` is reported as
+    ``protected`` and found by either name (#205)."""
+    _write_entry(tmp_path / "vault" / "oracle", "2026-05-20_old_clinical",
+                 title="An entry written before the rename", sensitivity="clinical")
+    for asked in ("protected", "clinical"):
+        rows = srv.tool_search("", kind="personal", sensitivity=asked)
+        assert [r["title"] for r in rows] == ["An entry written before the rename"]
+        assert rows[0]["sensitivity"] == "protected"
 
 
 def test_search_respects_limit(world):

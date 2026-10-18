@@ -329,14 +329,16 @@ def test_adopt_refused_without_flag(tmp_path):
     assert "--adopt" in out["detail"]
 
 
-def test_precommit_guard_blocks_clinical(tmp_path):
-    """The installed pre-commit hook refuses a clinical-tagged staged file."""
+@pytest.mark.parametrize("tag", ["protected", "clinical"])  # clinical = former name
+def test_precommit_guard_blocks_protected(tmp_path, tag):
+    """The installed pre-commit hook refuses a protected-tagged staged file,
+    and one still tagged with the former name ``clinical``."""
     v = tmp_path / "vault"
     v.mkdir()
     subprocess.run(["git", "-C", str(v), "init", "-b", "main"], check=True,
                    capture_output=True)
     assert VP._install_precommit_guard(v)
-    (v / "note.md").write_text("---\nsensitivity: clinical\n---\nPHI\n", encoding="utf-8")
+    (v / "note.md").write_text(f"---\nsensitivity: {tag}\n---\nPHI\n", encoding="utf-8")
     subprocess.run(["git", "-C", str(v), "add", "note.md"], check=True, capture_output=True)
     r = subprocess.run(["git", "-C", str(v), "commit", "-m", "x"],
                        capture_output=True, text=True,
@@ -344,7 +346,7 @@ def test_precommit_guard_blocks_clinical(tmp_path):
                             "GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t",
                             "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@t"})
     assert r.returncode != 0
-    assert "clinical" in (r.stdout + r.stderr).lower()
+    assert "protected" in (r.stdout + r.stderr).lower()
 
 
 def test_adopt_murmurent_scope_only_tracks_murmurent_folders(tmp_path):

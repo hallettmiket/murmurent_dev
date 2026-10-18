@@ -1823,8 +1823,8 @@ def create_app() -> FastAPI:
         binding_local_data = body.has_direct_access or not body.ssh_remote
         if binding_local_data:
             # Tier-3 residency gate (issue #80 Wave 3): before materialising a
-            # clinical project's data root on THIS box, check the machine role.
-            # A laptop must never become the residency for clinical / tier-3
+            # protected project's data root on THIS box, check the machine role.
+            # A laptop must never become the residency for protected / tier-3
             # data — refuse (required fail) with a message that names the fix.
             # A host/server is the data root's proper home → ok. Standard /
             # restricted tiers are unrestricted anywhere. We surface this as a
@@ -1842,7 +1842,7 @@ def create_app() -> FastAPI:
             )
             probes.append(_residency)
             # Only materialise the data dirs when residency allows it — a
-            # refused clinical-on-laptop bind must not even create empty
+            # refused protected-on-laptop bind must not even create empty
             # immutable/append_only dirs on the portable box.
             if _residency.status != "fail":
                 for label, path in (("immutable", raw_proj), ("append_only", refined_proj)):
@@ -1913,7 +1913,8 @@ def create_app() -> FastAPI:
             meta = {}
         lead_from_charter = str(meta.get("lead") or body.member).strip().strip("'\"") or body.member
         members_from_charter = list(meta.get("members") or [body.member])
-        sens_from_charter = str(meta.get("sensitivity") or "standard")
+        from ..core import sensitivity as _sens_mod
+        sens_from_charter = _sens_mod.normalize(meta.get("sensitivity")) or "standard"
 
         try:
             pres = _proj.make_wigamig_project(
