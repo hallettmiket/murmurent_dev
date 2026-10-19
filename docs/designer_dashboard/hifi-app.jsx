@@ -102,6 +102,34 @@ function PathTree({ root, children, indent = 120 }) {
   );
 }
 
+// The lab folder protocol under the data root (#206): each folder, what it is
+// for, and whether it exists on this machine. Falls back to the plain tree.
+function LabFolderTree({ root, folders, fallback, indent = 120 }) {
+  if (!folders || folders.length === 0)
+    return <PathTree root={root} children={fallback} indent={indent} />;
+  const per = {"per-project": "one folder per project",
+               "per-person": "one folder per person",
+               "shared": "shared by the lab"};
+  return (
+    <div style={{marginLeft:indent, fontSize:11, color:"var(--muted)", lineHeight:1.6}}>
+      {folders.map((f, i) => {
+        const last = i === folders.length - 1;
+        return (
+          <div key={f.name} style={{opacity: f.present ? 1 : 0.6}}>
+            <span style={{opacity:0.55, fontFamily:"var(--mono)"}}>{last ? "└─ " : "├─ "}</span>
+            <span className="mono" title={_joinPath(root, f.name)}
+                  style={{color: f.present ? "var(--ink)" : "var(--muted)"}}>{f.name}/</span>
+            <span style={{marginLeft:6}}>
+              {f.purpose}{per[f.kind] ? `; ${per[f.kind]}` : ""}
+              {!f.present && <em> (not on this machine)</em>}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // One-line "no <thing> on this machine" fallback (issue #99 §4) — shown in
 // place of a tree when a root is unset / NA.
 function NoRootLine({ label, indent = 120 }) {
@@ -6815,14 +6843,13 @@ function MachineCard({ machine, isCurrent, onEditClick, onRemove, onScanDirsSave
               "oracle", "lab-notebook",
               machine.murmurent_data_subfolder || "murmurent_data",
             ]} />}
-        {/* Files (data root) — its two governed children (resolved
-            immutable/append_only, or legacy raw/refined) nested underneath
-            (issue #80 Part 1a). */}
+        {/* Files (data root): every folder of the lab folder protocol (#206)
+            with what it is for, greyed where it does not exist here. */}
         <div><span style={labelStyle}>Files</span>
           <code className="mono">{!_pathUnset(wb) ? wb : <span className="muted">—</span>}</code></div>
         {_pathUnset(wb)
           ? <NoRootLine label="data root" />
-          : <PathTree root={wb} children={[
+          : <LabFolderTree root={wb} folders={machine.data_folders} fallback={[
               machine.data_immutable_name || "immutable",
               machine.data_append_only_name || "append_only",
             ]} />}
@@ -7221,6 +7248,7 @@ function MachinesModal({ onClose }) {
     murmurent_data_subfolder: ms.murmurent_data_subfolder || "murmurent_data",
     data_immutable_name:      ms.data_immutable_name      || "immutable",
     data_append_only_name:    ms.data_append_only_name    || "append_only",
+    data_folders:             ms.data_folders             || [],
     // Lab (group) vault clone = the lab-mgmt clone (issue #25); its path is
     // the resolved lab_mgmt_path from lab settings, not a machine.yaml field.
     lab_vault_path: (window.DATA.lab_settings || {}).lab_mgmt_path || "",
@@ -7338,6 +7366,7 @@ function MachinesPanel({ span = "c-5" }) {
     murmurent_data_subfolder: ms.murmurent_data_subfolder || "murmurent_data",
     data_immutable_name:      ms.data_immutable_name      || "immutable",
     data_append_only_name:    ms.data_append_only_name    || "append_only",
+    data_folders:             ms.data_folders             || [],
     // Lab (group) vault clone = the lab-mgmt clone (issue #25); its path is
     // the resolved lab_mgmt_path from lab settings, not a machine.yaml field.
     lab_vault_path: (window.DATA.lab_settings || {}).lab_mgmt_path || "",

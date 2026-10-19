@@ -189,6 +189,10 @@ class MachineSettings(BaseModel):
     #     shows ``immutable``/``append_only`` (see ``core.lab_vm``).
     data_immutable_name: str = "immutable"
     data_append_only_name: str = "append_only"
+    #   • ``data_folders`` — every folder of the lab folder protocol (#206):
+    #     ``{name, kind, purpose, legacy_of, present}``, from
+    #     ``core.lab_layout.present_folders``. Read-only.
+    data_folders: list[dict] = Field(default_factory=list)
 
 
 # ---------------------------------------------------------------------------

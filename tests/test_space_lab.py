@@ -490,3 +490,54 @@ def test_schedule_without_systemd_says_so(lab, monkeypatch):
     monkeypatch.setattr(sch.subprocess, "run", no_systemctl)
     out = CliRunner().invoke(cli, ["space", "schedule", "--install"])
     assert out.exit_code != 0 and "no systemd" in out.output
+
+
+# ---------------------------------------------------------------------------
+# The lab folder protocol (#206)
+# ---------------------------------------------------------------------------
+
+
+def test_a_projects_modifiable_and_release_folders_count_as_its_own(lab):
+    lab["write"]("modifiable/brca/work.csv", 100)
+    lab["write"]("release/brca/paper.pdf", 100)
+    folders = {str(f.relative_to(lab["data"]))
+               for f in pu.effective_data_folders(cp.get("brca"))}
+    assert {"modifiable/brca", "release/brca"} <= folders
+    assert "mothballed/brca" not in folders            # only when it exists
+    assert not any("brca" in str(f) for f in sl.unclaimed_folders(list(cp.iter_projects())))
+
+
+def test_nothing_in_mothballed_is_suggested_for_deletion_or_mothballing(lab):
+    lab["write"]("mothballed/old_study/build/obj.o", 2 * MB, age_days=400)
+    lab["write"]("mothballed/old_study/big.csv", 2 * MB, age_days=400)
+    report = sl.scan_lab()
+    old = next(p for p in report["projects"] if p["name"] == "old_study")
+    assert old["bytes"] >= 4 * MB                      # still counted
+    rows = [r for r in st.rows(st.connect(), "old_study", include_settled=True)
+            if "/mothballed/" in r["path"]]
+    assert all(r["suggestion"] not in (st.DELETE, st.COMPRESS, st.MOTHBALL) for r in rows)
+
+
+def test_cottages_and_shared_folders_are_lab_wide_not_unclaimed(lab):
+    lab["write"]("cottage/tester/envs/big.bin", 1000)
+    lab["write"]("tools/installer.sh", 100)
+    lab["write"]("db/ref/genome.fa", 100)
+    report = sl.scan_lab()
+    unclaimed = {str(f.relative_to(lab["data"])) for f in sl.unclaimed_folders(
+        list(cp.iter_projects()))}
+    assert not unclaimed & {"cottage", "cottage/tester", "tools", "db"}
+    wide = {Path(f["path"]).relative_to(lab["data"]).as_posix()
+            for f in report["lab_wide"]["folders"]}
+    assert wide == {"cottage/tester", "tools", "db"}
+    assert "Cottages and shared folders" in "\n".join(sl.describe(report))
+
+
+def test_the_report_names_what_does_not_follow_the_protocol(lab):
+    lab["write"]("campervans/trip.txt", 100)
+    lab["write"]("stray.txt", 10)
+    report = sl.scan_lab()
+    kinds = {f["kind"] for f in report["layout"]}
+    assert {"phasing-out", "loose-file"} <= kinds
+    text = sl.slack_summary(report)
+    assert "folder protocol" in text and "campervans" not in text
+    assert (lab["data"] / "campervans" / "trip.txt").exists()     # nothing moved
