@@ -102,6 +102,7 @@ nav:
       - Creating a project (in your lab): project_intra.md
       - Running long jobs: run_launcher.md
       - Tidying a project's space: space_table.md
+      - The lab folder protocol: lab_folders.md
   - Labs & cores:
       - "Overview: members, groups, projects": overview.md
       - Group-level architecture: group_level.md

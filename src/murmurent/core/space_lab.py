@@ -48,6 +48,8 @@ LOCK_FILENAME = "lab_scan.lock"
 
 #: The table's name for folders no project claims.
 UNCLAIMED_PROJECT = "(unclaimed)"
+#: Cottages and shared folders (tools/, db/): the lab's or a person's, not a project's.
+LAB_WIDE_PROJECT = "(cottages and shared)"
 
 #: Rows in the report's lab-wide "look at these first".
 TOP = 3
@@ -103,34 +105,58 @@ def lab_projects(lab: str = "", env: dict | None = None) -> list[_cp.CertProject
     return [p for p in projects if (p.lab or "").casefold() == lab.casefold()]
 
 
+def _protocol_parents(env: dict | None = None) -> tuple[Path, list[Path], list[Path], list[Path]]:
+    """``(root, per_project, per_person, shared)`` folders at the top of the
+    data root, following the lab folder protocol (:mod:`lab_layout`)."""
+    from . import lab_layout as _layout
+    root = Path(os.path.normpath(_lab_vm.data_root(env)))
+    known, _ = _layout.folders(env)
+    groups: dict[str, list[Path]] = {_layout.PER_PROJECT: [], _layout.PER_PERSON: [],
+                                     _layout.SHARED: []}
+    for name, folder in known.items():
+        path = root / name
+        if _ss._is_dir(path) and not path.is_symlink():
+            groups[folder.kind].append(path)
+    return (root, groups[_layout.PER_PROJECT], groups[_layout.PER_PERSON],
+            groups[_layout.SHARED])
+
+
+def _children(parent: Path) -> list[Path]:
+    try:
+        return sorted(p for p in parent.iterdir()
+                      if not p.name.startswith(".") and not p.is_symlink() and _ss._is_dir(p))
+    except OSError:
+        return []
+
+
 def top_level_folders(env: dict | None = None) -> list[Path]:
     """The folders under the data root that a project could own.
 
-    Each folder inside ``immutable/`` and ``append_only/`` (and the older
-    ``raw/`` and ``refined/``), and each other folder at the top of the data
-    root. Hidden folders and links are left out.
+    Each folder inside a per-project folder of the lab folder protocol
+    (``immutable/``, ``append_only/``, ``modifiable/``, ``release/``,
+    ``mothballed/``, and the older ``raw/`` and ``refined/``), and each folder
+    at the top of the data root that is not in the protocol. Cottages and the
+    shared folders are lab-wide (:func:`lab_wide_folders`), not listed here.
+    Hidden folders and links are left out.
     """
-    root = Path(os.path.normpath(_lab_vm.data_root(env)))
-    # Both the current names and the older ones (raw/, refined/): a data root
-    # part-way through the renaming holds all four, and each is a folder of
-    # project folders, not one item.
-    names = (_lab_vm.IMMUTABLE_SUBDIR, _lab_vm.APPEND_ONLY_SUBDIR,
-             _lab_vm.LEGACY_IMMUTABLE_SUBDIR, _lab_vm.LEGACY_APPEND_ONLY_SUBDIR)
-    tiers = [root / n for n in names
-             if _ss._is_dir(root / n) and not (root / n).is_symlink()]
+    root, per_project, per_person, shared = _protocol_parents(env)
     found: list[Path] = []
-    for parent in tiers + [root]:
-        try:
-            children = sorted(p for p in parent.iterdir()
-                              if not p.name.startswith(".") and not p.is_symlink()
-                              and _ss._is_dir(p))
-        except OSError:
-            continue
-        for child in children:
-            if parent == root and child in tiers:
-                continue
-            found.append(child)
+    for parent in per_project:
+        found += _children(parent)
+    skip = set(per_project) | set(per_person) | set(shared)
+    found += [c for c in _children(root) if c not in skip]
     return found
+
+
+def lab_wide_folders(env: dict | None = None) -> list[Path]:
+    """Space that belongs to the lab or to one person rather than a project:
+    each person's ``cottage/<login>`` and each shared folder (``tools/``,
+    ``db/``)."""
+    _root, _proj, per_person, shared = _protocol_parents(env)
+    out: list[Path] = []
+    for parent in per_person:
+        out += _children(parent)
+    return out + shared
 
 
 def _overlaps(a: Path, b: Path) -> bool:
@@ -155,6 +181,18 @@ def unclaimed_folders(projects: list[_cp.CertProject], env: dict | None = None) 
         if not any(_overlaps(folder, c) or _overlaps(resolved, c) for c in claimed):
             out.append(folder)
     return out
+
+
+def layout_findings(env: dict | None = None) -> list[dict]:
+    """What does not follow the lab folder protocol, for the PI. Reads folder
+    names only; never moves anything."""
+    from . import lab_layout as _layout
+    try:
+        projects, logins = _layout.lab_projects_and_logins()
+        found = _layout.check(_lab_vm.data_root(env), projects=projects, logins=logins, env=env)
+    except Exception:  # noqa: BLE001
+        return []
+    return [f.to_dict() for f in found]
 
 
 # ---------------------------------------------------------------------------
@@ -188,6 +226,8 @@ def _dormant_items(cp: _cp.CertProject, summary: _st.ScanSummary, activity: str,
     items: list[_st.Item] = []
     since = last.when.date().isoformat() if last else "unknown"
     for root in roots:
+        if root.kind == _ss.ROOT_MOTHBALLED:
+            continue        # already on its way to long-term storage
         size, files = _folder_bytes(summary, root.path)
         if not size:
             continue
@@ -305,6 +345,26 @@ def scan_lab(*, env: dict | None = None, policy: Policy | None = None,
             disks.update(summary.disks)
             report["unclaimed"] = _project_entry(conn, ghost, summary, _pu.UNKNOWN, None)
 
+        lab_wide = lab_wide_folders(env)
+        if lab_wide:
+            say(f"Scanning {len(lab_wide)} cottages and shared folders")
+            ghost = _cp.CertProject(name=LAB_WIDE_PROJECT, lab=report["lab"],
+                                    sensitivity=_sens.PROTECTED,
+                                    data_folders=tuple(str(f) for f in lab_wide))
+            options = _ss.ScanOptions(checksums=checksums, include_repos=False,
+                                      max_read_bytes=budget, now=now,
+                                      progress=files_seen, progress_every=500_000)
+            summary = _ss.scan_project(ghost, env=env, policy=policy, options=options)
+            _st.record_scan(conn, summary, roots=[str(f) for f in lab_wide])
+            disks.update(summary.disks)
+            entry = _project_entry(conn, ghost, summary, _pu.UNKNOWN, None)
+            entry["folders"] = sorted(
+                ({"path": str(f), "size": _folder_bytes(summary, f)[0]} for f in lab_wide),
+                key=lambda f: f["size"], reverse=True)
+            report["lab_wide"] = entry
+
+        report["layout"] = layout_findings(env)
+
         report["finished_at"] = _st.now_iso()
         report["disks"] = [{"label": d.label, "total": d.total, "free": d.free,
                             "fill": round(d.fill, 4)} for d in disks.values()]
@@ -338,7 +398,8 @@ def derive(conn, report: dict, projects: list[_cp.CertProject], policy: Policy) 
     Used at the end of each lab scan, and by :func:`rebuild_report` to redo a
     report from a scan already recorded, without walking the drive again.
     """
-    for entry in report.get("projects", []) + ([report["unclaimed"]] if report.get("unclaimed") else []):
+    for entry in (report.get("projects", []) + [report[k] for k in ("unclaimed", "lab_wide")
+                                                 if report.get(k)]):
         if entry.get("no_data"):
             continue
         waiting = [r for r in _st.rows(conn, entry["name"]) if r["category"] not in CONTAINERS]
@@ -353,7 +414,8 @@ def derive(conn, report: dict, projects: list[_cp.CertProject], policy: Policy) 
     for disk in report.get("disks", []):
         disk["label"] = mount_point(disk["label"])
     names = [p["name"] for p in report.get("projects", []) if not p.get("no_data")] + (
-        [UNCLAIMED_PROJECT] if report.get("unclaimed") else [])
+        [UNCLAIMED_PROJECT] if report.get("unclaimed") else []) + (
+        [LAB_WIDE_PROJECT] if report.get("lab_wide") else [])
     report["emergencies"] = _emergencies(conn, names, policy)
     report["unreadable"] = _unreadable(conn, names, projects)
     report["top"] = _lab_top(conn, names, projects)
@@ -509,9 +571,10 @@ def describe(report: dict) -> list[str]:
     """The report as lines for the terminal (also what the dashboard shows)."""
     projects = report.get("projects") or []
     unclaimed = report.get("unclaimed")
-    total = sum(p["bytes"] for p in projects) + (unclaimed["bytes"] if unclaimed else 0)
-    waiting = sum(p["waiting_bytes"] for p in projects) + (
-        unclaimed["waiting_bytes"] if unclaimed else 0)
+    extra = [e for e in (unclaimed, report.get("lab_wide")) if e]
+    total = sum(p["bytes"] for p in projects) + sum(e["bytes"] for e in extra)
+    waiting = sum(p["waiting_bytes"] for p in projects) + sum(
+        e.get("waiting_bytes", 0) for e in extra)
     lines = [f"Lab {report.get('lab') or '?'} space report, scanned "
              f"{_when(report.get('finished_at', ''))}",
              f"  {len(projects)} projects, {_human(total)} in all; "
@@ -555,6 +618,11 @@ def describe(report: dict) -> list[str]:
         lines.append(f"  {'(no project claims these)':<28} {_human(unclaimed['bytes']):>9}"
                      f"  waiting: {unclaimed['waiting_rows']} rows, "
                      f"{_human(unclaimed['waiting_bytes'])}")
+    lab_wide = report.get("lab_wide")
+    if lab_wide:
+        lines.append(f"  {'(cottages and shared)':<28} {_human(lab_wide['bytes']):>9}"
+                     f"  waiting: {lab_wide.get('waiting_rows', 0)} rows, "
+                     f"{_human(lab_wide.get('waiting_bytes', 0))}")
     folders = report.get("unclaimed_folders") or []
     if folders:
         lines.append("")
@@ -562,6 +630,17 @@ def describe(report: dict) -> list[str]:
                      "project's data_folders, or ask its owner")
         for f in folders:
             lines.append(f"  {_human(f['size']):>9}  {f['path']}  ({f['owners']})")
+    if lab_wide and lab_wide.get("folders"):
+        lines.append("")
+        lines.append("Cottages and shared folders, largest first")
+        for f in lab_wide["folders"][:15]:
+            lines.append(f"  {_human(f['size']):>9}  {f['path']}")
+    layout = report.get("layout") or []
+    if layout:
+        from . import lab_layout as _layout
+        lines.append("")
+        lines += _layout.describe([_layout.LayoutFinding(**f) for f in layout])
+        lines.append("  murmurent moves nothing to fix these; the PI decides.")
     dormant = report.get("dormant") or []
     if dormant:
         lines.append("")
@@ -576,9 +655,10 @@ def slack_summary(report: dict) -> str:
     """The weekly direct message to the PI: totals and names of projects, no file names."""
     projects = report.get("projects") or []
     unclaimed = report.get("unclaimed")
-    total = sum(p["bytes"] for p in projects) + (unclaimed["bytes"] if unclaimed else 0)
-    waiting = sum(p["waiting_bytes"] for p in projects) + (
-        unclaimed["waiting_bytes"] if unclaimed else 0)
+    extra = [e for e in (unclaimed, report.get("lab_wide")) if e]
+    total = sum(p["bytes"] for p in projects) + sum(e["bytes"] for e in extra)
+    waiting = sum(p["waiting_bytes"] for p in projects) + sum(
+        e.get("waiting_bytes", 0) for e in extra)
     parts = [f"*Weekly space report, lab {report.get('lab') or '?'}*: "
              f"{len(projects)} projects, {_human(total)}; "
              f"{_human(waiting)} suggested for a decision."]
@@ -599,6 +679,13 @@ def slack_summary(report: dict) -> str:
     if unclaimed and unclaimed["bytes"]:
         parts.append(f"No project claims {_human(unclaimed['bytes'])}, in "
                      f"{len(report.get('unclaimed_folders') or [])} or more folders.")
+    lab_wide = report.get("lab_wide")
+    if lab_wide and lab_wide["bytes"]:
+        parts.append(f"Cottages and shared folders hold {_human(lab_wide['bytes'])}.")
+    layout = report.get("layout") or []
+    if layout:
+        parts.append(f"{len(layout)} folder(s) or file(s) do not follow the lab's folder "
+                     "protocol. Nothing was moved; see the Space page to decide.")
     missing = [p["name"] for p in projects if p.get("no_data")]
     if missing:
         parts.append("Projects whose data folders were not found: " + ", ".join(missing))
@@ -781,5 +868,6 @@ def notify_pi(report: dict, *, lab: str = "",
 __all__ = [
     "notify_pi", "fetch_rows", "derive", "rebuild_report", "mount_point", "CONTAINERS", "FetchError", "fetch_report", "REPORT_FILENAME", "REPORT_SCHEMA", "UNCLAIMED_PROJECT", "LabScanBusy",
     "report_path", "lab_projects", "top_level_folders", "unclaimed_folders",
+    "lab_wide_folders", "layout_findings", "LAB_WIDE_PROJECT",
     "scan_lab", "read_report", "describe", "slack_summary",
 ]

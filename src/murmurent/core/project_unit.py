@@ -119,10 +119,23 @@ def _resolve_folder(entry: str, env: dict | None) -> Path:
     return Path(os.path.normpath(p))
 
 
+#: The lab folder protocol's other per-project folders (#206), counted as the
+#: project's own when they exist on this machine.
+OPTIONAL_PROJECT_FOLDERS = ("modifiable", "release", "mothballed")
+
+
 def default_data_folders(name: str, env: dict | None = None) -> list[Path]:
-    """``immutable/<project>/`` and ``append_only/<project>/`` under the data root."""
-    return [Path(os.path.normpath(_lab_vm.project_immutable_dir(name, env))),
-            Path(os.path.normpath(_lab_vm.project_append_only_dir(name, env)))]
+    """``immutable/<project>/`` and ``append_only/<project>/`` under the data
+    root, then ``modifiable/``, ``release/`` and ``mothballed/<project>/`` for
+    each that exists."""
+    out = [Path(os.path.normpath(_lab_vm.project_immutable_dir(name, env))),
+           Path(os.path.normpath(_lab_vm.project_append_only_dir(name, env)))]
+    root = _lab_vm.data_root(env)
+    for tier in OPTIONAL_PROJECT_FOLDERS:
+        folder = Path(os.path.normpath(root / tier / name))
+        if folder.is_dir():
+            out.append(folder)
+    return out
 
 
 def effective_data_folders(cp: _cp.CertProject, env: dict | None = None) -> list[Path]:

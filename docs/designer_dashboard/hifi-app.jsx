@@ -102,6 +102,34 @@ function PathTree({ root, children, indent = 120 }) {
   );
 }
 
+// The lab folder protocol under the data root (#206): each folder, what it is
+// for, and whether it exists on this machine. Falls back to the plain tree.
+function LabFolderTree({ root, folders, fallback, indent = 120 }) {
+  if (!folders || folders.length === 0)
+    return <PathTree root={root} children={fallback} indent={indent} />;
+  const per = {"per-project": "one folder per project",
+               "per-person": "one folder per person",
+               "shared": "shared by the lab"};
+  return (
+    <div style={{marginLeft:indent, fontSize:11, color:"var(--muted)", lineHeight:1.6}}>
+      {folders.map((f, i) => {
+        const last = i === folders.length - 1;
+        return (
+          <div key={f.name} style={{opacity: f.present ? 1 : 0.6}}>
+            <span style={{opacity:0.55, fontFamily:"var(--mono)"}}>{last ? "└─ " : "├─ "}</span>
+            <span className="mono" title={_joinPath(root, f.name)}
+                  style={{color: f.present ? "var(--ink)" : "var(--muted)"}}>{f.name}/</span>
+            <span style={{marginLeft:6}}>
+              {f.purpose}{per[f.kind] ? `; ${per[f.kind]}` : ""}
+              {!f.present && <em> (not on this machine)</em>}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // One-line "no <thing> on this machine" fallback (issue #99 §4) — shown in
 // place of a tree when a root is unset / NA.
 function NoRootLine({ label, indent = 120 }) {
@@ -755,7 +783,7 @@ function RepoInventoryPanel({ span = "c-12" }) {
   // murmurent-infra repos (murmurent, murmurent_*) are pinned to the top of the
   // list but hidden by default — they're infrastructure, not working repos the
   // user manages day-to-day. This toggle reveals them.
-  const [showInfra,  setShowInfra]  = useState(false);
+  const [showInfra,  setShowInfra]  = useState(true);
   const [removeCtx,  setRemoveCtx]  = useState(null);  // {name, path} for the remove modal
   const [adoptCtx,   setAdoptCtx]   = useState(null);  // {name, path, origin}
   const [upgrading,  setUpgrading]  = useState(null);  // clone_path being upgraded
@@ -836,25 +864,44 @@ function RepoInventoryPanel({ span = "c-12" }) {
     return [...infraVisible, ...restVisible];  // infra pinned to the top
   })();
 
-  // Group the visible rows by project (#185 item 12): one heading per project
-  // with its repos under it. A repo in two projects is listed under both;
-  // repos in no project come last. murmurent's own repos keep their own group.
+  // Group the rows by project (#185 item 12): one heading per project with its
+  // repos under it. A repo in two projects is listed under both; repos in no
+  // project come last. A repo a project lists is shown under it even when it is
+  // GitHub-only or one of murmurent's own repos, and a listed repo found
+  // nowhere gets a "not found" row, so nothing a project lists goes missing.
   const groups = (() => {
+    if (!report) return [];
     const projects = (window.DATA.projects || []).filter(pr => pr.status !== "archived");
+    const allRows = report.rows || [];
     const out = [];
     const placed = new Set();
-    if (showInfra) {
-      const infraRows = visibleRows.filter(rowIsMurmurentInfra);
-      if (infraRows.length) out.push({ title: "Murmurent's own repos", rows: infraRows });
-      infraRows.forEach(r => placed.add(r));
-    }
+    const low = (x) => String(x || "").toLowerCase();
+    const matches = (row, listed) => {
+      const want = low(listed.name);
+      if (!want) return false;
+      if (low(row.name) === want) return true;
+      if (row.github && low(row.github.full_name).split("/").pop() === want) return true;
+      const listedPath = String(listed.path || "").replace(/\/+$/, "");
+      return (row.clones || []).some(c => {
+        const cp = String(c.path || "").replace(/\/+$/, "");
+        return (listedPath && cp === listedPath) || low(cp.split("/").pop()) === want;
+      });
+    };
     for (const pr of projects) {
-      const names = new Set((pr.repos || []).map(r => r.name));
-      const rows = visibleRows.filter(r => !rowIsMurmurentInfra(r) && names.has(r.name));
+      const rows = [];
+      for (const listed of (pr.repos || [])) {
+        const found = allRows.filter(r => matches(r, listed));
+        if (found.length) found.forEach(r => { if (!rows.includes(r)) rows.push(r); });
+        else rows.push({ key: "missing:" + pr.name + ":" + listed.name, name: listed.name,
+                         clones: [], missing: true });
+      }
       if (rows.length) out.push({ title: pr.name, isProject: true, rows });
       rows.forEach(r => placed.add(r));
     }
-    const loose = visibleRows.filter(r => !placed.has(r));
+    const left = visibleRows.filter(r => !placed.has(r));
+    const infraRows = left.filter(rowIsMurmurentInfra);
+    if (infraRows.length) out.push({ title: "Murmurent's own repos", rows: infraRows });
+    const loose = left.filter(r => !rowIsMurmurentInfra(r));
     if (loose.length) out.push({ title: "Not in a project", rows: loose });
     return out;
   })();
@@ -917,8 +964,9 @@ function RepoInventoryPanel({ span = "c-12" }) {
             </li>
           </ul>
           <div style={{marginTop:6}}>
-            Repos are grouped by the project they belong to; a project whose only
-            repo has its own name is one line marked <strong>project</strong>.
+            Repos are grouped by the project they belong to. Each project has a
+            shaded heading marked <strong>project</strong>, with its repos below;
+            a project whose only repo has its own name is one shaded line.
             A repo belongs to a project only when that project's record lists
             it. Making a repo murmurent-ready puts it in a one-repo project of its
             own, and ＋ new project groups repos together. So a repo that is not
@@ -947,14 +995,14 @@ function RepoInventoryPanel({ span = "c-12" }) {
             <strong>warnings:</strong> {report.errors.join(" · ")}
           </div>
         )}
-        {!busy && visibleRows.length === 0 && !err && (
+        {!busy && groups.length === 0 && !err && (
           <div style={{padding:"14px 16px", color:"var(--muted)", fontSize:12, fontFamily:"var(--mono)"}}>
             No cloned repos found. Click Refresh to scan, or toggle
             "include GitHub-only rows" to see the {stats ? stats.ghOnly : "—"} repos on
             GitHub that aren't cloned anywhere.
           </div>
         )}
-        {visibleRows.length > 0 && (
+        {groups.length > 0 && (
           // width:auto + table-layout:auto override the .dt defaults
           // (100% + fixed), so columns size to their content instead of the
           // repo column hogging all the slack and the host cells being crushed
@@ -975,7 +1023,8 @@ function RepoInventoryPanel({ span = "c-12" }) {
               {groups.map(g => {
                 // A project whose only repo has its own name is shown as one
                 // line, marked "project", not a heading plus a repo (#207).
-                const single = g.isProject && g.rows.length === 1 && g.rows[0].name === g.title;
+                const single = g.isProject && g.rows.length === 1 && !g.rows[0].missing
+                  && String(g.rows[0].name).toLowerCase() === String(g.title).toLowerCase();
                 if (single) {
                   const r = g.rows[0];
                   return (
@@ -986,21 +1035,33 @@ function RepoInventoryPanel({ span = "c-12" }) {
                 }
                 return (
                 <React.Fragment key={"g:" + g.title}>
-                  <tr>
+                  <tr style={{background: g.isProject ? PROJECT_TINT : "var(--paper-2, #f4f2ee)"}}>
                     <td colSpan={3 + knownHosts.length}
-                        style={{paddingTop:12, fontWeight:600, fontSize:12.5,
+                        style={{paddingTop:8, paddingBottom:6, fontWeight:600, fontSize:12.5,
                                 color: g.isProject ? "var(--purple-deep)" : "var(--muted)",
+                                borderTop:"1px solid var(--rule-strong)",
                                 borderBottom:"1px solid var(--rule-strong)"}}>
-                      {g.isProject ? "project: " : ""}{g.title}
+                      {g.isProject && <span style={{marginRight:6}}><Pill tone="purple">project</Pill></span>}
+                      {g.title}
                       <span className="mono muted" style={{fontWeight:400, fontSize:10.5, marginLeft:8}}>
                         {g.rows.length} repo{g.rows.length === 1 ? "" : "s"}
                       </span>
                     </td>
                   </tr>
-                  {g.rows.map((r, i) => (
+                  {g.rows.map((r, i) => r.missing ? (
+                    <tr key={g.title + ":" + r.key}>
+                      <td colSpan={3 + knownHosts.length} style={{fontSize:12, paddingLeft:22}}>
+                        <strong>{r.name}</strong>
+                        <span className="muted" style={{marginLeft:8, fontSize:11}}>
+                          listed in this project, but not found on this machine or on GitHub
+                        </span>
+                      </td>
+                    </tr>
+                  ) : (
                     <RepoInventoryRow
                       key={g.title + ":" + r.key + ":" + i}
                       row={r}
+                      indent={g.isProject}
                       knownHosts={knownHosts}
                       onAdopt={(ctx) => setAdoptCtx(ctx)}
                       onUpgrade={doUpgrade}
@@ -1073,7 +1134,11 @@ function rowIsMurmurentInfra(row) {
   return false;
 }
 
-function RepoInventoryRow({ row, knownHosts, onAdopt, onUpgrade, upgrading, onRemove, projectBadge }) {
+// Background of a project's heading in the Repos panel, so a project stands
+// out from the repos listed under it.
+const PROJECT_TINT = "rgba(111, 77, 168, 0.10)";
+
+function RepoInventoryRow({ row, knownHosts, onAdopt, onUpgrade, upgrading, onRemove, projectBadge, indent }) {
   const gh = row.github;
   const cloneByHost = {};
   for (const c of (row.clones || [])) cloneByHost[c.host] = c;
@@ -1215,8 +1280,8 @@ function RepoInventoryRow({ row, knownHosts, onAdopt, onUpgrade, upgrading, onRe
   };
 
   return (
-    <tr>
-      <td style={{fontSize:12}}>
+    <tr style={projectBadge ? {background: PROJECT_TINT} : undefined}>
+      <td style={{fontSize:12, paddingLeft: indent ? 22 : undefined}}>
         {projectBadge && (
           <span style={{marginRight:6}} title="This repo is a project of its own (same name)">
             <Pill tone="purple">project</Pill>
@@ -3610,10 +3675,6 @@ function AgentVersionsModal({ name, onClose }) {
            display:"flex", flexDirection:"column", gap:8, fontSize:13}}>
         <h2 style={{margin:0, fontFamily:"var(--serif)", fontSize:18, color:"var(--purple-deep)",
                     textTransform:"capitalize"}}>{name}: versions</h2>
-        <div className="muted" style={{fontSize:12, lineHeight:1.5}}>
-          Most specific wins: your version for one project, the project's, yours
-          for all projects, the lab's, the centre's.
-        </div>
         {v.everywhere && <div>Everywhere: <strong>{v.everywhere.label}</strong></div>}
         <label className="mono muted" style={{fontSize:11}}>project</label>
         <select value={project} onChange={e => setProject(e.target.value)}
@@ -6815,14 +6876,13 @@ function MachineCard({ machine, isCurrent, onEditClick, onRemove, onScanDirsSave
               "oracle", "lab-notebook",
               machine.murmurent_data_subfolder || "murmurent_data",
             ]} />}
-        {/* Files (data root) — its two governed children (resolved
-            immutable/append_only, or legacy raw/refined) nested underneath
-            (issue #80 Part 1a). */}
+        {/* Files (data root): every folder of the lab folder protocol (#206)
+            with what it is for, greyed where it does not exist here. */}
         <div><span style={labelStyle}>Files</span>
           <code className="mono">{!_pathUnset(wb) ? wb : <span className="muted">—</span>}</code></div>
         {_pathUnset(wb)
           ? <NoRootLine label="data root" />
-          : <PathTree root={wb} children={[
+          : <LabFolderTree root={wb} folders={machine.data_folders} fallback={[
               machine.data_immutable_name || "immutable",
               machine.data_append_only_name || "append_only",
             ]} />}
@@ -7221,6 +7281,7 @@ function MachinesModal({ onClose }) {
     murmurent_data_subfolder: ms.murmurent_data_subfolder || "murmurent_data",
     data_immutable_name:      ms.data_immutable_name      || "immutable",
     data_append_only_name:    ms.data_append_only_name    || "append_only",
+    data_folders:             ms.data_folders             || [],
     // Lab (group) vault clone = the lab-mgmt clone (issue #25); its path is
     // the resolved lab_mgmt_path from lab settings, not a machine.yaml field.
     lab_vault_path: (window.DATA.lab_settings || {}).lab_mgmt_path || "",
@@ -7338,6 +7399,7 @@ function MachinesPanel({ span = "c-5" }) {
     murmurent_data_subfolder: ms.murmurent_data_subfolder || "murmurent_data",
     data_immutable_name:      ms.data_immutable_name      || "immutable",
     data_append_only_name:    ms.data_append_only_name    || "append_only",
+    data_folders:             ms.data_folders             || [],
     // Lab (group) vault clone = the lab-mgmt clone (issue #25); its path is
     // the resolved lab_mgmt_path from lab settings, not a machine.yaml field.
     lab_vault_path: (window.DATA.lab_settings || {}).lab_mgmt_path || "",

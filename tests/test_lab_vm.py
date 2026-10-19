@@ -14,8 +14,12 @@ def _clear_env(monkeypatch):
 
 def test_data_root_default(monkeypatch):
     _clear_env(monkeypatch)
-    assert lab_vm.data_root() == Path("~/lab_vm/data").expanduser()
-    assert lab_vm.lab_vm_root() == Path("~/lab_vm/data").expanduser()
+    # The built-in default (conftest points it at a temp folder so no test can
+    # touch a real lab folder; the shipped value is ~/lab_vm/data).
+    assert lab_vm.data_root() == lab_vm.DEFAULT_LAB_VM_ROOT
+    assert lab_vm.lab_vm_root() == lab_vm.DEFAULT_LAB_VM_ROOT
+    import importlib
+    assert importlib.reload(lab_vm).DEFAULT_LAB_VM_ROOT == Path("~/lab_vm/data").expanduser()
 
 
 def test_data_root_prefers_new_env(monkeypatch, tmp_path):
