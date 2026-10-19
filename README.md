@@ -1,5 +1,13 @@
 # Murmurent: development repository
 
+<!-- Badges: images drawn by shields.io from live data (PyPI, GitHub). -->
+[![Latest release](https://img.shields.io/github/v/release/hallettmiket/murmurent?label=release)](https://github.com/hallettmiket/murmurent/releases)
+[![PyPI](https://img.shields.io/pypi/v/murmurent?label=PyPI)](https://pypi.org/project/murmurent/)
+[![Open issues](https://img.shields.io/github/issues/hallettmiket/murmurent_dev)](https://github.com/hallettmiket/murmurent_dev/issues)
+[![Last commit](https://img.shields.io/github/last-commit/hallettmiket/murmurent_dev)](https://github.com/hallettmiket/murmurent_dev/commits/main)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
+[![Docs preview](https://img.shields.io/badge/docs-preview-6f4da8)](https://mikehallett.science/murmurent_dev/)
+
 This is where Murmurent is written. **To install and use Murmurent, go to
 [hallettmiket/murmurent](https://github.com/hallettmiket/murmurent) instead.**
 
