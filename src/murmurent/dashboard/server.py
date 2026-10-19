@@ -748,11 +748,15 @@ def create_app() -> FastAPI:
         def _pull_both() -> None:
             from ..core import roster_sync as _rs
             from ..core import vault_sync as _vs
-            for name, fn in (("lab roster", _rs.pull_lab_mgmt), ("vault", _vs.pull_personal_vault)):
+            # The vault is synced both ways: this machine's notes, including
+            # ones typed in Obsidian, are sent, then the other machines' come in.
+            for name, fn in (("lab roster", _rs.pull_lab_mgmt),
+                             ("vault", lambda: _vs.sync("vault sync (dashboard, automatic)"))):
                 try:
                     res = fn()
                     if not res.ok:
-                        _log.info("auto-pull of the %s did not run: %s", name, res.detail)
+                        _log.info("auto-sync of the %s did not run: %s", name,
+                                  getattr(res, "detail", None) or getattr(res, "message", ""))
                 except Exception as exc:  # noqa: BLE001
                     _log.info("auto-pull of the %s failed: %s", name, exc)
             timer = _threading.Timer(15 * 60, _pull_both)
@@ -2700,24 +2704,14 @@ def create_app() -> FastAPI:
                 "as_of": "",
             }
 
-        commit = _vs.commit_and_push(root, message="vault sync (dashboard)")
-        pull = _vs.pull_personal_vault()
-        diverged = (not pull.ok) and _vs.is_divergence(pull.detail)
-
-        if diverged:
-            message = ("Vault diverged — you have unsynced edits on another "
-                       "machine. Reconcile there (push), then sync here.")
-        else:
-            push_part = "pushed" if commit.pushed else f"push: {commit.detail}"
-            pull_part = "pulled" if pull.ok else f"pull: {pull.detail}"
-            message = f"{push_part}; {pull_part}"
-
+        res = _vs.sync("vault sync (dashboard)")
         return {
-            "pushed": bool(commit.pushed),
-            "pulled": bool(pull.ok) and not diverged,
-            "diverged": diverged,
-            "message": message,
-            "as_of": pull.as_of or _vs.vault_info().as_of,
+            "pushed": res.pushed,
+            "pulled": res.pulled,
+            "diverged": res.diverged,
+            "kept_local": res.kept_local,
+            "message": res.message,
+            "as_of": res.as_of or _vs.vault_info().as_of,
         }
 
     @app.post("/api/members")

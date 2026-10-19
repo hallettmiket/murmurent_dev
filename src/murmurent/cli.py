@@ -2274,7 +2274,9 @@ def vault_paths_cmd() -> None:
     click.echo(_json.dumps(_vp.resolve_vault_paths(), indent=2))
 
 
-@vault_group.command("sync", help="Commit + push pending personal-vault changes (best-effort).")
+@vault_group.command("sync", help="Send this machine's vault changes to GitHub, then bring in "
+                                  "your other machines'. Notes marked protected or restricted stay "
+                                  "here. Also happens by itself; this is for 'now'.")
 def vault_sync_cmd() -> None:
     from .core import vault_sync as _vs
 
@@ -2283,11 +2285,13 @@ def vault_sync_cmd() -> None:
         raise click.ClickException(
             "no personal vault registered — run `murmurent vault init` or set the "
             "vault path in Machine settings.")
-    res = _vs.commit_and_push(root, message="vault: sync personal Oracle + lab-notebook")
+    res = _vs.sync("vault sync (murmurent vault sync)")
     click.echo(f"Personal vault: {root}")
-    click.echo(f"  committed: {'yes' if res.committed else 'no'} · "
-               f"pushed: {'yes' if res.pushed else 'no'}")
-    click.echo(f"  {res.detail}")
+    click.echo(f"  {res.message}")
+    for rel in res.kept_local:
+        click.echo(f"  kept on this machine: {rel}")
+    if res.diverged:
+        raise SystemExit(1)
 
 
 @vault_group.command("info", help="Show the personal vault's clone path + freshness (no network).")
