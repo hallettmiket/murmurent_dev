@@ -124,8 +124,9 @@ murmurent space decide 15 keep --note "needed for the revision"
 murmurent space decide 15 undo
 ```
 
-The choices are keep, delete, mothball, compress and move. Recording a
-decision changes nothing on disk. Scanning again keeps every decision.
+The PI can also record a decision on the dashboard's Space page: each row has
+a "Decide" column. The choices are keep, delete, mothball, compress and move.
+Recording a decision changes nothing on disk. Scanning again keeps every decision.
 
 ## Carry out decisions
 
@@ -302,4 +303,3 @@ pressing items gives sizes but no file names.
 
 - It does not remove files: `carry-out` copies and checks, and a person
   removes the originals.
-- Rows cannot yet be decided from the dashboard; use `murmurent space decide`.

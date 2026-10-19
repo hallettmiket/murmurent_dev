@@ -413,6 +413,40 @@ def test_the_page_of_rows_is_for_the_pi_only(lab, monkeypatch):
     assert ok.status_code == 200 and ok.json()["total"] == 1
 
 
+
+def test_the_pi_can_decide_a_row_from_the_dashboard(lab, monkeypatch):
+    from fastapi.testclient import TestClient
+
+    from murmurent.core import membership
+    from murmurent.dashboard.server import create_app
+    sl.scan_lab()
+    client = TestClient(create_app())
+    monkeypatch.setattr(membership, "pi_handle", lambda: "the_pi")
+    rid = st.rows_page(st.connect())["rows"][0]["id"]
+    body = {"row": rid, "decision": "keep"}
+    assert client.post("/api/space/decide", json={**body, "user": "student"}).status_code == 403
+    ok = client.post("/api/space/decide", json={**body, "user": "the_pi"})
+    assert ok.status_code == 200 and "recorded 'keep'" in ok.json()["message"]
+    assert st.get_row(st.connect(), rid)["decided_by"] == "the_pi"
+    bad = client.post("/api/space/decide", json={**body, "decision": "burn", "user": "the_pi"})
+    assert bad.status_code == 400
+
+
+def test_a_decision_is_sent_to_the_server_over_ssh(lab, monkeypatch):
+    from murmurent.core import hosts
+    from murmurent.core import remote
+    monkeypatch.setattr(hosts, "resolve", lambda name: hosts.Host(name=name, kind="ssh"))
+    seen = []
+
+    def fake_run(self, command, **kw):
+        seen.append(command)
+        return remote.RemoteResult(host="server", command=command, returncode=0, stderr="",
+                                   stdout="Row 7: recorded 'mothball' for x.\n")
+
+    monkeypatch.setattr(remote.Remote, "run", fake_run)
+    assert sl.decide_row("server", 7, "mothball", note="old run") == "Row 7: recorded 'mothball' for x."
+    assert seen == ["murmurent space decide 7 mothball --note 'old run'"]
+
 # ---------------------------------------------------------------------------
 # The PI can turn the audit off; when it is not set up, it fails plainly (#185)
 # ---------------------------------------------------------------------------

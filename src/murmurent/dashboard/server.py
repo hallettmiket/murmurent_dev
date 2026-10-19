@@ -202,6 +202,16 @@ class MachineSettingsBody(BaseModel):
     repos_root: str | None = None
 
 
+class SpaceDecideBody(BaseModel):
+    """A decision on one row of the space table (#151)."""
+
+    row: int
+    decision: str
+    note: str = ""
+    host: str = ""
+    user: str = ""
+
+
 class NewPersonalAgentBody(BaseModel):
     """JSON body for ``POST /api/agents/new`` — create a personal agent.
 
@@ -3096,6 +3106,26 @@ def create_app() -> FastAPI:
                                   min_size=min_size, limit=limit, offset=offset)
         except _sl.FetchError as exc:
             raise HTTPException(status_code=502, detail=str(exc))
+
+    @app.post("/api/space/decide")
+    def space_decide_endpoint(body: SpaceDecideBody) -> dict:
+        """Record the PI's decision on one row of the space table (#151), here or
+        on ``host`` over SSH. Only records it; carrying it out is
+        ``murmurent space carry-out``."""
+        from ..core import membership as _m
+        from ..core import space_lab as _sl
+        actor = _resolve_actor(body.user)
+        _require_active(actor)
+        if actor.lower() != _m.pi_handle().lower():
+            raise HTTPException(status_code=403, detail="Only the PI can decide on the lab's space table.")
+        if _sl.audit_setting() == "off":
+            raise HTTPException(status_code=409, detail=_sl.TURNED_OFF)
+        try:
+            text = _sl.decide_row(body.host, body.row, body.decision, note=body.note,
+                                  by=actor)
+        except _sl.FetchError as exc:
+            raise HTTPException(status_code=400, detail=str(exc))
+        return {"ok": True, "message": text}
 
     @app.get("/api/security/findings")
     @_scoped_to_viewer
