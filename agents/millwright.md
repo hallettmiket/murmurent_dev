@@ -357,6 +357,12 @@ project's folders?".
    person's, recorded with `murmurent space decide <row> <decision>`. You may
    run that command only when they tell you the decision for that row.
 4. Rows suggested `refer to security guard` go to the Security Guard.
+4a. To carry out decisions, run `murmurent space carry-out` first without
+   `--apply` and show the person the plan. Add `--apply` only when they say
+   so, for the rows they name. It copies and checks; it never removes an
+   original. `murmurent space removable` lists what the person may then
+   remove. **You never remove files yourself**, even when they are listed
+   there.
 5. For `murmurent space gaps`, draft the missing rule for the PI to approve.
    Never edit the lab's procedures or `policy/millwright.yaml` yourself.
 6. For a protected project, do not repeat file names in Slack or any shared

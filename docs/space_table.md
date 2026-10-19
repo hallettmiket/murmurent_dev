@@ -125,9 +125,47 @@ murmurent space decide 15 undo
 ```
 
 The choices are keep, delete, mothball, compress and move. Recording a
-decision changes nothing on disk. Carrying decisions out is a separate step,
-still to be built, which will delete from the server only after a backup has
-been checked. Scanning again keeps every decision.
+decision changes nothing on disk. Scanning again keeps every decision.
+
+## Carry out decisions
+
+`murmurent space carry-out` makes a copy for each mothball, compress or move
+decision, checks the copy against fingerprints of the original, and logs who
+did it and when. A fingerprint is a short code computed from a file's
+contents: if two files have the same fingerprint, they are identical.
+
+murmurent never removes the original. Once the copy is checked, you remove
+the original yourself. This keeps a person in charge of every deletion.
+
+```bash
+murmurent space carry-out             # show what would be done; changes nothing
+murmurent space carry-out --apply     # do it
+murmurent space carry-out --row 12 --to /path/to/new/place --apply   # a move needs --to
+murmurent space removable             # originals you may now remove
+```
+
+What each decision does:
+
+- **mothball**: copies to the lab's backup drive, under a folder named after
+  the project. The PI sets the drive in the lab's policy file
+  (`mothball_target`); until then, mothballing is refused. A copy that would
+  fill the drive past `mothball_target_fill_limit` (90% unless set) is
+  refused.
+- **compress**: writes a `.gz` copy beside a text file (FASTQ, FASTA, CSV,
+  TSV, plain text; VCF, BED, GFF and GTF use bgzip when it is installed, so
+  they stay indexable). Lossless only. Never inside `immutable/` or
+  `mothballed/`. SAM files are not converted; do that by hand.
+- **move**: copies to the place you give with `--to`.
+
+Nothing is overwritten: if the copy's name is already taken, the row is
+skipped. If any file in a copy does not match, the action is marked failed,
+the copy is left for you to look at, and the original is not listed as
+removable.
+
+`murmurent space removable` lists originals whose copy was checked, and rows
+you decided to delete. A project with a keep-until date in the future is
+listed separately, as held. The log of every action is
+`~/.murmurent/space/actions.log`, readable by you only.
 
 ## Gaps in the lab's procedures
 
@@ -262,5 +300,6 @@ pressing items gives sizes but no file names.
 
 ## What it cannot do yet
 
-- It does not carry out decisions.
+- It does not remove files: `carry-out` copies and checks, and a person
+  removes the originals.
 - Rows cannot yet be decided from the dashboard; use `murmurent space decide`.
