@@ -905,7 +905,10 @@ function RepoInventoryPanel({ span = "c-12" }) {
         else rows.push({ key: "missing:" + pr.name + ":" + listed.name, name: listed.name,
                          clones: [], missing: true });
       }
-      if (rows.length) out.push({ title: pr.name, isProject: true, rows });
+      // A project is a choreography when its record names one, or when one of
+      // its repos is a choreography repo (.murmurent.yaml kind: choreography).
+      const choreo = pr.choreo || (rows.some(rowIsChoreography) ? pr.name : "");
+      if (rows.length) out.push({ title: pr.name, isProject: true, choreo, rows });
       rows.forEach(r => placed.add(r));
     }
     const left = visibleRows.filter(r => !placed.has(r));
@@ -975,8 +978,7 @@ function RepoInventoryPanel({ span = "c-12" }) {
           </ul>
           <div style={{marginTop:6}}>
             Repos are grouped by the project they belong to. Each project has a
-            shaded heading marked <strong>project</strong>, with its repos below;
-            a project whose only repo has its own name is one shaded line.
+            shaded heading marked <strong>project</strong>, with its repos below.
             A repo belongs to a project only when that project's record lists
             it. Making a repo murmurent-ready puts it in a one-repo project of its
             own, and ＋ new project groups repos together. So a repo that is not
@@ -1033,16 +1035,6 @@ function RepoInventoryPanel({ span = "c-12" }) {
               {groups.map(g => {
                 // A project whose only repo has its own name is shown as one
                 // line, marked "project", not a heading plus a repo (#207).
-                const single = g.isProject && g.rows.length === 1 && !g.rows[0].missing
-                  && String(g.rows[0].name).toLowerCase() === String(g.title).toLowerCase();
-                if (single) {
-                  const r = g.rows[0];
-                  return (
-                    <RepoInventoryRow key={"g:" + g.title} row={r} knownHosts={knownHosts}
-                      projectBadge onAdopt={(ctx) => setAdoptCtx(ctx)} onUpgrade={doUpgrade}
-                      upgrading={upgrading} onRemove={(ctx) => setRemoveCtx(ctx)} />
-                  );
-                }
                 return (
                 <React.Fragment key={"g:" + g.title}>
                   <tr style={{background: g.isProject ? PROJECT_TINT : "var(--paper-2, #f4f2ee)"}}>
@@ -1052,6 +1044,13 @@ function RepoInventoryPanel({ span = "c-12" }) {
                                 borderTop:"1px solid var(--rule-strong)",
                                 borderBottom:"1px solid var(--rule-strong)"}}>
                       {g.isProject && <span style={{marginRight:6}}><Pill tone="purple">project</Pill></span>}
+                      {g.choreo && (
+                        <span style={{marginRight:6}}
+                              title={"This project runs a choreography: a written, repeatable workflow" +
+                                     (g.choreo !== g.title ? " (" + g.choreo + ")" : "") + "."}>
+                          <span style={CHOREO_PILL}>choreography</span>
+                        </span>
+                      )}
                       {g.title}
                       <span className="mono muted" style={{fontWeight:400, fontSize:10.5, marginLeft:8}}>
                         {g.rows.length} repo{g.rows.length === 1 ? "" : "s"}
@@ -1131,6 +1130,20 @@ function isMurmurentInfraName(name) {
   const n = String(name || "").trim().split("/").pop();
   return n === "murmurent" || n.startsWith("murmurent_");
 }
+
+/* Is this inventory row a choreography repo (its .murmurent.yaml says
+   kind: choreography on some machine)? */
+function rowIsChoreography(row) {
+  return (row.clones || []).some(c => c.is_choreography);
+}
+
+// The label for a choreography: teal, so it reads apart from the purple
+// "project" label beside it.
+const CHOREO_PILL = {
+  fontFamily:"var(--mono)", fontSize:10, letterSpacing:0.5, padding:"1px 6px",
+  borderRadius:2, color:"#1f6f6b", background:"rgba(31,111,107,0.10)",
+  border:"1px solid rgba(31,111,107,0.35)", fontWeight:500,
+};
 
 /* Is this whole inventory row a murmurent-infra repo? True if the server flagged
    any clone, OR the repo/clone name matches the classifier (covers stale caches
@@ -1564,6 +1577,16 @@ function RemoveRepoModal({ repo, onClose }) {
     </div>
   );
 }
+
+// Column styles for the Projects table: one line per cell, a minimum width
+// each, and room between columns. Shared by the header and every row.
+const PROJ_COL = {
+  project:  { whiteSpace:"nowrap", minWidth:160, width:"1%", paddingRight:24 },
+  sens:     { whiteSpace:"nowrap", minWidth:90,  width:"1%", paddingRight:20 },
+  lead:     { whiteSpace:"nowrap", minWidth:120, width:"1%", paddingRight:20 },
+  team:     { whiteSpace:"nowrap", minWidth:50,  width:"1%", paddingRight:20 },
+  activity: { whiteSpace:"nowrap", minWidth:110 },
+};
 
 /* ───────── stat strip ───────── */
 function Strip({ persona }) {
@@ -2406,22 +2429,23 @@ function ProjectsPanel({ projects, span="c-5" }) {
         </div>
       )}
       <div className="body" style={{padding:0}}>
-        {/* Columns sized to their contents (tableLayout auto, each 1% wide and
-            unwrapped), so the project names do not leave a wide gap before
-            sens.; the activity column takes the spare width at the right. */}
+        {/* Columns fit their contents on one line (tableLayout auto, every
+            cell unwrapped, each with a minimum width), so neither a wide gap
+            opens before sens. nor a name like "M. Hallett" breaks over two
+            lines. The activity column takes the spare width at the right. */}
         <table className="dt" style={{tableLayout:"auto"}}>
           <thead><tr>
-            <th style={{width:"1%", whiteSpace:"nowrap", paddingRight:28}}>project</th>
-            <th style={{width:"1%", whiteSpace:"nowrap", paddingRight:20}}>sens.</th>
-            <th style={{width:"1%", whiteSpace:"nowrap", paddingRight:20}}>lead</th>
-            <th style={{width:"1%", whiteSpace:"nowrap", paddingRight:20}} className="num">team</th>
-            <th>activity</th>
+            <th style={{...PROJ_COL.project}}>project</th>
+            <th style={{...PROJ_COL.sens}}>sens.</th>
+            <th style={{...PROJ_COL.lead}}>lead</th>
+            <th style={{...PROJ_COL.team}} className="num">team</th>
+            <th style={{...PROJ_COL.activity}}>activity</th>
           </tr></thead>
           <tbody>
             {projects.map(p => (
               <React.Fragment key={p.name}>
                 <tr style={{cursor:"pointer"}} onClick={() => setOpenProj(openProj === p.name ? null : p.name)}>
-                  <td style={{whiteSpace:"nowrap", paddingRight:28}}>
+                  <td style={{...PROJ_COL.project}}>
                     <div style={{fontWeight:500, display:"inline-flex", alignItems:"center", gap:6}}>
                       {p.name}
                       {p.is_cert && (
@@ -2456,10 +2480,10 @@ function ProjectsPanel({ projects, span="c-5" }) {
                     </div>
                     <div className="mono muted" style={{fontSize:11}}>{p.choreo}</div>
                   </td>
-                  <td><Pill tone={(p.sens==="protected"||p.sens==="clinical")?"red":""}>{p.sens}</Pill></td>
-                  <td className="mono" style={{fontSize:12, paddingLeft:14}}>{p.lead}</td>
-                  <td className="num">{p.members}</td>
-                  <td className="muted" style={{fontSize:12}}>
+                  <td style={{...PROJ_COL.sens}}><Pill tone={(p.sens==="protected"||p.sens==="clinical")?"red":""}>{p.sens}</Pill></td>
+                  <td className="mono" style={{...PROJ_COL.lead, fontSize:12}}>{p.lead}</td>
+                  <td className="num" style={{...PROJ_COL.team}}>{p.members}</td>
+                  <td className="muted" style={{...PROJ_COL.activity, fontSize:12}}>
                     {p.last_activity}
                     {(p.activity === "quiet" || p.activity === "dormant") && (
                       <span style={{marginLeft:6}}
