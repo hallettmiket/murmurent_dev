@@ -6131,15 +6131,16 @@ function PersonalOraclePanel({ data, span="c-4" }) {
   const [vault, setVault] = useState(null);
   const [vaultBusy, setVaultBusy] = useState(false);
   useEffect(() => { getVaultInfo().then(setVault).catch(() => {}); }, []);
+  // Sync vault: send this machine's notes to GitHub, then bring in the other
+  // machines'. It also happens on its own (dashboard start, every 15 minutes,
+  // and whenever a Claude Code session writes a note); this is for "now".
+  const [syncMsg, setSyncMsg] = useState("");
   const onVaultUpdate = async () => {
-    setVaultBusy(true);
+    setVaultBusy(true); setSyncMsg("");
     try {
-      const r = await postVaultRefresh();
-      setVault(r);
-      if (r.is_git && !r.ok) {
-        alert("Vault pull failed: " + (r.detail || "unknown error") +
-              "\n\nShowing the cached vault from " + (r.as_of ? r.as_of.slice(0, 10) : "an unknown date") + ".");
-      }
+      const r = await postVaultSync();
+      setSyncMsg(r.message || "");
+      setVault(await getVaultInfo().catch(() => vault));
       if (typeof window.__murmurentFetchData === "function") {
         try { await window.__murmurentFetchData(window.DATA.persona); } catch (_) {}
       }
@@ -6158,8 +6159,11 @@ function PersonalOraclePanel({ data, span="c-4" }) {
           )}
           {vault && vault.is_git && (
             <button className="btn sm" disabled={vaultBusy} onClick={onVaultUpdate}
-                    title="Pull your personal vault (--ff-only) from GitHub, then refresh this panel">
-              {vaultBusy ? "…" : "update"}
+                    title={"Send this machine's notes to GitHub, then bring in your other machines'. "
+                         + "This also happens by itself: when the dashboard starts, every 15 minutes, "
+                         + "and whenever a Claude Code session writes a note. Notes marked protected "
+                         + "or restricted stay on this machine."}>
+              {vaultBusy ? "syncing…" : "⇅ Sync vault"}
             </button>
           )}
           <span style={{fontFamily:"var(--mono)", fontSize:10, letterSpacing:0.5,
@@ -6174,6 +6178,7 @@ function PersonalOraclePanel({ data, span="c-4" }) {
            fontSize:11, borderBottom:"1px solid var(--rule)"}}>
         <code className="mono">{block.folder}</code>
         <span style={{marginLeft:8}}>{block.entry_count} entries</span>
+        {syncMsg && <span style={{marginLeft:8}}>· {syncMsg}</span>}
       </div>
       {vh.status === "blocked" && (
         <div style={{margin:"8px 14px", padding:"8px 10px", borderRadius:3,

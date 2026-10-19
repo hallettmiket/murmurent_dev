@@ -28,7 +28,7 @@ def _init_repo(root: Path) -> None:
 
 def _init_repo_with_remote(root: Path, remote: Path) -> None:
     """A working clone at ``root`` wired to a bare remote at ``remote``."""
-    subprocess.run(["git", "init", "-q", "--bare", str(remote)], check=True)
+    subprocess.run(["git", "init", "-q", "--bare", "-b", "main", str(remote)], check=True)
     _init_repo(root)
     (root / "seed.md").write_text("seed\n", encoding="utf-8")
     _git(root, "add", "-A")
