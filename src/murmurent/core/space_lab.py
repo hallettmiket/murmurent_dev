@@ -814,6 +814,44 @@ def fetch_rows(host_name: str = "", **filters) -> dict:
     return data
 
 
+def decide_row(host_name: str, row: int, decision: str, *, note: str = "",
+               by: str = "") -> str:
+    """Record a decision on one row of the space table, here or on a registered
+    host over SSH (where ``murmurent space decide`` records it). Returns one
+    plain sentence. Nothing is carried out."""
+    import shlex
+    choice = decision.strip().lower()
+    if choice not in _st.DECISIONS and choice != "undo":
+        raise FetchError(f"{decision!r} is not a decision. Use one of: "
+                         f"{', '.join(_st.DECISIONS)}, or undo.")
+    host = None
+    if host_name:
+        from . import hosts as _hosts
+        try:
+            host = _hosts.resolve(host_name)
+        except Exception as exc:  # noqa: BLE001
+            raise FetchError(f"no host named {host_name!r}. List them with: "
+                             "murmurent host list") from exc
+    if host is None or not host.is_remote():
+        try:
+            _st.decide(_st.connect(), int(row), choice,
+                       by=by or _pu.local_handle() or "unknown", note=note)
+        except _st.DecisionError as exc:
+            raise FetchError(str(exc)) from exc
+        return f"Row {row}: recorded '{choice}'."
+    from .remote import Remote, RemoteError
+    parts = ["murmurent", "space", "decide", str(int(row)), choice]
+    if note:
+        parts += ["--note", note]
+    try:
+        out = Remote(host).run(" ".join(shlex.quote(p) for p in parts), timeout=60)
+    except RemoteError as exc:
+        text = (exc.stderr or exc.stdout or str(exc)).strip()
+        raise FetchError(_plain_fetch_error(host_name, text or str(exc), "decision")) from exc
+    line = next((ln for ln in out.stdout.splitlines() if ln.startswith(f"Row {row}:")), "")
+    return line or f"Row {row}: recorded '{choice}' on {host_name}."
+
+
 def _local_rows(**filters) -> dict:
     """This computer's space table, read without creating it."""
     try:
