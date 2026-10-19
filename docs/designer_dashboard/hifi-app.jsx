@@ -6356,7 +6356,7 @@ function NotebookPanel({ span="c-9" }) {
           </div>
         ))}
       </div>
-      <div className="body" style={{padding:"16px 22px 22px"}}>
+      <div className="body" style={{padding:"16px 22px 22px", maxHeight:"36em", overflowY:"auto"}}>
         <window.NbToday />
       </div>
     </div>
