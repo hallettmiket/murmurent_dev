@@ -344,6 +344,13 @@ function UpdateBanner() {
     ? "You have " + st.current_version + " in " + copy + "."
     : copy + " has " + n + " new change" + (n === 1 ? "" : "s") + " on GitHub"
       + (st.current_version ? " (still version " + st.current_version + ")" : "") + ".";
+  // A copy left on another branch (often a merged pull request's) is compared
+  // with main; say so, since update will switch it back to main.
+  const offMain = st.branch && st.on_main === false;
+  const branchLine = offMain
+    ? " This copy is on the branch " + st.branch + ", not main" +
+      (diverged ? "." : "; update switches it back to main (the branch is kept).")
+    : "";
   // Version skew: the JSX is served fresh from disk, so it can be newer than the
   // running server. `can_self_update` is returned only by servers that also have
   // POST /api/murmurent/update — gate the button on it so we never offer a click
@@ -408,7 +415,7 @@ function UpdateBanner() {
       </span>
       <span className="muted"
             title={(st.root ? "checked " + st.root + " · " : "") + "commit " + st.current + " → " + st.latest}>
-        {updateLine}
+        {updateLine}{branchLine}
       </span>
       {(st.changes || []).length > 0 && (
         <details style={{fontSize:12}}>
@@ -421,7 +428,9 @@ function UpdateBanner() {
       {failed
         ? <span className="muted" style={{color:"var(--tiger-deep)"}}>{msg}</span>
         : diverged
-          ? <span className="muted">Your install has local changes. Bring <code>{st.root || "your murmurent folder"}</code> up to date by hand first.</span>
+          ? <span className="muted">{offMain
+              ? <>That branch has changes of its own, or uncommitted edits. Commit or set them aside, then run <code className="mono">git -C {st.root || "your murmurent folder"} checkout main</code> and reload.</>
+              : <>Your install has local changes. Bring <code>{st.root || "your murmurent folder"}</code> up to date by hand first.</>}</span>
           : !canSelfUpdate
             ? <span className="muted">Your dashboard is running older code than what's on disk — restart it to enable one-click update: <code className="mono">murmurent dashboard --hifi</code>, then reload.</span>
             : <>
@@ -450,8 +459,10 @@ function RunningCodeBadge() {
     <span title={tip} style={{
       marginLeft:14, fontFamily:"var(--mono)", fontSize:11, padding:"1px 8px",
       borderRadius:10, whiteSpace:"nowrap",
-      color: isDev ? "#7a3fb0" : "var(--muted)",
-      border: "1px solid " + (isDev ? "#7a3fb0" : "var(--rule-strong)"),
+      // Light text on the purple top bar: purple or grey text there could
+      // hardly be read. A development copy gets a stronger outline.
+      color: "#fff", background: "rgba(255,255,255,0.12)",
+      border: "1px solid " + (isDev ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.45)"),
     }}>
       running {b.label}
     </span>
@@ -514,12 +525,16 @@ function TopBar() {
   return (
     <div className="topbar">
       <span className="uwo" style={{fontWeight:600}}>{labLabel}</span>
+      {/* The online documentation: the book with "docs" written underneath,
+          so it reads as a link to the manual rather than a decoration. */}
       <a href="https://mikehallett.science/murmurent/" target="_blank" rel="noopener"
-         title="Murmurent documentation — getting started, projects, identity, CLI reference"
-         style={{marginLeft:14, fontFamily:"var(--mono)", fontSize:12,
-                 color:"var(--purple)", textDecoration:"none",
-                 borderBottom:"1px dotted var(--purple)"}}>
-        📖 docs
+         title="Murmurent documentation (opens in a new tab): getting started, projects, identity, command reference"
+         style={{marginLeft:14, display:"inline-flex", flexDirection:"column",
+                 alignItems:"center", lineHeight:1.05, textDecoration:"none",
+                 color:"inherit"}}>
+        <span style={{fontSize:20}} aria-hidden="true">📖</span>
+        <span style={{fontFamily:"var(--mono)", fontSize:11, fontWeight:600,
+                      letterSpacing:0.5, textDecoration:"underline"}}>docs</span>
       </a>
       <RunningCodeBadge />
       <StopDashboardButton />
