@@ -1,9 +1,5 @@
 # Writing a scientific manuscript
 
-**Status: first draft, for Mike to review (issue #153).** Not published: it
-quotes unpublished manuscripts, so it is withheld from the release and from the
-documentation site.
-
 This is the house style for manuscripts, grant text and other scientific
 writing. The Scribe agent follows it, and so should any Claude Code session
 writing a paper. It is stricter than, and different from,
@@ -11,26 +7,27 @@ writing a paper. It is stricter than, and different from,
 for documentation. A paper is formal, cited, understated and built on
 convention. Where a manuscript's own `CLAUDE.md` says more, follow that too.
 
+Every example below is invented, written to show the rule. A lab that keeps
+real before-and-after pairs from its own PI's edits puts them in
+`docs/scientific_writing_examples.md`, which the Scribe also reads, and which
+should stay private while the papers it quotes are unpublished.
+
 ## Where these rules come from
 
-They are taken from Mike's own edits, not from general advice. Every
-"Updates from Overleaf" commit in two manuscripts is Mike editing by hand, and
-git shows which passages he rewrote were first written in a Claude Code
-session: **728 rewrites and 74 outright deletions** across
-`murmurent_manuscript` and `dlr_versus_ilr`, read in full in October 2026. The
-finished papers were also profiled section by section.
+They were taken from one PI's own hand edits to text Claude Code had drafted,
+not from general advice: several hundred rewrites and deletions across two
+manuscripts, read in full, plus a profile of the finished papers section by
+section. A lab can build its own version the same way (see the last section).
 
 Three findings shape everything below:
 
-1. **About 70 to 85% of his edits change voice, not facts.** The content was
-   usually right. The register was wrong.
-2. **His main move is to cut.** Even when he corrects a fact, the sentence
+1. **Most edits change voice, not facts.** The content was usually right. The
+   register was wrong.
+2. **The main move is to cut.** Even when a fact is corrected, the sentence
    usually gets shorter.
-3. **What he cuts is the writer explaining itself:** why a sentence is there,
+3. **What gets cut is the writer explaining itself:** why a sentence is there,
    how candid it is being, what the alternative was, and what a reviewer might
    object to.
-
-His drafts contain typos. They are not part of the voice; do not copy them.
 
 ---
 
@@ -40,33 +37,31 @@ His drafts contain typos. They are not part of the voice; do not copy them.
 
 The most common edit. State the fact and stop.
 
-- **No justification tails.** Cut ", which is the failure they were built
-  for", ", so that an ordering cannot be read without the warrant for it",
+- **No justification tails.** Cut ", which is the failure it was designed to
+  catch", ", so that no result can be reported without its control",
   "because ...", "which is why ...".
 - **No "rather than" foils.** The reader did not ask what the alternative was.
-  "Four rules are enforced automatically rather than left to good intentions"
-  becomes "Four rules are enforced automatically." (The "rather than" count
-  fell from 68 to 24 in the passages he edited.)
+  "Samples were processed in a single batch rather than over several weeks"
+  becomes "Samples were processed in a single batch."
 - **No comments on your own candour or purpose.** Cut "We state this plainly
-  because", "The limitations are stated plainly rather than hidden", "This is
+  because", "The limitations are stated openly rather than hidden", "This is
   deliberately not ...", "the distinction matters", "which is the point".
 - **No pre-empting the reviewer.** Delete caveats whose only job is to answer
   an objection nobody has raised yet, and do not repeat a point already made.
 - **Cut whole sentences, not only words.** Trimming inside sentences is not
   enough. Ask of each sentence whether a reader of the paper needs it, and
-  delete it when it does not. The kinds Mike deletes most:
-  - the reasoning behind a design or security choice ("because the opposite
-    rule would hand an attacker an easy move"), when the paper only needs the
-    choice;
-  - the motivation for an analysis step ("which motivates pooling the eras
-    below"), when the next paragraph simply does it;
+  delete it when it does not. The kinds deleted most often:
+  - the reasoning behind a design choice ("because the opposite order would
+    let contamination pass unnoticed"), when the paper only needs the choice;
+  - the motivation for an analysis step ("which motivates pooling the two
+    cohorts below"), when the next paragraph simply does it;
   - analysis settings outside Methods (fold counts, bootstraps, permutation
     nulls in the Introduction);
   - a second sentence that restates or elaborates the first.
 
   Cutting is not changing the facts: a deleted sentence leaves every remaining
-  claim as true as it was. In a data paper, though, he often *adds* a plain
-  "That is," sentence, so the median rewrite there is about as long as the
+  claim as true as it was. In a data paper, though, the PI often *adds* a
+  plain "That is," sentence, so a rewrite there can be as long as the
   original. Cut what serves the writer; keep and add what serves the reader.
 
   For an editor that is not the author (the Scribe, or any session), the line
@@ -77,18 +72,17 @@ The most common edit. State the fact and stop.
 
 ### 2. Say it literally
 
-- **No metaphors, aphorisms or epigrams.** "walked down to chance" becomes
-  "reduced to mere chance"; "shared blast radius" becomes "an obvious risk";
-  "would crowd out the work the session is there to do" becomes "would fill the
-  context"; "that loss is structural" becomes "this type of information loss
-  will be recurrent".
+- **No metaphors, aphorisms or epigrams.** "the signal is drowned out" becomes
+  "the signal falls below the detection limit"; "a moving target" becomes "a
+  quantity that changes between visits"; "the pipeline is the bottleneck"
+  becomes "processing takes longer than sequencing".
 - **No "not X but Y", "neither X nor Y but Z", or cleft sentences** ("What X
   does is ..."). State the positive claim, with a person or the system as the
   actor.
 - **No punchline fragments.** "It does not." becomes "We show that this is not
   the case." "It is." becomes "Indeed, ...".
-- **No coined names for things.** "Dance with Inhibition" became "the Pin1
-  choreography".
+- **No coined names for things.** "the Rapid Rescue screen" becomes "the
+  second compound screen".
 
 ### 3. Turn the volume down
 
@@ -96,16 +90,17 @@ The most common edit. State the fact and stop.
   genuinely, actually, precisely, inevitably, easily, notably, importantly
   (rare, and never as a paragraph opener), "to us, the strongest".
 - **No italic or bold on ordinary words** for emphasis ("in \emph{both}
-  eras"). Italics are for a term at its definition, species, gene names and
+  cohorts"). Italics are for a term at its definition, species, gene names and
   *in situ*.
 - **Hedge to match the evidence.** Weak results are named as weak ("at best
   exploratory", "suggestive at most"). Mechanistic explanations are hypotheses
   ("perhaps", "may explain", "There are several overlapping hypotheses").
   Candidates are "putative". A strong claim is earned by agreement between
   independent lines of evidence, and then said once.
-- **No absolutes about settings or people.** "Academic centres also carry
-  constraints" becomes "Academic centres may also carry some constraints". Never
-  imply that people are replaced: "may decrease the load placed upon them".
+- **No absolutes about settings or people.** "Hospital laboratories also face
+  constraints" becomes "Hospital laboratories may also face some constraints".
+  Never imply that people are replaced: "may decrease the load placed upon
+  them".
 
 ### 4. Shape sentences for a reader
 
@@ -113,44 +108,43 @@ The most common edit. State the fact and stop.
   separate sentences.
 - **Do not go choppy.** The finished papers run at a median of 23 to 27 words
   a sentence. The rhythm is a long sentence carrying the evidence, then a short
-  one carrying the verdict: "No construction cleared the discussion bar in any
-  era."
-- **Use "of" rather than stacked possessives:** "the bulk transcriptome of the
-  primary lesion", not "the primary lesion's bulk transcriptome".
+  one carrying the verdict: "No model improved on the baseline in either
+  cohort."
+- **Use "of" rather than stacked possessives:** "the expression profile of the
+  primary tumour", not "the primary tumour's expression profile".
 - **In the `.tex`, one clause per line.** Never rewrap a paragraph: Overleaf
   reads it as a change to every line.
 
 ### 5. Lead with the science and the person
 
 - **Context first, then the claim; purpose first, then the mechanism.** "Two
-  rules about files are checked by hooks" became "Murmurent manages several
-  directories ... in order to minimize the chance that either a user or an
-  agent accidentally deletes precious information."
+  checks run on every upload" becomes "To reduce the chance that a mislabelled
+  sample enters the analysis, every upload is checked twice."
 - **Make a person the actor.** A PI, a student, "we", or the system named as
-  doing something. "the agent has less to guess at" became "This frees the
-  researcher from restating project conventions in each new session".
+  doing something. "less configuration is needed" becomes "This frees the
+  researcher from re-entering the same settings for each experiment".
 - **Say what it buys the researcher.** When describing a feature, state the
   benefit to the person using it.
-- **Frame the biology, not the pipeline.** "we systematically evaluated, for
-  every diagnostic era × PAM50 subtype × endpoint cell, differential
-  expression, ..." became "we investigated the prognostic capacity of gene
-  expression ... above and beyond standard clinico-pathological features".
+- **Frame the biology, not the pipeline.** "we systematically computed, for
+  every tissue × time point × treatment cell, differential expression, ..."
+  becomes "we asked whether gene expression predicts response to treatment
+  beyond standard clinical features".
 
 ### 6. Leave the engineering out of the story
 
 - **No implementation detail in the Introduction, Results or Discussion:** file
   paths, environment variables, configuration keys, tags, URLs, internal code
-  labels (`event.10`), counts nobody needs ("51 such records" became "many such
-  records"), and the history of renames.
-- **Report the outcome, not the process.** No step-by-step narrative of what an
-  agent did first and then, and no debugging stories. "on the first pass it
-  held neither document, so it returned a blueprint ... Once ..." became "The
-  Conscience ... read both documents and identified 22 items".
+  labels (`batch.07`), counts nobody needs ("43 such records" becomes "many
+  such records"), and the history of renames.
+- **Report the outcome, not the process.** No step-by-step narrative of what
+  was tried first and then, and no debugging stories. "on the first run the
+  reference was missing, so it failed ... After adding it ..." becomes "The
+  pipeline aligned all 120 samples to the reference".
 - **Methods is the exception.** There, give what someone needs to reproduce
   the work: software and versions, random seeds, hyperparameters, permutation
-  counts, thresholds ("Python 3.11 with sklearn 1.8.0", "random\_state = 42",
-  "1,000 permutations"). Not the reasoning that chose them, unless a reviewer
-  would ask.
+  counts, thresholds ("Python 3.11 with scikit-learn 1.5", "random\_state =
+  42", "1,000 permutations"). Not the reasoning that chose them, unless a
+  reviewer would ask.
 
 ### 7. No signposting
 
@@ -158,37 +152,34 @@ Cut roadmaps and throat-clearing: "The three results subsections below
 correspond to the three questions posed in the Introduction", "The subsections
 that follow describe ...", "Where it is useful we name ...", "is taken up next".
 Keep cross-references (`\S\ref`) to the ones a reader will actually follow. Get
-to the scientific question: "We illustrate the properties of Murmurent using a
-choreography with the stated challenge as follows: find a small molecule that
-inhibits human Pin1".
+to the scientific question: "We asked whether the mutation changes growth rate
+in three media."
 
 ### 8. Structure
 
 - **Number parallel points.** Use "First, ... Second, ... Third," or inline
-  "(i) ... (ii) ... (iii)". Prefer these to bullet lists, which are rare in the
-  finished papers (one to two `itemize` each).
+  "(i) ... (ii) ... (iii)". Prefer these to bullet lists, which are rare in
+  finished papers (one or two `itemize` each).
 - **Run-in headings** (`\paragraph{}` or underlined labels) only when each one
-  states a claim ("The clinically dangerous recurrence is the molecularly
-  cryptic one.") or names a fixed component ("Scoped.", "Attributed."). Never
-  as decoration.
-- **Short plain headings and captions.** "System architecture: shared agents
-  and group toolkits" became "System architecture".
+  states a claim ("Resistance appears before exposure.") or names a fixed
+  component ("Scoped.", "Attributed."). Never as decoration.
+- **Short plain headings and captions.** "Study design: cohorts, sampling and
+  follow-up" becomes "Study design".
 - **Move dense statistics into a table** and keep the prose to the claim.
 
 ### 9. Words
 
 - **Field terms over formal or house terms:** lab, not laboratory; PI, not
-  principal investigator (after defining it once); members, not HQP; "the
-  agents", not "the commons"; "chat (Slack here)", not "Slack".
+  principal investigator (after defining it once); members, not HQP; "chat
+  (Slack here)", not "Slack".
 - **Define every term and abbreviation at first use, then use the short
-  form:** "clinico-pathological features (CPFs)"; "an \emph{agentic operating
-  system}; that is, the layer beneath ...". Software and industry terms most of
-  all.
+  form:** "clinical features (CFs)"; "a \emph{sample registry}; that is, the
+  list of ...". Software and industry terms most of all.
 - **Give examples with "e.g."**: "core facilities (e.g. genomics,
   proteomics)".
 - **Spelling: Canadian.** tumour, colour, centre, behaviour, analysed,
   modelled, program; but -ize (organized, normalized). Match the surrounding
-  text.
+  text. A lab elsewhere sets its own.
 - **Dashes:** no em dashes, and no `---` or ` -- ` used as a pause. LaTeX en
   dashes (`--`) only in ranges (`$7$--$17$-fold`) and compound names
   (Benjamini--Hochberg). Use a comma, brackets, a colon or a new sentence.
@@ -201,15 +192,15 @@ inhibits human Pin1".
 ### 10. Numbers
 
 - **Always give the number, the test, the threshold and the multiple-testing
-  context:** "A direct moderated-$t$ contrast ... did not identify any DEGs at a
-  Benjamini--Hochberg false-discovery rate of $q_{\text{mod}}<0.25$".
+  context:** "A moderated-$t$ contrast did not identify any differentially
+  expressed genes at a Benjamini--Hochberg false-discovery rate of $q<0.1$".
 - **Put statistics in brackets after the claim, then say what they mean in one
-  plain sentence,** often beginning "That is," or "For example,": "That is, iLR
-  samples look like no-LR samples, and not like dLRs."
-- **Qualify a result by its weakness straight away:** "however $\approx36$
-  false positives are expected by chance among the $712$ genes tested."
-- Numbers in LaTeX math (`$886$`, `$p=0.008$`); confidence intervals as
-  `[0.03\text{--}0.66]`.
+  plain sentence,** often beginning "That is," or "For example,": "That is,
+  treated samples resemble untreated ones, and not the resistant line."
+- **Qualify a result by its weakness straight away:** "however $\approx25$
+  false positives are expected by chance among the $500$ genes tested."
+- Numbers in LaTeX math (`$412$`, `$p=0.01$`); confidence intervals as
+  `[0.12\text{--}0.58]`.
 
 ---
 
@@ -224,21 +215,21 @@ Lead with the biology or the clinical stakes, never the pipeline.
 **Introduction.** Field, then gap, then contribution, in prose. Define the
 central term first. Survey prior work as "First, ... Second, ... Third," with
 named examples and citations at clause ends. State the gap plainly
-("Nevertheless, almost all molecular work in DCIS pools the two histologies").
+("Nevertheless, most studies of this disease pool its two subtypes").
 Questions may be listed. Close by weighing what each possible answer would
 mean. Present tense; sentences of 20 to 35 words.
 
 **Methods.** Short, factual, procedural, reproducible: versions, seeds,
-thresholds, exclusions with the reason ("Five housekeeping genes were excluded
-due to low expression"). Past tense for a study; present tense is acceptable
-for describing a system. Inline lists use (i) to (v).
+thresholds, exclusions with the reason ("Four genes were excluded due to low
+expression"). Past tense for a study; present tense is acceptable for
+describing a system. Inline lists use (i) to (v).
 
-**Results.** Subsection titles state the finding as a sentence ("Recurrence
-prediction is endpoint-specific and adds little beyond CPFs."). A paragraph
-opens on the test and its result together, qualifies the result at once, and
-closes on a summary sentence that names the table or figure. Past tense for
-what was done and seen, present for interpretation ("We cannot conclude").
-Point to Methods with `\S\ref` rather than repeating them.
+**Results.** Subsection titles state the finding as a sentence ("Expression
+adds little to clinical features in predicting relapse."). A paragraph opens
+on the test and its result together, qualifies the result at once, and closes
+on a summary sentence that names the table or figure. Past tense for what was
+done and seen, present for interpretation ("We cannot conclude"). Point to
+Methods with `\S\ref` rather than repeating them.
 
 **Discussion.** Open by restating the questions and the answer in brief ("We
 asked three questions ... In brief, we do not find any evidence ..."). Then
@@ -256,110 +247,90 @@ caveats, no defence of the analysis.
 
 ## Before and after
 
-All are real: Claude Code's text, then Mike's revision.
+Invented pairs, each showing one rule. A lab's real pairs go in
+`docs/scientific_writing_examples.md`.
 
 1. *Cut the justification.*
-   - Before: "Its verdict vocabulary is accordingly two words wide,
-     \emph{Explained} and \emph{Gap}, with nothing between them, on the
-     reasoning that an intermediate verdict would absorb every \emph{Gap} the
-     agent ought to have returned."
-   - After: "The Teacher has only two verdicts: \emph{Explained} and
-     \emph{Gap}."
+   - Before: "The assay therefore reports only two outcomes, \emph{growth} and
+     \emph{no growth}, with no intermediate category, on the reasoning that
+     an intermediate category would absorb every ambiguous plate."
+   - After: "The assay has two outcomes: \emph{growth} and \emph{no growth}."
 
 2. *No commentary on your own candour.*
-   - Before: "The limits are worth stating plainly, because this is a guardrail
-     and not a locked door."
-   - After: "There are limits to this guardrail."
+   - Before: "The limits of this design are worth stating plainly, because it
+     is a screen and not a validation."
+   - After: "This design has limits."
 
 3. *No cleft sentence, no restating tail.*
-   - Before: "What they reliably prevent is an agent destroying a result by
-     mistake, which is the failure they were built for."
-   - After: "They prevent an agent destroying a result by mistake."
+   - Before: "What the filter reliably removes is low-quality reads, which is
+     the problem it was built for."
+   - After: "The filter removes low-quality reads."
 
 4. *Literal, not figurative.*
-   - Before: "enrichment of the covalent control is walked down to chance over
-     two days."
-   - After: "statistical significance of the covalent control is reduced to
-     mere chance over two days."
+   - Before: "the effect of the inhibitor melts away by the third day."
+   - After: "the effect of the inhibitor is no longer significant by the third
+     day."
 
 5. *Name the action, not an abstraction; two sentences, not an epigram.*
-   - Before: "The thesis is a trade and we state it as one: simultaneity buys
-     comparability and shared-control strength, and it spends error
-     independence."
-   - After: "Our thesis is that building the four approaches together
-     facilitates comparability and a single set of controls. The price is that
-     their errors are no longer independent."
+   - Before: "The design is a bargain and we present it as one: pooling buys
+     power and spends independence."
+   - After: "Pooling the cohorts increases statistical power. The price is
+     that their samples are no longer independent."
 
 6. *No antithesis; state the aim in the first person.*
-   - Before: "The decisive test is not whether a molecular model beats chance
-     but whether it beats --- and adds information \emph{beyond} --- the five
-     standard clinico-pathological features"
-   - After: "Our focus is on whether the inclusion of the molecular components
-     adds information to the predictions beyond five standard
-     clinico-pathological features"
+   - Before: "The real question is not whether the score predicts relapse but
+     whether it adds anything \emph{beyond} --- and independently of ---
+     tumour grade"
+   - After: "Our focus is on whether the score adds information to the
+     prediction of relapse beyond tumour grade"
 
 7. *No punchline; numbers, then one plain sentence.*
-   - Before: "asked whether it is prognostic for one recurrence type but not
-     the other. It is. The score is elevated in patients who go on to a dLR
-     (median $z=+0.22$) but sits near the recurrence-free baseline in those who
-     go on to an iLR ..."
-   - After: "asked whether it marks one recurrence type but not the other.
-     Indeed, patients who incur a dLR carry an elevated score (median
-     $z=+0.22$) compared to iLR patients who sit near the recurrence-free
-     baseline ($-0.09$ vs $-0.25$ for no-LR). That is, iLR samples look like
-     no-LR samples, and not like dLRs."
+   - Before: "asked whether the marker distinguishes the two groups. It does.
+     Levels are raised in responders (median $2.1$) but stay near baseline in
+     non-responders ..."
+   - After: "asked whether the marker distinguishes the two groups. Indeed,
+     responders carry raised levels (median $2.1$) compared to non-responders,
+     who sit near baseline ($0.9$ vs $0.8$ for controls). That is,
+     non-responders look like controls, and not like responders."
 
 8. *The person as actor, and the benefit to them.*
-   - Before: "For a principal investigator with little information-technology
-     support, the gain is that a plan for how data, code and analyses are
-     organized can be stated once and then upheld by the hooks and the
-     reviewing agents rather than by reminding people, which matters most for
-     students early in training"
-   - After: "Now a PI can describe how they want data, code and analyses
-     organized, and Murmurent will uphold this vision with hooks and agentic
-     review. This is far more efficient than repeatedly reminding people,
-     especially those early in training"
+   - Before: "For a lab with little technical support, the gain is that sample
+     naming rules can be written once and then checked automatically rather
+     than by reminding people, which matters most for new students"
+   - After: "Now a PI can write down how samples should be named, and the
+     system checks every new sample against it. This is more efficient than
+     repeatedly reminding people, especially new students"
 
 9. *Purpose first, plain heading.*
-   - Before: "\paragraph{Two rules an agent cannot talk its way past.} Two
-     rules about files are checked by hooks ..., which inspect the operation
-     before it reaches the disk."
-   - After: "\paragraph{Inescapable rules.} Murmurent creates and manages
-     several named directories with specific permission systems in order to
-     minimize the chance that either a user or an agent accidentally deletes
-     precious information."
+   - Before: "\paragraph{Two checks no upload can skip.} Two checks are run
+     on each file before it is stored."
+   - After: "\paragraph{Upload checks.} To reduce the chance that a corrupted
+     or mislabelled file enters the analysis, every file is checked twice
+     before it is stored."
 
 10. *Methods: the order, not the debugging history.*
-    - Before: "It searches patent collections in a fixed order, which is set by
-      how dependable each one proved rather than by how convenient it is.
-      United States granted claim text is read first, from the grant documents
-      themselves, because that source was never refused during a full day of
-      testing. ..."
-    - After: "It searches patent collections in a fixed order: United States
-      granted claim text is read first, then WIPO PatentScope, then Google
-      Patents."
+    - Before: "Databases are queried in a fixed order, chosen by how reliable
+      each proved during testing rather than by convenience. The first is
+      queried first because it never timed out in a week of trials. ..."
+    - After: "Databases are queried in a fixed order: first the primary
+      archive, then two mirrors."
 
 11. *Hedge speculation; drop emphasis and slang.*
-    - Before: "proliferation and chromosomal instability are a
-      \emph{quantitative} property of the in-situ disease, whereas invasion is
-      a \emph{qualitative} ... transition. A second \emph{in situ} lesion is,
-      mechanistically, a regrowth ... machinery is already running hot"
-    - After: "proliferation and chromosomal instability are a quantitative
-      property of \emph{in situ} lesions, whereas invasion is a more
-      qualitative ... transition. A second \emph{in situ} lesion is perhaps,
-      mechanistically, a regrowth ... machinery is already running
-      aggressively"
+    - Before: "resistance is a \emph{gradual} property of the population,
+      whereas spread is a \emph{sudden} transition. The second outbreak is,
+      mechanistically, a rebound ... the strain is already firing on all
+      cylinders"
+    - After: "resistance is a gradual property of the population, whereas
+      spread is a more sudden transition. The second outbreak is perhaps,
+      mechanistically, a rebound ... the strain is already growing
+      rapidly"
 
 12. *No signposting; get to the question.*
-    - Before: "The subsections that follow describe the properties of
-      Murmurent one at a time, and each of them is illustrated by the same
-      choreography, which we introduce here so that those illustrations are
-      concrete."
-    - After: "We illustrate the properties of Murmurent using a choreography
-      with the stated challenge as follows: find a small molecule that inhibits
-      human Pin1"
-
-(Typos in the originals are corrected here.)
+    - Before: "The subsections that follow describe each feature in turn, and
+      each is illustrated with the same experiment, which we introduce here so
+      that the illustrations are concrete."
+    - After: "We illustrate each feature using one experiment: measuring the
+      growth of a mutant strain in three media."
 
 ---
 
@@ -368,7 +339,7 @@ All are real: Claude Code's text, then Mike's revision.
 - **Never invent a citation, a number or a behaviour of the system.** Where one
   is missing, leave a visible gap (`[CITE: ...]`, `[N=?]`) and say so.
 - **Cite only bibliography keys that already exist.** Ask for a missing
-  reference to be added; do not edit the exported `.bib` files.
+  reference to be added; do not edit exported `.bib` files.
 - **Flag a clinical or empirical claim you cannot source** rather than soften
   it into vagueness.
 - Citations go through the bookworm; reporting checklists (TRIPOD+AI,
@@ -377,8 +348,12 @@ All are real: Claude Code's text, then Mike's revision.
 
 ## Keeping this guide current
 
-When Mike rewrites a passage the Scribe produced, the pair is evidence. Add the
-clearest ones to *Before and after*, and change a rule when the pairs
-contradict it. The extraction is repeatable: pair each "Updates from Overleaf"
-commit's changes with the lines it replaced, and keep those whose earlier
-version came from a commit co-authored by Claude.
+When the PI rewrites a passage the Scribe produced, the pair is evidence. Add
+the clearest ones to `docs/scientific_writing_examples.md`, and change a rule
+here when the pairs contradict it. The extraction is repeatable: pair each
+commit in which the PI edited a manuscript by hand (on Overleaf, these arrive
+as "Updates from Overleaf") with the lines it replaced, and keep those whose
+earlier version came from a commit co-authored by Claude.
+
+A lab that wants its Scribe in its own PI's voice builds its examples file the
+same way, from its own manuscripts.
