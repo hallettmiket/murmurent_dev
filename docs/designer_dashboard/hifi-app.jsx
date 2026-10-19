@@ -344,6 +344,13 @@ function UpdateBanner() {
     ? "You have " + st.current_version + " in " + copy + "."
     : copy + " has " + n + " new change" + (n === 1 ? "" : "s") + " on GitHub"
       + (st.current_version ? " (still version " + st.current_version + ")" : "") + ".";
+  // A copy left on another branch (often a merged pull request's) is compared
+  // with main; say so, since update will switch it back to main.
+  const offMain = st.branch && st.on_main === false;
+  const branchLine = offMain
+    ? " This copy is on the branch " + st.branch + ", not main" +
+      (diverged ? "." : "; update switches it back to main (the branch is kept).")
+    : "";
   // Version skew: the JSX is served fresh from disk, so it can be newer than the
   // running server. `can_self_update` is returned only by servers that also have
   // POST /api/murmurent/update — gate the button on it so we never offer a click
@@ -408,7 +415,7 @@ function UpdateBanner() {
       </span>
       <span className="muted"
             title={(st.root ? "checked " + st.root + " · " : "") + "commit " + st.current + " → " + st.latest}>
-        {updateLine}
+        {updateLine}{branchLine}
       </span>
       {(st.changes || []).length > 0 && (
         <details style={{fontSize:12}}>
@@ -421,7 +428,9 @@ function UpdateBanner() {
       {failed
         ? <span className="muted" style={{color:"var(--tiger-deep)"}}>{msg}</span>
         : diverged
-          ? <span className="muted">Your install has local changes. Bring <code>{st.root || "your murmurent folder"}</code> up to date by hand first.</span>
+          ? <span className="muted">{offMain
+              ? <>That branch has changes of its own, or uncommitted edits. Commit or set them aside, then run <code className="mono">git -C {st.root || "your murmurent folder"} checkout main</code> and reload.</>
+              : <>Your install has local changes. Bring <code>{st.root || "your murmurent folder"}</code> up to date by hand first.</>}</span>
           : !canSelfUpdate
             ? <span className="muted">Your dashboard is running older code than what's on disk — restart it to enable one-click update: <code className="mono">murmurent dashboard --hifi</code>, then reload.</span>
             : <>
@@ -450,8 +459,10 @@ function RunningCodeBadge() {
     <span title={tip} style={{
       marginLeft:14, fontFamily:"var(--mono)", fontSize:11, padding:"1px 8px",
       borderRadius:10, whiteSpace:"nowrap",
-      color: isDev ? "#7a3fb0" : "var(--muted)",
-      border: "1px solid " + (isDev ? "#7a3fb0" : "var(--rule-strong)"),
+      // Light text on the purple top bar: purple or grey text there could
+      // hardly be read. A development copy gets a stronger outline.
+      color: "#fff", background: "rgba(255,255,255,0.12)",
+      border: "1px solid " + (isDev ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.45)"),
     }}>
       running {b.label}
     </span>
@@ -514,12 +525,16 @@ function TopBar() {
   return (
     <div className="topbar">
       <span className="uwo" style={{fontWeight:600}}>{labLabel}</span>
+      {/* The online documentation: the book with "docs" written underneath,
+          so it reads as a link to the manual rather than a decoration. */}
       <a href="https://mikehallett.science/murmurent/" target="_blank" rel="noopener"
-         title="Murmurent documentation — getting started, projects, identity, CLI reference"
-         style={{marginLeft:14, fontFamily:"var(--mono)", fontSize:12,
-                 color:"var(--purple)", textDecoration:"none",
-                 borderBottom:"1px dotted var(--purple)"}}>
-        📖 docs
+         title="Murmurent documentation (opens in a new tab): getting started, projects, identity, command reference"
+         style={{marginLeft:14, display:"inline-flex", flexDirection:"column",
+                 alignItems:"center", lineHeight:1.05, textDecoration:"none",
+                 color:"inherit"}}>
+        <span style={{fontSize:20}} aria-hidden="true">📖</span>
+        <span style={{fontFamily:"var(--mono)", fontSize:11, fontWeight:600,
+                      letterSpacing:0.5, textDecoration:"underline"}}>docs</span>
       </a>
       <RunningCodeBadge />
       <StopDashboardButton />
@@ -843,6 +858,42 @@ function RepoInventoryPanel({ span = "c-12" }) {
     } finally { setUpgrading(null); }
   };
 
+  // Re-wire every murmurent-ready repo on this machine to the installed
+  // release, one after another. Replaces a button on every row: the upgrade is
+  // the same for each repo, so one button for all of them.
+  const [upgradingAll, setUpgradingAll] = useState(false);
+  const doUpgradeAll = async () => {
+    const paths = [];
+    for (const r of (report && report.rows) || []) {
+      for (const c of (r.clones || [])) {
+        if (c.host === "local" && c.is_murmurent_ready && !paths.some(p => p.path === c.path))
+          paths.push({ name: r.name, path: c.path });
+      }
+    }
+    if (paths.length === 0) { setErr("No murmurent-ready repos on this machine to upgrade."); return; }
+    if (!window.confirm(`Upgrade all ${paths.length} murmurent-ready repos on this machine to the ` +
+        "installed version of murmurent? This rewrites each repo's murmurent settings and agent " +
+        "links; it does not touch your files or commits.")) return;
+    setUpgradingAll(true); setErr(null); setUpgraded(null);
+    const failed = [];
+    for (const p of paths) {
+      try {
+        const r = await fetch("/api/inventory/upgrade", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ clone_path: p.path }),
+        });
+        if (!r.ok) {
+          const j = await r.json().catch(() => ({}));
+          failed.push(p.name + " (" + (j.detail || ("HTTP " + r.status)) + ")");
+        }
+      } catch (ex) { failed.push(p.name + " (" + (ex.message || ex) + ")"); }
+    }
+    setUpgraded({ name: `${paths.length - failed.length} of ${paths.length} repos`,
+                  verdict: failed.length ? "upgraded; not upgraded: " + failed.join(", ") : "upgraded" });
+    setUpgradingAll(false);
+    await load(true);
+  };
+
   useEffect(() => {
     load(false);
   }, []);
@@ -945,13 +996,19 @@ function RepoInventoryPanel({ span = "c-12" }) {
           <button className="btn sm" disabled={busy} onClick={() => load(true)}>
             {busy ? "…" : "Refresh"}
           </button>
+          <button className="btn sm" disabled={busy || upgradingAll} onClick={doUpgradeAll}
+                  title={"Rewrite every murmurent-ready repo's murmurent settings and agent links "
+                       + "to match the installed version of murmurent. Needed only after a release "
+                       + "that changes how repos are set up; agent edits reach repos on their own."}>
+            {upgradingAll ? "upgrading…" : "Upgrade all repos"}
+          </button>
           <label style={{fontSize:11, display:"inline-flex", alignItems:"center", gap:4}}>
             <input type="checkbox" checked={showAllGithub}
                    onChange={e => setShowAllGithub(e.target.checked)} />
             include {stats ? stats.ghOnly : "?"} GitHub-only rows
           </label>
           <label style={{fontSize:11, display:"inline-flex", alignItems:"center", gap:4}}
-                 title="murmurent's own repos (murmurent, murmurent_*) — infrastructure, pinned to the top when shown">
+                 title="Show murmurent's own repos (murmurent, murmurent_*) that belong to no project. Those in a project are always listed under it.">
             <input type="checkbox" checked={showInfra}
                    onChange={e => setShowInfra(e.target.checked)} />
             show Murmurent repos
@@ -975,8 +1032,10 @@ function RepoInventoryPanel({ span = "c-12" }) {
           <ul style={{margin:"4px 0 0 18px", padding:0}}>
             <li>
               <strong>● Cloned · ready</strong>: the repo is here and has the file.
-              Upgrade brings its setup up to the current murmurent release. You
-              need it only after a structural change, such as a new file format.
+              <strong>Upgrade all repos</strong> (at the top) brings every ready
+              repo's setup up to the installed murmurent. You need it only after a
+              structural change, such as a new file format. Upgrading murmurent
+              itself is the Update button at the top of the dashboard.
             </li>
             <li>
               <strong>○ Cloned · not ready</strong>: the repo is here but has no
@@ -1013,7 +1072,9 @@ function RepoInventoryPanel({ span = "c-12" }) {
           <div style={{marginTop:6}}>
             <strong>▶ Claude Code</strong> opens a new terminal window running
             Claude Code inside that repo, so the session starts with the repo's
-            files, agents and rules.
+            files, agents and rules. The window is named "Claude Code · &lt;repo&gt;".
+            If a session is already open in that repo, its window is brought to
+            the front instead of opening a second one.
           </div>
         </div>
         {err && (
@@ -1322,20 +1383,6 @@ function RepoInventoryRow({ row, knownHosts, onAdopt, onUpgrade, upgrading, onRe
           }}>
             ● Cloned · ready
           </span>
-          {/* Upgrade is local-only: repo_ready works on the filesystem, and the
-              remote bootstrap still writes the legacy CHARTER shape. */}
-          {onUpgrade && host === "local" && (
-            <button className="btn sm" style={{fontSize:11, padding:"3px 9px", whiteSpace:"nowrap"}}
-                    disabled={upgrading === c.path}
-                    title={"Re-wire this repo against the current murmurent release "
-                         + "(new agents, marker format). Agent edits arrive on their "
-                         + "own — this is for structural changes."}
-                    onClick={() => onUpgrade({
-                      name: row.name, path: c.path, host: host,
-                    })}>
-              {upgrading === c.path ? "…" : "Upgrade"}
-            </button>
-          )}
         </span>
       );
     }

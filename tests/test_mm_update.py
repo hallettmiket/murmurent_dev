@@ -29,11 +29,22 @@ def repo(monkeypatch, tmp_path):
 
 
 def _wire(monkeypatch, *, upstream_rc=0, upstream="origin/main", fetch_rc=0,
-          behind=0, is_ancestor_rc=0, pull_rc=0, pull_out=""):
+          behind=0, is_ancestor_rc=0, pull_rc=0, pull_out="", branch="main",
+          dirty="", calls=None):
     """Install a fake _run_git dispatching on the git subcommand."""
     def fake(root, *args):
-        if args[:1] == ("rev-parse",) and args[-1] == "@{u}":
+        if calls is not None:
+            calls.append(args)
+        if args[:1] == ("symbolic-ref",):
             return _cp(upstream_rc, upstream)
+        if args[:2] == ("rev-parse", "--verify"):
+            return _cp(1)
+        if args[:2] == ("rev-parse", "--abbrev-ref"):
+            return _cp(0, branch)
+        if args[:1] == ("status",):
+            return _cp(0, dirty)
+        if args[:1] in (("checkout",), ("merge",)):
+            return _cp(0)
         if args[:1] == ("fetch",):
             return _cp(fetch_rc)
         if args[:2] == ("rev-parse", "--short"):
@@ -64,11 +75,36 @@ def test_up_to_date(repo, monkeypatch):
     assert s.detail == "up to date"
 
 
-def test_no_upstream(repo, monkeypatch):
+def test_no_main_branch(repo, monkeypatch):
     _wire(monkeypatch, upstream_rc=1)
     s = MM.check_update()
     assert s.is_git and s.ok is False and s.behind == 0
-    assert "no upstream" in s.detail
+    assert "no main branch" in s.detail
+
+
+def test_a_copy_on_a_merged_branch_is_compared_with_main(repo, monkeypatch):
+    # The case that hid the banner: the copy sits on a pull request's branch.
+    _wire(monkeypatch, branch="fix/old-pr", behind=3, is_ancestor_rc=0)
+    s = MM.check_update()
+    assert s.ok and s.behind == 3 and s.on_main is False and s.can_ff
+    assert "on the branch fix/old-pr" in s.detail
+
+
+def test_update_switches_a_merged_branch_back_to_main(repo, monkeypatch):
+    calls = []
+    _wire(monkeypatch, branch="fix/old-pr", behind=3, is_ancestor_rc=0, calls=calls)
+    r = MM.apply_update()
+    assert r["ok"] and r["restart"]
+    assert ("checkout", "main") in calls and ("merge", "--ff-only", "origin/main") in calls
+
+
+def test_a_branch_with_uncommitted_edits_is_left_alone(repo, monkeypatch):
+    calls = []
+    _wire(monkeypatch, branch="fix/old-pr", behind=3, is_ancestor_rc=0,
+          dirty=" M src/x.py", calls=calls)
+    r = MM.apply_update()
+    assert not r["ok"] and not r["restart"]
+    assert not any(c[:1] == ("checkout",) for c in calls)
 
 
 def test_offline_fetch_fails(repo, monkeypatch):
