@@ -118,6 +118,17 @@ def test_remove_member_revokes_and_kicks(pi_world):
     assert ledger_ids  # something revoked
 
 
+def test_remove_member_revokes_only_the_project_card(pi_world):
+    """Removing someone from one project must not cancel their key: the
+    fingerprint is shared by their lab card and every other project card."""
+    PM.add_member("dcis_17", "@allie", dm=False)
+    entry = REV.project_ledger("yxia266-xia_lab", "xia_lab/dcis_17")["allie"]
+    PM.remove_member("dcis_17", "@allie")
+    revoked = set(REV.current_crl("yxia266-xia_lab")["payload"]["revoked"])
+    assert entry["card_id"] in revoked
+    assert entry["fingerprint"] not in revoked
+
+
 def test_removed_members_proof_fails(pi_world, monkeypatch, tmp_path):
     """The point of it all: after removal, the member can no longer PROVE
     project membership once they hold the fresh CRL."""

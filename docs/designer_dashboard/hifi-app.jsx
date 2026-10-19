@@ -8113,10 +8113,9 @@ function App() {
                           labFolder={D.lab_oracle_folder} span="c-4" />
         </div>
 
-        {/* Machines, and the Claude Code launcher. */}
+        {/* The Claude Code launcher. (Machines moved to the bottom.) */}
         <div className="grid" style={{marginBottom:14}}>
-          <MachinesPanel span="c-5" />
-          <CCLaunchBar span="c-7" />
+          <CCLaunchBar span="c-12" />
         </div>
 
         {/* Projects directly above the repos they group (#207). */}
@@ -8175,8 +8174,13 @@ function App() {
         )}
 
         {/* Agents (large, low-frequency) lives toward the bottom. */}
-        <div className="grid">
+        <div className="grid" style={{marginBottom:14}}>
           <AgentsPanel agents={D.agents} span="c-12" />
+        </div>
+
+        {/* This machine (and the others, read-only): rarely needed, so last. */}
+        <div className="grid">
+          <MachinesPanel span="c-12" />
         </div>
       </div>
       <FooterMeta />
