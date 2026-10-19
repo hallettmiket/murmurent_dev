@@ -463,7 +463,9 @@ function RunningCodeBadge() {
 function StopDashboardButton() {
   const b = window.DATA.build || {};
   const [stopped, setStopped] = useState(false);
-  if (b.stoppable === false) return null;   // run by a system service
+  // Run by a system service, which would start it again: shown greyed out
+  // with the reason, rather than hidden, so the button never just vanishes.
+  const isService = b.stoppable === false;
   const stop = async () => {
     if (!window.confirm(
       "Stop the dashboard?\n\nThis page stops working until you start it again: " +
@@ -487,10 +489,16 @@ function StopDashboardButton() {
     );
   }
   return (
-    <button type="button" onClick={stop} className="btn sm ghost"
-            title="Stop the dashboard program on this machine (closing the window does not)"
-            style={{marginLeft:10, fontSize:11}}>
-      ⏻ stop dashboard
+    <button type="button" onClick={isService ? undefined : stop} disabled={isService}
+            className="btn sm"
+            title={isService
+              ? "This dashboard is run by the server's system service, which would start it again. Ask whoever manages the server to stop it."
+              : "Stop the dashboard program on this machine (closing the window does not)"}
+            style={{marginLeft:10, fontSize:11.5, fontWeight:600,
+                    color: isService ? "var(--muted)" : "var(--red)",
+                    border: "1px solid " + (isService ? "var(--rule-strong)" : "var(--red)"),
+                    background: "transparent", cursor: isService ? "not-allowed" : "pointer"}}>
+      ⏻ Stop dashboard
     </button>
   );
 }
@@ -6356,7 +6364,7 @@ function NotebookPanel({ span="c-9" }) {
           </div>
         ))}
       </div>
-      <div className="body" style={{padding:"16px 22px 22px"}}>
+      <div className="body" style={{padding:"16px 22px 22px", maxHeight:"36em", overflowY:"auto"}}>
         <window.NbToday />
       </div>
     </div>
