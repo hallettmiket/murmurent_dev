@@ -494,10 +494,12 @@ function StopDashboardButton() {
             title={isService
               ? "This dashboard is run by the server's system service, which would start it again. Ask whoever manages the server to stop it."
               : "Stop the dashboard program on this machine (closing the window does not)"}
-            style={{marginLeft:10, fontSize:11.5, fontWeight:600,
-                    color: isService ? "var(--muted)" : "var(--red)",
-                    border: "1px solid " + (isService ? "var(--rule-strong)" : "var(--red)"),
-                    background: "transparent", cursor: isService ? "not-allowed" : "pointer"}}>
+            style={{marginLeft:10, fontSize:12, fontWeight:700, padding:"3px 10px",
+                    borderRadius:3, opacity:1,
+                    color: isService ? "var(--muted)" : "#fff",
+                    border: "1px solid " + (isService ? "var(--rule-strong)" : "#b3261e"),
+                    background: isService ? "transparent" : "#b3261e",
+                    cursor: isService ? "not-allowed" : "pointer"}}>
       ⏻ Stop dashboard
     </button>
   );
