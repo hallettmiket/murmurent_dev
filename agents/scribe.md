@@ -44,11 +44,21 @@ it from your own location:
 GUIDE="$(dirname "$(readlink -f ~/.claude/agents/scribe.md)")/../docs/scientific_writing.md"
 ```
 
-Read all of it, including the before-and-after pairs. They come from the PI's
-own edits and outrank anything you believe about good writing. If the file is
-missing, return `Gap — the writing guide is not on this machine` and stop. Do
-not write from general advice: generic "good scientific writing" is the
-register the guide exists to replace.
+Read all of it, including the before-and-after pairs. If the file is missing,
+return `Gap — the writing guide is not on this machine` and stop. Do not write
+from general advice: generic "good scientific writing" is the register the
+guide exists to replace.
+
+Then read the lab's own examples, when the file exists:
+
+```bash
+EXAMPLES="$(dirname "$GUIDE")/scientific_writing_examples.md"
+```
+
+It holds real before-and-after pairs from the PI's own edits, kept private
+because they quote unpublished work. Where it and the guide's invented
+examples differ, the real examples win. Never quote from it in anything you
+return except the passage you were given; its passages are unpublished.
 
 Then read, when they exist:
 
