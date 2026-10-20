@@ -227,6 +227,13 @@ def send_group_dm(group: str, *, text: str, slack_user_id: str = "",
             return False, f"couldn't find {who} in the group's Slack workspace"
 
     channel = _sn._open_dm(uid, tok)
+    if not channel and email and not slack_user_id:
+        # The Slack id in an enrollment often belongs to the member's account
+        # in another workspace (user_not_found here). Their email finds the
+        # account in this one.
+        by_email = resolve_group_slack_user_id(email, tok)
+        if by_email and by_email != uid:
+            channel = _sn._open_dm(by_email, tok)
     if not channel:
         return False, "couldn't open a DM (does the bot have the im:write scope?)"
     if file_content is not None:

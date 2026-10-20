@@ -723,3 +723,16 @@ def test_provision_lab_onboarding_warns_on_missing_config(world,
     assert by.get("github-repo") == "ok"        # deferred to the PI, not a warn
     assert all(p.status == "warn" for p in probes if p.name != "github-repo")
     assert not any(p.status == "fail" for p in probes)
+
+
+def test_send_group_dm_falls_back_to_email_when_the_slack_id_is_from_another_workspace(monkeypatch):
+    """An enrollment's Slack id can belong to another workspace: the email finds them here."""
+    from murmurent.core import group_reconcile as GR
+    from murmurent.dashboard import slack_notify as SN
+    opened = []
+    monkeypatch.setattr(SN, "_open_dm", lambda uid, tok: (opened.append(uid), "D1" if uid == "UHERE" else None)[1])
+    monkeypatch.setattr(GR, "resolve_group_slack_user_id", lambda email, tok: "UHERE")
+    monkeypatch.setattr(SN, "_post", lambda *a, **k: True, raising=False)
+    ok, detail = GR.send_group_dm("mh", text="hi", slack="UELSEWHERE1", email="a@x", token="t")
+    assert opened == ["UELSEWHERE1", "UHERE"]
+    assert ok, detail

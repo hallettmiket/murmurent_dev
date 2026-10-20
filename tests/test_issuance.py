@@ -321,6 +321,18 @@ def test_issuance_writes_the_roster(monkeypatch, tmp_path):
     assert allie_rec.status == "active"
     assert allie_rec.card_fingerprint == bundle["member_card"]["payload"]["subject"]["fingerprint"]
 
+    # She re-enrolls from a new machine with the boxes left empty: the roster
+    # keeps her email, GitHub and role, and records the new card.
+    M.upsert_member("allie", role=M.VALID_ROLES[-1])
+    role_before = M.parse_member(M.member_path("allie")).role
+    new_key = Ed25519PrivateKey.generate()
+    again = C.make_enrollment_request("@allie", priv=new_key, nonce="a2", group="lab_mh")
+    bundle = ISS.issue_member_card("@allie", enrollment=again, group="lab_mh")
+    allie_rec = M.parse_member(M.member_path("allie"))
+    assert allie_rec.email == "allie@x.edu" and allie_rec.github == "alliegh"
+    assert allie_rec.role == role_before
+    assert allie_rec.card_fingerprint == bundle["member_card"]["payload"]["subject"]["fingerprint"]
+
     # revoke_member reads the fingerprint from the roster
     CR.generate_root_key()
     crl = REV.revoke_member("lab_mh", "allie")
