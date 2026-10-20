@@ -366,12 +366,16 @@ def issue_member_card(handle: str, *, enrollment: dict, group: str | None = None
     # was PoP-verified above, so no fresh ceremony is needed per project).
     from . import membership as _mem
     ep = enrollment.get("payload") or {}
-    _mem.upsert_member(handle, role="staff",
+    # A blank field leaves what the roster already holds (None), and the role
+    # is set only for a new member (upsert defaults it to staff): a member
+    # re-enrolling a new machine with empty boxes lost their netname and
+    # Slack id, and their role was reset to staff.
+    _mem.upsert_member(handle, role=None,
                        full_name=(str(ep.get("name") or "") or None),
-                       email=str(ep.get("email") or ""),
-                       github=str(ep.get("github") or ""),
-                       slack=str(ep.get("slack") or ""),
-                       official_handle=str(ep.get("official_handle") or ""),
+                       email=(str(ep.get("email") or "") or None),
+                       github=(str(ep.get("github") or "") or None),
+                       slack=(str(ep.get("slack") or "") or None),
+                       official_handle=(str(ep.get("official_handle") or "") or None),
                        card_fingerprint=member_card["payload"]["subject"]["fingerprint"],
                        card_id=member_card["payload"]["card_id"],
                        pubkey=str(pubkey))
