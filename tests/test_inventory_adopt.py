@@ -42,6 +42,10 @@ def world(monkeypatch, tmp_path):
     # so point it here or the guard rejects this fixture's own clones.
     monkeypatch.setenv("MURMURENT_REPOS_ROOT", str(home / "repos"))
     monkeypatch.setenv("MURMURENT_HOSTS_FILE", str(tmp_path / "hosts.yaml"))
+    # Adoption records a project only in a lab records folder that exists (#227).
+    lab_mgmt = tmp_path / "lab_mgmt"
+    lab_mgmt.mkdir()
+    monkeypatch.setenv("MURMURENT_LAB_MGMT_REPO", str(lab_mgmt))
     return {"home": home, "repos": home / "repos", "commons": commons}
 
 
