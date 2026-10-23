@@ -53,6 +53,9 @@ def env(monkeypatch, tmp_path):
     monkeypatch.setenv("MURMURENT_DATA_ROOT", str(data))
     questions = tmp_path / "group" / "choreographies"
     monkeypatch.setenv(_ch.ENV_CHOREOGRAPHY_DIR, str(questions))
+    lab_mgmt = tmp_path / "lab_mgmt"
+    lab_mgmt.mkdir()
+    monkeypatch.setenv("MURMURENT_LAB_MGMT_REPO", str(lab_mgmt))
     for k, v in (("GIT_AUTHOR_NAME", "t"), ("GIT_AUTHOR_EMAIL", "t@e"),
                  ("GIT_COMMITTER_NAME", "t"), ("GIT_COMMITTER_EMAIL", "t@e")):
         monkeypatch.setenv(k, v)
@@ -290,3 +293,42 @@ def test_dashboard_endpoint(env, monkeypatch):
     bad = client.post("/api/choreography/init", json={
         "name": "pin1_y", "title": "", "summary": "x"})
     assert bad.status_code == 422 and "title" in bad.json()["detail"]
+
+
+# ---------------------------------------------------------------------------
+# #227: no invented lab records folder, and --no-project writes no project
+# ---------------------------------------------------------------------------
+
+
+def test_no_project_writes_no_project_record(env, tmp_path):
+    lab_mgmt = tmp_path / "lab_mgmt"
+    result = ci.init_choreography(_plan(request_project=False), actor="alice")
+    assert result.ok
+    assert not (lab_mgmt / "cert_projects").exists()
+
+
+def test_no_lab_records_folder_is_never_created(env, tmp_path, monkeypatch):
+    missing = tmp_path / "repos" / "murmurent_lab_mgmt"
+    monkeypatch.setenv("MURMURENT_LAB_MGMT_REPO", str(missing))
+    monkeypatch.delenv(_ch.ENV_CHOREOGRAPHY_DIR)
+    vault_dir = tmp_path / "vault" / "choreographies"
+    from murmurent.core import oracle_publish as _op
+    monkeypatch.setattr(_op, "personal_oracle_dir", lambda: vault_dir.parent / "oracle")
+    result = ci.init_choreography(_plan(request_project=True), actor="alice")
+    assert not missing.exists()
+    assert result.question_path.parent == vault_dir
+    question = next(p for p in result.probes if p.name == "question")
+    assert "vault" in question.detail and "group's" not in question.detail
+    request = next(p for p in result.probes if p.name == "project request")
+    assert request.status == "warn" and "no request was filed" in request.detail
+
+
+def test_adopting_without_a_lab_records_folder_warns(tmp_path, monkeypatch):
+    from murmurent.core import project_unit as pu
+    missing = tmp_path / "nowhere"
+    monkeypatch.setenv("MURMURENT_LAB_MGMT_REPO", str(missing))
+    repo = tmp_path / "repos" / "solo"
+    repo.mkdir(parents=True)
+    probe = pu.ensure_repo_project(repo, lab="mh", lead="alice")
+    assert probe.status == "warn" and "no lab records folder" in probe.detail
+    assert not missing.exists()

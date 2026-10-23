@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
 import yaml
 from click.testing import CliRunner
 
@@ -66,7 +67,7 @@ def _make_contribution(
     return spec_path
 
 
-def _make_choreography(directory: Path, *contribution_refs: str) -> Path:
+def _make_choreography(directory: Path, *contribution_refs: str, repo: str = "") -> Path:
     obj = ch.pose(
         question="optimize_sulfopin",
         poser="@the_pi",
@@ -74,6 +75,7 @@ def _make_choreography(directory: Path, *contribution_refs: str) -> Path:
         candidate_key="inchikey",
         criteria="rank by measured affinity; flag single-contribution favourites",
     )
+    obj.repo = repo
     for ref in contribution_refs:
         obj.attach_contribution(ref)
     path = directory / "optimize_sulfopin.md"
@@ -139,10 +141,44 @@ def test_prepare_run_prefers_append_only_when_present(tmp_path, monkeypatch) -> 
     (data_root / "append_only").mkdir(parents=True)
     monkeypatch.setenv("MURMURENT_DATA_ROOT", str(data_root))
     spec = _make_contribution(tmp_path, name="dock_and_filter")
-    choreo = _make_choreography(tmp_path, spec.name)
+    choreo = _make_choreography(tmp_path, spec.name, repo="pin1_x")
 
     dest = run.prepare_run(choreo)  # no --out
-    assert str(dest).startswith(str(data_root / "append_only"))
+    assert dest.parent == data_root / "append_only" / "pin1_x" / "runs"
+
+    result = tmp_path / "combined.md"
+    result.write_text("# combined\n", encoding="utf-8")
+    record = run.freeze_run(choreo, result_path=result, run_package=dest)
+    assert record.parent == data_root / "append_only" / "pin1_x" / "records"
+
+
+def test_runs_take_the_project_from_the_choreography_repository(tmp_path, monkeypatch) -> None:
+    # A question file with no repo: line, inside a choreography repository.
+    data_root = tmp_path / "data"
+    (data_root / "append_only").mkdir(parents=True)
+    monkeypatch.setenv("MURMURENT_DATA_ROOT", str(data_root))
+    repo = tmp_path / "pin1_x"
+    (repo / "choreography").mkdir(parents=True)
+    (repo / ".murmurent.yaml").write_text(
+        "kind: choreography\nname: pin1_x\n", encoding="utf-8")
+    spec = _make_contribution(repo / "choreography", name="dock_and_filter")
+    choreo = _make_choreography(repo / "choreography", spec.name)
+
+    dest = run.prepare_run(choreo)
+    assert dest.parent == data_root / "append_only" / "pin1_x" / "runs"
+
+
+def test_runs_with_no_project_are_refused(tmp_path, monkeypatch) -> None:
+    # Never a folder under append_only/ that is named after no project (#228).
+    data_root = tmp_path / "data"
+    (data_root / "append_only").mkdir(parents=True)
+    monkeypatch.setenv("MURMURENT_DATA_ROOT", str(data_root))
+    spec = _make_contribution(tmp_path, name="dock_and_filter")
+    choreo = _make_choreography(tmp_path, spec.name)
+
+    with pytest.raises(run.RunError, match="--out"):
+        run.prepare_run(choreo)
+    assert list((data_root / "append_only").iterdir()) == []
 
 
 # -- freeze_run -------------------------------------------------------------
