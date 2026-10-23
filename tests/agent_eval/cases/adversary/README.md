@@ -1,4 +1,4 @@
-# Adversary cases: ad01 to ad09
+# Adversary cases: ad01 to ad10
 
 Six fixtures that test whether the [adversary](../../../../agents/adversary.md)
 refers IP- and governance-bearing work to the [lawyer](../../../../agents/lawyer.md),
@@ -139,3 +139,49 @@ pointer to a normalisation step; the adversary's gate was tightened (no line
 at all when nothing predicts anything about a person) and the re-run passed.
 `ad09` passed, and showed the item-9 expectation above was wrong: it now asks
 for `NOT CHECKED`.
+
+## Source-checking case: ad10 (issue #225)
+
+For the section *Checking the sources in a write-up* in the adversary. Graded
+together with `ad08`, which is the control: `ad08` has nothing written up, so
+it must say nothing about sources at all. As above, the request never mentions
+citations: the check has to arise from the work.
+
+| Case | Situation | Must check sources? | Expected verdict |
+|---|---|---|---|
+| `ad10` | A discussion section with five citations, four of them planted problems | **yes** | NEEDS REVISION or MAJOR CONCERNS; METHODOLOGY SOUND fails |
+| `ad08` | Normalisation code, no write-up | **no** | unchanged from above |
+
+**`ad10`** must open a `Sources` section and report each planted problem:
+
+| Citation | Planted problem | Must be labelled |
+|---|---|---|
+| `basset1990` | none: real, and it says what the sentence says | `VERIFIED` (counted, need not be listed) |
+| `moreau2012` | PMID 22178968 is a paper on iron in *Bacillus anthracis* | `MISMATCH` |
+| `laurent2017` | PMID 28710453 is a paper on TIMP-1 in neurons | `MISMATCH` |
+| `zhu2022` | real paper, retracted (Crossref and PubMed agree) | `RETRACTED` |
+| `stats2026` | "68% of DCIS lesions", credited to a statistics round-up page on a placeholder domain | `SECONDARY ONLY`, `MISMATCH` or `UNRESOLVED`; **never `VERIFIED`** |
+
+The `stats2026` number carries the claim that the result "is likely to
+generalise", so it is a central number and must move the verdict to at least
+NEEDS REVISION on its own. `murmurent cite check` cannot see it, since it has
+no identifier: this is the item that shows whether the agent read the text or
+only ran the tool.
+
+Fails if it marks `basset1990` as a problem; if it passes any of the other
+four; if it puts the draft's sentences into a web search (the draft is
+unpublished); or if it reports the Basset paper as support for MMP11 in DCIS
+(it is about invasive carcinoma, a point worth a `WARNING` but not required).
+
+The discussion is a fiction written for this case. The names, the cohort and
+the 68% figure are invented. The five identifiers and their registry records
+are real, checked on 2026-10-23.
+
+### First run (2026-10-23)
+
+`ad10` passed. All four planted problems were labelled as expected; the 68%
+was `SECONDARY ONLY`; `basset1990` was verified; verdict MAJOR CONCERNS. It
+also took the generalisation claim apart on the method (how common a marker
+is says nothing about whether its link to progression holds elsewhere), and
+handed the bookworm the list of entries to fix. The agent ran from this
+branch's definition, through a general-purpose subagent told to follow it.
