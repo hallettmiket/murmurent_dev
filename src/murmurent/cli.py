@@ -1758,10 +1758,22 @@ def pull_cmd(project_name: str) -> None:
     push_impl.cmd_pull(project_name)
 
 
-@cli.command("cite", help="Resolve and insert a citation.")
-@click.argument("reference")
-def cite_cmd(reference: str) -> None:
-    _stub()
+@cli.group("cite", help="Check the citations in a file.")
+def cite_group() -> None:
+    pass
+
+
+@cite_group.command(
+    "check",
+    help="Look up every DOI, PMID and arXiv ID in a .bib, .tex or .md file. Reports "
+         "any that do not exist, name a different paper from the one the bibliography "
+         "claims, or have been retracted, and exits 1 if there are any.")
+@click.argument("path", type=click.Path(exists=True, dir_okay=False))
+@click.option("--json", "as_json", is_flag=True, help="Machine-readable output, for agents.")
+def cite_check_cmd(path: str, as_json: bool) -> None:
+    from .commands import cite_cmd as _cite
+
+    _cite.cmd_check(path, as_json=as_json)
 
 
 @cli.command("publish", help="Promote a finding to the group oracle.")
