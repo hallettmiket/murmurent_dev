@@ -120,10 +120,31 @@ def test_notify_sends_through_the_lab_bot(monkeypatch):
     monkeypatch.setattr("murmurent.core.lab.pi_handle", lambda: "@the_pi")
     monkeypatch.setattr(et, "_lab_channel", lambda lab: "")
     sent = []
-    done = et.notify(_report(et.PRIORITY), today="2026-10-19",
+    done = et.notify(_report(et.PRIORITY), today="2026-10-19", policy=Policy(),
                      send_dm=lambda lab, text, slack, email: sent.append((email, text)) or (True, "ok"))
     assert [e for e, _ in sent] == ["bob@x", "the_pi@x"]   # the person, then the PI's summary
     assert any("message to @bob: sent" in d for d in done)
+
+
+def test_summary_goes_to_the_policy_channel(monkeypatch):
+    from murmurent.core import membership, project_unit
+    monkeypatch.setattr(project_unit, "this_machine_lab", lambda: "mh")
+    monkeypatch.setattr(membership, "get", lambda h: SimpleNamespace(slack="", email=f"{h}@x"))
+    monkeypatch.setattr("murmurent.core.lab.pi_handle", lambda: "@the_pi")
+    monkeypatch.setattr("murmurent.core.group_reconcile.resolve_group_slack_token", lambda lab: "tok")
+    monkeypatch.setattr(et, "_lab_channel", lambda lab: "")
+    monkeypatch.setattr(et, "_channel_id", lambda name, token: "C123")
+    dms, posts = [], []
+    send_dm = lambda lab, text, slack, email: dms.append(email) or (True, "ok")
+    policy = Policy(etiquette_summary_channel="#computers")
+    done = et.notify(_report(et.PRIORITY), today="2026-10-19", send_dm=send_dm, policy=policy,
+                     post=lambda ch, text, token: posts.append((ch, token)) or True)
+    assert posts == [("C123", "tok")] and dms == ["bob@x"]
+    assert "summary posted to #computers" in done
+    dms.clear()
+    done = et.notify(_report(et.PRIORITY), today="2026-10-20", send_dm=send_dm, policy=policy,
+                     post=lambda ch, text, token: False)
+    assert "the_pi@x" in dms and any("sent to the PI instead" in d for d in done)
 
 
 def test_schedule_units_and_record(monkeypatch, tmp_path):
