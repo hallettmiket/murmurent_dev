@@ -329,6 +329,47 @@ def grant_lab_mgmt_read(login: str, *, repo: str = "", runner=subprocess.run):
     return _gh_add_collaborator(repo, login, permission="pull", runner=runner)
 
 
+def records_access_for_new_member(github_login: str, group: str, *,
+                                  granter=None) -> dict:
+    """Give a freshly carded member read access to the lab records repo on
+    GitHub, and say exactly what they should run next (#232).
+
+    Returns ``{"ok", "detail", "repo", "clone_command"}``. ``ok`` is False
+    when the login is missing, the records repo is not on GitHub, or GitHub
+    refused; ``detail`` says which, and names ``murmurent group-reconcile
+    <group> --apply`` as the way to grant it later. ``clone_command`` is set
+    whenever the repo is on GitHub, since the member still needs it.
+    """
+    from . import repo as _repo
+    grant = granter or (lambda login: grant_lab_mgmt_read(login))
+    slug = lab_mgmt_repo_slug()
+    later = f"grant it later with:  murmurent group-reconcile {group} --apply"
+    clone = ""
+    if slug:
+        clone = (f"git clone git@github.com:{slug}.git "
+                 f"{_repo.repos_root_for_display()}/{_repo.lab_repo_path(group).name}")
+    login = (github_login or "").strip().lstrip("@")
+    if not slug:
+        return {"ok": False, "repo": "", "clone_command": "",
+                "detail": ("the lab records repo is not on GitHub yet, so the member "
+                           "cannot be given access to it; push it first (see "
+                           "docs/lab_mgmt.md), then " + later)}
+    if not login:
+        return {"ok": False, "repo": slug, "clone_command": clone,
+                "detail": ("the member gave no GitHub username at `murmurent init`, "
+                           "so they cannot be invited to the lab records; ask them "
+                           "for it, add it to their roster record, then " + later)}
+    try:
+        ok, detail = grant(login)
+    except Exception as exc:  # noqa: BLE001 - a GitHub hiccup must not undo the card
+        ok, detail = False, str(exc)
+    if not ok:
+        detail = f"GitHub did not accept the invitation for {login}: {detail}; {later}"
+    else:
+        detail = f"{login} invited to {slug} (read-only): {detail}"
+    return {"ok": bool(ok), "repo": slug, "clone_command": clone, "detail": detail}
+
+
 def group_reconcile(
     group: str,
     *,

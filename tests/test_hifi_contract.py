@@ -164,6 +164,7 @@ HIFI_TOP_LEVEL_KEYS = {
     "requests_pending",
     "requests_mine",
     "group_members",
+    "lab_records",
     "sea_catalog",
     "inbound_requests",
     "training_compliance",

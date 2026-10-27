@@ -839,10 +839,9 @@ def create_app() -> FastAPI:
         from ..core import registrar as _registrar
         from ..core import centre_init as _ci_gate
         from ..core.repo import use_lab_mgmt_root
-        # resolve_viewer_lab_mgmt (not the bare lookup): it additionally
-        # upgrades a card-import stub to the member's real lab_mgmt clone once
-        # one exists, so a member whose card predates that fix stops seeing a
-        # roster of just themselves — without hand-editing lab_mgmt_path.
+        # The viewer's group and its records repo. The machine owner's own
+        # identity card settles their membership, so a member whose clone of
+        # the records is not on disk yet still gets in (and is told to clone).
         match = _registrar.resolve_viewer_lab_mgmt(handle)
         # SCOPING GATE: in ANY initialised centre, the ONLY valid identities are
         # those the centre registry claims (a member/PI/leader of a registered
@@ -2818,6 +2817,12 @@ def create_app() -> FastAPI:
         except OSError:
             pass
 
+        # #232: the member's machine learns about the lab from the lab records
+        # repo, so invite them to it on GitHub now, next to the Slack invite,
+        # rather than leaving it to a reconcile nobody is prompted to run.
+        records = _gr.records_access_for_new_member(
+            str(payload.get("github") or ""), group)
+
         dm_ok, dm_detail = False, "not attempted"
         if body.dm:
             member_email = str(payload.get("email") or "")
@@ -2826,6 +2831,11 @@ def create_app() -> FastAPI:
                 f"Your murmurent member ID for '{group}' is ready — your signed "
                 f"bundle.json is attached to this message. Download it, then run:"
                 f"\n\n    {import_hint}")
+            if records.get("clone_command"):
+                dm_text += (
+                    "\n\nThen accept the GitHub invitation to the lab records "
+                    "repository (check your GitHub notifications or email) and "
+                    f"clone it:\n\n    {records['clone_command']}")
             dm_ok, dm_detail = _gr.send_group_dm(
                 group, text=dm_text, slack=member_slack, email=member_email,
                 file_content=_json.dumps(bundle, indent=2), file_name="bundle.json")
@@ -2838,6 +2848,8 @@ def create_app() -> FastAPI:
             "bundle": bundle,
             "import_hint": import_hint,
             "dm": {"sent": dm_ok, "detail": dm_detail},
+            # #232: read access to the lab records repo, and the clone command.
+            "records": records,
             # #188: a new member joins the group's Slack channel.
             "slack": _invite_to_group_channel(
                 group, handle, str(payload.get("email") or "")),

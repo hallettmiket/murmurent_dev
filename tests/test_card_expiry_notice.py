@@ -86,7 +86,7 @@ def test_a_member_is_told_when_the_pi_card_inside_theirs_has_expired(centre):
     assert health.status == "reject" and health.kind == "member"
     assert health.limited_by == "your PI's"
     assert health.message.startswith("Your PI's card, which yours depends on, expired on 2026-10-08")
-    assert "murmurent enroll" in health.message and "murmurent import-card" in health.message
+    assert "murmurent pi-init mh" in health.message and "lab records" in health.message
 
 
 def test_no_card_means_nothing_to_say(monkeypatch, tmp_path):
@@ -146,3 +146,52 @@ def test_a_broken_card_check_never_locks_anyone_out(client, monkeypatch):
         raise RuntimeError("disk gone")
     monkeypatch.setattr(ISS, "local_card_health", boom)
     assert client.get("/api/login/resolve").json()["card_notice"] is None
+
+
+# ---- a PI renewal reaches members through the lab records (#233) ----------
+
+@pytest.fixture
+def member_machine(centre, monkeypatch, tmp_path):
+    """The same centre, but this machine belongs to @student, a member of mh."""
+    monkeypatch.setenv("MURMURENT_REPOS_ROOT", str(tmp_path / "repos"))
+    IC.import_card({"version": IC.CARD_VERSION, "netname": "student", "centre": "qa",
+                    "roles": [{"kind": "member", "group": "mh", "pi": "@pi",
+                               "group_kind": "lab"}],
+                    "issued_by": "@pi", "issued_at": ISSUED.isoformat()})
+    return tmp_path / "repos" / "murmurent_lab_mgmt_mh"
+
+
+def test_a_member_is_refused_when_the_pi_copy_runs_out_and_nothing_was_renewed(member_machine, centre):
+    hold_member_bundle(centre, member_issued=ISSUED + dt.timedelta(days=80))
+    health = ISS.local_card_health(now=dt.datetime(2026, 10, 17, tzinfo=UTC))
+    assert health.status == "reject" and health.kind == "member"
+    assert health.limited_by == "your PI's" and health.expires_on == "2026-10-08"
+    assert "murmurent pi-init mh" in health.message
+    assert "lab records" in health.message
+    assert "murmurent enroll" not in health.message
+
+
+def test_a_renewed_pi_card_in_the_lab_records_lets_the_member_in(member_machine, centre):
+    hold_member_bundle(centre, member_issued=ISSUED + dt.timedelta(days=80))
+    renewed = pi_card(centre, issued=ISSUED + dt.timedelta(days=89))
+    note = ISS.publish_pi_card(renewed, member_machine)
+    assert (member_machine / "pi_card.json").is_file()
+    assert "pi_card.json" in note
+    health = ISS.local_card_health(now=dt.datetime(2026, 10, 17, tzinfo=UTC))
+    assert health.status == "ok", health.reason
+    # The warning, if any, is now about the member's own card, not the PI's.
+    assert health.limited_by == "yours"
+    assert health.expires_on == (ISSUED + dt.timedelta(days=170)).date().isoformat()
+
+
+def test_pi_init_publishes_the_card_into_the_lab_records(monkeypatch, tmp_path):
+    from murmurent.core import idkeys as K
+    monkeypatch.setenv("MURMURENT_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("MURMURENT_LAB_INFO_ROOT", str(tmp_path / "li"))
+    monkeypatch.setenv("MURMURENT_REPOS_ROOT", str(tmp_path / "repos"))
+    monkeypatch.delenv("MURMURENT_LAB_MGMT_REPO", raising=False)
+    K.generate_keypair()
+    out = ISS.self_issue_pi_card("@pi", "mh")
+    published = tmp_path / "repos" / "murmurent_lab_mgmt_mh" / "pi_card.json"
+    assert published.is_file()
+    assert json.loads(published.read_text())["payload"]["card_id"] == out["pi_card"]["payload"]["card_id"]

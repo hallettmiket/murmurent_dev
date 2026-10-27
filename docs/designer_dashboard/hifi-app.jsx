@@ -2564,6 +2564,14 @@ function ProjectHeadingMeta({ p }) {
         </span>
       )}
       <Pill tone={(p.sens==="protected"||p.sens==="clinical")?"red":""}>{p.sens}</Pill>
+      {p.hosted_by && (
+        <span title={p.source === "card"
+                ? "You hold a project card for this project. Its records live in lab " + p.hosted_by + ", which this computer does not have, so the team and repos are not shown."
+                : "Recorded in lab " + p.hosted_by + "'s records."}
+              style={{...PROJ_TAG, color:"var(--purple)"}}>
+          hosted by {p.hosted_by}
+        </span>
+      )}
       {p.lead && <span className="mono" title="project lead">{p.lead}</span>}
       <span className="mono muted" title="certified members">team {p.members}</span>
       <span className="muted">
@@ -2836,6 +2844,19 @@ function AddMemberModal({ onClose }) {
                 border:"1px solid var(--rule)", borderRadius:2, padding:"6px 8px", overflowX:"auto"}}>
             {result.import_hint}
           </code>
+          {result.records && (
+            <div className="muted" style={{fontSize:12, lineHeight:1.5}}>
+              {result.records.ok
+                ? <>✓ Lab records: {result.records.detail}</>
+                : <><strong style={{color:"var(--red)"}}>Lab records:</strong> {result.records.detail}</>}
+              {result.records.clone_command && (
+                <code className="mono" style={{display:"block", fontSize:11, marginTop:4, background:"var(--paper-2)",
+                      border:"1px solid var(--rule)", borderRadius:2, padding:"6px 8px", overflowX:"auto"}}>
+                  {result.records.clone_command}
+                </code>
+              )}
+            </div>
+          )}
           <label style={lbl}>card bundle (send to the member)</label>
           <textarea readOnly value={bundleText} spellCheck={false}
             onFocus={e => e.target.select()}
@@ -2962,6 +2983,24 @@ function LabMembersPanel({ peers, span="c-6" }) {
         </div>
       </header>
       {showAdd && <AddMemberModal onClose={() => setShowAdd(false)} />}
+      {window.DATA.lab_records && !window.DATA.lab_records.present && (
+        <div style={{margin:"0 14px 8px", padding:"8px 10px", borderRadius:2, fontSize:12.5, lineHeight:1.5,
+             border:"1px solid var(--amber, #b58900)", background:"rgba(181,137,0,0.07)"}}>
+          <strong>Your copy of the lab records is not on this computer yet.</strong>{" "}
+          The members, projects, inventory and lab oracle shown here come from it.
+          {window.DATA.lab_records.hint && (
+            <code className="mono" style={{display:"block", fontSize:11, marginTop:6, background:"var(--paper-2)",
+                  border:"1px solid var(--rule)", borderRadius:2, padding:"6px 8px", overflowX:"auto"}}>
+              {window.DATA.lab_records.hint.replace(/^.*?:\s+/, "")}
+            </code>
+          )}
+          <div className="muted" style={{fontSize:11.5, marginTop:4}}>
+            If GitHub refuses, ask your PI to grant you access (they press "update" on their own members panel, or run
+            <code className="mono"> murmurent group-reconcile {window.DATA.lab_records.group} --apply</code>).
+            Then press <strong>update</strong> above.
+          </div>
+        </div>
+      )}
       {isPI && audit && (
         <div style={{margin:"0 14px 8px", padding:"8px 10px", borderRadius:2, fontSize:12.5, lineHeight:1.5,
              border:"1px solid " + (audit.counts.flagged ? "var(--red)" : "var(--green)"),
