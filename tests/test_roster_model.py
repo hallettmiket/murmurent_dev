@@ -68,12 +68,15 @@ def test_upsert_rejects_bad_role(lab):
         M.upsert_member("allie", role="member")          # not a VALID_ROLE
 
 
-def test_lab_mgmt_pointer_resolves_and_env_wins(monkeypatch, tmp_path):
+def test_card_resolves_the_records_repo_and_env_wins(monkeypatch, tmp_path):
+    from murmurent.core import identity_card as IC
     monkeypatch.delenv("MURMURENT_LAB_MGMT_REPO", raising=False)
-    # MURMURENT_HOME is isolated by the conftest autouse; the pointer lives under it
-    target = tmp_path / "repos" / "wigamig_lab_mh"
-    R.set_lab_mgmt_path(target)
-    assert R.lab_mgmt_repo_root() == target
-    # an explicit env var still overrides the pointer
+    monkeypatch.setenv("MURMURENT_REPOS_ROOT", str(tmp_path / "repos"))
+    monkeypatch.setenv("MURMURENT_USER", "the_pi")
+    # MURMURENT_HOME is isolated by the conftest autouse; the card lives under it
+    IC.import_card({"version": 1, "netname": "the_pi", "centre": "qa",
+                    "roles": [{"kind": "lab_pi", "group": "mh", "pi": "@the_pi"}]})
+    assert R.lab_mgmt_repo_root() == tmp_path / "repos" / "murmurent_lab_mgmt_mh"
+    # an explicit env var still overrides the card
     monkeypatch.setenv("MURMURENT_LAB_MGMT_REPO", str(tmp_path / "other"))
     assert R.lab_mgmt_repo_root() == tmp_path / "other"

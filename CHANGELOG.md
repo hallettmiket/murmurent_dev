@@ -17,6 +17,35 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 
 ## [Unreleased]
 
+### Changed
+
+- **One location per group's lab records repo** (`<repos>/murmurent_lab_mgmt_<group>`).
+  The identity card now says which groups a machine's owner belongs to, and
+  that is the whole lookup. Removed: the pin file (`~/.murmurent/lab_mgmt_path`),
+  the scan of the repositories folder for anything shaped like a records repo,
+  and the one-person placeholder roster `import-card` used to invent. A clone
+  at any other path is reported with the command that moves it, never used.
+  The dashboard and the terminal can no longer follow different labs (#232).
+- A member whose clone of the lab records is not on disk yet still opens their
+  dashboard (the card proves the membership) and is shown the clone command;
+  `murmurent import-card` prints it too. The member-card bundle carries the
+  records repo's GitHub address (`records_repo`) so that command is exact.
+- **Projects are listed across every group on your card**, plus any project
+  you hold a project card for (shown as "hosted by" the other lab).
+  `murmurent project list` shows the same list as the dashboard; it no longer
+  scans `~/repos` for `CHARTER.md` files.
+
+### Added
+
+- Issuing a member card (dashboard or `murmurent issue-member-card`) also
+  invites the member to the lab records repo on GitHub, reports whether that
+  worked, and adds the clone command to the message they receive (#232).
+- A PI's current card is published in the lab records (`pi_card.json`) by
+  `murmurent pi-init` and when a centre-issued PI card is imported. Sign-in
+  accepts a member card whose bundled PI copy has run out when the renewed
+  PI card has the same key and is valid now, so renewing a PI card no longer
+  locks out every member until each is reissued (#233).
+
 ## [2026.10.5] - 2026-10-19
 
 **To upgrade:** `uv tool upgrade murmurent`, then restart the dashboard

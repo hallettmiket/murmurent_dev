@@ -488,3 +488,92 @@ def test_project_chain_stale_crl_fails_closed(pworld):
 def test_project_chain_wrong_centre_rejected(pworld):
     v = _pv(pworld, centre="other_centre")
     assert not v.ok
+
+
+# ---- a renewed PI card stands in for the expired bundled copy (#233) --------
+
+def _renewed(world, *, issued, key=None):
+    """A PI card re-issued later by the root, same key unless ``key`` is given."""
+    pub = (key or world["pi"]).public_key()
+    return C.issue_pi_card(handle="@yxia266", pi_pubkey=pub, centre="qa",
+                           root_priv=world["root"], issuer_handle="@tbrowne5",
+                           issued_at=issued)
+
+
+def _later(world, days):
+    """Verify at T0 + days with a CRL fresh at that moment."""
+    now = T0 + timedelta(days=days)
+    crl = C.build_crl(centre="qa", revoked=[], root_priv=world["root"], serial=2, issued_at=now)
+    return now, crl
+
+
+def test_member_is_locked_out_when_the_bundled_pi_card_expires(world):
+    # The member card was issued at T0 and lasts 90 days, like the PI card it
+    # carries. Reissue the member card 80 days in so it outlives the PI copy.
+    late = T0 + timedelta(days=80)
+    world["member_card"] = C.issue_member_card(
+        handle="@allie", member_pubkey=world["member"].public_key(), group="yxia_lab",
+        centre="qa", pi_priv=world["pi"], pi_handle="@yxia266", issued_at=late)
+    now, crl = _later(world, 95)
+    v = _v(world, now=now, crl=crl)
+    assert not v.ok and v.reason == "PI card invalid: expired"
+
+
+def test_renewed_pi_card_with_the_same_key_rescues_the_member(world):
+    late = T0 + timedelta(days=80)
+    world["member_card"] = C.issue_member_card(
+        handle="@allie", member_pubkey=world["member"].public_key(), group="yxia_lab",
+        centre="qa", pi_priv=world["pi"], pi_handle="@yxia266", issued_at=late)
+    now, crl = _later(world, 95)
+    renewed = _renewed(world, issued=T0 + timedelta(days=89))
+    v = _v(world, now=now, crl=crl, renewed_pi_card=renewed)
+    assert v.ok, v.reason
+    assert v.handle == "@allie" and v.group == "yxia_lab"
+
+
+def test_renewed_pi_card_with_a_different_key_does_not(world):
+    late = T0 + timedelta(days=80)
+    world["member_card"] = C.issue_member_card(
+        handle="@allie", member_pubkey=world["member"].public_key(), group="yxia_lab",
+        centre="qa", pi_priv=world["pi"], pi_handle="@yxia266", issued_at=late)
+    now, crl = _later(world, 95)
+    renewed = _renewed(world, issued=T0 + timedelta(days=89), key=Ed25519PrivateKey.generate())
+    v = _v(world, now=now, crl=crl, renewed_pi_card=renewed)
+    assert not v.ok and v.reason == "PI card invalid: expired"
+
+
+def test_renewed_pi_card_that_is_revoked_does_not(world):
+    late = T0 + timedelta(days=80)
+    world["member_card"] = C.issue_member_card(
+        handle="@allie", member_pubkey=world["member"].public_key(), group="yxia_lab",
+        centre="qa", pi_priv=world["pi"], pi_handle="@yxia266", issued_at=late)
+    now = T0 + timedelta(days=95)
+    renewed = _renewed(world, issued=T0 + timedelta(days=89))
+    crl = C.build_crl(centre="qa", revoked=[renewed["payload"]["card_id"]],
+                      root_priv=world["root"], serial=2, issued_at=now)
+    v = _v(world, now=now, crl=crl, renewed_pi_card=renewed)
+    assert not v.ok
+
+
+def test_renewed_pi_card_does_not_cover_a_member_card_issued_after_the_old_one_ran_out(world):
+    # A member card signed while the PI card was already dead was never valid.
+    dead = T0 + timedelta(days=92)
+    world["member_card"] = C.issue_member_card(
+        handle="@allie", member_pubkey=world["member"].public_key(), group="yxia_lab",
+        centre="qa", pi_priv=world["pi"], pi_handle="@yxia266", issued_at=dead)
+    now, crl = _later(world, 95)
+    renewed = _renewed(world, issued=T0 + timedelta(days=93))
+    v = _v(world, now=now, crl=crl, renewed_pi_card=renewed)
+    assert not v.ok
+
+
+def test_renewed_pi_card_never_excuses_a_tampered_bundled_copy(world):
+    late = T0 + timedelta(days=80)
+    world["member_card"] = C.issue_member_card(
+        handle="@allie", member_pubkey=world["member"].public_key(), group="yxia_lab",
+        centre="qa", pi_priv=world["pi"], pi_handle="@yxia266", issued_at=late)
+    world["pi_card"]["payload"]["roles"] = ["forged"]
+    now, crl = _later(world, 95)
+    renewed = _renewed(world, issued=T0 + timedelta(days=89))
+    v = _v(world, now=now, crl=crl, renewed_pi_card=renewed)
+    assert not v.ok and "bad root signature" in v.reason

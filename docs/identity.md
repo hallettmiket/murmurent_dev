@@ -433,6 +433,23 @@ murmurent centre-hub-publish [--submit]
 murmurent centre-pin <unique-name> --fingerprint <SHA256:...>
 ```
 
+## Renewal
+
+Every card lasts 90 days. A PI renews theirs by running `murmurent pi-init
+<lab>` again (same key, new dates); a member renews by running `murmurent
+enroll` again and importing the new card their PI issues.
+
+A member's card carries a copy of their PI's card, and sign-in checks both.
+When the PI renews, the renewed card is published in the lab records
+(`murmurent_lab_mgmt_<lab>/pi_card.json`), which every member's machine
+already pulls (the dashboard does it every fifteen minutes, and the
+members panel's **update** button does it on demand). Sign-in then accepts
+a member card whose bundled PI copy has run out, as long as the renewed PI
+card has the same key and is valid now and the old copy was valid when the
+member card was issued. Members keep working through a PI renewal without a
+new card each. Only a PI whose key changed (`murmurent identity-init
+--rotate`) needs to reissue their members' cards.
+
 ## Revocation
 
 Cards carry a 90-day **TTL** (time-to-live: how long a card stays valid

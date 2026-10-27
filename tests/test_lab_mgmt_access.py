@@ -141,3 +141,40 @@ def test_grant_skips_the_repo_owner():
         runner=_fake_runner(calls))
     assert ok and "owner" in detail
     assert calls == []  # no API call made
+
+
+# ---- issuing a card also invites the member to the records repo (#232) ------
+
+def test_new_member_is_invited_and_told_how_to_clone(monkeypatch, tmp_path):
+    monkeypatch.setattr(_gr, "lab_mgmt_repo_slug", lambda: "owner/murmurent_lab_mgmt_mh")
+    monkeypatch.setenv("MURMURENT_REPOS_ROOT", str(tmp_path / "repos"))
+    granted = []
+    out = _gr.records_access_for_new_member(
+        "@alice-gh", "mh", granter=lambda login: (granted.append(login) or (True, "invited")))
+    assert granted == ["alice-gh"]
+    assert out["ok"] and out["repo"] == "owner/murmurent_lab_mgmt_mh"
+    assert out["clone_command"].startswith("git clone git@github.com:owner/murmurent_lab_mgmt_mh.git ")
+    assert out["clone_command"].endswith("/murmurent_lab_mgmt_mh")
+
+
+def test_new_member_without_a_github_login_is_reported_not_silently_skipped(monkeypatch):
+    monkeypatch.setattr(_gr, "lab_mgmt_repo_slug", lambda: "owner/murmurent_lab_mgmt_mh")
+    out = _gr.records_access_for_new_member("", "mh", granter=lambda login: (True, "x"))
+    assert not out["ok"]
+    assert "no GitHub username" in out["detail"]
+    assert "murmurent group-reconcile mh --apply" in out["detail"]
+    assert out["clone_command"]          # they still need it once invited
+
+
+def test_records_repo_not_on_github_is_reported(monkeypatch):
+    monkeypatch.setattr(_gr, "lab_mgmt_repo_slug", lambda: "")
+    out = _gr.records_access_for_new_member("alice", "mh", granter=lambda login: (True, "x"))
+    assert not out["ok"] and "not on GitHub" in out["detail"] and out["clone_command"] == ""
+
+
+def test_github_refusal_names_the_fallback(monkeypatch):
+    monkeypatch.setattr(_gr, "lab_mgmt_repo_slug", lambda: "owner/murmurent_lab_mgmt_mh")
+    out = _gr.records_access_for_new_member("alice", "mh", granter=lambda login: (False, "422"))
+    assert not out["ok"]
+    assert "GitHub did not accept" in out["detail"]
+    assert "murmurent group-reconcile mh --apply" in out["detail"]

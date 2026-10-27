@@ -74,13 +74,13 @@ Once `gh auth status` shows you logged in, two things get you fully set up:
      ~/repos/murmurent_lab_mgmt_example_lab
    ```
 
-   Murmurent auto-discovers this clone and pins it the next time you load
-   the dashboard, so no further configuration is needed. Details on what
-   this repo contains: [`lab_mgmt.md`](lab_mgmt.md).
+   That path is the one place murmurent looks, so no further configuration
+   is needed; the dashboard shows this same command until the clone is
+   there. Details on what this repo contains: [`lab_mgmt.md`](lab_mgmt.md).
 
 In summary, `gh auth login` together with being added by your PI covers
-everything a member needs from GitHub; Murmurent handles cloning, pinning, and
-syncing thereafter.
+everything a member needs from GitHub; once the clone is at that path,
+murmurent keeps it in sync.
 
 ## For a PI
 
