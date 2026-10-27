@@ -70,6 +70,37 @@ def test_current_crl_fresh_on_root_machine_none_without():
     assert K.verify(crl["payload"], crl["signature"], CR.root_public())
 
 
+def test_current_crl_fresh_for_standalone_pi(monkeypatch):
+    """A PI with no centre root key, whose own machine key is the centre's pinned
+    trust anchor, gets a freshly signed CRL every time, never a stale one."""
+    from datetime import datetime, timedelta, timezone
+    from murmurent.core import idkeys as IK, idcert as IC
+    IK.generate_keypair()
+    IC.pin_root("qa", IK.load_public())
+    # a week-old stored list, signed with the same key
+    old = IC.build_crl(centre="qa", revoked=["cOld"], root_priv=IK.load_private(), serial=1,
+                       issued_at=datetime.now(timezone.utc) - timedelta(days=8))
+    REV.import_distributed_crl("qa", old)
+    REV._add("qa", ["cOld"])
+    crl = REV.current_crl("qa")
+    assert crl is not None and "cOld" in crl["payload"]["revoked"]
+    ok, _, reason = IC._check_crl(crl, IK.load_public(), datetime.now(timezone.utc), "qa")
+    assert ok, reason
+
+
+def test_current_crl_member_gets_distributed_list_only():
+    """A member's machine key is not the trust anchor, so current_crl must hand
+    back the distributed list untouched rather than sign one that would fail."""
+    from murmurent.core import idkeys as IK, idcert as IC
+    IK.generate_keypair()
+    CR.generate_root_key()
+    IC.pin_root("qa", CR.root_public())
+    dist = IC.build_crl(centre="qa", revoked=["cX"], root_priv=CR.load_root_private(), serial=5)
+    CR.root_key_path().unlink(); CR.root_key_path().with_suffix(".pub").unlink(missing_ok=True)
+    REV.import_distributed_crl("qa", dist)
+    assert REV.current_crl("qa") == dist
+
+
 def test_revoked_card_fails_verification():
     CR.generate_root_key()
     root = CR.load_root_private()

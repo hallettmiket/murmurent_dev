@@ -439,7 +439,16 @@ Cards carry a 90-day **TTL** (time-to-live: how long a card stays valid
 before it needs renewal or reissue), so revocation stays explicit rather
 than passive. The system is **fail-closed**: a verifier trusts a card only
 when it also holds a CRL fresh enough to confirm the card is still
-unrevoked.
+unrevoked. "Fresh" means signed within the last 7 days.
+
+Who keeps it fresh depends on who holds the signing key. On the mayor's
+machine the centre root key re-signs the list every time it is read. A
+standalone PI has no root key: their own machine key is the lab's trust
+anchor, and it re-signs the list in the same way. A member holds neither, so
+they use the last list distributed to them, and it is the PI's or mayor's job
+to distribute a new one before the old one goes stale. Renewing a card does
+not refresh the list: the card and the list are separate things, each with
+its own clock.
 
 ```bash
 murmurent revoke --handle <handle>          # or --card-id / --fingerprint (mayor)
