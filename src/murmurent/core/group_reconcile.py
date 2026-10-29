@@ -280,7 +280,7 @@ def _gh_add_collaborator(repo: str, login: str, *, permission: str | None = None
         cmd += ["-f", f"permission={permission}"]
     proc = runner(cmd, capture_output=True, text=True)
     if proc.returncode == 0:
-        return True, "invited/added"
+        return True, "invited (read-only)" if permission == "pull" else "invited/added"
     detail = (proc.stderr or proc.stdout or "gh error").strip().splitlines()
     return False, (detail[0][:120] if detail else "gh error")
 
@@ -324,9 +324,56 @@ def grant_lab_mgmt_read(login: str, *, repo: str = "", runner=subprocess.run):
     # The repo owner (usually the PI) can't be invited to their own repo —
     # GitHub rejects it with a 422. They already have full access.
     owner = repo.split("/", 1)[0]
-    if login.strip().lstrip("@").lower() == owner.lower():
+    login = login.strip().lstrip("@")
+    if login.lower() == owner.lower():
         return True, "repo owner — already has full access"
-    return _gh_add_collaborator(repo, login, permission="pull", runner=runner)
+    ok, detail = _gh_add_collaborator(repo, login, permission="pull", runner=runner)
+    if ok or "cannot assign" not in detail.lower():
+        return ok, detail
+    # A repository owned by a personal account (not an organisation) refuses
+    # ``permission=pull`` from the API with "Cannot assign <login> permission
+    # of read", even for a member who already has read-only access; the web
+    # page allows it, the API does not. The fallback is to invite with the
+    # default (write) permission and then set the pending invitation to
+    # read-only, which the invitations endpoint does accept.
+    return _grant_via_invitation(repo, login, runner=runner)
+
+
+def _grant_via_invitation(repo: str, login: str, *, runner=subprocess.run):
+    """Invite ``login`` with GitHub's default permission, then turn the
+    pending invitation read-only. Returns (ok, detail); ``detail`` says
+    plainly when the member ended up with write access instead."""
+    import json
+    try:
+        proc = runner(["gh", "api", "-X", "PUT", f"repos/{repo}/collaborators/{login}"],
+                      capture_output=True, text=True)
+    except (OSError, subprocess.SubprocessError) as exc:
+        return False, str(exc)
+    if proc.returncode != 0:
+        err = (proc.stderr or proc.stdout or "gh error").strip().splitlines()
+        return False, (err[0][:120] if err else "gh error")
+    try:
+        body = json.loads(proc.stdout or "null")
+    except ValueError:
+        body = None
+    inv_id = (body or {}).get("id") if isinstance(body, dict) else None
+    if not inv_id:
+        # 204: already a collaborator. The API cannot change an existing
+        # collaborator's permission on a personal-account repo.
+        return True, ("already a collaborator; set them to Read on GitHub "
+                      f"(https://github.com/{repo}/settings/access) if they should not "
+                      "have write access")
+    try:
+        patch = runner(["gh", "api", "-X", "PATCH", f"repos/{repo}/invitations/{inv_id}",
+                        "-f", "permissions=read"], capture_output=True, text=True)
+        downgraded = patch.returncode == 0
+    except (OSError, subprocess.SubprocessError):
+        downgraded = False
+    if downgraded:
+        return True, "invited (read-only)"
+    return True, ("invited with WRITE access: this repo belongs to a personal account, "
+                  "and GitHub only lets such a repo set read-only from its web page; "
+                  f"after they accept, set them to Read at https://github.com/{repo}/settings/access")
 
 
 # ---------------------------------------------------------------------------
@@ -369,11 +416,12 @@ def lab_mgmt_access_state(repo: str, *, runner=subprocess.run) -> dict | None:
     invites = _gh_json([f"repos/{repo}/invitations", "--paginate"], runner=runner)
     if not isinstance(collabs, list) or not isinstance(invites, list):
         return None
-    state = {"collaborators": set(), "invitations": {}}
+    state = {"collaborators": set(), "invitations": {}, "roles": {}}
     for c in collabs:
         login = str((c or {}).get("login") or "").lower()
         if login:
             state["collaborators"].add(login)
+            state["roles"][login] = str((c or {}).get("role_name") or "")
     for inv in invites:
         login = str(((inv or {}).get("invitee") or {}).get("login") or "").lower()
         if not login:
@@ -408,6 +456,9 @@ def describe_member_access(login: str, state: dict | None) -> tuple[str, str]:
         return "unknown", "GitHub could not be asked (is `gh` signed in as the repo owner?)"
     key = login.strip().lstrip("@").lower()
     if key in state["collaborators"]:
+        role = (state.get("roles") or {}).get(key, "")
+        if role and role not in ("read", "pull"):
+            return "access", f"has {role} access"
         return "access", "has read access"
     inv = state["invitations"].get(key)
     if inv is None:
@@ -520,7 +571,12 @@ def _reconcile_records_access(res: "GroupReconcileResult", *, handle: str, login
     kind, detail = describe_member_access(login, access)
     who = f"@{handle} ({login})"
     if kind == "access":
-        res.lab_mgmt.append(f"{who}: read access to {repo} ✓")
+        if detail == "has read access":
+            res.lab_mgmt.append(f"{who}: read access to {repo} ✓")
+        else:
+            res.lab_mgmt.append(f"{who}: {detail} to {repo} ✓ (more than read-only; "
+                                f"change it at https://github.com/{repo}/settings/access "
+                                "if you want members read-only)")
         return
     if kind == "pending":
         res.lab_mgmt.append(f"{who}: {detail}")
@@ -550,8 +606,8 @@ def _reconcile_records_access(res: "GroupReconcileResult", *, handle: str, login
     if not ok:
         res.lab_mgmt.append(f"{who}: FAILED — {why}")
         return
-    res.lab_mgmt.append(f"{who}: invited to {repo} (read-only) ✓ — they must accept "
-                        f"within {INVITATION_DAYS} days; re-run to see whether they have")
+    res.lab_mgmt.append(f"{who}: {why} to {repo} ✓ — they must accept within "
+                        f"{INVITATION_DAYS} days; re-run to see whether they have")
     ok2, why2 = dm(member, invitation_nudge_text(
         group, repo, f"https://github.com/{repo}/invitations"))
     res.lab_mgmt.append(f"    invitation DM {'sent ✓' if ok2 else 'not sent — ' + why2}")

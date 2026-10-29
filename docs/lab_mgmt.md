@@ -201,6 +201,20 @@ profile lacks a GitHub login are listed so the PI can collect them.
 Prerequisite: the lab_mgmt repo must be on GitHub (`git remote -v`
 shows an origin). The reconcile output says so if it isn't.
 
+**A repo owned by a personal account cannot grant read-only through the
+API.** GitHub answers `Cannot assign <login> permission of read` to every
+such request, even for a member who already has read-only access (set from
+the web page, which does allow it). This is why every grant to a repo under
+a personal account such as `hallettmiket/...` failed until 2026-10-29, while
+grants to an organisation-owned repo worked. The reconcile now falls back:
+it invites the member with GitHub's default (write) permission and then
+sets the pending invitation to read-only through the invitations endpoint,
+which does accept it. If that second step is refused too, the member is
+invited with write access and the line says so, with the settings page
+where you can set them to Read after they accept. Members who already hold
+write access are listed with the same link. Moving the records repo into a
+GitHub organisation removes the limitation.
+
 **A grant is only an invitation.** GitHub sends the member an email, and
 if nobody accepts it within seven days it expires, silently. So the
 reconcile reads the repo's collaborators *and* its pending invitations and
