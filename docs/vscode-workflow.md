@@ -96,9 +96,9 @@ voice installed on your Mac, and `say -v Moira "hello"` auditions one.
 
 | Agent | Voice | | Agent | Voice |
 |---|---|---|---|---|
-| adversary | Daniel | | scribe | Reed |
+| adversary | Tessa | | scribe | Reed |
 | conscience | Moira | | lawyer | Aman |
-| judge | Tessa | | millwright | Eddy |
+| judge | Daniel | | millwright | Eddy |
 | bookworm | Karen | | centre_millwright | Rocko |
 | oracle | Samantha | | registrar | Sandy |
 | lab_oracle | Shelley | | security_guard | Rishi |

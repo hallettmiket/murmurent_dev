@@ -160,9 +160,9 @@ SPEAK_FILE="${MURMURENT_SPEAK_FILE:-$HOME/.murmurent/speak}"
 # without looking. Override any of them with a line in $SPEAK_FILE.
 default_voice() {
     case "$1" in
-        adversary)         echo "Daniel" ;;
+        adversary)         echo "Tessa" ;;
         conscience)        echo "Moira" ;;
-        judge)             echo "Tessa" ;;
+        judge)             echo "Daniel" ;;
         bookworm)          echo "Karen" ;;
         oracle)            echo "Samantha" ;;
         lab_oracle)        echo "Shelley" ;;
@@ -229,6 +229,10 @@ t = re.sub(r"[*_`#>\[\]()]", "", t)
 t = re.sub(r"\s*[—–]\s*|\s+-\s+", ", ", t)
 m = re.match(r"(.+?[.!?])(\s|$)", t)                    # first sentence
 t = m.group(1) if m else t
+t = re.sub(r"\s+", " ", t)
+t = re.sub(r"\s*,(\s*,)+", ",", t)                                   # doubled commas
+t = re.sub(r"\b(in|at|see|from|to|of|under|on)\s*([,.]|$)", r"\2", t)   # word left dangling by a removed path
+t = re.sub(r"\s+([,.])", r"\1", t)                                  # space before punctuation
 t = re.sub(r"\s+", " ", t).strip(" ,;:")
 print(t[:200])
 ')"
