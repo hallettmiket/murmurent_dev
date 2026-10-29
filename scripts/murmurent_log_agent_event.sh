@@ -88,6 +88,55 @@ AGENT="$(get tool_input.subagent_type)"
 DESC="$(get tool_input.description)"
 LAST_MSG="$(get last_assistant_message)"
 
+# In the Claude desktop app a subagent returns its report through a
+# SubagentHandback tool call rather than a plain text message, so
+# last_assistant_message arrives empty and the line (and the spoken verdict)
+# would be a bare "done". Fall back to the agent's own transcript: the
+# message in its last SubagentHandback call, else its last text message.
+verdict_from_transcript() {
+    local path="$1"
+    [[ -n "$path" && -f "$path" ]] || return 0
+    /usr/bin/python3 - "$path" <<'PY' 2>/dev/null
+import json, sys
+best = ""
+for line in open(sys.argv[1], encoding="utf-8", errors="replace"):
+    try:
+        d = json.loads(line)
+    except ValueError:
+        continue
+    m = d.get("message") if isinstance(d.get("message"), dict) else None
+    if not m or m.get("role") != "assistant":
+        continue
+    c = m.get("content")
+    if isinstance(c, str):
+        if c.strip():
+            best = c
+        continue
+    for part in c or []:
+        if not isinstance(part, dict):
+            continue
+        if part.get("type") == "tool_use" and part.get("name") == "SubagentHandback":
+            txt = str((part.get("input") or {}).get("message") or "")
+            if txt.strip():
+                best = txt
+        elif part.get("type") == "text" and str(part.get("text") or "").strip():
+            best = part["text"]
+print(best)
+PY
+}
+
+if [[ "$EVENT" == "SubagentStop" && -z "$(printf '%s' "$LAST_MSG" | tr -d '[:space:]')" ]]; then
+    AGENT_TRANSCRIPT="$(get agent_transcript_path)"
+    if [[ -z "$AGENT_TRANSCRIPT" ]]; then
+        # Derive it: <session transcript dir>/<session id>/subagents/agent-<id>.jsonl
+        SESSION_T="$(get transcript_path)"; AGENT_ID="$(get agent_id)"
+        if [[ -n "$SESSION_T" && -n "$AGENT_ID" ]]; then
+            AGENT_TRANSCRIPT="$(dirname "$SESSION_T")/$(basename "${SESSION_T%.jsonl}")/subagents/agent-${AGENT_ID}.jsonl"
+        fi
+    fi
+    LAST_MSG="$(verdict_from_transcript "$AGENT_TRANSCRIPT")"
+fi
+
 # Deterministic colour per agent name. Hash the name → 1 of N ANSI
 # palette entries. Same agent always gets the same colour across runs,
 # which is the whole point of the dashboard.
@@ -111,9 +160,9 @@ SPEAK_FILE="${MURMURENT_SPEAK_FILE:-$HOME/.murmurent/speak}"
 # without looking. Override any of them with a line in $SPEAK_FILE.
 default_voice() {
     case "$1" in
-        adversary)         echo "Daniel" ;;
+        adversary)         echo "Tessa" ;;
         conscience)        echo "Moira" ;;
-        judge)             echo "Tessa" ;;
+        judge)             echo "Daniel" ;;
         bookworm)          echo "Karen" ;;
         oracle)            echo "Samantha" ;;
         lab_oracle)        echo "Shelley" ;;
@@ -121,11 +170,11 @@ default_voice() {
         artist)            echo "Flo" ;;
         teacher)           echo "Grandpa" ;;
         scribe)            echo "Reed" ;;
-        lawyer)            echo "Rishi" ;;
+        lawyer)            echo "Aman" ;;
         millwright)        echo "Eddy" ;;
         centre_millwright) echo "Rocko" ;;
         registrar)         echo "Sandy" ;;
-        security_guard)    echo "Zarvox" ;;
+        security_guard)    echo "Rishi" ;;
         *)                 echo "" ;;        # the system default voice
     esac
 }
@@ -153,11 +202,41 @@ speak_verdict() {
     [[ "${MURMURENT_SPEAK:-}" == "0" ]] && return 0
     [[ "${MURMURENT_SPEAK:-}" != "1" && ! -f "$SPEAK_FILE" ]] && return 0
     command -v say >/dev/null 2>&1 || return 0
+    # The stop event can fire twice for one agent; say each verdict once.
+    local stamp="$HOME/.murmurent/.last_spoken" now key
+    now="$(date +%s)"; key="$(printf '%s|%s' "$agent" "$text" | cksum | awk '{print $1}')"
+    if [[ -f "$stamp" ]]; then
+        read -r prev_t prev_k < "$stamp" || true
+        if [[ "${prev_k:-}" == "$key" && $(( now - ${prev_t:-0} )) -lt 60 ]]; then
+            return 0
+        fi
+    fi
+    printf '%s %s\n' "$now" "$key" > "$stamp"
     voice="$(voice_for "$agent")"
     name="${agent//_/ }"
-    # Plain speech: drop markdown marks, turn dashes into pauses, keep it short.
-    clean="$(printf '%s' "$text" | sed -e 's/[*_`#>]//g' -e 's/ — / , /g' -e 's/—/, /g' -e 's/ - / , /g')"
-    clean="${clean:0:200}"
+    # What is read: the headline only (the first sentence of the first line),
+    # with web addresses, file paths, identifiers and markdown marks removed.
+    # A verdict is a sentence for the ear; anything a person would need to
+    # read stays in the log.
+    clean="$(printf '%s' "$text" | /usr/bin/python3 -c '
+import re, sys
+t = sys.stdin.read().strip().splitlines()
+t = t[0] if t else ""
+t = re.sub(r"https?://\S+|www\.\S+", "", t)            # web addresses
+t = re.sub(r"(?<![\w])~?/[\w./-]+", "", t)               # file paths
+t = re.sub(r"\b(doi|pmid|arxiv)\s*:?\s*\S+", "", t, flags=re.I)
+t = re.sub(r"[*_`#>\[\]()]", "", t)
+t = re.sub(r"\s*[—–]\s*|\s+-\s+", ", ", t)
+m = re.match(r"(.+?[.!?])(\s|$)", t)                    # first sentence
+t = m.group(1) if m else t
+t = re.sub(r"\s+", " ", t)
+t = re.sub(r"\s*,(\s*,)+", ",", t)                                   # doubled commas
+t = re.sub(r"\b(in|at|see|from|to|of|under|on)\s*([,.]|$)", r"\2", t)   # word left dangling by a removed path
+t = re.sub(r"\s+([,.])", r"\1", t)                                  # space before punctuation
+t = re.sub(r"\s+", " ", t).strip(" ,;:")
+print(t[:200])
+')"
+    [[ -z "$clean" ]] && clean="done"
     (
         while pgrep -xq say; do sleep 0.3; done
         if [[ -n "$voice" ]]; then
