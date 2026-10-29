@@ -55,8 +55,22 @@ def test_mac_app_is_a_proper_bundle(home: Path) -> None:
     assert res.location == app
     exe = app / "Contents/MacOS/murmurent-launcher"
     assert exe.stat().st_mode & 0o111
-    assert "<string>murmurent-launcher</string>" in (app / "Contents/Info.plist").read_text()
+    plist = (app / "Contents/Info.plist").read_text()
+    assert "<string>murmurent-launcher</string>" in plist
+    # No Dock icon while the launcher waits for the server (#235).
+    assert "<key>LSBackgroundOnly</key><true/>" in plist
     assert str(L.murmurent_program()) in exe.read_text(encoding="utf-8")
+
+
+def test_launcher_stays_alive_until_the_server_stops(home: Path) -> None:
+    """#235: a Mac ends an app's background processes when the app exits, so
+    the launcher must wait on the server it started instead of exiting."""
+    res = L.create(platform=L.MAC)
+    body = (res.location / "Contents/MacOS/murmurent-launcher").read_text(encoding="utf-8")
+    assert "SERVER=$!" in body
+    assert 'wait "$SERVER"' in body
+    # The early-exit path only remains for a dashboard that was already up.
+    assert body.count("exit 0") == 2
 
 
 def test_user_option_fixes_the_handle(home: Path) -> None:
