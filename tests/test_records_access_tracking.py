@@ -189,6 +189,68 @@ def test_resend_deletes_the_expired_invitation_first():
 
 
 # ---------------------------------------------------------------------------
+# personal-account repo: read-only refused by the API
+# ---------------------------------------------------------------------------
+
+_CANNOT = (1, "", "gh: Cannot assign bob permission of read (Validation Failed)")
+
+
+def _personal_repo_runner(calls, *, patch_ok=True, already=False):
+    def run(cmd, **kwargs):
+        calls.append(cmd)
+        joined = " ".join(cmd)
+        if "permission=pull" in joined:
+            return SimpleNamespace(returncode=_CANNOT[0], stdout="", stderr=_CANNOT[2])
+        if "-X PUT" in joined and "collaborators" in joined:
+            out = "" if already else json.dumps({"id": 77, "invitee": {"login": "bob"}})
+            return SimpleNamespace(returncode=0, stdout=out, stderr="")
+        if "PATCH" in joined and "invitations/77" in joined:
+            return SimpleNamespace(returncode=0 if patch_ok else 1, stdout="", stderr="422")
+        return SimpleNamespace(returncode=1, stdout="", stderr="unexpected " + joined)
+    return run
+
+
+def test_personal_repo_falls_back_to_invite_then_downgrade():
+    calls = []
+    ok, detail = _gr.grant_lab_mgmt_read("bob", repo="me/lab", runner=_personal_repo_runner(calls))
+    assert ok and detail == "invited (read-only)"
+    joined = [" ".join(c) for c in calls]
+    assert "permission=pull" in joined[0]
+    assert joined[1].endswith("repos/me/lab/collaborators/bob")       # no permission field
+    assert "PATCH" in joined[2] and "permissions=read" in joined[2]
+
+
+def test_personal_repo_reports_write_when_downgrade_refused():
+    calls = []
+    ok, detail = _gr.grant_lab_mgmt_read(
+        "bob", repo="me/lab", runner=_personal_repo_runner(calls, patch_ok=False))
+    assert ok and "WRITE access" in detail and "settings/access" in detail
+
+
+def test_personal_repo_existing_collaborator_is_left_alone():
+    calls = []
+    ok, detail = _gr.grant_lab_mgmt_read(
+        "bob", repo="me/lab", runner=_personal_repo_runner(calls, already=True))
+    assert ok and "already a collaborator" in detail
+    assert not any("PATCH" in " ".join(c) for c in calls)
+
+
+def test_other_422s_are_not_retried():
+    calls = []
+    ok, detail = _gr.grant_lab_mgmt_read(
+        "bob", repo="me/lab",
+        runner=_fake_gh({"permission=pull": (1, "", "gh: Not Found (HTTP 404)")}, calls))
+    assert not ok and len(calls) == 1
+
+
+def test_report_flags_write_holders(roster_world):
+    roster_world["roles"] = {"alice": "write"}
+    res = _gr.group_reconcile("mh", workspace_checker=lambda e: None,
+                              access_fetcher=lambda repo: roster_world)
+    assert "write access" in _line(res, "alice") and "settings/access" in _line(res, "alice")
+
+
+# ---------------------------------------------------------------------------
 # clone command
 # ---------------------------------------------------------------------------
 
