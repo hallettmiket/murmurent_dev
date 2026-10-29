@@ -9,6 +9,14 @@
 #   PreToolUse(Agent) → "<agent>: starting — <description>"
 #   SubagentStop      → "<agent>: done"
 #
+# Spoken verdicts (macOS only): when ~/.murmurent/speak exists, each
+# SubagentStop line is also read aloud with the built-in `say` command, one
+# voice per agent. The file is both the on switch and the voice table: empty
+# means the defaults below; a line "<agent> <voice>" overrides one agent.
+# MURMURENT_SPEAK=0 mutes everything for one session; MURMURENT_SPEAK=1 turns
+# it on without the file. The main session never speaks: only a dispatched
+# subagent carries an agent type, and nothing else reaches this branch.
+#
 # Input: JSON on stdin from the CC hook runner. We use jq if present
 # (clean) and fall back to a python one-liner so the hook still works
 # on machines without jq. Output to stderr is what CC may surface to
@@ -92,6 +100,75 @@ COLOR=${PALETTE[$(( HASH % ${#PALETTE[@]} ))]}
 # The parser (snapshot._AGENT_LINE_RE) still accepts old time-only lines.
 ts="$(date '+%Y-%m-%d %H:%M')"
 
+# ---------------------------------------------------------------------------
+# Spoken verdicts
+# ---------------------------------------------------------------------------
+
+SPEAK_FILE="${MURMURENT_SPEAK_FILE:-$HOME/.murmurent/speak}"
+
+# The default voice per agent. Each is a distinct, natural English voice on a
+# stock macOS install (`say -v '?'` lists them), so you know who finished
+# without looking. Override any of them with a line in $SPEAK_FILE.
+default_voice() {
+    case "$1" in
+        adversary)         echo "Daniel" ;;
+        conscience)        echo "Moira" ;;
+        judge)             echo "Tessa" ;;
+        bookworm)          echo "Karen" ;;
+        oracle)            echo "Samantha" ;;
+        lab_oracle)        echo "Shelley" ;;
+        blacksmith)        echo "Fred" ;;
+        artist)            echo "Flo" ;;
+        teacher)           echo "Grandpa" ;;
+        scribe)            echo "Reed" ;;
+        lawyer)            echo "Rishi" ;;
+        millwright)        echo "Eddy" ;;
+        centre_millwright) echo "Rocko" ;;
+        registrar)         echo "Sandy" ;;
+        security_guard)    echo "Zarvox" ;;
+        *)                 echo "" ;;        # the system default voice
+    esac
+}
+
+# The voice for an agent: the override line in $SPEAK_FILE if there is one
+# ("<agent> <voice name, may contain spaces>"), else the default above.
+voice_for() {
+    local agent="$1" line
+    if [[ -f "$SPEAK_FILE" ]]; then
+        line="$(grep -E "^[[:space:]]*${agent}[[:space:]]+" "$SPEAK_FILE" 2>/dev/null | tail -n 1 || true)"
+        if [[ -n "$line" ]]; then
+            printf '%s' "$line" | sed -E "s/^[[:space:]]*${agent}[[:space:]]+//; s/[[:space:]]*$//"
+            return 0
+        fi
+    fi
+    default_voice "$agent"
+}
+
+# Read "<agent>. <verdict>" aloud, in the background, one voice at a time.
+# Returns at once so the hook never holds Claude Code up; a verdict that
+# arrives while another is being spoken waits its turn rather than talking
+# over it. Silent unless enabled (see the header), and on anything but a Mac.
+speak_verdict() {
+    local agent="$1" text="$2" voice clean name
+    [[ "${MURMURENT_SPEAK:-}" == "0" ]] && return 0
+    [[ "${MURMURENT_SPEAK:-}" != "1" && ! -f "$SPEAK_FILE" ]] && return 0
+    command -v say >/dev/null 2>&1 || return 0
+    voice="$(voice_for "$agent")"
+    name="${agent//_/ }"
+    # Plain speech: drop markdown marks, turn dashes into pauses, keep it short.
+    clean="$(printf '%s' "$text" | sed -e 's/[*_`#>]//g' -e 's/ — / , /g' -e 's/—/, /g' -e 's/ - / , /g')"
+    clean="${clean:0:200}"
+    (
+        while pgrep -xq say; do sleep 0.3; done
+        if [[ -n "$voice" ]]; then
+            say -v "$voice" -- "$name. $clean"
+        else
+            say -- "$name. $clean"
+        fi
+    ) </dev/null >/dev/null 2>&1 &
+    disown 2>/dev/null || true
+}
+
 # Compose one line per event. Truncate description to 100 chars so a
 # verbose orchestrator prompt doesn't wrap and break the column.
 case "$EVENT" in
@@ -126,6 +203,7 @@ case "$EVENT" in
         [[ -z "$msg" ]] && msg="done"
         printf '\033[%sm[%s] %s: %s\033[0m\n\n' \
             "$COLOR" "$ts" "$AGENT" "$msg" >> "$LOG"
+        speak_verdict "$AGENT" "$msg"
         ;;
     *)
         # Unrecognised event — log a single dim line so the user knows

@@ -77,6 +77,43 @@ BR pane runs `tail -F ~/.murmurent/agents.log`. Same log across every
 project on this machine, so you see all subagent activity in one
 place.
 
+### Spoken verdicts (macOS)
+
+The same hook can read each agent's verdict aloud, one voice per agent,
+using the `say` command that ships with macOS. Nothing leaves the machine
+and no account is needed. The main session never speaks: only a dispatched
+subagent reaches this branch of the hook.
+
+Turn it on by creating the file `~/.murmurent/speak`:
+
+```bash
+touch ~/.murmurent/speak
+```
+
+An empty file uses the default voices below. To change one, add a line
+`<agent> <voice>`; voice names may contain spaces. `say -v '?'` lists every
+voice installed on your Mac, and `say -v Moira "hello"` auditions one.
+
+| Agent | Voice | | Agent | Voice |
+|---|---|---|---|---|
+| adversary | Daniel | | scribe | Reed |
+| conscience | Moira | | lawyer | Rishi |
+| judge | Tessa | | millwright | Eddy |
+| bookworm | Karen | | centre_millwright | Rocko |
+| oracle | Samantha | | registrar | Sandy |
+| lab_oracle | Shelley | | security_guard | Zarvox |
+| blacksmith | Fred | | artist | Flo |
+| teacher | Grandpa | | (any other) | the system voice |
+
+Verdicts queue rather than talk over each other, and the hook returns at
+once, so a long sentence never holds Claude Code up. The headline-first
+rule caps each verdict at 200 characters, which is what gets read.
+
+To mute: delete the file, or set `MURMURENT_SPEAK=0` in the shell that
+starts Claude Code for one session. `MURMURENT_SPEAK=1` turns it on
+without the file. On Linux, where there is no `say`, the setting is
+ignored.
+
 **Known limit**: CC subagents return one final message rather than a
 live stream of their thinking. The reporter shows agent start/end
 boundaries with the verdict line rather than granular progress. This
