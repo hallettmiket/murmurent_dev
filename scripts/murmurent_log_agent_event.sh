@@ -226,9 +226,9 @@ t = re.sub(r"https?://\S+|www\.\S+", "", t)            # web addresses
 t = re.sub(r"(?<![\w])~?/[\w./-]+", "", t)               # file paths
 t = re.sub(r"\b(doi|pmid|arxiv)\s*:?\s*\S+", "", t, flags=re.I)
 t = re.sub(r"[*_`#>\[\]()]", "", t)
+m = re.match(r"(.+?[.!?])(\s|$)|(.+?)(\s+-\s+)", t)                    # first sentence, before dashes become commas
+t = (m.group(1) or m.group(3)) if m else t
 t = re.sub(r"\s*[—–]\s*|\s+-\s+", ", ", t)
-m = re.match(r"(.+?[.!?])(\s|$)", t)                    # first sentence
-t = m.group(1) if m else t
 t = re.sub(r"\s+", " ", t)
 t = re.sub(r"\s*,(\s*,)+", ",", t)                                   # doubled commas
 t = re.sub(r"\b(in|at|see|from|to|of|under|on)\s*([,.]|$)", r"\2", t)   # word left dangling by a removed path
