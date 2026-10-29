@@ -170,11 +170,11 @@ default_voice() {
         artist)            echo "Flo" ;;
         teacher)           echo "Grandpa" ;;
         scribe)            echo "Reed" ;;
-        lawyer)            echo "Rishi" ;;
+        lawyer)            echo "Aman" ;;
         millwright)        echo "Eddy" ;;
         centre_millwright) echo "Rocko" ;;
         registrar)         echo "Sandy" ;;
-        security_guard)    echo "Zarvox" ;;
+        security_guard)    echo "Rishi" ;;
         *)                 echo "" ;;        # the system default voice
     esac
 }
@@ -214,9 +214,25 @@ speak_verdict() {
     printf '%s %s\n' "$now" "$key" > "$stamp"
     voice="$(voice_for "$agent")"
     name="${agent//_/ }"
-    # Plain speech: drop markdown marks, turn dashes into pauses, keep it short.
-    clean="$(printf '%s' "$text" | sed -e 's/[*_`#>]//g' -e 's/ — / , /g' -e 's/—/, /g' -e 's/ - / , /g')"
-    clean="${clean:0:200}"
+    # What is read: the headline only (the first sentence of the first line),
+    # with web addresses, file paths, identifiers and markdown marks removed.
+    # A verdict is a sentence for the ear; anything a person would need to
+    # read stays in the log.
+    clean="$(printf '%s' "$text" | /usr/bin/python3 -c '
+import re, sys
+t = sys.stdin.read().strip().splitlines()
+t = t[0] if t else ""
+t = re.sub(r"https?://\S+|www\.\S+", "", t)            # web addresses
+t = re.sub(r"(?<![\w])~?/[\w./-]+", "", t)               # file paths
+t = re.sub(r"\b(doi|pmid|arxiv)\s*:?\s*\S+", "", t, flags=re.I)
+t = re.sub(r"[*_`#>\[\]()]", "", t)
+t = re.sub(r"\s*[—–]\s*|\s+-\s+", ", ", t)
+m = re.match(r"(.+?[.!?])(\s|$)", t)                    # first sentence
+t = m.group(1) if m else t
+t = re.sub(r"\s+", " ", t).strip(" ,;:")
+print(t[:200])
+')"
+    [[ -z "$clean" ]] && clean="done"
     (
         while pgrep -xq say; do sleep 0.3; done
         if [[ -n "$voice" ]]; then

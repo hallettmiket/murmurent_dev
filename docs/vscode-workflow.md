@@ -97,17 +97,26 @@ voice installed on your Mac, and `say -v Moira "hello"` auditions one.
 | Agent | Voice | | Agent | Voice |
 |---|---|---|---|---|
 | adversary | Daniel | | scribe | Reed |
-| conscience | Moira | | lawyer | Rishi |
+| conscience | Moira | | lawyer | Aman |
 | judge | Tessa | | millwright | Eddy |
 | bookworm | Karen | | centre_millwright | Rocko |
 | oracle | Samantha | | registrar | Sandy |
-| lab_oracle | Shelley | | security_guard | Zarvox |
+| lab_oracle | Shelley | | security_guard | Rishi |
 | blacksmith | Fred | | artist | Flo |
 | teacher | Grandpa | | (any other) | the system voice |
 
-Verdicts queue rather than talk over each other, and the hook returns at
-once, so a long sentence never holds Claude Code up. The headline-first
-rule caps each verdict at 200 characters, which is what gets read.
+Only the headline is read: the first sentence of the agent's first line,
+with web addresses, file paths, DOIs and markdown stripped out, since
+those are for reading, not listening. Each verdict is spoken once, and
+verdicts queue rather than talk over each other. The hook returns at once,
+so speech never holds Claude Code up.
+
+To hear the natural English voices one after another, each introducing
+itself:
+
+```bash
+for v in Daniel Karen Moira Samantha Tessa Rishi Aman Kathy Fred Albert Ralph Reed Flo Eddy Rocko Sandy Shelley Grandma Grandpa Junior; do say -v "$v" "Hello, I am $v"; done
+```
 
 To mute: delete the file, or set `MURMURENT_SPEAK=0` in the shell that
 starts Claude Code for one session. `MURMURENT_SPEAK=1` turns it on
