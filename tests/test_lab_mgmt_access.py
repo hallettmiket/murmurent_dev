@@ -153,7 +153,7 @@ def test_new_member_is_invited_and_told_how_to_clone(monkeypatch, tmp_path):
         "@alice-gh", "mh", granter=lambda login: (granted.append(login) or (True, "invited")))
     assert granted == ["alice-gh"]
     assert out["ok"] and out["repo"] == "owner/murmurent_lab_mgmt_mh"
-    assert out["clone_command"].startswith("git clone git@github.com:owner/murmurent_lab_mgmt_mh.git ")
+    assert out["clone_command"].startswith("gh repo clone owner/murmurent_lab_mgmt_mh ")
     assert out["clone_command"].endswith("/murmurent_lab_mgmt_mh")
 
 

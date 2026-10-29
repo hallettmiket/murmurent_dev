@@ -131,7 +131,7 @@ murmurent_lab_mgmt_<lab>/
 | Person | Action | Where they get it |
 |---|---|---|
 | Lab PI | scaffolded by `murmurent pi-init <lab>` at `~/repos/murmurent_lab_mgmt_<lab>`; push it to GitHub under the same name | see "Naming" above |
-| Lab member (postdoc, student) | clone, read-only | `git clone git@github.com:<owner>/murmurent_lab_mgmt_<lab>.git ~/repos/murmurent_lab_mgmt_<lab>` (the exact command is in the message that brought your card, and on the dashboard until you have cloned) |
+| Lab member (postdoc, student) | accept the GitHub invitation, then clone, read-only | `gh repo clone <owner>/murmurent_lab_mgmt_<lab> ~/repos/murmurent_lab_mgmt_<lab>` (the exact command is in the message that brought your card, and on the dashboard until you have cloned; `murmurent doctor` says why a clone is refused) |
 | Core leader | clone OF THEIR CORE'S `lab_mgmt` (cores have their own) | same |
 | Registrar | reads multiple `lab_mgmt` repos via the centre registry | each lab's path is recorded in `~/.murmurent/lab_info/_registry.yaml` |
 | Mayor (bootstrap) | no | uses `~/.murmurent/lab_info/` instead |
@@ -201,13 +201,47 @@ profile lacks a GitHub login are listed so the PI can collect them.
 Prerequisite: the lab_mgmt repo must be on GitHub (`git remote -v`
 shows an origin). The reconcile output says so if it isn't.
 
-Each member then completes their side once: accept the GitHub
-invitation e-mail, and clone the repo under its own name
-(`git clone git@github.com:<owner>/murmurent_lab_mgmt_<lab>.git
-~/repos/murmurent_lab_mgmt_<lab>`). From then on their Lab Members panel
-and daily reconcile track what the PI pushes. Issuing a member card now
+**A grant is only an invitation.** GitHub sends the member an email, and
+if nobody accepts it within seven days it expires, silently. So the
+reconcile reads the repo's collaborators *and* its pending invitations and
+reports each member as one of:
+
+| Line | Meaning | What `--apply` does |
+|---|---|---|
+| `read access ✓` | accepted; their machine can clone and pull | nothing |
+| `invitation sent N days ago, expires in M days, not yet accepted: <link>` | waiting on the member | DMs them the link and the clone command |
+| `invitation ... has expired` | never accepted | deletes the dead invitation, sends a new one, DMs them |
+| `would grant read-only access` | never invited | invites them, DMs them |
+| `no GitHub login on file` | nothing to invite | nothing; collect the login |
+
+The DM goes through the group's own Slack bot, so it needs the group
+Slack token on the PI's machine; without it the line says `reminder DM not
+sent`. Reading invitations needs `gh` signed in as the repo owner; if it is
+not, the reconcile says so and falls back to sending grants blind.
+
+Each member then completes their side once: accept the invitation, and
+clone the repo under its own name
+(`gh repo clone <owner>/murmurent_lab_mgmt_<lab>
+~/repos/murmurent_lab_mgmt_<lab>`). `gh repo clone` uses whichever
+protocol they signed in to `gh` with; a bare `git clone git@github.com:...`
+also needs an SSH key, and its "Permission denied (publickey)" is easily
+mistaken for a missing invitation. From then on their Lab Members panel
+and daily reconcile track what the PI pushes. Issuing a member card
 sends this invitation and the clone command automatically; the reconcile
-above is for members carded before that, or whose invitation failed.
+above is for members carded before that, or whose invitation failed or
+lapsed.
+
+**On the member's side, `murmurent doctor` names the cause** when the
+clone is refused. Its "lab records" check asks GitHub, signed in as the
+member, and reports one of: has access but not cloned yet (with the
+command), no access (invitation waiting, expired, or never sent, with the
+link to check and the reconcile to ask the PI for), signed in as a
+different GitHub account from the one on the roster (the common case
+when someone has two accounts), `gh` not signed in, or `gh` not installed.
+`murmurent init` now checks the GitHub username it is given against
+GitHub, defaults it to the account `gh` is signed in as, and warns before
+accepting a blank one, since a blank or misspelled login is how a member
+ends up never invited.
 
 ## Reading + writing: who's allowed?
 

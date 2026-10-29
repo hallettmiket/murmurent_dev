@@ -108,7 +108,7 @@ def test_import_card_without_a_clone_invents_nothing(mayor_world, monkeypatch, t
     assert not want.exists()
     assert not (tmp_path / "noorish_lab_info" / "labs" / "yxia_lab" / "lab-mgmt").exists()
     hint = next(a for a in actions if "not on this machine yet" in a)
-    assert f"git clone git@github.com:o/murmurent_lab_mgmt_yxia_lab.git {want}" in hint
+    assert f"gh repo clone o/murmurent_lab_mgmt_yxia_lab {want}" in hint
 
 
 def test_clone_under_another_name_is_ignored(mayor_world, monkeypatch, tmp_path):

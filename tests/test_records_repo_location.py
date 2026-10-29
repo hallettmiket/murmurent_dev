@@ -91,7 +91,7 @@ def test_clone_hint_names_the_remote_when_known(member_machine):
     IC.import_card(_card("bob", [MEMBER_OF_MH]))
     want = member_machine / "murmurent_lab_mgmt_mh"
     hint = _repo.records_clone_hint("mh", remote="git@github.com:owner/murmurent_lab_mgmt_mh.git")
-    assert hint.endswith(f"git clone git@github.com:owner/murmurent_lab_mgmt_mh.git {want}")
+    assert f"gh repo clone owner/murmurent_lab_mgmt_mh {want}" in hint
 
 
 def test_env_var_wins_over_the_card(member_machine, monkeypatch, tmp_path):

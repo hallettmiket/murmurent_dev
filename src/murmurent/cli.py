@@ -230,7 +230,8 @@ def onboard_cmd(group: str, profile: str) -> None:
 
 @cli.command(
     "doctor",
-    help="Check the local install (Python, PATH, commons links, hooks, clone remote) "
+    help="Check the local install (Python, PATH, commons links, hooks, clone remote, "
+         "access to the lab's records repository) "
          "and print the one command that fixes each problem found. Exit 1 if anything failed.",
 )
 def doctor_cmd() -> None:
@@ -2347,8 +2348,10 @@ def member_list_cmd() -> None:
                 f"expected at:\n  {info.path}\n\n"
                 "Clone it there (ask your PI for the repository name if you "
                 "don't have it):\n"
-                "  git clone git@github.com:<org>/murmurent_lab_mgmt_<lab>.git "
+                "  gh repo clone <org>/murmurent_lab_mgmt_<lab> "
                 f"{info.path}\n\n"
+                "If GitHub refuses, `murmurent doctor` says whether you were "
+                "invited and which account it expects.\n\n"
                 "See docs/lab_mgmt.md."
             )
             return

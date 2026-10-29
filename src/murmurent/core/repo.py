@@ -215,8 +215,20 @@ def records_clone_hint(group: str, *, remote: str = "") -> str:
     if misplaced is not None:
         return (f"Your copy of the lab records is at {misplaced}; move it to the "
                 f"standard place:  mv {misplaced} {want}")
-    src = remote or f"git@github.com:<owner>/{want.name}.git"
-    return (f"Clone the lab records to {want}:  git clone {src} {want}")
+    slug = github_slug(remote) if remote else f"<owner>/{want.name}"
+    return (f"Clone the lab records to {want}:  gh repo clone {slug} {want}"
+            f"   (if that is refused, `murmurent doctor` says why)")
+
+
+def github_slug(remote: str) -> str:
+    """``owner/name`` from any GitHub remote URL (SSH or HTTPS), else ''."""
+    url = (remote or "").strip()
+    for prefix in ("git@github.com:", "https://github.com/",
+                   "http://github.com/", "ssh://git@github.com/"):
+        if url.startswith(prefix):
+            slug = url[len(prefix):].strip("/")
+            return slug[:-4] if slug.endswith(".git") else slug
+    return ""
 
 
 def _lab_md_group(path: Path) -> str:
