@@ -360,9 +360,7 @@ def _grant_via_invitation(repo: str, login: str, *, runner=subprocess.run):
     if not inv_id:
         # 204: already a collaborator. The API cannot change an existing
         # collaborator's permission on a personal-account repo.
-        return True, ("already a collaborator; set them to Read on GitHub "
-                      f"(https://github.com/{repo}/settings/access) if they should not "
-                      "have write access")
+        return True, "already a collaborator (write)"
     try:
         patch = runner(["gh", "api", "-X", "PATCH", f"repos/{repo}/invitations/{inv_id}",
                         "-f", "permissions=read"], capture_output=True, text=True)
@@ -371,9 +369,7 @@ def _grant_via_invitation(repo: str, login: str, *, runner=subprocess.run):
         downgraded = False
     if downgraded:
         return True, "invited (read-only)"
-    return True, ("invited with WRITE access: this repo belongs to a personal account, "
-                  "and GitHub only lets such a repo set read-only from its web page; "
-                  f"after they accept, set them to Read at https://github.com/{repo}/settings/access")
+    return True, "invited (write)"
 
 
 # ---------------------------------------------------------------------------
@@ -564,6 +560,15 @@ def records_access_for_new_member(github_login: str, group: str, *,
     return {"ok": bool(ok), "repo": slug, "clone_command": clone, "detail": detail}
 
 
+def _note_write(res: "GroupReconcileResult", repo: str) -> None:
+    """One line, once per run, on why a member has write rather than read."""
+    url = f"https://github.com/{repo}/settings/access"
+    if any(url in line for line in res.lab_mgmt):
+        return
+    res.lab_mgmt.append(f"    (a personal-account repo cannot grant read-only through the API; "
+                        f"after they accept, set members to Read at {url})")
+
+
 def _reconcile_records_access(res: "GroupReconcileResult", *, handle: str, login: str,
                               member: dict, repo: str, group: str, access: dict | None,
                               apply: bool, grant, resend, dm) -> None:
@@ -572,11 +577,10 @@ def _reconcile_records_access(res: "GroupReconcileResult", *, handle: str, login
     who = f"@{handle} ({login})"
     if kind == "access":
         if detail == "has read access":
-            res.lab_mgmt.append(f"{who}: read access to {repo} ✓")
+            res.lab_mgmt.append(f"{who}: read access ✓")
         else:
-            res.lab_mgmt.append(f"{who}: {detail} to {repo} ✓ (more than read-only; "
-                                f"change it at https://github.com/{repo}/settings/access "
-                                "if you want members read-only)")
+            res.lab_mgmt.append(f"{who}: {detail} ✓ (more than read-only)")
+            _note_write(res, repo)
         return
     if kind == "pending":
         res.lab_mgmt.append(f"{who}: {detail}")
@@ -606,8 +610,9 @@ def _reconcile_records_access(res: "GroupReconcileResult", *, handle: str, login
     if not ok:
         res.lab_mgmt.append(f"{who}: FAILED — {why}")
         return
-    res.lab_mgmt.append(f"{who}: {why} to {repo} ✓ — they must accept within "
-                        f"{INVITATION_DAYS} days; re-run to see whether they have")
+    res.lab_mgmt.append(f"{who}: {why} ✓ — accept within {INVITATION_DAYS} days")
+    if "write" in why:
+        _note_write(res, repo)
     ok2, why2 = dm(member, invitation_nudge_text(
         group, repo, f"https://github.com/{repo}/invitations"))
     res.lab_mgmt.append(f"    invitation DM {'sent ✓' if ok2 else 'not sent — ' + why2}")

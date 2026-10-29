@@ -224,7 +224,7 @@ def test_personal_repo_reports_write_when_downgrade_refused():
     calls = []
     ok, detail = _gr.grant_lab_mgmt_read(
         "bob", repo="me/lab", runner=_personal_repo_runner(calls, patch_ok=False))
-    assert ok and "WRITE access" in detail and "settings/access" in detail
+    assert ok and detail == "invited (write)"
 
 
 def test_personal_repo_existing_collaborator_is_left_alone():
@@ -247,7 +247,21 @@ def test_report_flags_write_holders(roster_world):
     roster_world["roles"] = {"alice": "write"}
     res = _gr.group_reconcile("mh", workspace_checker=lambda e: None,
                               access_fetcher=lambda repo: roster_world)
-    assert "write access" in _line(res, "alice") and "settings/access" in _line(res, "alice")
+    assert _line(res, "alice") == "@alice (alice): has write access ✓ (more than read-only)"
+    notes = [l for l in res.lab_mgmt if "settings/access" in l]
+    assert len(notes) == 1
+
+
+def test_write_note_appears_once_per_run(roster_world):
+    """Several members invited with write get one explanatory line, not one each."""
+    res = _gr.group_reconcile(
+        "mh", apply=True, workspace_checker=lambda e: None,
+        access_fetcher=lambda repo: {"collaborators": set(), "invitations": {}, "roles": {}},
+        lab_mgmt_granter=lambda repo, login: (True, "invited (write)"),
+        dm_sender=lambda member, text: (True, "ok"))
+    write_lines = [l for l in res.lab_mgmt if l.endswith("invited (write) ✓ — accept within 7 days")]
+    assert len(write_lines) == 4
+    assert sum("settings/access" in l for l in res.lab_mgmt) == 1
 
 
 # ---------------------------------------------------------------------------
