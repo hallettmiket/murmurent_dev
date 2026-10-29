@@ -88,6 +88,55 @@ AGENT="$(get tool_input.subagent_type)"
 DESC="$(get tool_input.description)"
 LAST_MSG="$(get last_assistant_message)"
 
+# In the Claude desktop app a subagent returns its report through a
+# SubagentHandback tool call rather than a plain text message, so
+# last_assistant_message arrives empty and the line (and the spoken verdict)
+# would be a bare "done". Fall back to the agent's own transcript: the
+# message in its last SubagentHandback call, else its last text message.
+verdict_from_transcript() {
+    local path="$1"
+    [[ -n "$path" && -f "$path" ]] || return 0
+    /usr/bin/python3 - "$path" <<'PY' 2>/dev/null
+import json, sys
+best = ""
+for line in open(sys.argv[1], encoding="utf-8", errors="replace"):
+    try:
+        d = json.loads(line)
+    except ValueError:
+        continue
+    m = d.get("message") if isinstance(d.get("message"), dict) else None
+    if not m or m.get("role") != "assistant":
+        continue
+    c = m.get("content")
+    if isinstance(c, str):
+        if c.strip():
+            best = c
+        continue
+    for part in c or []:
+        if not isinstance(part, dict):
+            continue
+        if part.get("type") == "tool_use" and part.get("name") == "SubagentHandback":
+            txt = str((part.get("input") or {}).get("message") or "")
+            if txt.strip():
+                best = txt
+        elif part.get("type") == "text" and str(part.get("text") or "").strip():
+            best = part["text"]
+print(best)
+PY
+}
+
+if [[ "$EVENT" == "SubagentStop" && -z "$(printf '%s' "$LAST_MSG" | tr -d '[:space:]')" ]]; then
+    AGENT_TRANSCRIPT="$(get agent_transcript_path)"
+    if [[ -z "$AGENT_TRANSCRIPT" ]]; then
+        # Derive it: <session transcript dir>/<session id>/subagents/agent-<id>.jsonl
+        SESSION_T="$(get transcript_path)"; AGENT_ID="$(get agent_id)"
+        if [[ -n "$SESSION_T" && -n "$AGENT_ID" ]]; then
+            AGENT_TRANSCRIPT="$(dirname "$SESSION_T")/$(basename "${SESSION_T%.jsonl}")/subagents/agent-${AGENT_ID}.jsonl"
+        fi
+    fi
+    LAST_MSG="$(verdict_from_transcript "$AGENT_TRANSCRIPT")"
+fi
+
 # Deterministic colour per agent name. Hash the name → 1 of N ANSI
 # palette entries. Same agent always gets the same colour across runs,
 # which is the whole point of the dashboard.
@@ -153,6 +202,16 @@ speak_verdict() {
     [[ "${MURMURENT_SPEAK:-}" == "0" ]] && return 0
     [[ "${MURMURENT_SPEAK:-}" != "1" && ! -f "$SPEAK_FILE" ]] && return 0
     command -v say >/dev/null 2>&1 || return 0
+    # The stop event can fire twice for one agent; say each verdict once.
+    local stamp="$HOME/.murmurent/.last_spoken" now key
+    now="$(date +%s)"; key="$(printf '%s|%s' "$agent" "$text" | cksum | awk '{print $1}')"
+    if [[ -f "$stamp" ]]; then
+        read -r prev_t prev_k < "$stamp" || true
+        if [[ "${prev_k:-}" == "$key" && $(( now - ${prev_t:-0} )) -lt 60 ]]; then
+            return 0
+        fi
+    fi
+    printf '%s %s\n' "$now" "$key" > "$stamp"
     voice="$(voice_for "$agent")"
     name="${agent//_/ }"
     # Plain speech: drop markdown marks, turn dashes into pauses, keep it short.
