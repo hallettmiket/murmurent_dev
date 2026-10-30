@@ -1104,6 +1104,10 @@ def project_reconcile(name: str, apply_changes: bool, check: bool) -> None:
                    + (f", {len(s['unresolved'])} unresolved" if s['unresolved'] else ""))
         if s.get("kick_blocked"):
             click.echo(f"          {s['kick_blocked']}")
+        if apply and s.get("invited"):
+            click.echo(f"          invited: {', '.join(s['invited'])}")
+        for f in s.get("invite_failed") or []:
+            click.echo(f"          ! {f.get('handle')}: {f.get('reason')}")
     if g.get("error") == "not_provisioned":
         click.echo("  github: (no repo provisioned)")
     else:

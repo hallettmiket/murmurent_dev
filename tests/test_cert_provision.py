@@ -681,3 +681,37 @@ def test_create_cross_group_project_unplaceable_lead_raises(monkeypatch):
     _patch_registrar_placement(monkeypatch, {})
     with pytest.raises(CPROV.CertProvisionError, match="cannot resolve a group"):
         CPROV.create_cross_group_project("p", lead="@nobody")
+
+
+def test_reconcile_slack_reports_a_member_the_invite_did_not_add():
+    """Issue #246: the inviter's verdict is read, not assumed. A single-channel
+    guest is accepted by Slack and never added, so they are reported as such and
+    not counted as invited."""
+    CP.upsert("rna_atlas", lab="lab_mh", slack_channel_id="C1")
+
+    def inviter(channel_id, handles, *, member_email_map):
+        return {"invited": [], "already_in": [],
+                "unresolved": [{"handle": "owl", "reason": "single-channel guest: ..."}],
+                "error": None}
+
+    out = CPROV.reconcile_slack(
+        "rna_atlas", ids_fetcher=lambda cid: {"Ubot"},
+        uid_resolver=lambda hs, em: {"owl": "U9"},
+        inviter=inviter, kicker=lambda c, u: (True, ""), bot_uid="Ubot")
+    assert out["to_invite"] == ["owl"]
+    assert out["invited"] == []
+    assert out["invite_failed"][0]["handle"] == "owl"
+    assert "single-channel guest" in out["invite_failed"][0]["reason"]
+
+
+def test_reconcile_slack_inviter_error_is_attached_to_each_handle():
+    CP.upsert("rna_atlas", lab="lab_mh", slack_channel_id="C1")
+    out = CPROV.reconcile_slack(
+        "rna_atlas", ids_fetcher=lambda cid: {"Ubot"},
+        uid_resolver=lambda hs, em: {"bob": "U3"},
+        inviter=lambda *a, **k: {"invited": [], "already_in": [], "unresolved": [],
+                                 "error": "slack invite failed: not_in_channel"},
+        kicker=lambda c, u: (True, ""), bot_uid="Ubot")
+    assert out["invited"] == []
+    assert out["invite_error"] == "slack invite failed: not_in_channel"
+    assert out["invite_failed"] == [{"handle": "bob", "reason": "slack invite failed: not_in_channel"}]

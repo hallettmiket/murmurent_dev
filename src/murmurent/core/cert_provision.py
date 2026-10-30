@@ -622,10 +622,23 @@ def reconcile_slack(project: str, *, env: dict | None = None, apply: bool = True
     to_kick = [] if kick_blocked else extras
 
     invited, kicked = [], []
+    invite_failed: list[dict] = []
+    invite_error = None
     if apply:
         if to_invite:
-            inviter(cp.slack_channel_id, to_invite, member_email_map=member_email_map(to_invite))
-            invited = to_invite
+            inv = inviter(cp.slack_channel_id, to_invite,
+                          member_email_map=member_email_map(to_invite))
+            if isinstance(inv, dict) and "invited" in inv:
+                # The inviter says who really arrived (issue #246): a
+                # single-channel guest is accepted by Slack and never added.
+                invited = list(inv.get("invited") or [])
+                invite_failed = list(inv.get("unresolved") or [])
+                invite_error = inv.get("error")
+                if invite_error and not invited and not invite_failed:
+                    invite_failed = [{"handle": h, "reason": invite_error}
+                                     for h in to_invite]
+            else:
+                invited = to_invite
         for uid in to_kick:
             ok, _d = kicker(cp.slack_channel_id, uid)
             if ok:
@@ -635,6 +648,7 @@ def reconcile_slack(project: str, *, env: dict | None = None, apply: bool = True
             "kicked": kicked if apply else [], "to_kick": to_kick,
             "extras": extras, "kick_blocked": kick_blocked,
             "unresolved": unresolved,
+            "invite_failed": invite_failed, "invite_error": invite_error,
             "in_sync": not to_invite and not extras}
 
 

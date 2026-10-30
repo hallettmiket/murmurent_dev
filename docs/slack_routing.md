@@ -77,6 +77,13 @@ missing and removes the extras. Three safeguards:
   handles to fix (add their Slack member id to `members/<handle>.md`).
 - The **bot is never removed** from the channel it posts to (its id comes from
   `auth.test`).
+- **An invite counts only when the member arrives.** After Slack accepts an
+  invite, the channel is read again and each handle is reported as invited or
+  as not in the channel, with the reason. The usual reason is a
+  **single-channel guest**: Slack answers `ok` for one and adds nobody, because
+  a single-channel guest can be in exactly one channel. A workspace admin has
+  to make them a multi-channel guest, or a member, before the reconcile can add
+  them. The same check runs in `murmurent project provision-slack`.
 
 The lab channel's membership is kept by `murmurent group-reconcile`, and a
 member leaving the group is removed from it by `murmurent group-remove-member`.
