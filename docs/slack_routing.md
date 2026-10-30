@@ -34,7 +34,8 @@ project's channel or to a development channel; the sender reports why.
 2. **The project whose record lists the repository.** A repository listed by two
    active projects is ambiguous and gets no channel; `murmurent project
    channels` lists every such case. Fix the records rather than guessing:
-   `murmurent project set <name> --remove-repo <repo>` on one of them.
+   remove the repository from one project's record in the lab records
+   repository (`cert_projects/<name>.md`, its `repos:` list).
 3. **The project's channel**, `slack_channel_id` on its record, created by
    `murmurent project provision-slack <name>` (named `proj-<name>`).
 4. **The lab's channel**, from the registry, when the repository is

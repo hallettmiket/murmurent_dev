@@ -10,9 +10,10 @@ every writer asks :func:`resolve_route` and posts with :func:`post_note`.
 
 Resolution order, first hit wins:
 
-1. ``slack_channel`` in the repository's ``.murmurent.yaml`` marker: a
-   per-repository override a deployment records on purpose (for example, a
-   development repository whose notes are kept out of the project's channel).
+1. ``slack_channel`` in the repository's ``.murmurent.yaml`` marker (or the
+   older ``update_me.channel``): a per-repository override a deployment records
+   on purpose (for example, a development repository whose notes are kept out
+   of the project's channel).
 2. The project named explicitly by the caller, or the one project whose record
    lists this repository. A repository listed by two active projects is
    AMBIGUOUS and gets no channel until the records are fixed; guessing is how
@@ -93,9 +94,14 @@ def _lab_channel(lab: str, env: dict | None = None) -> str:
 
 
 def resolve_route(start: Path | str | None = None, *, project: str | None = None,
-                  env: dict | None = None) -> Route:
+                  env: dict | None = None, honour_marker: bool | None = None) -> Route:
     """The channel for a note about the repository containing ``start`` (default:
-    the current folder), or about ``project`` when it is named. Never raises."""
+    the current folder), or about ``project`` when it is named. The repository's
+    own ``slack_channel`` override applies to notes about that repository, so by
+    default it is honoured only when no project is named; a caller that passes
+    the folder's own project name sets ``honour_marker=True``. Never raises."""
+    if honour_marker is None:
+        honour_marker = not project
     from . import cert_projects as _cp
 
     route = Route()
@@ -103,7 +109,13 @@ def resolve_route(start: Path | str | None = None, *, project: str | None = None
     if repo_path is not None:
         route.repo = repo_path.name
         route.lab = str(marker.get("lab") or "").removeprefix("lab_")
-        override = str(marker.get("slack_channel") or "").strip()
+        # The repository's own override applies to notes ABOUT this repository;
+        # a caller naming another project is asking about that project.
+        override = str(marker.get("slack_channel") or "").strip() if honour_marker else ""
+        if not override and honour_marker:
+            # the older per-repository override, set for /murmurent-update-me
+            block = marker.get("update_me") if isinstance(marker.get("update_me"), dict) else {}
+            override = str(block.get("channel") or "").strip()
         if override:
             if _CHANNEL_ID.match(override):
                 route.channel_id, route.source = override, "marker"
@@ -121,8 +133,8 @@ def resolve_route(start: Path | str | None = None, *, project: str | None = None
             route.reason = (f"repository '{repo_path.name}' is listed by "
                             f"{len(owners)} projects ({', '.join(route.candidates)}); "
                             "a note cannot be routed until one of them drops it "
-                            "(murmurent project set <name> --remove-repo …) or the "
-                            "repository's .murmurent.yaml names a slack_channel")
+                            "from its record or the repository's .murmurent.yaml "
+                            "names a slack_channel")
             return route
         if owners:
             name = owners[0].name
@@ -131,7 +143,8 @@ def resolve_route(start: Path | str | None = None, *, project: str | None = None
     if name:
         rec = _cp.get(name, env)
         if rec is None:
-            route.reason = f"no project record named '{name}'"
+            route.reason = (f"no Slack channel is recorded for the project '{name}' "
+                            "(there is no project record of that name)")
             if repo_path is None:
                 return route
         else:
@@ -140,8 +153,8 @@ def resolve_route(start: Path | str | None = None, *, project: str | None = None
             if rec.slack_channel_id:
                 route.channel_id, route.source = rec.slack_channel_id, "project"
                 return route
-            route.reason = (f"project '{rec.name}' has no Slack channel yet; the PI "
-                            f"runs `murmurent project provision-slack {rec.name}`")
+            route.reason = (f"no Slack channel is recorded for the project '{rec.name}' "
+                            f"yet; the PI runs `murmurent project provision-slack {rec.name}`")
     elif repo_path is None:
         route.reason = ("this folder is not inside a murmurent repository "
                         "(no .murmurent.yaml), so there is no project to notify")
