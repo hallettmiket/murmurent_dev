@@ -71,6 +71,7 @@ ship:
   - docs/assets/logos/            # same; not a claim that murmurent is Western-only
 
 withhold:
+  - .murmurent.yaml           # this repo's own marker; names a deployment Slack channel id (#243)
   # --- internal planning, already marked internal in mkdocs exclude_docs ---
   - docs/backlog.md
   - docs/implementation_prompt.md
