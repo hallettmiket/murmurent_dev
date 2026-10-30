@@ -117,7 +117,18 @@ def _token() -> str | None:
 
 
 def _project_channel_id(project_slug: str) -> str:
-    """Return the Slack channel ID stored in the project's CHARTER.md, or the default lab channel."""
+    """The project's Slack channel id: from its cert-project record, else from
+    a legacy ``CHARTER.md``. Empty when the project has none. It used to fall
+    back to the deployment's development channel, which is how one project's
+    notes ended up in another's channel (issue #243): a missing channel now
+    means no post, never a guess."""
+    try:
+        from ..core import cert_projects as _cp
+        rec = _cp.get(project_slug)
+        if rec is not None and rec.slack_channel_id:
+            return rec.slack_channel_id
+    except Exception:  # noqa: BLE001 — no registry on this machine
+        pass
     charter_path = _repo_paths.find_or_default(project_slug) / "CHARTER.md"
     if charter_path.is_file():
         try:
@@ -127,7 +138,7 @@ def _project_channel_id(project_slug: str) -> str:
                 return m.group(1)
         except OSError:
             pass
-    return _CHAN_CLAUDE_CODE
+    return ""
 
 
 def _write_charter_channel_id(
@@ -360,7 +371,7 @@ def create_project_channel(
         # (id, name) tuple back to CHARTER so the next recovery is O(1).
         log.info("Slack channel %s already exists; recovering ID", channel_name)
         existing = _project_channel_id(project_slug)
-        if existing and existing != _CHAN_CLAUDE_CODE:
+        if existing:
             _write_charter_channel_id(project_slug, existing, channel_name=channel_name)
             return existing
         looked_up = _lookup_channel_id_by_name(channel_name)
@@ -680,8 +691,12 @@ def sea_state_change(
     new_state: str,
     channel: str | None = None,
 ) -> None:
-    """Post a SEA lifecycle event to the project's Slack channel (or #claude-test as fallback)."""
+    """Post a SEA lifecycle event to the project's Slack channel. A project with
+    no channel gets no post (issue #243: never another project's channel)."""
     resolved_channel = channel if channel is not None else _project_channel_id(project)
+    if not resolved_channel:
+        log.info("SEA #%s in %s: no project channel, note not posted", sea_id, project)
+        return
     emoji = {
         "claim": ":hand:",
         "complete": ":white_check_mark:",
@@ -1058,8 +1073,8 @@ def sync_project_channel_members(
                 "error": "no slack token configured"}
 
     channel_id = _project_channel_id(project_slug)
-    if channel_id == _CHAN_CLAUDE_CODE:
-        # No channel ID in CHARTER → try to look it up by name (same recovery
+    if not channel_id:
+        # No channel ID on record → try to look it up by name (same recovery
         # path as create_project_channel's name_taken branch).
         channel_name = f"proj-{project_slug.lower().replace('_', '-')}"[:80]
         looked_up = _lookup_channel_id_by_name(channel_name)
