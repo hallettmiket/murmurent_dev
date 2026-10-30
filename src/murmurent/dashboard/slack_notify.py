@@ -29,6 +29,7 @@ _SLACK_API_LIST   = "https://slack.com/api/conversations.list"
 _SLACK_API_INVITE = "https://slack.com/api/conversations.invite"
 _SLACK_API_MEMBERS = "https://slack.com/api/conversations.members"
 _SLACK_API_LOOKUP_BY_EMAIL = "https://slack.com/api/users.lookupByEmail"
+_SLACK_API_USER_INFO = "https://slack.com/api/users.info"
 _TOKEN_FILE = Path("~/.config/murmurent/slack-token").expanduser()
 
 # Fallback channel IDs, resolved per deployment. ``_CHAN_DEFAULT`` is the
@@ -1045,6 +1046,68 @@ def _lookup_user_id_by_email(email: str, *, token: str | None = None) -> str | N
         return None
 
 
+def _user_guest_kind(user_id: str, *, token: str | None = None) -> str | None:
+    """``"single-channel guest"``, ``"multi-channel guest"`` or ``""`` for a full
+    member; ``None`` when Slack could not say (no token, no scope, network).
+    A single-channel guest is the case that matters: ``conversations.invite``
+    answers ``ok`` for one and adds nobody, so an invite can only be trusted
+    after checking who the member is."""
+    tok = token or _token()
+    if not tok or not user_id:
+        return None
+    try:
+        import httpx
+
+        r = httpx.get(
+            _SLACK_API_USER_INFO,
+            headers={"Authorization": f"Bearer {tok}"},
+            params={"user": user_id},
+            timeout=8,
+        )
+        data = r.json()
+        if not data.get("ok"):
+            return None
+        u = data.get("user") or {}
+        if u.get("is_ultra_restricted"):
+            return "single-channel guest"
+        if u.get("is_restricted"):
+            return "multi-channel guest"
+        return ""
+    except Exception as exc:  # noqa: BLE001
+        log.warning("Slack users.info error: %s", exc)
+        return None
+
+
+SINGLE_CHANNEL_GUEST_REASON = (
+    "single-channel guest: Slack accepts the invite and adds nobody; a workspace "
+    "admin must make them a multi-channel guest (or a member) first")
+
+
+def _confirm_arrivals(channel_id: str, user_ids: list[str], handle_for_uid: dict[str, str],
+                      *, token: str) -> tuple[list[str], list[dict]]:
+    """After an invite Slack called ``ok``, read the channel again and say who
+    is really in it. Returns ``(arrived_handles, missing)`` where each missing
+    entry is ``{"handle", "reason"}``. If the channel cannot be read, every
+    handle counts as arrived: an unverifiable success stays a success."""
+    now = _channel_member_ids(channel_id, token=token)
+    if not now:
+        return [handle_for_uid[u] for u in user_ids], []
+    arrived, missing = [], []
+    for uid in user_ids:
+        if uid in now:
+            arrived.append(handle_for_uid[uid])
+            continue
+        kind = _user_guest_kind(uid, token=token)
+        if kind == "single-channel guest":
+            reason = SINGLE_CHANNEL_GUEST_REASON
+        else:
+            reason = "Slack accepted the invite but they are not in the channel"
+            if kind:
+                reason += f" ({kind})"
+        missing.append({"handle": handle_for_uid[uid], "reason": reason})
+    return arrived, missing
+
+
 def sync_project_channel_members(
     project_slug: str,
     member_handles: list[str],
@@ -1167,7 +1230,10 @@ def invite_members_to_channel(
             )
             data = r.json()
             if data.get("ok"):
-                invited.extend(handle_for_uid[u] for u in user_ids_to_invite)
+                arrived, missing = _confirm_arrivals(
+                    channel_id, user_ids_to_invite, handle_for_uid, token=tok)
+                invited.extend(arrived)
+                unresolved.extend(missing)
             else:
                 err = data.get("error", "")
                 # ``already_in_channel`` means some of the batch were
