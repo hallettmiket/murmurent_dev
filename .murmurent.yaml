@@ -1,0 +1,10 @@
+# murmurent's own development repository. It belongs to the Murmurent project,
+# whose channel the whole lab reads, so its push notes are kept in the lab's
+# test channel instead (issue #243): `murmurent project note` honours
+# slack_channel before the project's channel.
+murmurent: 1
+lab: mh
+ready_since: '2026-10-30'
+bootstrap_version: 2026.10.7
+agents: []
+slack_channel: C0B3D9DS6SE
