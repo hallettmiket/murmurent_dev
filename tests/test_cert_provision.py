@@ -295,8 +295,39 @@ def test_reconcile_slack_invites_missing_and_kicks_extras():
                                 uid_resolver=uid_resolver, inviter=inviter,
                                 kicker=kicker, bot_uid="Ubot")
     assert out["to_invite"] == ["bob"] and acted["invited"] == ["bob"]
-    assert out["to_kick"] == ["Uextra"] and acted["kicked"] == ["Uextra"]  # bot kept
+    # nomail could not be matched to a Slack account, so the interloper might be
+    # nomail: nobody is removed, the drift is reported (issue #243)
+    assert out["extras"] == ["Uextra"] and out["to_kick"] == [] and acted["kicked"] == []
+    assert "nomail" in out["kick_blocked"]
     assert out["unresolved"] == ["nomail"] and out["in_sync"] is False
+
+
+def test_reconcile_slack_kicks_extras_once_everyone_is_resolved():
+    _seed_project_with_members()
+    CP.upsert("rna_atlas", lab="lab_mh", slack_channel_id="C1")
+    kicked = []
+    out = CPROV.reconcile_slack(
+        "rna_atlas",
+        ids_fetcher=lambda c: {"U1", "U3", "U4", "Ubot", "Uextra"},
+        uid_resolver=lambda h, e: {"allie": "U1", "bob": "U3", "nomail": "U4"},
+        inviter=lambda *a, **k: {"invited": [], "already_in": [], "unresolved": []},
+        kicker=lambda c, u: (kicked.append(u) or (True, "kicked")),
+        bot_uid="Ubot")
+    assert out["to_kick"] == ["Uextra"] and kicked == ["Uextra"]   # the bot is kept
+    assert out["kick_blocked"] == "" and out["unresolved"] == []
+
+
+def test_uid_resolver_prefers_the_roster_slack_id(monkeypatch):
+    # The roster's slack: field names the account; the email lookup is only the
+    # fallback, since Slack accounts are often registered under another email.
+    looked = []
+    monkeypatch.setattr("murmurent.dashboard.slack_notify._lookup_user_id_by_email",
+                        lambda email, token=None: looked.append(email) or "Ubyemail")
+    out = CPROV._default_uid_resolver(
+        ["allie", "bob", "carol"], {"allie": "a@x", "bob": "b@x", "carol": "c@x"},
+        token="t", slack_map={"allie": "UALLIE01", "bob": "@not-an-id"})
+    assert out == {"allie": "UALLIE01", "bob": "Ubyemail", "carol": "Ubyemail"}
+    assert looked == ["b@x", "c@x"]
 
 
 def test_reconcile_slack_check_only_makes_no_changes():
