@@ -186,6 +186,10 @@ replies once and cannot hold a back-and-forth.
   (governance-level: repos + certified members, in `cert_projects/`) — the
   split that replaced adopt-also-minting-a-project.
 - [`docs/reconcile.md`](docs/reconcile.md) — `murmurent reconcile` drift-detection routine + daily `/routine` schedule.
+- [`docs/service_account.md`](docs/service_account.md): running the server's two
+  policing timers (weekly space scan, weekday etiquette check) under a lab service
+  account instead of the PI's login; the `space_dir` policy setting that lets the
+  PI keep reading the scan's table.
 - [`docs/versioning.md`](docs/versioning.md) — CalVer scheme (`YYYY.M.MICRO`),
   single-source version in `__init__.py`, when to bump vs not, releases; schema
   versions are independent.

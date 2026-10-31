@@ -97,6 +97,30 @@ def murmurent_home() -> Path:
     return Path(os.environ.get("MURMURENT_HOME") or Path.home() / ".murmurent")
 
 
+SPACE_DIR_ENV = "MURMURENT_SPACE_DIR"
+
+
+def space_dir() -> Path:
+    """The folder the space scan writes to and the space commands read from.
+
+    ``$MURMURENT_SPACE_DIR`` first; then ``space_dir`` in the lab's policy file,
+    which is how the table reaches the PI when the weekly scan runs under a lab
+    service account (``docs/service_account.md``); else this account's own
+    ``<murmurent home>/space``.
+    """
+    explicit = os.environ.get(SPACE_DIR_ENV)
+    if explicit:
+        return Path(explicit).expanduser()
+    try:
+        from .millwright_policy import load_policy
+        configured = load_policy().space_dir
+    except Exception:  # noqa: BLE001 - no policy means the account's own folder
+        configured = ""
+    if configured:
+        return Path(configured).expanduser()
+    return murmurent_home() / SPACE_SUBDIR
+
+
 def runs_dir() -> Path:
     """The folder of job records written by ``murmurent run``."""
     return murmurent_home() / RUNS_SUBDIR
@@ -104,7 +128,7 @@ def runs_dir() -> Path:
 
 def data_dates_path() -> Path:
     """The data scan's record of when each data folder last changed."""
-    return murmurent_home() / SPACE_SUBDIR / DATA_DATES_FILENAME
+    return space_dir() / DATA_DATES_FILENAME
 
 
 # ---------------------------------------------------------------------------
@@ -688,7 +712,7 @@ __all__ = [
     "DEFAULT_QUIET_AFTER_MONTHS", "DEFAULT_DORMANT_AFTER_MONTHS",
     "RUNS_SUBDIR", "SPACE_SUBDIR", "DATA_DATES_FILENAME",
     "DATA_DATES_SCHEMA", "SIBLING_ROLES",
-    "murmurent_home", "runs_dir", "data_dates_path",
+    "murmurent_home", "space_dir", "SPACE_DIR_ENV", "runs_dir", "data_dates_path",
     "default_data_folders", "effective_data_folders", "ReadsFrom",
     "resolve_reads_from", "parse_iso_date", "retention_blocks_deletion",
     "UsageEvidence", "newest_commit", "repo_commit_evidence", "job_card_evidence",

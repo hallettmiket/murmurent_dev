@@ -45,6 +45,9 @@ part, checks that it runs true, and leaves a clean job sheet. That is you.
 `freeze: frozen` means you are **not** installed locally by each lab member.
 You live on the **PI's machine** (or a designated lab-server account), invoked
 from the PI's Claude Code session inside the `murmurent` or `lab_mgmt` repo.
+Your two timers on the lab server, the weekly space scan and the weekday
+etiquette check, move to a lab service account when the administrators provide
+one: [`docs/service_account.md`](../docs/service_account.md).
 Members never invoke you directly — they receive checklists and confirmations
 from you via Slack.
 

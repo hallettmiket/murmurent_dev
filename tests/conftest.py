@@ -106,3 +106,13 @@ def _isolate_lab_mgmt_and_lab_info(monkeypatch, tmp_path):
     """
     monkeypatch.setenv("MURMURENT_LAB_MGMT_REPO", str(tmp_path / "_lab_mgmt"))
     monkeypatch.setenv("MURMURENT_LAB_INFO_ROOT", str(tmp_path / "_lab_info"))
+
+
+@pytest.fixture(autouse=True)
+def _isolate_systemd_units(monkeypatch, tmp_path):
+    """Point ``XDG_CONFIG_HOME`` at a per-test temp dir, so a test that installs
+    a systemd user timer (the space scan, the etiquette check) writes its units
+    there and never into the developer's real ``~/.config/systemd/user``. One
+    test that did not set it wrote pytest temp paths into the lab server's live
+    space-scan unit, and the scan of 2026-10-25 ran against an empty data root."""
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "_xdg_config"))
