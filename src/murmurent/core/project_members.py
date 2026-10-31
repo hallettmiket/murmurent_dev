@@ -71,9 +71,24 @@ def _dm_bundle(project: str, handle: str, bundle: dict, *,
     return {"sent": bool(ok), "detail": str(detail), "workspace": workspace}
 
 
+def record_pending_member(project: str, handle: str, *, lab: str | None = None,
+                          env: dict | None = None) -> bool:
+    """Put ``handle`` on ``project``'s member list without a certificate: the
+    way a lead adds someone from another group whose key this lab has never
+    seen. They show as "no cert" until their enrollment request is pasted in
+    (``add_member`` with ``enrollment``), which can happen any time later.
+    Returns False when the project record does not exist."""
+    cp = _cp.get(project, env)
+    if cp is None:
+        return False
+    _cp.upsert(project, lab=lab or cp.lab, member=str(handle).lstrip("@"), env=env)
+    return True
+
+
 def add_member(project: str, handle: str, *, lab: str | None = None,
                env: dict | None = None, enrollment: dict | None = None,
-               dm: bool = True, dm_sender=None, inviter=None) -> dict:
+               dm: bool = True, dm_sender=None, inviter=None,
+               record_pending: bool = False) -> dict:
     """Add ``handle`` to ``project``: the LEAD signs their project card (against
     the roster-attested pubkey, or a PoP ``enrollment`` for keyless/external
     members), the bundle is DM'd over the project's workspace, and they are
@@ -83,7 +98,13 @@ def add_member(project: str, handle: str, *, lab: str | None = None,
     the delegated lead key (the crypto gate; HTTP authz is just the UI gate).
     Returns a structured summary; a member without a recorded key and no
     enrollment yields ``{"ok": False, "error": "no_recorded_key", ...}`` so the
-    caller can fall back to the enrollment ceremony."""
+    caller can fall back to the enrollment ceremony.
+
+    ``record_pending=True`` (the dashboard's typed-handle path) also writes the
+    handle onto the project record in that case, so a person from another
+    group is a member of the project at once, shown as awaiting a certificate,
+    and the enrollment can be finished later from their row. The reply then
+    carries ``"recorded": True``."""
     try:
         if enrollment is not None:
             bundle = _iss.issue_project_card_pop(handle, enrollment=enrollment,
@@ -92,8 +113,11 @@ def add_member(project: str, handle: str, *, lab: str | None = None,
             bundle = _iss.issue_project_card_from_roster(handle, project=project,
                                                          lab=lab, env=env)
     except _iss.NoRecordedKey as exc:
-        return {"ok": False, "error": "no_recorded_key", "detail": str(exc),
-                "handle": handle, "fallback": "enrollment"}
+        out = {"ok": False, "error": "no_recorded_key", "detail": str(exc),
+               "handle": handle, "fallback": "enrollment", "recorded": False}
+        if record_pending:
+            out["recorded"] = record_pending_member(project, handle, lab=lab, env=env)
+        return out
 
     out: dict = {"ok": True, "handle": handle, "project": project,
                  "group": bundle["group"], "bundle": bundle,

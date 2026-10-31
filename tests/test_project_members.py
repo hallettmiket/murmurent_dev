@@ -69,7 +69,36 @@ def test_add_member_no_recorded_key_falls_back(pi_world):
     out = PM.add_member("dcis_17", "@stranger", dm=False)
     assert not out["ok"] and out["error"] == "no_recorded_key"
     assert out["fallback"] == "enrollment"
+    assert out["recorded"] is False
     assert "@stranger" not in CP.get("dcis_17").members
+
+
+def test_add_member_record_pending_puts_outsider_on_the_list(pi_world):
+    """The dashboard's typed-handle path: someone from another group, whose
+    key this lab has never seen, joins the member list at once (no cert) and
+    the enrollment can be finished later."""
+    out = PM.add_member("dcis_17", "@stranger", dm=False, record_pending=True)
+    assert not out["ok"] and out["error"] == "no_recorded_key"
+    assert out["recorded"] is True
+    cp = CP.get("dcis_17")
+    assert "@stranger" in cp.members
+    assert not any(c["handle"] == "@stranger" for c in cp.certs)
+    # idempotent: a second add does not duplicate them
+    PM.add_member("dcis_17", "stranger", dm=False, record_pending=True)
+    assert CP.get("dcis_17").members.count("@stranger") == 1
+    # finishing later: their enrollment certifies them
+    ext = Ed25519PrivateKey.generate()
+    req = C.make_enrollment_request("@stranger", priv=ext, nonce="e2",
+                                    email="s@other.edu", slack="sslack")
+    out = PM.add_member("dcis_17", "@stranger", enrollment=req, dm=False)
+    assert out["ok"]
+    cp = CP.get("dcis_17")
+    assert cp.members.count("@stranger") == 1
+    assert any(c["handle"] == "@stranger" for c in cp.certs)
+
+
+def test_record_pending_member_unknown_project(pi_world):
+    assert PM.record_pending_member("no_such_project", "@who") is False
 
 
 def test_add_member_pop_enrollment_for_external(pi_world):

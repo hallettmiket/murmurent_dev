@@ -104,6 +104,9 @@ class ProjectMemberBody(BaseModel):
     handle: str
     enrollment: dict | None = None
     dm: bool = True
+    # When their key is not on file (someone from another group), still put
+    # them on the project's member list now; the certificate follows later.
+    record_pending: bool = True
 
 
 class AddMemberBody(BaseModel):
@@ -4162,8 +4165,10 @@ def create_app() -> FastAPI:
         One click when the member's pubkey is on the roster: their project card
         is issued, DM'd over the project's Slack workspace, and they're invited
         to the private channel. A keyless/external member returns
-        ``{"ok": false, "error": "no_recorded_key"}`` — re-call with their PoP
-        ``enrollment`` (they run `murmurent enroll --project <p>`)."""
+        ``{"ok": false, "error": "no_recorded_key", "recorded": true}``: they
+        are on the project's member list, awaiting a certificate. Re-call with
+        their PoP ``enrollment`` (they run `murmurent enroll --project <p>`)
+        whenever it arrives."""
         from ..core import issuance as _iss
         from ..core import project_members as _pm
 
@@ -4173,7 +4178,7 @@ def create_app() -> FastAPI:
             raise HTTPException(status_code=422, detail="handle is required")
         try:
             out = _pm.add_member(project, handle, enrollment=body.enrollment,
-                                 dm=body.dm)
+                                 dm=body.dm, record_pending=body.record_pending)
         except (_iss.IssuanceError, _pm.ProjectMemberError) as exc:
             raise HTTPException(status_code=400, detail=str(exc))
         # Don't ship the full bundle back to the browser unless the DM failed
