@@ -117,7 +117,7 @@ Personal preferences profile lives at `~/.claude/murmurent-preferences.yaml` (lo
 | `murmurent import-card <bundle.json> [--trust-root <r>]` | anyone | Verify + store a card you were issued (PI / member / lead / project) |
 | `murmurent whoami` | anyone | Your verified identity + trust root |
 | `murmurent issue-project-lead-card <handle> --project <p>` | PI | Delegate a project to its creator (the lead) |
-| `murmurent project-add-member <handle> --project <p> [--enrollment <f>]` | lead | Sign a member into a project (cert + DM + channel invite) |
+| `murmurent project-add-member <handle> --project <p> [--enrollment <f>]` | lead | Sign a member into a project (cert + DM + channel invite). A handle with no key on file (someone from another group) is put on the member list at once, awaiting a certificate; `--no-pending` refuses instead |
 | `murmurent project-remove-member <handle> --project <p>` | PI | Revoke a member's project card + kick from the channel |
 | `murmurent project-whoami` | anyone | Prove which projects this machine's cards certify you for |
 | `murmurent project-unarchive --project <p>` | PI | Bring a deleted project back (certs stay revoked; re-issue) |

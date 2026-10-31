@@ -1063,8 +1063,12 @@ def issue_project_lead_card_cmd(handle: str, project: str, lab: str,
               help="PoP enrollment file (fallback for keyless/external members).")
 @click.option("--dm/--no-dm", default=True,
               help="DM the bundle on Slack (default: yes).")
+@click.option("--pending/--no-pending", default=True,
+              help="When their key is not on file (someone from another group), "
+                   "put them on the project's member list now anyway; finish "
+                   "with --enrollment later (default: yes).")
 def project_add_member_cmd(handle: str, project: str, lab: str,
-                           enrollment_file: str, dm: bool) -> None:
+                           enrollment_file: str, dm: bool, pending: bool) -> None:
     from ..core import issuance as _iss
     from ..core import project_members as _pm
     import json as _json
@@ -1078,9 +1082,15 @@ def project_add_member_cmd(handle: str, project: str, lab: str,
             raise click.ClickException(f"cannot read enrollment: {exc}") from exc
     try:
         out = _pm.add_member(project, handle, lab=lab or None,
-                             enrollment=enrollment, dm=dm)
+                             enrollment=enrollment, dm=dm, record_pending=pending)
     except (_iss.IssuanceError, _pm.ProjectMemberError) as exc:
         raise click.ClickException(str(exc)) from exc
+    if not out.get("ok") and out.get("recorded"):
+        click.echo(f"✓ {handle} is on {project}'s member list, awaiting a certificate.")
+        click.echo(f"  Their key is not on file. They run `murmurent enroll --project "
+                   f"{project}` and send you the file; then re-run with "
+                   f"--enrollment <file> to issue their project card.")
+        return
     if not out.get("ok"):
         raise click.ClickException(
             f"{out.get('detail', out.get('error'))}\n"

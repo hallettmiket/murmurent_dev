@@ -1760,6 +1760,7 @@ function ProjectMembersBlock({ proj: p }) {
   const [busy, setBusy] = React.useState(null);   // handle currently in flight
   const [err, setErr] = React.useState(null);
   const [enrollFor, setEnrollFor] = React.useState(null);  // handle needing enrollment JSON
+  const [enrollRecorded, setEnrollRecorded] = React.useState(false);  // already on the list?
   const userParam = ((window.DATA.member || {}).handle || "").replace(/^@/, "");
   const q = userParam ? "?user=" + encodeURIComponent(userParam) : "";
 
@@ -1780,10 +1781,14 @@ function ProjectMembersBlock({ proj: p }) {
       if (!r.ok) throw new Error((typeof j.detail === "string" ? j.detail : null) || r.statusText);
       if (!j.ok && j.error === "no_recorded_key") {
         // PoP fallback: the member has no attested key on the roster (carded
-        // before pubkey recording, or external). Open a modal with a COPYABLE
-        // enroll command + a paste box (native window.prompt text can't be
-        // selected/copied — the thing the user asked to fix).
+        // before pubkey recording, or from another group). The server has
+        // already put them on the project's member list ("recorded"), so
+        // refresh to show them as "no cert", then open a modal with a
+        // COPYABLE enroll command + a paste box. The modal can be closed and
+        // the enrollment finished later from their "issue" button.
         setBusy(null);
+        if (j.recorded) await refresh();
+        setEnrollRecorded(!!j.recorded);
         setEnrollFor(handle);
         return;
       }
@@ -1907,7 +1912,7 @@ function ProjectMembersBlock({ proj: p }) {
                    onKeyDown={e => { if (e.key === "Enter" && outside.trim()) {
                      addMember(outside.trim().replace(/^@/, "")); setOutside(""); } }}
                    placeholder="@handle from another group"
-                   title="Someone outside this lab: type their murmurent handle. If their key is not on record, you will be asked for the enrollment request they send you."
+                   title="Someone outside this lab: type their murmurent handle and press Enter. They join the member list at once. If their key is not on record they show as 'no cert' until you paste the enrollment request they send you, now or later."
                    style={{fontSize:11, padding:"2px 4px", fontFamily:"var(--mono)", width:170,
                            border:"1px solid var(--rule-strong)", borderRadius:2}} />
             <button type="button" className="btn sm" disabled={!!busy || !outside.trim()}
@@ -1928,6 +1933,7 @@ function ProjectMembersBlock({ proj: p }) {
         <EnrollHelpModal
           handle={enrollFor}
           project={p.name}
+          recorded={enrollRecorded}
           onClose={() => setEnrollFor(null)}
           onSubmit={(obj) => { setEnrollFor(null); addMember(enrollFor, obj); }}
         />
@@ -1939,7 +1945,7 @@ function ProjectMembersBlock({ proj: p }) {
 /* EnrollHelpModal — shown when adding a member who has no attested key yet.
    Replaces a native window.prompt (whose text can't be selected) with a modal
    that has a COPYABLE enroll command + a paste box for the JSON they send back. */
-function EnrollHelpModal({ handle, project, onClose, onSubmit }) {
+function EnrollHelpModal({ handle, project, recorded, onClose, onSubmit }) {
   const cmd = "murmurent enroll --project " + project;
   const [json, setJson] = React.useState("");
   const [copied, setCopied] = React.useState(false);
@@ -1975,8 +1981,13 @@ function EnrollHelpModal({ handle, project, onClose, onSubmit }) {
           <button type="button" className="btn sm ghost" onClick={onClose}>✕ close</button>
         </div>
         <p className="muted" style={{fontSize:12, margin:"6px 0 8px"}}>
-          @{h} has no attested key on the roster yet. Send them this command; they run
-          it and send back the JSON it prints, which you paste below.
+          {recorded
+            ? <>@{h} is now on the member list of {project}, shown as <em>no cert</em> until
+                they hold a certificate. Send them this command; they run it and send back
+                the JSON it prints. Paste it below now, or close this and click
+                <strong> issue</strong> next to their name when it arrives.</>
+            : <>@{h} has no attested key on the roster yet. Send them this command; they run
+                it and send back the JSON it prints, which you paste below.</>}
         </p>
         <div className="row" style={{gap:6, alignItems:"center"}}>
           <input readOnly value={cmd} onFocus={e => e.target.select()} className="mono"
@@ -1999,8 +2010,8 @@ function EnrollHelpModal({ handle, project, onClose, onSubmit }) {
                           resize:"vertical"}} />
         {err && <div style={{color:"var(--red)", fontSize:11, marginTop:4}}>{err}</div>}
         <div className="row" style={{justifyContent:"flex-end", gap:6, marginTop:10}}>
-          <button type="button" className="btn sm ghost" onClick={onClose}>cancel</button>
-          <button type="button" className="btn sm primary" onClick={submit}>add @{h}</button>
+          <button type="button" className="btn sm ghost" onClick={onClose}>{recorded ? "later" : "cancel"}</button>
+          <button type="button" className="btn sm primary" onClick={submit}>{recorded ? "issue certificate" : "add @" + h}</button>
         </div>
       </div>
     </div>

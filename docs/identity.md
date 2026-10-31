@@ -407,8 +407,9 @@ See Delegating a project lead, below, for the full command set.
   dashboard; the bundle is DM'd to the lead).
 - `murmurent project-add-member <handle> --project <p>`: the lead signs a
   member in, one click when the member's key is already attested on the
-  roster. External or keyless members first run `murmurent enroll --project
-  <p>` and send the file (`--enrollment`).
+  roster. External or keyless members are put on the member list at once,
+  awaiting a certificate; they run `murmurent enroll --project <p>` and
+  send the file, and the lead finishes with `--enrollment`.
 - `murmurent project-remove-member`: revokes the card (adds it to the CRL)
   and removes the member from the project's private Slack channel.
 - `murmurent project-whoami`: shows which projects this machine's cards
