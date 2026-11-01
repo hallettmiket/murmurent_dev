@@ -106,8 +106,11 @@ def resolve_route(start: Path | str | None = None, *, project: str | None = None
 
     route = Route()
     repo_path, marker = _marker_for(start)
+    rname = ""
     if repo_path is not None:
-        route.repo = repo_path.name
+        from .repo import repo_name as _repo_name
+        rname = _repo_name(repo_path)
+        route.repo = rname
         route.lab = str(marker.get("lab") or "").removeprefix("lab_")
         # The repository's own override applies to notes ABOUT this repository;
         # a caller naming another project is asking about that project.
@@ -126,15 +129,15 @@ def resolve_route(start: Path | str | None = None, *, project: str | None = None
 
     name = (project or "").strip()
     if not name and repo_path is not None:
-        owners = [p for p in _cp.owning_projects(repo_path.name, env=env)
-                  if p.status == "active"] or _cp.owning_projects(repo_path.name, env=env)
+        owners = [p for p in _cp.owning_projects(rname, env=env)
+                  if p.status == "active"] or _cp.owning_projects(rname, env=env)
         if len(owners) > 1:
             route.candidates = sorted(p.name for p in owners)
-            route.reason = (f"repository '{repo_path.name}' is listed by "
+            route.reason = (f"repository '{rname}' is listed by "
                             f"{len(owners)} projects ({', '.join(route.candidates)}); "
                             "a note cannot be routed until one of them drops it "
-                            "from its record or the repository's .murmurent.yaml "
-                            "names a slack_channel")
+                            f"from its record (murmurent project release-repo <project> {rname}) "
+                            "or the repository's .murmurent.yaml names a slack_channel")
             return route
         if owners:
             name = owners[0].name

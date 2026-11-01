@@ -34,8 +34,12 @@ project's channel or to a development channel; the sender reports why.
 2. **The project whose record lists the repository.** A repository listed by two
    active projects is ambiguous and gets no channel; `murmurent project
    channels` lists every such case. Fix the records rather than guessing:
-   remove the repository from one project's record in the lab records
-   repository (`cert_projects/<name>.md`, its `repos:` list).
+   `murmurent project release-repo <project> <repo>` takes the repository off
+   the project that should not claim it (the clone on disk is untouched).
+   The repository's name is its main copy's folder: a note sent from a git
+   worktree (a second working copy, such as the ones the Desktop app makes
+   under `.claude/worktrees/`) is routed the same way as one sent from the
+   main copy (#250).
 3. **The project's channel**, `slack_channel_id` on its record, created by
    `murmurent project provision-slack <name>` (named `proj-<name>`).
 4. **The lab's channel**, from the registry, when the repository is
