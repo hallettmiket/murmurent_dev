@@ -563,7 +563,7 @@ def project_for_repo(repo_path: Path, *, project_names: set[str],
     """
     from .repo import repos_root
     repo_path = Path(repo_path)
-    name = repo_path.name
+    name = _repo.repo_name(repo_path)
     # Compare with links followed, since the repositories folder is often a
     # link to a larger drive and adopt hands over a resolved path.
     root = _resolved(Path(os.path.normpath((root or repos_root()).expanduser())))
@@ -663,7 +663,7 @@ def ensure_repo_project(repo_path: Path, *, lab: str = "", lead: str = "",
     another machine.
     """
     repo_path = Path(repo_path)
-    name = repo_path.name
+    name = _repo.repo_name(repo_path)
     # Writing a record into a lab records folder that is not there would create
     # it, and other commands would then treat that invented folder as the lab's
     # records (#227). Only pi-init, or cloning the real one, makes it.

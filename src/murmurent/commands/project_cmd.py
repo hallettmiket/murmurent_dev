@@ -584,6 +584,19 @@ def cmd_set(name: str, *, data_folders: tuple = (), reads_from: tuple = (),
     return cmd_status(name)
 
 
+def cmd_release_repo(name: str, repo: str) -> int:
+    """`murmurent project release-repo`: the project no longer claims the
+    repository (#250). The record changes; the clone on disk does not."""
+    from ..core import cert_projects as _cps
+    try:
+        _cps.remove_repo(name, repo)
+    except _cps.CertProjectError as exc:
+        raise click.ClickException(str(exc)) from exc
+    click.echo(f"{name} no longer lists the repository {repo}. Its record is committed "
+               "and pushed so the lab sees it.")
+    return cmd_status(name)
+
+
 def cmd_status(name: str | None) -> int:
     """``murmurent project status [name]``: one project, as the unit of work.
 

@@ -676,7 +676,8 @@ def add_repo(name: str, *, role: str = "code", repo_name: str = "",
     cur = get(name, env)
     if cur is None:
         raise CertProjectError(f"no cert-project named {name!r}")
-    rname = repo_name or (Path(path).name if path else name)
+    from .repo import repo_name as _repo_name                 # lazy: avoid import cycle
+    rname = repo_name or (_repo_name(Path(path)) if path else name)
     ref = RepoRef(name=rname, role=str(role).strip().lower() or "code", host=host,
                   path=path, remote_path=remote_path, remote_url=remote_url,
                   overleaf=bool(overleaf))
@@ -886,7 +887,7 @@ def backfill_from_charter(*, env: dict | None = None,
             meta = _pf(repo.charter_path).meta or {}
         except Exception:  # noqa: BLE001
             continue
-        name = str(meta.get("project") or repo.path.name)
+        name = str(meta.get("project") or repo.name)
         # A remote-pointer project's tree lives on another host; capture that so
         # reconcile can reach it. Local projects → host="local".
         host, remote_path = "local", ""
@@ -955,7 +956,7 @@ def migrate_charters(*, delete: bool = True, env: dict | None = None,
             meta = _pf(repo.charter_path).meta or {}
         except Exception:  # noqa: BLE001
             continue
-        by_name[str(meta.get("project") or repo.path.name)] = repo.charter_path
+        by_name[str(meta.get("project") or repo.name)] = repo.charter_path
 
     for name in migrated:
         charter_path = by_name.get(name)
@@ -1006,14 +1007,14 @@ def project_name_for_cwd(start=None, env: dict | None = None) -> str | None:
 
     In order: the project whose record lists this repository (so a
     ``x_manuscript`` repository answers ``x``, issue #151), then its CHARTER.md
-    ``project`` field, then the repository's folder name. None if not inside a
-    project repo."""
+    ``project`` field, then the repository's name (its main copy's folder, even
+    from a git worktree, #250). None if not inside a project repo."""
     from . import repo as _repo
     pr = _repo.find_project_repo(start)
     if pr is None:
         return None
     try:
-        owner = owning_project(pr.path.name, env=env)
+        owner = owning_project(pr.name, env=env)
         if owner is not None:
             return owner.name
     except Exception:  # noqa: BLE001 - the registry is a better answer, not a required one
@@ -1025,7 +1026,7 @@ def project_name_for_cwd(start=None, env: dict | None = None) -> str | None:
             return str(name)
     except Exception:  # noqa: BLE001
         pass
-    return pr.path.name
+    return pr.name
 
 
 def slack_channel_for(name: str, env: dict | None = None) -> str:

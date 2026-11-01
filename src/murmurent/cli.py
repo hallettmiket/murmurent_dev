@@ -1206,6 +1206,18 @@ def project_note(text: str, project: str, dry_run: bool) -> None:
     raise SystemExit(0 if ok else 1)
 
 
+@project_group.command("release-repo",
+                       help="Take a repository off a project's record, so the project no "
+                            "longer claims it. The clone on disk is untouched. Use it when "
+                            "`murmurent project channels` says two projects claim one "
+                            "repository. The PI or project lead runs this; it commits and "
+                            "pushes the record.")
+@click.argument("name")
+@click.argument("repo")
+def project_release_repo(name: str, repo: str) -> None:
+    raise SystemExit(project_cmd.cmd_release_repo(name, repo))
+
+
 @project_group.command("channels",
                        help="Audit every project's Slack channel: id, name, whether "
                             "it is archived, whether the bot is in it, and the "
@@ -1251,6 +1263,7 @@ def project_channels() -> None:
         click.echo("Repositories claimed by more than one active project (notes from them cannot be routed):")
         for repo, names in sorted(dup.items()):
             click.echo(f"  {repo}: {', '.join(names)}")
+            click.echo(f"    fix: murmurent project release-repo <project> {repo}")
     missing = [n for n, s, cid, _i in rows if cid == "(none)" and s == "active"]
     if missing:
         click.echo("")
