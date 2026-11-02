@@ -12,7 +12,7 @@ rule tells sessions to use it.
 
 | Message | Goes to | Decided by |
 |---|---|---|
-| A note about a **repository** (a release note after a push, a job notice, a status update) | the project's channel, else the lab's channel, else nowhere | `slack_routing.resolve_route`: the repository's marker override, then the one project whose record lists the repository, then the lab in the registry |
+| A note about a **repository** (a release note after a push, a job notice, a status update) | the channel of every project that lists the repository, else the lab's channel, else nowhere | `slack_routing.resolve_route`: the repository's marker override, then each active project whose record lists the repository, then the lab in the registry |
 | A **project event** (a SEA changing state, a project request, a member added to a project) | the project's channel; nowhere if the project has none | the project record's `slack_channel_id` |
 | A **lab event** (server etiquette lines, a member leaving the group) | the lab's channel | the registry entry's `slack_channel_id` |
 | A **centre notice** (a join request, a decision, a core booking) | the private mayor channel, else the deployment's configured default | `centre_init` profile `mayor_channel_id`, else `MURMURENT_SLACK_DEFAULT_CHANNEL` / `~/.config/murmurent/slack-default-channel` |
@@ -31,11 +31,13 @@ project's channel or to a development channel; the sender reports why.
    whose traffic should stay out of the project's channel, for example a
    development repository of a project whose channel the whole lab reads.
    It must be a channel id (`C…`), not a name.
-2. **The project whose record lists the repository.** A repository listed by two
-   active projects is ambiguous and gets no channel; `murmurent project
-   channels` lists every such case. Fix the records rather than guessing:
-   `murmurent project release-repo <project> <repo>` takes the repository off
-   the project that should not claim it (the clone on disk is untouched).
+2. **Every active project whose record lists the repository.** A repository
+   may be in several projects (#253); the note is then posted once to each
+   project's channel, and the command reports each post. A listing project with
+   no channel yet is skipped, with its reason, and `murmurent project channels`
+   lists every repository in more than one project. If a project should not
+   list the repository, `murmurent project release-repo <project> <repo>` takes
+   it off that record (the clone on disk is untouched).
    The repository's name is its main copy's folder: a note sent from a git
    worktree (a second working copy, such as the ones the Desktop app makes
    under `.claude/worktrees/`) is routed the same way as one sent from the

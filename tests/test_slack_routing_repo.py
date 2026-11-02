@@ -61,14 +61,52 @@ def test_route_project_without_channel_posts_nowhere(world):
     assert "provision-slack bioinfo" in r.reason
 
 
-def test_route_refuses_a_repository_two_projects_claim(world):
+def test_route_goes_to_every_project_that_lists_the_repository(world):
+    """A repository in several projects (#253): one note, each project's channel."""
+    repo = marked_repo(world["repos"], "bioinfo")
+    cp.upsert("bioinfo", lab="mh", slack_channel_id="CBIO",
+              repos=[cp.RepoRef(name="bioinfo", path=str(repo))])
+    cp.upsert("teaching", lab="mh", slack_channel_id="CTEACH",
+              repos=[cp.RepoRef(name="bioinfo", path=str(repo))])
+    r = sr.resolve_route(repo)
+    assert r.ok and r.candidates == ["bioinfo", "teaching"]
+    assert [(x.channel_id, x.project) for x in r.all] == [("CBIO", "bioinfo"), ("CTEACH", "teaching")]
+    assert "project 'bioinfo'" in r.describe() and "project 'teaching'" in r.describe()
+
+
+def test_route_skips_a_listing_project_without_a_channel(world):
     repo = marked_repo(world["repos"], "bioinfo")
     cp.upsert("bioinfo", lab="mh", repos=[cp.RepoRef(name="bioinfo", path=str(repo))])
     cp.upsert("teaching", lab="mh", slack_channel_id="CTEACH",
               repos=[cp.RepoRef(name="bioinfo", path=str(repo))])
     r = sr.resolve_route(repo)
-    assert not r.ok and r.candidates == ["bioinfo", "teaching"]
-    assert "2 projects" in r.reason
+    assert r.ok and [x.channel_id for x in r.all] == ["CTEACH"]
+
+
+def test_two_projects_sharing_one_channel_get_one_post(world):
+    repo = marked_repo(world["repos"], "bioinfo")
+    for name in ("bioinfo", "teaching"):
+        cp.upsert(name, lab="mh", slack_channel_id="CSAME",
+                  repos=[cp.RepoRef(name="bioinfo", path=str(repo))])
+    assert [x.channel_id for x in sr.resolve_route(repo).all] == ["CSAME"]
+
+
+def test_post_note_posts_to_each_project_and_reports_each(world, monkeypatch):
+    repo = marked_repo(world["repos"], "bioinfo")
+    cp.upsert("bioinfo", lab="mh", slack_channel_id="CBIO",
+              repos=[cp.RepoRef(name="bioinfo", path=str(repo))])
+    cp.upsert("teaching", lab="mh", slack_channel_id="CTEACH",
+              repos=[cp.RepoRef(name="bioinfo", path=str(repo))])
+    posted = []
+    ok, _r, detail = sr.post_note("hello", start=repo, token="xoxb",
+                                  poster=lambda ch, text, token=None: posted.append(ch) or True)
+    assert ok and posted == ["CBIO", "CTEACH"]
+    assert detail.count("posted to") == 2
+
+    posted.clear()
+    ok, _r, detail = sr.post_note("hello", start=repo, token="xoxb",
+                                  poster=lambda ch, text, token=None: ch == "CBIO")
+    assert not ok and "posted to CBIO" in detail and "refused the message for CTEACH" in detail
 
 
 def test_route_marker_override_wins(world):

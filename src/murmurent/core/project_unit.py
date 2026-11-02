@@ -15,9 +15,11 @@ Output: plain values (paths, dates, the activity word) and, from
         :func:`ensure_repo_project`, a new project record when a repository
         belongs to no project.
 
-Every repository belongs to exactly one project, its owning project. Other
-projects may name it, or any data folder, under ``reads_from``: they read it
-but do not own it, so nothing there is ever offered to them for clean-up.
+Every repository belongs to at least one project. It may be listed by several
+(#253); its data then lives with its home project, the first that listed it,
+and the others read that project's folders under ``reads_from``. Projects may
+also name any data folder or repository under ``reads_from``: they read it but
+do not own it, so nothing there is ever offered to them for clean-up.
 
 **Activity is worked out, never typed.** A project's ``status`` stays
 ``active`` or ``archived``, because much of murmurent reads any other status as

@@ -1167,8 +1167,12 @@ def project_channel(project: str) -> None:
     from .core import slack_routing as _sr
     if not project:
         route = _sr.resolve_route()
-        if route.candidates:
-            raise click.ClickException(route.reason)
+        if route.ok and route.source == "project":
+            # A repository in several projects has several channels (#253):
+            # one per line.
+            for one in route.all:
+                click.echo(one.channel_id)
+            return
     name = project or _cp.project_name_for_cwd()
     if not name:
         raise click.ClickException(
@@ -1204,6 +1208,23 @@ def project_note(text: str, project: str, dry_run: bool) -> None:
     ok, route, detail = _sr.post_note(text, project=project or None)
     click.echo(detail)
     raise SystemExit(0 if ok else 1)
+
+
+@project_group.command("add-repo",
+                       help="List one more repository on a project's record: a folder on "
+                            "this machine, or a repository name. A repository may be in "
+                            "several projects; a note about it then goes to each project's "
+                            "channel, and its data stays with the project that listed it "
+                            "first unless --home moves it here. The PI or project lead "
+                            "runs this; it commits and pushes the record.")
+@click.argument("name")
+@click.argument("repo")
+@click.option("--role", default="code", show_default=True,
+              help="code, manuscript, seminar, data or infra.")
+@click.option("--home", is_flag=True,
+              help="Make this project the home of the repository's data folders.")
+def project_add_repo(name: str, repo: str, role: str, home: bool) -> None:
+    raise SystemExit(project_cmd.cmd_add_repo(name, repo, role=role, home=home))
 
 
 @project_group.command("release-repo",
@@ -1260,10 +1281,11 @@ def project_channels() -> None:
     dup = {k: v for k, v in claims.items() if len(v) > 1}
     if dup:
         click.echo("")
-        click.echo("Repositories claimed by more than one active project (notes from them cannot be routed):")
+        click.echo("Repositories in more than one active project (a note about one goes "
+                   "to each project's channel; `murmurent project release-repo <project> "
+                   "<repo>` takes it off a project that should not list it):")
         for repo, names in sorted(dup.items()):
             click.echo(f"  {repo}: {', '.join(names)}")
-            click.echo(f"    fix: murmurent project release-repo <project> {repo}")
     missing = [n for n, s, cid, _i in rows if cid == "(none)" and s == "active"]
     if missing:
         click.echo("")

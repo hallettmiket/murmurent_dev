@@ -117,14 +117,17 @@ def test_a_note_from_a_git_worktree_routes_like_the_main_copy(world, tmp_path):
     assert cp.project_name_for_cwd(wt) == "decolonize"
 
 
-def test_two_claims_name_the_command_that_fixes_them(world):
+def test_two_claims_route_to_both_from_a_worktree(world, tmp_path):
     repo = marked_repo(world["repos"], "decolonize")
     for proj in ("edid", "decolonize"):
         cp.upsert(proj, lab="mh", slack_channel_id=f"C{proj.upper()}",
                   repos=[cp.RepoRef(name="decolonize", path=str(repo))])
-    r = sr.resolve_route(repo)
-    assert not r.ok
-    assert "murmurent project release-repo <project> decolonize" in r.reason
+    wt = tmp_path / "decolonize" / ".claude" / "worktrees" / "slug"
+    wt.mkdir(parents=True)
+    (wt / ".git").write_text(f"gitdir: {world['repos']}/decolonize/.git/worktrees/slug\n")
+    (wt / ".murmurent.yaml").write_text("murmurent: 1\nlab: mh\n")
+    r = sr.resolve_route(wt)
+    assert r.ok and sorted(x.channel_id for x in r.all) == ["CDECOLONIZE", "CEDID"]
 
 
 # ---------------------------------------------------------------------------
@@ -140,13 +143,13 @@ def test_release_repo_takes_the_repository_off_the_record(world):
                      cp.RepoRef(name="decolonize", path=str(repo))])
     cp.upsert("decolonize", lab="mh", slack_channel_id="CDECOL",
               repos=[cp.RepoRef(name="decolonize", path=str(repo))])
-    assert not sr.resolve_route(repo).ok
+    assert sorted(x.channel_id for x in sr.resolve_route(repo).all) == ["CDECOL", "CEDID"]
 
     out = CliRunner().invoke(cli, ["project", "release-repo", "edid", "decolonize"])
     assert out.exit_code == 0, out.output
     assert "no longer lists the repository decolonize" in out.output
     assert [r.name for r in cp.get("edid").repos] == ["edid_notes"]
-    assert sr.resolve_route(repo).channel_id == "CDECOL"
+    assert [x.channel_id for x in sr.resolve_route(repo).all] == ["CDECOL"]
 
 
 def test_release_repo_refuses_what_is_not_there(world):
