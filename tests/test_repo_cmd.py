@@ -159,7 +159,10 @@ def test_cli_upgrade_stamps_marker_and_preserves_charter(world):
     assert (clone / "CHARTER.md").exists()          # preserved, not deleted
     marker = yaml.safe_load((clone / ".murmurent.yaml").read_text())
     assert marker["lab"] == "mh"
-    assert marker["murmurent"] == 1 and marker["bootstrap_version"]
+    assert marker["murmurent"] == 1
+    assert "bootstrap_version" not in marker          # per machine now (#257)
+    from murmurent.core import repo_ready as _rr
+    assert _rr.bootstrap_version_of(clone)
     assert "preserved" in res.output
 
 

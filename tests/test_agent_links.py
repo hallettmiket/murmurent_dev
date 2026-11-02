@@ -82,7 +82,8 @@ def test_adopt_keeps_the_links_out_of_git(repo: Path, commons: Path) -> None:
         assert (repo / ".claude" / "agents" / f"{a}.md").is_symlink()
     status = _git(repo, "status", "--porcelain", "--untracked-files=all")
     assert ".claude/agents" not in status, status
-    assert ".gitignore" in status   # the block itself IS committed
+    # the block itself IS committed: make ready commits .gitignore with the marker (#257)
+    assert ".gitignore" in _git(repo, "ls-files", ".gitignore")
 
 
 def test_adopt_keeps_a_groups_own_agent_file(repo: Path, commons: Path) -> None:
