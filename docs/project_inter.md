@@ -69,6 +69,27 @@ lab's root (anyone in the centre can verify it) and DM'd back through the
 shared workspace. Subsequent additions take a single action: his key is now on
 record.
 
+When Allie adds him and the shared workspace is connected, Carlos also gets a
+direct message with these steps, so she does not have to send them herself.
+
+**3a. Importing the card from another lab.** Carlos's machine has pinned the
+Xia lab's root key, not Allie's. The first card he imports from her lab must
+therefore name her root, and the message that brings his bundle gives the
+exact command:
+
+```bash
+murmurent import-card bundle.json --trust-root ed25519:<Allie's key>
+```
+
+Without `--trust-root`, `import-card` stops with "no trust root pinned yet
+for lab 'allie_lab'" and prints that same command. The key is in the bundle
+too, under `pi_card.payload.subject.pubkey`, but a key taken from the file
+cannot vouch for the file: Carlos should confirm it with Allie by another
+route (a call, a message she sends, her lab's records) before pinning it. He
+does this once; every later card from her lab imports with no flag. Members of
+Allie's own lab never see this step, because they pinned her key when they
+joined the lab.
+
 **4. Repos in two places.** This is supported. Each repo in the project
 carries its own remote, so the code repo can push to `hallettmiket/...` while
 the analysis repo pushes to the Xia lab's org. (Automatic collaborator sync

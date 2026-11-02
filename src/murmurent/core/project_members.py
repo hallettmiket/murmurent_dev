@@ -49,6 +49,65 @@ def _member_contact(handle: str) -> tuple[str, str]:
         return "", ""
 
 
+def bundle_dm_text(project: str, bundle: dict, *, kind: str = "project card") -> str:
+    """The message that travels with a signed bundle. It names the trust root
+    the member must pin and gives the exact command, as the lab member-card
+    path always has; a member from another group has nothing pinned for this
+    lab and would otherwise be stopped at import (issue #252)."""
+    info = _iss.trust_root_of(bundle)
+    lines = [
+        f"Your murmurent {kind} for project '{project}' is ready. Your signed "
+        f"bundle.json is attached to this message. Download it, then run:",
+        "",
+        f"    {info['import_command']}",
+        "",
+    ]
+    if info["self_rooted"]:
+        lab = f"lab '{info['lab']}'" if info["lab"] else "the lab"
+        lines.append(
+            f"The --trust-root part is needed once: it pins the key of the PI of "
+            f"{lab}, who signed this card. {info['confirm']}")
+    else:
+        lines.append(info["confirm"])
+    return "\n".join(lines)
+
+
+def enrollment_steps_text(project: str) -> str:
+    """The steps a pending member (no key on record here) needs to finish
+    joining ``project``; sent by direct message when the lead records them
+    (issue #252). Mirrors what the dashboard's enrollment window shows."""
+    return "\n".join([
+        f"You have been added to the murmurent project '{project}', but your key "
+        f"is not on record here yet. To finish joining, on your own machine run:",
+        "",
+        f"    murmurent enroll --project {project}",
+        "",
+        f"and send the file it writes (enroll.json) back to the project lead, "
+        f"who issues your project card with it. The card then arrives here as a "
+        f"bundle.json with the command to import it. (If murmurent is not "
+        f"installed yet: https://github.com/hallettmiket/murmurent, then "
+        f"`murmurent init`.)",
+    ])
+
+
+def dm_enrollment_steps(project: str, handle: str, *, env: dict | None = None,
+                        dm_sender=None) -> dict:
+    """Direct-message the enrollment steps to a pending member over the
+    project's workspace. The roster has no contact for someone from another
+    group, so their murmurent handle is tried as a Slack name as well. Returns
+    ``{"sent", "detail", "workspace"}``; never raises."""
+    dm_sender = dm_sender or _default_dm_sender
+    try:
+        workspace, token = _cprov.resolve_project_slack(project, env=env)
+    except Exception as exc:  # noqa: BLE001
+        return {"sent": False, "detail": str(exc), "workspace": ""}
+    slack, email = _member_contact(handle)
+    slack = slack or str(handle).lstrip("@")
+    ok, detail = dm_sender(workspace, text=enrollment_steps_text(project),
+                           slack=slack, email=email, token=token or None)
+    return {"sent": bool(ok), "detail": str(detail), "workspace": workspace}
+
+
 def _dm_bundle(project: str, handle: str, bundle: dict, *,
                kind: str = "project card", env: dict | None = None,
                dm_sender=None) -> dict:
@@ -60,10 +119,7 @@ def _dm_bundle(project: str, handle: str, bundle: dict, *,
     except Exception as exc:  # noqa: BLE001
         return {"sent": False, "detail": str(exc), "workspace": ""}
     slack, email = _member_contact(handle)
-    text = (
-        f"Your murmurent {kind} for project '{project}' is ready — your signed "
-        f"bundle.json is attached to this message. Download it, then run:\n\n"
-        f"    murmurent import-card bundle.json")
+    text = bundle_dm_text(project, bundle, kind=kind)
     ok, detail = dm_sender(workspace, text=text, slack=slack, email=email,
                            token=token or None,
                            file_content=json.dumps(bundle, indent=2),
@@ -114,9 +170,16 @@ def add_member(project: str, handle: str, *, lab: str | None = None,
                                                          lab=lab, env=env)
     except _iss.NoRecordedKey as exc:
         out = {"ok": False, "error": "no_recorded_key", "detail": str(exc),
-               "handle": handle, "fallback": "enrollment", "recorded": False}
+               "handle": handle, "fallback": "enrollment", "recorded": False,
+               "dm": {"sent": False, "detail": "not attempted"}}
         if record_pending:
             out["recorded"] = record_pending_member(project, handle, lab=lab, env=env)
+            if out["recorded"] and dm:
+                # Tell them what to do next, so the lead does not have to
+                # (issue #252). Best-effort: an outsider may not be in the
+                # workspace yet, and then the lead sends the steps by hand.
+                out["dm"] = dm_enrollment_steps(project, handle, env=env,
+                                                dm_sender=dm_sender)
         return out
 
     out: dict = {"ok": True, "handle": handle, "project": project,
@@ -256,4 +319,5 @@ def create_project_certs(project: str, *, lab: str, lead: str,
 
 
 __all__ = ["ProjectMemberError", "add_member", "remove_member",
-           "create_project_certs"]
+           "create_project_certs", "bundle_dm_text", "enrollment_steps_text",
+           "dm_enrollment_steps"]
