@@ -141,6 +141,9 @@ class ProjectRepoBody(BaseModel):
     remote_path: str = ""
     remote_url: str = ""
     overleaf: bool = False
+    # (#269) create a private <org>/<repo> on GitHub for a clone with no
+    # remote, push, record it and grant every member access.
+    create_remote: bool = False
 
 
 class WorkspaceLaunchBody(BaseModel):
@@ -4127,7 +4130,14 @@ def create_app() -> FastAPI:
             from ..core import project_cc_init as _cci
             note_written = _cci.write_overleaf_manuscript_note(
                 body.path, project=project, repo_name=body.repo_name)
+        remote = None
+        if body.create_remote:
+            from ..core import repo_remote as _rr
+            remote = _rr.create_remote_and_grant(project, body.repo_name or
+                                                 next((r.name for r in cp.repos), ""))
+            cp = _cp.get(project) or cp
         return {"ok": True, "project": project, "overleaf_note": note_written,
+                "remote": remote,
                 "repos": [r.to_dict() for r in cp.repos]}
 
     @app.delete("/api/project/{project}/repos/{repo_name}")

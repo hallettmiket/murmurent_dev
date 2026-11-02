@@ -1256,8 +1256,13 @@ def project_note(text: str, project: str, dry_run: bool) -> None:
               help="code, manuscript, seminar, data or infra.")
 @click.option("--home", is_flag=True,
               help="Make this project the home of the repository's data folders.")
-def project_add_repo(name: str, repo: str, role: str, home: bool) -> None:
-    raise SystemExit(project_cmd.cmd_add_repo(name, repo, role=role, home=home))
+@click.option("--create-remote", is_flag=True,
+              help="For a clone with no GitHub remote: create a private <org>/<repo> "
+                   "(org from lab.md), push, record the remote and grant every member "
+                   "access. Needs the gh CLI.")
+def project_add_repo(name: str, repo: str, role: str, home: bool, create_remote: bool) -> None:
+    raise SystemExit(project_cmd.cmd_add_repo(name, repo, role=role, home=home,
+                                              create_remote=create_remote))
 
 
 @project_group.command("release-repo",

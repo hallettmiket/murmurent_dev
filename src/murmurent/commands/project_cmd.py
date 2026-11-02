@@ -604,13 +604,31 @@ def _require_pi_or_lead(cp, action: str) -> None:
             f"you are @{actor or '?'}")
 
 
-def cmd_add_repo(name: str, repo: str, *, role: str = "code", home: bool = False) -> int:
+def echo_remote_result(res: dict) -> None:
+    """Print what ``create_remote_and_grant`` did and did not do (#269)."""
+    if res.get("remote_url"):
+        click.echo(f"GitHub: {res['remote_url']} ({res.get('created')}"
+                   + (f"; {res['pushed']}" if res.get("pushed") else "") + ")")
+    gh = res.get("github") or {}
+    if gh.get("added"):
+        click.echo(f"  access granted to: {', '.join(gh['added'])}")
+    elif gh.get("ok") and gh.get("in_sync"):
+        click.echo("  every certified member already has access")
+    for prob in res.get("problems") or []:
+        click.echo(f"  ! {prob}")
+
+
+def cmd_add_repo(name: str, repo: str, *, role: str = "code", home: bool = False,
+                 create_remote: bool = False) -> int:
     """`murmurent project add-repo`: the project lists one more repository
     (#253). ``repo`` is a folder on this machine or a repository name. A
     repository may be in several projects; its data stays with its home
-    project unless ``--home`` moves it here."""
+    project unless ``--home`` moves it here. ``--create-remote`` creates a
+    private ``<org>/<repo>`` on GitHub for a clone that has none, pushes it,
+    records the remote and grants every member access (#269)."""
     from ..core import cert_projects as _cps
     from ..core import repo as _repo
+    from ..core import repo_remote as _rr
     cp = _cps.get(name)
     if cp is None:
         raise click.ClickException(f"no project named {name!r}.")
@@ -645,6 +663,13 @@ def cmd_add_repo(name: str, repo: str, *, role: str = "code", home: bool = False
             click.echo(f"Its data stays in {after}'s folders; {name} reads them "
                        f"(reads_from). To make {name} the home instead: "
                        f"murmurent project add-repo {name} {rname} --home")
+    if create_remote:
+        echo_remote_result(_rr.create_remote_and_grant(name, rname))
+    elif rpath and not _repo.github_slug(_rr.origin_of(Path(rpath))):
+        click.echo(f"{rname} has no GitHub remote yet, so members get no access to it. "
+                   f"Create one and grant access: murmurent project add-repo {name} "
+                   f"{rpath} --create-remote (or push it yourself, then "
+                   f"murmurent project reconcile {name} --apply).")
     return cmd_status(name)
 
 
@@ -680,6 +705,7 @@ def cmd_status(name: str | None) -> int:
     from ..core import cert_projects as _cp
     from ..core import lab_vm as _lv
     from ..core import project_unit as _pu
+    from ..core import repo as _repo
 
     if not name:
         name = _cp.project_name_for_cwd()
@@ -723,8 +749,11 @@ def cmd_status(name: str | None) -> int:
             repo_rows.append((r.name, r.role, "not on this computer", ""))
             continue
         when = _pu.newest_commit(path)
+        from ..core import repo_remote as _rr
+        slug = _repo.github_slug(r.remote_url or _rr.origin_of(path))
         repo_rows.append((r.name, r.role, _home_path(path),
-                          f"newest commit {when.date().isoformat()}" if when else "no commits yet"))
+                          (f"newest commit {when.date().isoformat()}" if when else "no commits yet")
+                          + (f"; GitHub {slug}" if slug else "; no GitHub remote")))
     for line in _rows(repo_rows) or ["  (none)"]:
         click.echo(line)
 

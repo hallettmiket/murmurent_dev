@@ -2067,7 +2067,7 @@ function ProjectReposBlock({ proj: p, isPI, userParam }) {
   const repos = p.repos || [];
   const [show, setShow] = React.useState(false);
   const [f, setF] = React.useState({ repo_name: "", role: "manuscript", path: "",
-                                     overleaf: true });
+                                     overleaf: true, create_remote: false });
   const [busy, setBusy] = React.useState(false);
   const [removing, setRemoving] = React.useState(null);  // repo name in flight
   const [err, setErr] = React.useState(null);
@@ -2085,7 +2085,14 @@ function ProjectReposBlock({ proj: p, isPI, userParam }) {
           body: JSON.stringify(f) });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error((typeof j.detail === "string" ? j.detail : null) || r.statusText);
-      setShow(false); setF({ repo_name: "", role: "manuscript", path: "", overleaf: true });
+      if (j.remote) {
+        // #269: what creating the remote did and did not do.
+        const rm = j.remote, probs = (rm.problems || []);
+        window.alert((rm.remote_url ? "GitHub: " + rm.remote_url + " (" + rm.created + ")" : "No GitHub remote was made.")
+                     + (rm.github && rm.github.added && rm.github.added.length ? "\naccess granted to: " + rm.github.added.join(", ") : "")
+                     + (probs.length ? "\n\n" + probs.join("\n") : ""));
+      }
+      setShow(false); setF({ repo_name: "", role: "manuscript", path: "", overleaf: true, create_remote: false });
       await refresh();
     } catch (ex) { setErr(String(ex.message || ex)); } finally { setBusy(false); }
   };
@@ -2168,6 +2175,11 @@ function ProjectReposBlock({ proj: p, isPI, userParam }) {
           <label style={{fontSize:11, display:"flex", alignItems:"center", gap:3}}>
             <input type="checkbox" checked={f.overleaf}
                    onChange={e => setF({...f, overleaf: e.target.checked})} /> Overleaf
+          </label>
+          <label style={{fontSize:11, display:"flex", alignItems:"center", gap:3}}
+                 title="For a clone with no GitHub remote: create a private <org>/<repo> on GitHub, push it, and grant every member access (needs gh on this machine).">
+            <input type="checkbox" checked={f.create_remote}
+                   onChange={e => setF({...f, create_remote: e.target.checked})} /> create on GitHub + grant access
           </label>
           <button className="btn sm" disabled={busy || !f.repo_name} onClick={submit}>
             {busy ? "…" : "add"}
