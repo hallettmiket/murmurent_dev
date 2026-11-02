@@ -42,8 +42,8 @@ member gets a card and a Slack invite, but GitHub access is granted only on
 one repository named after the project, which is often not one of the
 project's repositories at all, and leaving revokes almost nothing. Third, a
 collaborator from another group cannot finish joining without a step nobody
-tells them about (the trust root), which is exactly what happened with Tyler
-Browne on 2 November. The plan fixes these in order: the collaborator path
+tells them about (the trust root), which is exactly what happened to a collaborator from
+another lab on 2 November. The plan fixes these in order: the collaborator path
 first, because it is small and blocks people today; then "a repository can
 belong to several projects"; then "membership means access to every
 repository of the project, granted and revoked together".
