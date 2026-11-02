@@ -199,7 +199,19 @@ studies both run. Then:
 murmurent project add-repo brca_paper ~/repos/brca/brca_manuscript --role manuscript
 murmurent project add-repo brca_paper brca_manuscript --home     # make brca_paper the data's home
 murmurent project release-repo brca brca_manuscript             # brca no longer lists it
+murmurent project add-repo brca ~/repos/brca/brca_figures --create-remote   # new clone: make it a GitHub repo too
 ```
+
+**A brand-new repository.** Members get access to a repository through its
+GitHub remote, so a clone that has none yet gives them nothing. `add-repo
+--create-remote` creates a private `<org>/<repo>` on GitHub (`<org>` is the
+lab's `github_org` in `lab.md`), sets the clone's `origin`, pushes the current
+branch, records the remote on the project, and grants every certified member
+access at once. Without the flag, add-repo tells you the clone has no remote
+and how to fix it. The dashboard's add-repository form has the same choice,
+"create on GitHub + grant access". Creating a repository on GitHub stays a
+project decision, made by the PI or lead here; `murmurent repo adopt` never
+does it.
 
 This is also how a collaborator gets the paper but not the data: a second
 project that lists only the manuscript repository, with the collaborator as a
