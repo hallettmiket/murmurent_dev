@@ -118,7 +118,7 @@ Personal preferences profile lives at `~/.claude/murmurent-preferences.yaml` (lo
 | `murmurent whoami` | anyone | Your verified identity + trust root |
 | `murmurent issue-project-lead-card <handle> --project <p>` | PI | Delegate a project to its creator (the lead) |
 | `murmurent project-add-member <handle> --project <p> [--enrollment <f>]` | lead | Sign a member into a project (cert + DM + channel invite). A handle with no key on file (someone from another group) is put on the member list at once, awaiting a certificate; `--no-pending` refuses instead |
-| `murmurent project-remove-member <handle> --project <p>` | PI | Revoke a member's project card + kick from the channel |
+| `murmurent project-remove-member <handle> --project <p> [--no-dm]` | PI or lead | Remove a member: revoke their project card (a lead's removal waits for the PI's `project reconcile --apply`), remove them from the channel and from every GitHub repository the project lists, and tell them by direct message. Lists what it could not do |
 | `murmurent project-whoami` | anyone | Prove which projects this machine's cards certify you for |
 | `murmurent project-unarchive --project <p>` | PI | Bring a deleted project back (certs stay revoked; re-issue) |
 | `murmurent revoke-project --project <p>` | PI | Revoke every card issued for a project |
@@ -150,7 +150,8 @@ Personal preferences profile lives at `~/.claude/murmurent-preferences.yaml` (lo
 | `murmurent project channel [--project <name>]` | Print the project's Slack channel id, one per line when the repository is in several projects, or fail with the reason (no channel yet) |
 | `murmurent project provision-slack <name>` *PI* | Create the project's private Slack channel, named `proj-<name>`, and invite its certified members. Idempotent |
 | `murmurent project rename-slack <name> [--to <channel>]` *PI* | Rename the project's Slack channel to `proj-<name>`, or to the name given. For channels made before 2026.10.0 without the `proj-` prefix (#157) |
-| `murmurent project reconcile <name> [--apply]` *PI* | Compare the project's Slack channel and GitHub collaborators with its certified members. Reports drift; `--apply` invites the missing and removes the extras. Nobody is removed while any member's Slack account is unresolved |
+| `murmurent project provision-github <name> [--create] [--org <org>]` *PI* | Give the project's certified members collaborator access on every GitHub repository it lists. Creates nothing unless `--create`, which makes a private `<org>/<name>` repository for a project with no repository yet |
+| `murmurent project reconcile <name> [--apply]` *PI* | Compare the project's Slack channel and the collaborators of every GitHub repository it lists with its certified members. Reports drift and what it could not do (members with no GitHub login, refused calls); `--apply` invites the missing, removes the extras, and revokes the cards of members a lead removed. Nobody is swept from the channel while any member's Slack account is unresolved |
 
 ### Project-wide push + managed mirrors
 

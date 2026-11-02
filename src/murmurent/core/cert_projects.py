@@ -251,6 +251,10 @@ class CertProject:
     members: tuple[str, ...] = ()          # certified member handles (@-prefixed)
     # One entry per issued project card: {handle, fingerprint, card_id}.
     certs: tuple[dict, ...] = ()
+    # Cards a project lead removed on a machine that cannot sign the lab's
+    # revocation list (#255): {handle, card_id, by, at}. The PI's machine folds
+    # them into the list on its next `murmurent project reconcile`.
+    pending_revocations: tuple[dict, ...] = ()
     # Full repo set (code + manuscript + …). Authoritative; code_repo mirrors the
     # code repo within it.
     repos: tuple[RepoRef, ...] = ()
@@ -292,6 +296,7 @@ class CertProject:
                 "decommissioned_by": self.decommissioned_by,
                 "members": list(self.members),
                 "certs": [dict(c) for c in self.certs],
+                "pending_revocations": [dict(c) for c in self.pending_revocations],
                 "repos": [r.to_dict() for r in self.repos],
                 "data_folders": list(self.data_folders),
                 "reads_from": list(self.reads_from),
@@ -400,6 +405,8 @@ def _parse(path: Path) -> CertProject:
     meta = parse_file(path).meta or {}
     members = tuple(str(m) for m in (meta.get("members") or []))
     certs = tuple(dict(c) for c in (meta.get("certs") or []) if isinstance(c, dict))
+    pending = tuple(dict(c) for c in (meta.get("pending_revocations") or [])
+                    if isinstance(c, dict))
     chor = meta.get("choreography")
     name = str(meta.get("project") or path.stem)
     raw_repos = [RepoRef.from_dict(r) for r in (meta.get("repos") or [])
@@ -438,6 +445,7 @@ def _parse(path: Path) -> CertProject:
         decommissioned_by=str(meta.get("decommissioned_by") or ""),
         members=members,
         certs=certs,
+        pending_revocations=pending,
         repos=repos,
         data_folders=_str_list(meta.get("data_folders")),
         reads_from=_str_list(meta.get("reads_from")),
@@ -519,6 +527,8 @@ def _render(p: CertProject) -> str:
         meta["reads_from"] = list(p.reads_from)
     if p.retain_until:
         meta["retain_until"] = p.retain_until
+    if p.pending_revocations:
+        meta["pending_revocations"] = [dict(c) for c in p.pending_revocations]
     meta["members"] = list(p.members)
     meta["certs"] = [dict(c) for c in p.certs]
     front = yaml.safe_dump(meta, sort_keys=False, allow_unicode=True).strip()
@@ -574,6 +584,7 @@ def upsert(name: str, *, lab: str, member: str | None = None,
            data_folders: list[str] | tuple[str, ...] | None = None,
            reads_from: list[str] | tuple[str, ...] | None = None,
            retain_until: str | None = None,
+           pending_revocations=None,
            today: str | None = None, env: dict | None = None) -> CertProject:
     """Create or update a cert project. Optionally add a certified ``member``
     (with their ``cert`` = {handle, fingerprint, card_id}) and/or set project
@@ -648,7 +659,9 @@ def upsert(name: str, *, lab: str, member: str | None = None,
         reads_from=(cur.reads_from if reads_from is None
                     else _str_list(reads_from)),
         retain_until=(cur.retain_until if retain_until is None
-                      else str(retain_until).strip()))
+                      else str(retain_until).strip()),
+        pending_revocations=(cur.pending_revocations if pending_revocations is None
+                             else tuple(dict(c) for c in pending_revocations)))
     _write(updated, env)
     return updated
 

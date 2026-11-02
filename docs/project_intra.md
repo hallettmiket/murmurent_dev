@@ -104,7 +104,8 @@ same command underneath.
 | Import your lead / member card | `murmurent import-card bundle.json` | CLI |
 | Add a member (lead) | project → Members → **＋ add member**, or `murmurent project-add-member` | Dashboard or CLI |
 | Add an outside member | project → Members → type their `@handle` and press Enter: they join the list at once, marked *no cert*. They run `murmurent enroll --project <p>` and send you the file (those steps are also sent to them by direct message when the workspace is connected); paste it in the window, or later via **issue** next to their name (CLI: `--enrollment`). Their card then needs `--trust-root <your root>` the first time, which the message with the bundle gives them; see [inter-group projects](project_inter.md) | Dashboard or CLI |
-| Remove a member | project → Members → **×**, or `murmurent project-remove-member` | Dashboard or CLI |
+| Remove a member | project → Members → **×**, or `murmurent project-remove-member`. Revokes their card, removes them from the channel and from every GitHub repository the project lists, and tells them. A lead's removal leaves the card for the PI's `project reconcile --apply` to revoke | Dashboard or CLI |
+| What membership gives | Access follows membership: adding someone grants collaborator access on every GitHub repository the project lists (`murmurent project add-repo`) and a seat in the channel; removing them takes all of it away. `murmurent project reconcile` shows any drift | |
 | Prove your membership | `murmurent project-whoami` | CLI |
 
 Deeper background: the certificate chain and trust model are in

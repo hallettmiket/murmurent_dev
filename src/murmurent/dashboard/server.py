@@ -3590,12 +3590,22 @@ def create_app() -> FastAPI:
             lab = ""
         slack = (_invite_to_group_channel(lab, rec.handle) if action == "activate"
                  else _remove_from_group_channel(lab, rec.handle))
+        # Leaving the lab means leaving its projects (#255): each project's
+        # channel, repositories and card. Reported per project, never raising.
+        projects: list[dict] = []
+        if action == "deactivate":
+            from ..core import project_members as _pm
+            try:
+                projects = _pm.remove_from_all_projects(rec.handle, actor=actor)
+            except Exception as exc:  # noqa: BLE001
+                projects = [{"project": "?", "ok": False, "error": str(exc)}]
         return {
             "ok": True,
             "handle": rec.handle,
             "status": rec.status,
             "report": str(report) if report else None,
             "slack": slack,
+            "projects": projects,
         }
 
     # -----------------------------------------------------------------
@@ -4069,9 +4079,10 @@ def create_app() -> FastAPI:
         project: str,
         user: str = Query("", description="Actor handle; falls back to $MURMURENT_USER."),
     ) -> dict:
-        """PI-only: provision a cert-project's private Slack channel + GitHub repo
-        and sync both to its certified members. No-ops gracefully (reports
-        missing_token / no_github_org) without a Slack token / gh."""
+        """PI-only: provision a cert-project's private Slack channel and grant
+        its certified members access on every GitHub repository it lists
+        (#255; nothing is created on GitHub). No-ops gracefully (reports
+        missing_token / no_repos) without a Slack token / gh."""
         from ..core import cert_provision as _cprov
 
         _require_pi(user)
@@ -4195,16 +4206,18 @@ def create_app() -> FastAPI:
         handle: str,
         user: str = Query("", description="Actor handle; falls back to $MURMURENT_USER."),
     ) -> dict:
-        """(7)/(8) Remove a member: revoke their project card (CRL), drop them
-        from the registry, kick them from the private channel, drop GitHub
-        access. Lead or PI only; refuses to remove the lead."""
+        """(7)/(8) Remove a member: revoke their project card (a lead's removal
+        is recorded for the PI's machine to sign), drop them from the record,
+        remove them from the private channel and from every GitHub repository
+        the project lists, and tell them by direct message (#255). Lead or PI
+        only; refuses to remove the lead. The reply lists ``problems``."""
         from ..core import issuance as _iss
         from ..core import project_members as _pm
         from ..core import revocation as _rev
 
-        _require_project_lead(project, user)
+        actor = _require_project_lead(project, user)
         try:
-            return _pm.remove_member(project, handle)
+            return _pm.remove_member(project, handle, actor=actor)
         except _pm.ProjectMemberError as exc:
             raise HTTPException(status_code=409, detail=str(exc))
         except (_iss.IssuanceError, _rev.RevocationError) as exc:

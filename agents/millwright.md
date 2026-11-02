@@ -326,6 +326,7 @@ Trigger: PI deactivates a member via dashboard or says "deprovision @handle".
    - Remove from GitHub org (or revoke repo access): `gh org remove-member @handle`.
    - Archive their Slack access (PI does this in Slack settings).
    - **Revoke their identity card** so it stops verifying: `murmurent revoke --handle @handle` (the mayor/root-key holder does this; `murmurent group-remove-member` also does it automatically). Live ACL removal above is the real enforcement — card revocation is defense-in-depth. See [`docs/identity.md`](../docs/identity.md).
+   - **Their projects**: `murmurent group-remove-member` and the dashboard's Deactivate also remove them from every project of the lab they do not lead (project card, channel, every repository the project lists). A project they lead is reported: delete it or transfer the lead first.
 3. **Do NOT delete** the member's `<lab-mgmt>/members/<handle>.md` — the
    `deactivated_at` field is set by the dashboard's Deactivate action.
 4. **Do NOT delete** any data in `raw/` or `refined/`. Data is never deleted.
