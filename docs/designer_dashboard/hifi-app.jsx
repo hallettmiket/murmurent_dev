@@ -804,7 +804,11 @@ function RepoInventoryPanel({ span = "c-12" }) {
   const [report, setReport] = useState(null);
   const [busy, setBusy] = useState(true);
   const [err, setErr] = useState(null);
-  const [showAllGithub, setShowAllGithub] = useState(false);
+  // Repositories that are on GitHub but not cloned here are shown by default:
+  // on any one laptop that is the normal state of most of the lab's
+  // repositories, and "what does the lab have?" is answered from GitHub.
+  // The toggle hides them for a view of this computer only.
+  const [showAllGithub, setShowAllGithub] = useState(true);
   // murmurent-infra repos (murmurent, murmurent_*) are pinned to the top of the
   // list but hidden by default — they're infrastructure, not working repos the
   // user manages day-to-day. This toggle reveals them.
@@ -914,7 +918,7 @@ function RepoInventoryPanel({ span = "c-12" }) {
   // Display order:
   //   1. murmurent-infra rows FIRST, but only when showInfra is on (hidden by
   //      default — they're infrastructure, not day-to-day working repos).
-  //   2. then working repos: cloned rows, plus GitHub-only rows when toggled.
+  //   2. then working repos: cloned rows and, unless the toggle is off, rows not cloned here.
   const visibleRows = (() => {
     if (!report) return [];
     const rows = report.rows || [];
@@ -1005,7 +1009,7 @@ function RepoInventoryPanel({ span = "c-12" }) {
           <label style={{fontSize:11, display:"inline-flex", alignItems:"center", gap:4}}>
             <input type="checkbox" checked={showAllGithub}
                    onChange={e => setShowAllGithub(e.target.checked)} />
-            include {stats ? stats.ghOnly : "?"} GitHub-only rows
+            include {stats ? stats.ghOnly : "?"} repos not cloned here
           </label>
           <label style={{fontSize:11, display:"inline-flex", alignItems:"center", gap:4}}
                  title="Show murmurent's own repos (murmurent, murmurent_*) that belong to no project. Those in a project are always listed under it.">
@@ -1054,7 +1058,7 @@ function RepoInventoryPanel({ span = "c-12" }) {
             </li>
             <li>
               <strong>Not cloned</strong>: on GitHub, but not on this computer.
-              Shown only with "include GitHub-only rows".
+              Untick "include repos not cloned here" to see this computer only.
             </li>
           </ul>
           <div style={{marginTop:6}}>
@@ -1095,9 +1099,11 @@ function RepoInventoryPanel({ span = "c-12" }) {
         )}
         {!busy && groups.length === 0 && !err && (
           <div style={{padding:"14px 16px", color:"var(--muted)", fontSize:12, fontFamily:"var(--mono)"}}>
-            No cloned repos found. Click Refresh to scan, or toggle
-            "include GitHub-only rows" to see the {stats ? stats.ghOnly : "—"} repos on
-            GitHub that aren't on this computer.
+            {showAllGithub
+              ? <>No repos found on GitHub or on this computer. Click Refresh to scan.</>
+              : <>No cloned repos found. Click Refresh to scan, or tick
+                  "include repos not cloned here" to see the {stats ? stats.ghOnly : "—"} repos on
+                  GitHub that aren't on this computer.</>}
           </div>
         )}
         {groups.length > 0 && (
