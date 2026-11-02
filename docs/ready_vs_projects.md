@@ -146,13 +146,41 @@ Parameters:
 
 ## Every repository is in a project
 
-Each repository belongs to exactly one project, its **owning** project. When
-you adopt a repository that no project lists, Murmurent writes a project record
-for it, with you as lead and only member, in the lab records repository (the
-lab's shared management repository). Adopting it again changes nothing. If the
-repository later joins a bigger project, for example through the dashboard's
-New Project, its one-repository project is archived (kept, not deleted), so it
-still has one owning project.
+Each repository belongs to at least one project. When you adopt a repository
+that no project lists, Murmurent writes a project record for it, with you as
+lead and only member, in the lab records repository (the lab's shared
+management repository). Adopting it again changes nothing. If the repository
+later joins a real project, for example through the dashboard's New Project or
+`murmurent project add-repo`, that one-repository project is archived (kept,
+not deleted), whatever it was called.
+
+### A repository in several projects
+
+A repository may be listed by more than one project: a manuscript that a
+collaboration project shares with the lab's own project, say, or a pipeline two
+studies both run. Then:
+
+- **A note about the repository goes to every project's channel** (a release
+  note after a push, a job notice). `murmurent project channels` lists every
+  repository in more than one project, so nobody is surprised.
+- **Its data stays with its home project**, the project that listed it first.
+  The other projects read that project's data folders: `add-repo` writes them
+  under their `reads_from` for you, so the folders are never offered to those
+  projects for clean-up. To move the data to the project you are adding, pass
+  `--home`; nothing moves otherwise.
+- **The PI or the project's lead** is who can add or release a repository, on
+  the command line as in the dashboard.
+
+```bash
+murmurent project add-repo brca_paper ~/repos/brca/brca_manuscript --role manuscript
+murmurent project add-repo brca_paper brca_manuscript --home     # make brca_paper the data's home
+murmurent project release-repo brca brca_manuscript             # brca no longer lists it
+```
+
+This is also how a collaborator gets the paper but not the data: a second
+project that lists only the manuscript repository, with the collaborator as a
+member. Access follows project membership, so no per-repository setting is
+needed.
 
 The project's name comes from the repository's name and place:
 
@@ -193,7 +221,7 @@ all optional:
 | Setting | What it holds |
 |---|---|
 | `data_folders` | The folders the project owns. Left empty, these are `immutable/<project>/` and `append_only/<project>/` under the data root, which is right for most projects. Write a folder in full, or relative to the data root (`append_only/brca`) so it is right on every machine. |
-| `reads_from` | What the project reads but does not own: a folder, written as a path (`append_only/shared_cohort`), or another project's repository, by its name. These are never offered to this project for clean-up. |
+| `reads_from` | What the project reads but does not own: a folder, written as a path (`append_only/shared_cohort`), or another project's repository, by its name. These are never offered to this project for clean-up. `add-repo` fills it in when a repository's data lives with another project (its home). |
 | `retain_until` | A date, `YYYY-MM-DD`, before which nothing in the project may be suggested for deletion, for example the end of an ethics approval or a data-sharing agreement. |
 
 Set them with one command, which commits and pushes the record:

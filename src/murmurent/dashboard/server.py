@@ -4088,12 +4088,14 @@ def create_app() -> FastAPI:
         body: ProjectRepoBody,
         user: str = Query("", description="Actor handle; falls back to $MURMURENT_USER."),
     ) -> dict:
-        """PI-only: assign a repo (code / manuscript / data / infra) to a cert
-        project. Idempotent by repo name. This is how a project gains its
-        manuscript repo (role=manuscript, overleaf=true) alongside its code repo."""
+        """PI or project lead: assign a repo (code / manuscript / data / infra)
+        to a cert project. Idempotent by repo name. This is how a project gains
+        its manuscript repo (role=manuscript, overleaf=true) alongside its code
+        repo. A repository may be in several projects (#253); its data stays
+        with the project that listed it first."""
         from ..core import cert_projects as _cp
 
-        _require_pi(user)
+        _require_project_lead(project, user)
         role = (body.role or "code").strip().lower()
         if role not in _cp.VALID_REPO_ROLES:
             raise HTTPException(status_code=400,
@@ -4122,12 +4124,12 @@ def create_app() -> FastAPI:
         repo_name: str,
         user: str = Query("", description="Actor handle; falls back to $MURMURENT_USER."),
     ) -> dict:
-        """PI-only: detach a repo from a cert project. Only the project record
-        changes — the clone on disk is left alone. 404 if the project or the
-        named repo doesn't exist."""
+        """PI or project lead: detach a repo from a cert project. Only the
+        project record changes; the clone on disk is left alone. 404 if the
+        project or the named repo doesn't exist."""
         from ..core import cert_projects as _cp
 
-        _require_pi(user)
+        _require_project_lead(project, user)
         try:
             cp = _cp.remove_repo(project, repo_name)
         except _cp.CertProjectError as exc:
@@ -6384,7 +6386,7 @@ def create_app() -> FastAPI:
             raise HTTPException(
                 status_code=403,
                 detail=f"only the project lead (@{lead or '?'}) or the lab PI "
-                       f"can manage {project!r} membership")
+                       f"can manage {project!r} (its members and repositories)")
         return actor
 
     @app.post("/api/sea_catalog")

@@ -88,10 +88,17 @@ class RepoRef:
     # a full git URL. Managed as named ``mm-mirror-<slug>`` remotes at push time;
     # ``origin`` is NEVER touched. Each mirror's push is reported separately.
     mirrors: tuple[str, ...] = ()
+    # A repository may be listed by several projects (#253). Its data lives in
+    # the folders of ONE of them, its home project: empty means this project;
+    # a name means the data is kept under that project's folders, which this
+    # project lists under ``reads_from``.
+    home: str = ""
 
     def to_dict(self) -> dict:
         d: dict = {"name": self.name, "role": self.role, "host": self.host,
                    "path": self.path}
+        if self.home:
+            d["home"] = self.home
         if self.remote_path:
             d["remote_path"] = self.remote_path
         if self.remote_url:
@@ -118,7 +125,8 @@ class RepoRef:
             overleaf=bool(d.get("overleaf")),
             repo_kind=str(d.get("repo_kind") or "github").strip().lower() or "github",
             local_repo_root=str(d.get("local_repo_root") or ""),
-            mirrors=tuple(str(m).strip() for m in (d.get("mirrors") or []) if str(m).strip()))
+            mirrors=tuple(str(m).strip() for m in (d.get("mirrors") or []) if str(m).strip()),
+            home=str(d.get("home") or "").strip())
 
 
 def _shared_repo_dict(r: "RepoRef") -> dict:
@@ -666,25 +674,85 @@ def remove_member(name: str, handle: str, *, env: dict | None = None) -> CertPro
     return updated
 
 
+def home_folders(project: str) -> list[str]:
+    """The two default data folders of ``project``, written relative to the data
+    root so they are right on every machine: what another project lists under
+    ``reads_from`` when it shares one of ``project``'s repositories."""
+    return [f"immutable/{project}", f"append_only/{project}"]
+
+
+def home_project_of(repo_name: str, *, env: dict | None = None,
+                    projects: list[CertProject] | None = None) -> str:
+    """The project whose data folders hold ``repo_name``'s data: the ``home``
+    written on its entry, else the first active project that lists it. Empty
+    when no project lists it."""
+    owners = owning_projects(repo_name, projects=projects, env=env)
+    active = [p for p in owners if p.status == "active"] or owners
+    want = str(repo_name or "").strip().casefold()
+    for p in active:
+        for r in p.repos:
+            if (r.name or "").strip().casefold() == want:
+                return r.home or p.name
+    return ""
+
+
 def add_repo(name: str, *, role: str = "code", repo_name: str = "",
              host: str = "local", path: str = "", remote_path: str = "",
              remote_url: str = "", overleaf: bool = False,
-             env: dict | None = None) -> CertProject:
+             home: bool = False, env: dict | None = None) -> CertProject:
     """Add (or replace, by repo name) a repo on an existing cert project. Use for
     a project's manuscript/data repos beyond the primary code repo. A repo with a
-    duplicate ``repo_name`` is replaced. Requires the project to exist."""
+    duplicate ``repo_name`` is replaced. Requires the project to exist.
+
+    A repository may be listed by several projects (#253). Its data stays in
+    the folders of its **home** project, the first one that listed it, and
+    every other project that lists it gets that project's data folders under
+    ``reads_from``. ``home=True`` makes ``name`` the home instead: the other
+    projects' entries then point at ``name`` and read its folders. The home
+    never moves unless asked.
+    """
     cur = get(name, env)
     if cur is None:
         raise CertProjectError(f"no cert-project named {name!r}")
     from .repo import repo_name as _repo_name                 # lazy: avoid import cycle
     rname = repo_name or (_repo_name(Path(path)) if path else name)
+    others = [p for p in owning_projects(rname, env=env)
+              if p.status == "active" and p.name.casefold() != str(name).casefold()
+              and not is_placeholder_for(p, rname)]
+    current_home = ""
+    if others:
+        current_home = home_project_of(rname, projects=others, env=env)
+        if current_home.casefold() == str(name).casefold():
+            current_home = ""
     ref = RepoRef(name=rname, role=str(role).strip().lower() or "code", host=host,
                   path=path, remote_path=remote_path, remote_url=remote_url,
-                  overleaf=bool(overleaf))
+                  overleaf=bool(overleaf),
+                  home="" if (home or not current_home) else current_home)
     kept = [r for r in cur.repos if r.name != rname]
-    updated = upsert(name, lab=cur.lab, repos=[*kept, ref], env=env)
+    reads_from = list(cur.reads_from)
+    if ref.home:
+        reads_from += [f for f in home_folders(ref.home) if f not in reads_from]
+    elif home and current_home:
+        # This project is the home now: it no longer reads the old home's folders.
+        reads_from = [f for f in reads_from if f not in home_folders(current_home)]
+    updated = upsert(name, lab=cur.lab, repos=[*kept, ref], reads_from=reads_from, env=env)
+    if home and others:
+        # The data moves house: every other project now reads this one's folders.
+        for other in others:
+            repos = [replace_repo_home(r, str(name)) if r.name.casefold() == rname.casefold()
+                     else r for r in other.repos]
+            rf = [f for f in other.reads_from
+                  if not current_home or f not in home_folders(current_home)]
+            rf += [f for f in home_folders(str(name)) if f not in rf]
+            upsert(other.name, lab=other.lab, repos=repos, reads_from=rf, env=env)
     _retire_placeholders(rname, name, env)
     return updated
+
+
+def replace_repo_home(ref: RepoRef, home: str) -> RepoRef:
+    """``ref`` with its home project set to ``home``."""
+    from dataclasses import replace
+    return replace(ref, home=home)
 
 
 def owning_project(repo_name: str, *, projects: list[CertProject] | None = None,
@@ -702,8 +770,9 @@ def owning_project(repo_name: str, *, projects: list[CertProject] | None = None,
 def owning_projects(repo_name: str, *, projects: list[CertProject] | None = None,
                     env: dict | None = None) -> list[CertProject]:
     """EVERY project whose record lists repository ``repo_name``, in registry
-    order. One is the rule; two or more active ones is a records problem that
-    :mod:`slack_routing` refuses to guess across (issue #243)."""
+    order. A repository may belong to several projects (#253): a note about it
+    goes to each of their channels (:mod:`slack_routing`), and its data lives
+    with its home project (:func:`home_project_of`)."""
     want = str(repo_name or "").strip().casefold()
     if not want:
         return []
@@ -715,19 +784,22 @@ def owning_projects(repo_name: str, *, projects: list[CertProject] | None = None
 def is_placeholder_for(cp: CertProject, repo_name: str) -> bool:
     """True for the one-repository project ``repo adopt`` makes for a repository.
 
-    That is an active project named after its only repository, never given a
-    Slack channel, a GitHub repository or a project card.
+    That is an active project whose only repository is ``repo_name``, with at
+    most its lead as a member, never given a Slack channel, a GitHub repository
+    or a project card. Its name does not matter (#253): adopt names it after
+    the repository or the project folder, so a placeholder ``x`` holding only
+    ``x_manuscript`` is one too.
     """
     want = str(repo_name or "").strip().casefold()
     return (cp.status == "active" and len(cp.repos) == 1
-            and cp.name.casefold() == want
             and (cp.repos[0].name or "").casefold() == want
+            and len(cp.members) <= 1
             and not cp.certs and not cp.slack_channel_id and not cp.github_repo)
 
 
 def _retire_placeholders(repo_name: str, new_owner: str, env: dict | None) -> None:
     """After ``repo_name`` joins project ``new_owner``, archive the one-repository
-    project adopt made for it, so the repository has one owning project.
+    project adopt made for it: a real project now lists the repository.
 
     Archiving keeps the record and its history; nothing is deleted. A project
     that is more than a placeholder (see :func:`is_placeholder_for`) is never
@@ -1056,5 +1128,6 @@ __all__ = ["CertProject", "RepoRef", "VALID_REPO_ROLES", "CertProjectError",
            "projects_for_member", "upsert", "remove_member", "add_repo", "remove_repo",
            "add_mirror", "remove_mirror", "list_mirrors",
            "set_status", "owning_project", "owning_projects", "is_placeholder_for",
+           "home_project_of", "home_folders", "replace_repo_home",
            "register_from_summary", "backfill_from_charter", "migrate_charters",
            "slack_channel_for", "project_name_for_cwd"]

@@ -240,8 +240,9 @@ def test_cert_project_surfaces_in_the_one_project_list(world):
 
 
 def test_add_project_repo_endpoint(world):
-    """PI assigns a manuscript repo to a cert-project; non-PI is refused. The repo
-    also shows up in the project's dashboard row."""
+    """PI assigns a manuscript repo to a cert-project; someone who is neither the
+    PI nor the project's lead is refused (#253: the lead may). The repo also
+    shows up in the project's dashboard row."""
     from fastapi.testclient import TestClient
     from murmurent.dashboard.server import create_app
     from murmurent.core import cert_projects as CP
@@ -257,11 +258,13 @@ def test_add_project_repo_endpoint(world):
     resp = snapshot.build_response("the_pi", today=_dt.date(2026, 5, 8))
     row = {p.name: p for p in resp.projects}["dcis_test"]
     assert any(rr["role"] == "manuscript" for rr in row.repos)
-    # a bad role is rejected, and a non-PI actor can't assign
+    # a bad role is rejected; a plain member can't assign, the lead (@allie) can
     assert client.post("/api/project/dcis_test/repos?user=the_pi",
                        json={"repo_name": "x", "role": "bogus"}).status_code == 400
-    assert client.post("/api/project/dcis_test/repos?user=allie",
+    assert client.post("/api/project/dcis_test/repos?user=cassie",
                        json={"repo_name": "x", "role": "data"}).status_code == 403
+    assert client.post("/api/project/dcis_test/repos?user=allie",
+                       json={"repo_name": "x", "role": "data"}).status_code == 200
 
 
 def test_cert_project_visibility_scoped_to_lab(world):
