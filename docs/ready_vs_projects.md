@@ -61,8 +61,9 @@ paths, not on readiness, so they apply everywhere.
 
 ## The per-repo `.claude/agents/` directory
 
-`adopt` creates this directory, and populates it only if you name agents with
-`--agents`, or all of them with `--all-agents`. Since access comes from
+`adopt` creates this directory and, for a repository with no marker yet, links
+every commons agent into it, as the dashboard's Make ready does; `--agents a,b`
+links only those, and `--agents none` links nothing. Since access comes from
 `~/.claude/agents/` regardless, a repo's own copies do exactly one thing:
 **Claude Code prefers a directory's own agent file over the machine-wide one**,
 so a link here pins that agent, for this repo, to whatever it points at.
@@ -90,8 +91,9 @@ agent — and twice a liability:
   with no error. `murmurent repo status` reports this as a `follows commons`
   line, and the `UserPromptSubmit` hook warns in-session.
 
-If you have no reason to pin an agent to a single repo, run `adopt` with
-neither option and leave the directory empty.
+If you would rather pin nothing to a repo, run `adopt` with `--agents none`
+and leave the directory empty; every agent still works there from
+`~/.claude/agents/`.
 
 ## Start here: any directory
 
