@@ -187,4 +187,4 @@ over SSH as you, so they show the service account's scan without any change.
   reads it.
 - [`policy/millwright.yaml`](space_table.md#the-labs-settings-for-the-pi): the
   lab's settings, including `space_dir`.
-- [The millwright](../agents/millwright.md), whose policing these timers are.
+- [The millwright](https://github.com/hallettmiket/murmurent/blob/main/agents/millwright.md), whose policing these timers are.
