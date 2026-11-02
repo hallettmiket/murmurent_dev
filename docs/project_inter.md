@@ -96,6 +96,12 @@ does this once; every later card from her lab imports with no flag. Members of
 Allie's own lab never see this step, because they pinned her key when they
 joined the lab.
 
+**3b. What Carlos sees.** On his own dashboard the project is marked
+"hosted by" Allie's lab. If his machine holds her lab's records (a read clone
+named in the registry) the row is read from them; otherwise it shows the team,
+repositories and channel his card carried on the day it was issued, with that
+date. He sees nothing else of Allie's lab.
+
 **4. Repos in two places.** This is supported. Each repo in the project
 carries its own remote, so the code repo can push to `hallettmiket/...` while
 the analysis repo pushes to the Xia lab's org. (Automatic collaborator sync

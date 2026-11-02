@@ -4107,6 +4107,7 @@ def create_app() -> FastAPI:
         from ..core import cert_projects as _cp
 
         _require_project_lead(project, user)
+        _enter_project_root(project)
         role = (body.role or "code").strip().lower()
         if role not in _cp.VALID_REPO_ROLES:
             raise HTTPException(status_code=400,
@@ -4141,6 +4142,7 @@ def create_app() -> FastAPI:
         from ..core import cert_projects as _cp
 
         _require_project_lead(project, user)
+        _enter_project_root(project)
         try:
             cp = _cp.remove_repo(project, repo_name)
         except _cp.CertProjectError as exc:
@@ -4189,6 +4191,7 @@ def create_app() -> FastAPI:
         from ..core import project_members as _pm
 
         actor = _require_project_lead(project, user)
+        _enter_project_root(project)
         handle = body.handle.strip()
         if not ("@" in handle[1:] and "." in handle):      # an email keeps its @
             handle = handle.lstrip("@")
@@ -4222,6 +4225,7 @@ def create_app() -> FastAPI:
         from ..core import revocation as _rev
 
         actor = _require_project_lead(project, user)
+        _enter_project_root(project)
         try:
             return _pm.remove_member(project, handle, actor=actor)
         except _pm.ProjectMemberError as exc:
@@ -6387,6 +6391,18 @@ def create_app() -> FastAPI:
             )
         return actor
 
+    def _enter_project_root(project: str) -> None:
+        """Point this request's records root at the records that hold
+        ``project`` when they are another lab's on this machine (#259). The
+        thread-local override lasts for the request, as the per-request
+        viewer scoping does."""
+        from ..core import cert_projects as _cp
+        from ..core import repo as _repo
+        cp, root = _cp.locate(project)
+        if cp is not None and root is not None \
+                and Path(root).resolve() != Path(_repo.lab_mgmt_repo_root()).resolve():
+            _repo._thread_local.lab_mgmt_root = Path(root)
+
     def _require_project_lead(project: str, user: str) -> str:
         """The actor must be the project's LEAD or the lab PI. This is the UI
         gate only — the crypto is the real one (project cards can only be
@@ -6395,7 +6411,9 @@ def create_app() -> FastAPI:
         from ..core.lab import pi_handle as _pi
         actor = _resolve_actor(user)
         _require_active(actor)
-        cp = _cp.get(project)
+        # The record may live in another lab's records on this machine (#259:
+        # a lead whose project is hosted elsewhere).
+        cp, _root = _cp.locate(project)
         lead = (cp.lead if cp else "").lstrip("@").lower()
         try:
             pi = _pi().lower()
