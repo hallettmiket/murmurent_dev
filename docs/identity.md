@@ -409,7 +409,11 @@ See Delegating a project lead, below, for the full command set.
   member in, one click when the member's key is already attested on the
   roster. External or keyless members are put on the member list at once,
   awaiting a certificate; they run `murmurent enroll --project <p>` and
-  send the file, and the lead finishes with `--enrollment`.
+  send the file, and the lead finishes with `--enrollment`. The steps are
+  sent to them by direct message when the project's workspace is connected.
+  A member from another lab imports the resulting bundle with
+  `--trust-root <this lab's root>` the first time; the message that brings
+  the bundle names the root and gives the exact command.
 - `murmurent project-remove-member`: revokes the card (adds it to the CRL)
   and removes the member from the project's private Slack channel.
 - `murmurent project-whoami`: shows which projects this machine's cards

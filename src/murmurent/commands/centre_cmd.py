@@ -748,10 +748,16 @@ def enroll(nonce: str, group: str, project: str, out_file: str | None) -> None:
         click.echo("  • Either way, you finish with:  murmurent import-card <bundle-file> "
                    "--trust-root <the root they give you>")
     elif is_project:
-        click.echo(f"Send the file {out_file} to your PI so they can issue your "
-                   "project card:")
-        click.echo(f"  murmurent issue-project-card {out_file} --project {project} "
-                   "--lab <lab>")
+        click.echo(f"Send the file {out_file} to the lead of project '{project}' "
+                   "(the person who added you); they issue your project card with it:")
+        click.echo(f"  • They run:  murmurent project-add-member {ident.at_handle} "
+                   f"--project {project} --enrollment {out_file}")
+        click.echo("  • Your signed card comes back as a bundle.json, by Slack direct "
+                   "message when the project's workspace is connected, else by hand.")
+        click.echo("  • You finish with:  murmurent import-card bundle.json "
+                   "--trust-root <the lead's lab root, given in that message>")
+        click.echo("    The --trust-root part is needed the first time you import a "
+                   "card from a lab whose key your machine has not pinned.")
     else:
         click.echo(f"Send the file {out_file} to your mayor; they run "
                    "`murmurent issue-pi-card <file>`.")
@@ -1090,6 +1096,14 @@ def project_add_member_cmd(handle: str, project: str, lab: str,
         click.echo(f"  Their key is not on file. They run `murmurent enroll --project "
                    f"{project}` and send you the file; then re-run with "
                    f"--enrollment <file> to issue their project card.")
+        dm_res = out.get("dm") or {}
+        if dm_res.get("sent"):
+            click.echo(f"  ✓ Those steps were sent to them by direct message via "
+                       f"{dm_res.get('workspace', 'Slack')}.")
+        elif dm:
+            click.echo(f"  The steps could not be sent to them by direct message "
+                       f"({dm_res.get('detail', '?')}); send them yourself:\n\n"
+                       + _pm.enrollment_steps_text(project) + "\n")
         return
     if not out.get("ok"):
         raise click.ClickException(

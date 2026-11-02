@@ -1761,6 +1761,7 @@ function ProjectMembersBlock({ proj: p }) {
   const [err, setErr] = React.useState(null);
   const [enrollFor, setEnrollFor] = React.useState(null);  // handle needing enrollment JSON
   const [enrollRecorded, setEnrollRecorded] = React.useState(false);  // already on the list?
+  const [enrollDm, setEnrollDm] = React.useState(null);  // were the steps DM'd to them?
   const userParam = ((window.DATA.member || {}).handle || "").replace(/^@/, "");
   const q = userParam ? "?user=" + encodeURIComponent(userParam) : "";
 
@@ -1789,6 +1790,7 @@ function ProjectMembersBlock({ proj: p }) {
         setBusy(null);
         if (j.recorded) await refresh();
         setEnrollRecorded(!!j.recorded);
+        setEnrollDm(j.dm || null);
         setEnrollFor(handle);
         return;
       }
@@ -1934,6 +1936,7 @@ function ProjectMembersBlock({ proj: p }) {
           handle={enrollFor}
           project={p.name}
           recorded={enrollRecorded}
+          dm={enrollDm}
           onClose={() => setEnrollFor(null)}
           onSubmit={(obj) => { setEnrollFor(null); addMember(enrollFor, obj); }}
         />
@@ -1945,7 +1948,7 @@ function ProjectMembersBlock({ proj: p }) {
 /* EnrollHelpModal — shown when adding a member who has no attested key yet.
    Replaces a native window.prompt (whose text can't be selected) with a modal
    that has a COPYABLE enroll command + a paste box for the JSON they send back. */
-function EnrollHelpModal({ handle, project, recorded, onClose, onSubmit }) {
+function EnrollHelpModal({ handle, project, recorded, dm, onClose, onSubmit }) {
   const cmd = "murmurent enroll --project " + project;
   const [json, setJson] = React.useState("");
   const [copied, setCopied] = React.useState(false);
@@ -1985,7 +1988,14 @@ function EnrollHelpModal({ handle, project, recorded, onClose, onSubmit }) {
             ? <>@{h} is now on the member list of {project}, shown as <em>no cert</em> until
                 they hold a certificate. Send them this command; they run it and send back
                 the JSON it prints. Paste it below now, or close this and click
-                <strong> issue</strong> next to their name when it arrives.</>
+                <strong> issue</strong> next to their name when it arrives.
+                {dm && dm.sent
+                  ? <> These steps were also sent to them by direct message
+                      via {dm.workspace || "Slack"}.</>
+                  : dm && dm.detail && dm.detail !== "not attempted"
+                    ? <> They could not be sent the steps by direct message
+                        ({dm.detail}); send them the command yourself.</>
+                    : null}</>
             : <>@{h} has no attested key on the roster yet. Send them this command; they run
                 it and send back the JSON it prints, which you paste below.</>}
         </p>

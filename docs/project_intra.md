@@ -103,7 +103,7 @@ same command underneath.
 | Recover a deleted project | `murmurent project-unarchive --project <p>` (then re-issue certs) | CLI |
 | Import your lead / member card | `murmurent import-card bundle.json` | CLI |
 | Add a member (lead) | project → Members → **＋ add member**, or `murmurent project-add-member` | Dashboard or CLI |
-| Add an outside member | project → Members → type their `@handle` and press Enter: they join the list at once, marked *no cert*. They run `murmurent enroll --project <p>` and send you the file; paste it in the window, or later via **issue** next to their name (CLI: `--enrollment`) | Dashboard or CLI |
+| Add an outside member | project → Members → type their `@handle` and press Enter: they join the list at once, marked *no cert*. They run `murmurent enroll --project <p>` and send you the file (those steps are also sent to them by direct message when the workspace is connected); paste it in the window, or later via **issue** next to their name (CLI: `--enrollment`). Their card then needs `--trust-root <your root>` the first time, which the message with the bundle gives them; see [inter-group projects](project_inter.md) | Dashboard or CLI |
 | Remove a member | project → Members → **×**, or `murmurent project-remove-member` | Dashboard or CLI |
 | Prove your membership | `murmurent project-whoami` | CLI |
 
