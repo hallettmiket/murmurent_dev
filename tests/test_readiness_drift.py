@@ -186,13 +186,9 @@ def test_a_bare_version_bump_alone_is_not_reported(two_clones, tmp_path, monkeyp
     """
     repo = _git_repo(tmp_path / "repos" / "x7")
     repo_ready.make_ready(repo, lab="mh", agents=["oracle"])
-    marker = repo / ".murmurent.yaml"
-    marker.write_text(
-        marker.read_text(encoding="utf-8").replace(
-            repo_ready._version(), "2000.1.0"
-        ),
-        encoding="utf-8",
-    )
+    # The release that linked a repo is recorded per machine (#257), so a
+    # lag is a stale machine record, not a line in the marker.
+    repo_ready.record_bootstrap(repo, "2000.1.0")
     monkeypatch.chdir(repo)
 
     assert repo_ready.readiness(repo).needs_upgrade is True

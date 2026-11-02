@@ -137,12 +137,34 @@ Parameters:
 - `<path>`: the local path to the git clone (e.g. `~/repos/brca_wgs`).
 - `--lab <slug>`: the owning lab's short registry name (its "slug,"
   e.g. `example_lab`). Defaults to this machine's lab.
-- `--agents a,b`: a comma-separated list of which commons agents to wire
-  in (e.g. `bookworm,blacksmith`). Defaults to the standard set if
-  omitted.
+- `--agents a,b`: a comma-separated list of which commons agents to link
+  (e.g. `bookworm,blacksmith`). Left out, a repository with no marker yet
+  gets every agent in the commons, which is what the dashboard's Make ready
+  picks too; a repository that already has a marker keeps its picks.
 - `--host <name>`: which machine to act on. `local` (default) is this
   laptop; any other value is a registered remote machine (see `murmurent
   host list`), acted on over SSH.
+- `--no-commit`: leave the marker and the `CLAUDE.md` stub uncommitted.
+
+### Readiness travels with the clone
+
+Make ready commits what it wrote that belongs in the repository, and only
+that: `.murmurent.yaml`, the `CLAUDE.md` stub, and the `.gitignore` lines that
+keep the agent links out. Anything else you had staged is left as it was. Push,
+and every clone of the repository is ready: on a second machine, `murmurent
+install` (or `murmurent reconcile`) finds the marker, links the agents from it,
+and registers the clone by name, with nothing to type. If the commit cannot be
+made (no git identity set, say), make ready prints the exact command to run.
+
+Which murmurent release linked a repository is a fact about one machine, so it
+is kept on that machine (`~/.murmurent/repo_bootstrap.yaml`), not in the
+committed marker. Older markers carry a `bootstrap_version` line from the days
+when it was; that line is now left exactly as it is, so two machines on
+different releases no longer push it back and forth.
+
+A push from a machine that has no bot token for the lab posts no note, and
+`murmurent project note` says so with the fix: `murmurent group-slack-setup
+<lab>` once on that machine.
 
 ## Every repository is in a project
 
@@ -315,9 +337,11 @@ murmurent repo upgrade --all [--add-agents a,b] [--all-agents]
 `--add-agents` links specific new agents into an already-ready repo
 without touching the ones already linked; `--all-agents` links every
 commons agent (new releases included). `--all` applies the upgrade to
-every ready repo in your repositories folder instead of a single path. Neither flag
+every ready repo in your repositories folder instead of a single path, and
+registers on this machine any clone that arrived with its marker. Neither flag
 is needed just to pick up prompt edits to agents already linked; that
-part is automatic.
+part is automatic. An upgrade rewrites the marker only when its schema or its
+agent list changes, so it never leaves a committed file dirty on its own.
 
 ## See also
 

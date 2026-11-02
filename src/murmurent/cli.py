@@ -532,22 +532,25 @@ def repo_status_cmd(target: str, host_name: str | None) -> None:
 @click.option("--lab", default=None,
               help="Owning lab slug (default: this machine's lab).")
 @click.option("--all-agents", is_flag=True,
-              help="Pin every commons agent to this repo. Rarely needed: every "
-                   "agent already works in every folder.")
+              help="Link every commons agent, adding to an existing pick. A "
+                   "repository with no marker yet gets every agent anyway, as "
+                   "the dashboard does.")
 @click.option("--agents", "agents_csv", default=None,
-              help="Comma-separated agents to pin to this repo. Default: none. "
-                   "Pinning only matters if this repo must use a specific copy "
-                   "of an agent.")
+              help="Comma-separated agents to link instead of all of them. The "
+                   "links stay on this machine (listed in .gitignore).")
 @click.option("--host", "host_name", default="local", show_default=True,
               help="'local' or a registered SSH host; remote adopts bootstrap "
                    "over one batched SSH session.")
+@click.option("--commit/--no-commit", default=True,
+              help="Commit the marker and CLAUDE.md stub so every clone is ready "
+                   "(default: yes).")
 def repo_adopt_cmd(path: str, lab: str | None, agents_csv: str | None,
                    all_agents: bool,
-                   host_name: str) -> None:
+                   host_name: str, commit: bool) -> None:
     from .commands import repo_cmd as _repo_cmd
     raise SystemExit(_repo_cmd.cmd_adopt(
         path=path, lab=lab, agents_csv=agents_csv, host_name=host_name,
-        all_agents=all_agents))
+        all_agents=all_agents, commit=commit))
 
 
 @repo_group.command(

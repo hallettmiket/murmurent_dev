@@ -234,7 +234,9 @@ def post_note(text: str, *, start: Path | str | None = None, project: str | None
         tok = token if token is not None else token_for(one)
         if not tok:
             who = f"project '{one.project}'" if one.project else f"lab '{one.lab}'"
-            results.append(f"not posted: no Slack bot token on this machine for {who}")
+            results.append(f"not posted: no Slack bot token on this machine for {who}; "
+                           f"run `murmurent group-slack-setup {one.lab or '<lab>'}` here "
+                           "once (the token is per machine)")
             all_ok = False
             continue
         try:

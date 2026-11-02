@@ -48,6 +48,12 @@ project's channel or to a development channel; the sender reports why.
    murmurent-ready but belongs to no project with a channel.
 5. **Nowhere.** The command prints the reason and exits 1.
 
+A channel can be found and the note still not sent: the bot token for that
+workspace is kept per machine (`~/.config/murmurent/groups/<lab>/slack-token`).
+From a machine that has none, `murmurent project note` prints "no Slack bot
+token on this machine" with the fix, `murmurent group-slack-setup <lab>`, run
+once there.
+
 The bot is the one for that channel's workspace: the project's workspace for a
 project channel (`cert_provision.resolve_project_slack`), else the lab's bot
 (`group_reconcile.resolve_group_slack_token`). Sessions never post these notes
