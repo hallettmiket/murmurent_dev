@@ -17,6 +17,15 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 
 ## [Unreleased]
 
+### Added
+- **Spoken verdicts with Piper voices** (#272). `bash
+  scripts/install_piper_voices.sh` installs Piper, a free neural
+  text-to-speech engine that runs on the machine itself, and fetches one
+  natural English voice per agent. The agent-event hook uses Piper when it
+  is present, on a Mac or on Linux, and otherwise the Mac's `say` or
+  Linux's `spd-say` as before. `engine say` in `~/.murmurent/speak` forces
+  the old engine; `audition` plays every voice.
+
 ## [2026.10.8] - 2026-10-30
 
 **To upgrade:** `uv tool upgrade murmurent`, then `murmurent install --hooks`,
