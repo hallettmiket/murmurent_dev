@@ -1807,8 +1807,8 @@ function ProjectMembersBlock({ proj: p }) {
     const h = handle.replace(/^@/, "");
     const ok = window.confirm(
       "Remove @" + h + " from " + p.name + "?\n\n" +
-      "Their project certificate is revoked (CRL), they are kicked from the " +
-      "private Slack channel, and GitHub access is dropped.");
+      "Their project certificate is revoked, they leave the private Slack channel " +
+      "and every GitHub repository the project lists, and they are told by direct message.");
     if (!ok) return;
     setBusy(h); setErr(null);
     try {
@@ -1817,6 +1817,8 @@ function ProjectMembersBlock({ proj: p }) {
         { method: "DELETE", headers: { Accept: "application/json" } });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error((typeof j.detail === "string" ? j.detail : null) || r.statusText);
+      if (Array.isArray(j.problems) && j.problems.length)
+        window.alert("@" + h + " removed from " + p.name + ", but:\n\n" + j.problems.join("\n"));
       await refresh();
     } catch (ex) { setErr(String(ex.message || ex)); }
     finally { setBusy(null); }

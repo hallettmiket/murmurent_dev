@@ -1121,27 +1121,48 @@ def project_add_member_cmd(handle: str, project: str, lab: str,
         click.echo(_json.dumps(out["bundle"], indent=2))
 
 
+def echo_removal(out: dict) -> None:
+    """Print what removing a member did and did not do (#255)."""
+    handle, project = out.get("handle", "?"), out.get("project", "?")
+    card = ("card revoked" if out.get("revoked")
+            else "card revocation awaits the PI's machine" if out.get("revocation_pending")
+            else "no card to revoke")
+    click.echo(f"✓ {handle} removed from {project} ({card})")
+    slack = out.get("slack") or {}
+    if slack.get("ok"):
+        click.echo("  Slack: removed from the project channel")
+    gh = out.get("github") or {}
+    if gh.get("removed"):
+        click.echo(f"  GitHub: access removed on {', '.join(gh['removed'])}")
+    dm = out.get("dm") or {}
+    if dm.get("sent"):
+        click.echo(f"  told by direct message via {dm.get('workspace', 'Slack')}")
+    for prob in out.get("problems") or []:
+        click.echo(f"  ! {prob}")
+
+
 @click.command("project-remove-member",
-                help="PI: remove a member from a project — revokes their project "
-                     "card (CRL), drops them from the registry, kicks them from "
-                     "the private channel, and removes GitHub access. Refuses to "
+                help="PI or project lead: remove a member from a project. Revokes "
+                     "their project card (a lead's removal is recorded for the PI's "
+                     "machine to sign), drops them from the record, removes them "
+                     "from the project channel and from every GitHub repository the "
+                     "project lists, and tells them by direct message. Refuses to "
                      "remove the lead (delete the project instead).")
 @click.argument("handle")
 @click.option("--project", required=True, help="Project to remove them from.")
 @click.option("--lab", default="", help="Lab that owns the project.")
-def project_remove_member_cmd(handle: str, project: str, lab: str) -> None:
+@click.option("--dm/--no-dm", default=True, help="Tell them by direct message (default: yes).")
+def project_remove_member_cmd(handle: str, project: str, lab: str, dm: bool) -> None:
+    from ..core import identity as _id
     from ..core import issuance as _iss
     from ..core import project_members as _pm
     from ..core import revocation as _rev
+    actor = _id.resolve(allow_unknown=True).handle
     try:
-        out = _pm.remove_member(project, handle, lab=lab or None)
+        out = _pm.remove_member(project, handle, lab=lab or None, actor=actor, dm=dm)
     except (_iss.IssuanceError, _pm.ProjectMemberError, _rev.RevocationError) as exc:
         raise click.ClickException(str(exc)) from exc
-    click.echo(f"✓ {handle} removed from {project}"
-               + (" (card revoked)" if out.get("revoked") else " (no card to revoke)"))
-    slack = out.get("slack") or {}
-    if slack.get("ok"):
-        click.echo(f"  channel sync: -{len(slack.get('kicked') or [])} kicked")
+    echo_removal(out)
 
 
 @click.command("project-whoami",
@@ -1962,6 +1983,24 @@ def group_remove_member(group: str, handle: str, delete: bool, yes: bool) -> Non
     for p in probes:
         icon = "✓" if p.status == "ok" else ("!" if p.status == "warn" else "✗")
         click.echo(f"  [{icon}] {p.name}: {p.detail}")
+    # Leaving the lab means leaving its projects (#255): channel, repositories
+    # and card for each, with the same report as project-remove-member.
+    from ..core import identity as _id
+    from ..core import project_members as _pm
+    actor = _id.resolve(allow_unknown=True).handle
+    results = _pm.remove_from_all_projects(norm, actor=actor)
+    if not results:
+        click.echo("  [✓] projects: member of none")
+    for r in results:
+        if r.get("ok"):
+            card = ("card revoked" if r.get("revoked")
+                    else "card awaits the PI's machine" if r.get("revocation_pending")
+                    else "no card")
+            click.echo(f"  [✓] project {r['project']}: removed ({card})")
+            for prob in r.get("problems") or []:
+                click.echo(f"      ! {prob}")
+        else:
+            click.echo(f"  [!] project {r.get('project')}: {r.get('error')}")
     # Defense-in-depth: revoke their identity card in the centre CRL. Live access
     # was already pulled above (Slack/GitHub/registry); this stops the card itself
     # from verifying. Best-effort — needs the centre root key (mayor's machine).

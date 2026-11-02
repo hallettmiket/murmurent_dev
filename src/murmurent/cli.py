@@ -1030,25 +1030,30 @@ def project_rename_slack(name: str, new_name: str) -> None:
 
 
 @project_group.command("provision-github",
-                       help="(PI) Create the cert-project's private GitHub repo "
-                            "and add its certified members as collaborators. "
-                            "Idempotent; needs the gh CLI.")
+                       help="(PI) Give the project's certified members collaborator "
+                            "access on every GitHub repository the project lists. "
+                            "Idempotent; needs the gh CLI. --create makes a private "
+                            "<org>/<name> repository first, for a project that has "
+                            "no repository yet.")
 @click.argument("name")
-@click.option("--org", default="", help="GitHub org (default: lab.md github_org).")
-def project_provision_github(name: str, org: str) -> None:
+@click.option("--org", default="", help="GitHub org for --create (default: lab.md github_org).")
+@click.option("--create", is_flag=True,
+              help="Create <org>/<name> when the project lists no GitHub repository.")
+def project_provision_github(name: str, org: str, create: bool) -> None:
     from .core import cert_provision as _cprov
     try:
-        out = _cprov.provision_github(name, org=org or None)
+        out = _cprov.provision_github(name, org=org or None, create=create)
     except _cprov.CertProvisionError as exc:
         raise click.ClickException(str(exc)) from exc
     if not out["ok"]:
         raise click.ClickException(
-            f"could not provision repo ({out.get('error')}): {out.get('detail')}")
-    click.echo(f"✓ repo {out['repo']} ready.")
+            f"could not grant access ({out.get('error')}): {out.get('detail')}")
+    click.echo(f"✓ access granted on: {', '.join(out['repos'])}")
     for c in out["collaborators"]:
         mark = {"ok": "✓", "fail": "!", "no_github": "·"}.get(c.get("status"), "·")
         who = c.get("login") or c.get("handle")
-        click.echo(f"  {mark} {c.get('handle')} → {who}: {c.get('detail', c.get('status'))}")
+        where = f" on {c['repo']}" if c.get("repo") else ""
+        click.echo(f"  {mark} {c.get('handle')} → {who}{where}: {c.get('detail', c.get('status'))}")
 
 
 @project_group.command("invite-guests",
@@ -1089,6 +1094,7 @@ def project_invite_guests(name: str) -> None:
 @click.option("--check", is_flag=True, hidden=True, help="(the default) report only.")
 def project_reconcile(name: str, apply_changes: bool, check: bool) -> None:
     from .core import cert_provision as _cprov
+    from .core import project_members as _pm
     apply = bool(apply_changes) and not check
     try:
         s = _cprov.reconcile_slack(name, apply=apply)
@@ -1096,6 +1102,22 @@ def project_reconcile(name: str, apply_changes: bool, check: bool) -> None:
     except _cprov.CertProvisionError as exc:
         raise click.ClickException(str(exc)) from exc
     click.echo(f"project {name} — {'reconcile' if apply else 'check (no changes; add --apply to make them)'}")
+    # Cards a lead removed on a machine that could not sign the revocation
+    # list (#255): the PI's machine finishes them here.
+    from .core import cert_projects as _cp
+    rec = _cp.get(name)
+    if rec is not None and rec.pending_revocations:
+        if apply:
+            r = _pm.apply_pending_revocations(name)
+            if r["applied"]:
+                click.echo(f"  cards:  revoked {len(r['applied'])} card(s) a lead removed: "
+                           + ", ".join(str(x.get("handle")) for x in r["applied"]))
+            if r["pending"]:
+                click.echo(f"  cards:  {len(r['pending'])} removal(s) still await the PI's "
+                           f"machine ({r['detail']})")
+        else:
+            click.echo(f"  cards:  {len(rec.pending_revocations)} card(s) removed by a lead "
+                       "await revocation; --apply on the PI's machine revokes them")
     if s.get("error") == "not_provisioned":
         click.echo("  slack:  (no channel provisioned)")
     else:
@@ -1109,10 +1131,17 @@ def project_reconcile(name: str, apply_changes: bool, check: bool) -> None:
         for f in s.get("invite_failed") or []:
             click.echo(f"          ! {f.get('handle')}: {f.get('reason')}")
     if g.get("error") == "not_provisioned":
-        click.echo("  github: (no repo provisioned)")
+        click.echo("  github: (the project lists no GitHub repository)")
     else:
         click.echo(f"  github: {'in sync' if g['in_sync'] else 'drift'}"
-                   f" — +{len(g['to_add'])} add, -{len(g['to_remove'])} remove")
+                   f": +{len(g['to_add'])} add, -{len(g['to_remove'])} remove"
+                   f" across {len(g['repos'])} repositor{'y' if len(g['repos']) == 1 else 'ies'}")
+        for row in g.get("per_repo") or []:
+            if not row["in_sync"]:
+                click.echo(f"          {row['repo']}: +{', '.join(row['to_add']) or '-'}"
+                           f"  -{', '.join(row['to_remove']) or '-'}")
+    for prob in list(s.get("invite_failed") and [] or []) + list(g.get("problems") or []):
+        click.echo(f"  ! {prob}")
 
 
 @project_group.command("workspace-check",
