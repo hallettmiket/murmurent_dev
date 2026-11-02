@@ -1760,9 +1760,11 @@ function ProjectMembersBlock({ proj: p }) {
   // roster (#207). Without a recorded key, add_member asks for their
   // enrollment request and the enrollment window opens.
   const [outside, setOutside] = useState("");
-  const certMembers = p.cert_members || [];
   const uncertified = p.uncertified_members || [];
   const invited = p.invited_members || [];
+  // A member on the list without a card is shown once, as "no cert" (#259).
+  const _unc = new Set(uncertified.map(m => m.replace(/^@/, "").toLowerCase()));
+  const certMembers = (p.cert_members || []).filter(m => !_unc.has(m.replace(/^@/, "").toLowerCase()));
   const groupMembers = window.DATA.group_members || [];
   const [busy, setBusy] = React.useState(null);   // handle currently in flight
   const [err, setErr] = React.useState(null);
@@ -2620,7 +2622,7 @@ function ProjectHeadingMeta({ p }) {
       <Pill tone={(p.sens==="protected"||p.sens==="clinical")?"red":""}>{p.sens}</Pill>
       {p.hosted_by && (
         <span title={p.source === "card"
-                ? "You hold a project card for this project. Its records live in lab " + p.hosted_by + ", which this computer does not have, so the team and repos are not shown."
+                ? "You hold a project card for this project. Its records live in lab " + p.hosted_by + ", which this computer does not have; the team and repos shown are what your card carried" + (p.card_as_of ? " as of " + p.card_as_of : "") + "."
                 : "Recorded in lab " + p.hosted_by + "'s records."}
               style={{...PROJ_TAG, color:"var(--purple)"}}>
           hosted by {p.hosted_by}

@@ -812,9 +812,17 @@ def _issue_leaf_as_lead(handle: str, pubkey: str, *, centre: str, group: str,
                          "card_id": p["card_id"]}, env=env)
     except Exception:  # noqa: BLE001
         pass
+    # The team, repositories and channel travel with the card (#259), so a
+    # member whose machine does not hold this lab's records still sees the
+    # project whole. Unsigned and informational: the cards remain the proof.
+    try:
+        from . import cert_projects as _cp
+        summary = _cp.project_summary(proj, env=env)
+    except Exception:  # noqa: BLE001
+        summary = None
     return {"project_card": card, "lead_card": lead_card,
             "pi_card": bundle.get("pi_card"), "group": group, "lab": lab,
-            "project": proj}
+            "project": proj, "project_summary": summary}
 
 
 def issue_project_card_from_roster(handle: str, *, project: str,

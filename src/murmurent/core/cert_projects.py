@@ -778,6 +778,52 @@ def replace_repo_home(ref: RepoRef, home: str) -> RepoRef:
     return replace(ref, home=home)
 
 
+def project_summary(name: str, *, env: dict | None = None) -> dict | None:
+    """What a member of a project hosted in another lab's records needs to
+    see it on their dashboard (#259): team, repositories and channel, as of
+    today. Travels unsigned inside the project-card bundle; the signed cards
+    stay the proof. None when the project is not in these records."""
+    import datetime as _dt
+    cp = get(name, env)
+    if cp is None:
+        return None
+    return {"name": cp.name, "lab": cp.lab, "lead": cp.lead, "status": cp.status,
+            "sensitivity": cp.sensitivity, "members": list(cp.members),
+            "repos": [{"name": r.name, "role": r.role, "remote_url": r.remote_url,
+                       "host": r.host} for r in cp.repos],
+            "slack_workspace": cp.slack_workspace,
+            "slack_channel_id": cp.slack_channel_id,
+            "slack_channel_name": cp.slack_channel_name,
+            "as_of": _dt.date.today().isoformat()}
+
+
+def locate(name: str, *, env: dict | None = None):
+    """Find project ``name`` in the records this machine holds: the current
+    records root first, then every lab or core the registry names whose
+    records are on disk (#259: a lead or member whose project is hosted in
+    another lab's records). Returns ``(record, records_root)`` or
+    ``(None, None)``."""
+    from . import repo as _repo
+    cp = get(name, env)
+    if cp is not None:
+        return cp, _repo.lab_mgmt_repo_root(env)
+    try:
+        from . import registrar as _reg
+        reg = _reg.read_registry(env)
+        groups = [*reg.labs, *reg.cores]
+    except Exception:  # noqa: BLE001
+        return None, None
+    for g in groups:
+        root = Path(str(g.lab_mgmt_path or "")).expanduser() if g.lab_mgmt_path else None
+        if root is None or not root.is_dir():
+            continue
+        with _repo.use_lab_mgmt_root(root):
+            found = get(name, env)
+        if found is not None:
+            return found, root
+    return None, None
+
+
 def owning_project(repo_name: str, *, projects: list[CertProject] | None = None,
                    env: dict | None = None) -> CertProject | None:
     """The project that owns repository ``repo_name``: the one whose record lists it.
@@ -1152,5 +1198,6 @@ __all__ = ["CertProject", "RepoRef", "VALID_REPO_ROLES", "CertProjectError",
            "add_mirror", "remove_mirror", "list_mirrors",
            "set_status", "owning_project", "owning_projects", "is_placeholder_for",
            "home_project_of", "home_folders", "replace_repo_home",
+           "project_summary", "locate",
            "register_from_summary", "backfill_from_charter", "migrate_charters",
            "slack_channel_for", "project_name_for_cwd"]
