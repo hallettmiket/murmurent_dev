@@ -1073,8 +1073,16 @@ def issue_project_lead_card_cmd(handle: str, project: str, lab: str,
               help="When their key is not on file (someone from another group), "
                    "put them on the project's member list now anyway; finish "
                    "with --enrollment later (default: yes).")
+@click.option("--open-mail/--no-open-mail", default=True,
+              help="For an email address murmurent does not know: open the drafted "
+                   "invitation in your mail client (default: yes).")
 def project_add_member_cmd(handle: str, project: str, lab: str,
-                           enrollment_file: str, dm: bool, pending: bool) -> None:
+                           enrollment_file: str, dm: bool, pending: bool,
+                           open_mail: bool) -> None:
+    """HANDLE is a murmurent handle, or an email address (#258): one murmurent
+    knows becomes its handle; any other is recorded as an invitation and the
+    email to send is drafted for you."""
+    from ..core import identity as _id
     from ..core import issuance as _iss
     from ..core import project_members as _pm
     import json as _json
@@ -1086,11 +1094,26 @@ def project_add_member_cmd(handle: str, project: str, lab: str,
                                      .read_text(encoding="utf-8"))
         except (OSError, ValueError) as exc:
             raise click.ClickException(f"cannot read enrollment: {exc}") from exc
+    actor = _id.resolve(allow_unknown=True).handle
     try:
         out = _pm.add_member(project, handle, lab=lab or None,
-                             enrollment=enrollment, dm=dm, record_pending=pending)
+                             enrollment=enrollment, dm=dm, record_pending=pending,
+                             actor=actor, open_mail=open_mail)
     except (_iss.IssuanceError, _pm.ProjectMemberError) as exc:
         raise click.ClickException(str(exc)) from exc
+    if out.get("error") == "invited":
+        click.echo(f"✓ {out['email']} is invited to {project}. murmurent has not met them "
+                   "yet, so send them this; their handle fills in when their enrollment "
+                   "arrives (re-run with --enrollment <file>).")
+        if out.get("opened"):
+            click.echo("  Opened your email app with the invitation drafted; press Send.")
+        else:
+            click.echo("")
+            click.echo(f"  Subject: {out['draft']['subject']}")
+            click.echo("")
+            for line in out["draft"]["body"].splitlines():
+                click.echo(f"  {line}")
+        return
     if not out.get("ok") and out.get("recorded"):
         click.echo(f"✓ {handle} is on {project}'s member list, awaiting a certificate.")
         click.echo(f"  Their key is not on file. They run `murmurent enroll --project "
@@ -1110,7 +1133,7 @@ def project_add_member_cmd(handle: str, project: str, lab: str,
             f"{out.get('detail', out.get('error'))}\n"
             f"  Fallback: they run `murmurent enroll --project {project}` and "
             f"send you the file; re-run with --enrollment <file>.")
-    click.echo(f"✓ {handle} added to {out['group']}")
+    click.echo(f"✓ @{str(out.get('handle') or handle).lstrip('@')} added to {out['group']}")
     dm_res = out.get("dm") or {}
     click.echo(f"  {'✓ DM sent via ' + dm_res.get('workspace', '') if dm_res.get('sent') else 'DM: ' + str(dm_res.get('detail'))}")
     slack = out.get("slack") or {}

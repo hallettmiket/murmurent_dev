@@ -255,6 +255,10 @@ class CertProject:
     # revocation list (#255): {handle, card_id, by, at}. The PI's machine folds
     # them into the list on its next `murmurent project reconcile`.
     pending_revocations: tuple[dict, ...] = ()
+    # People invited by email who murmurent has not met yet (#258):
+    # {email, by, at}. The handle replaces the entry when their enrollment
+    # arrives.
+    invited: tuple[dict, ...] = ()
     # Full repo set (code + manuscript + …). Authoritative; code_repo mirrors the
     # code repo within it.
     repos: tuple[RepoRef, ...] = ()
@@ -297,6 +301,7 @@ class CertProject:
                 "members": list(self.members),
                 "certs": [dict(c) for c in self.certs],
                 "pending_revocations": [dict(c) for c in self.pending_revocations],
+                "invited": [dict(c) for c in self.invited],
                 "repos": [r.to_dict() for r in self.repos],
                 "data_folders": list(self.data_folders),
                 "reads_from": list(self.reads_from),
@@ -407,6 +412,7 @@ def _parse(path: Path) -> CertProject:
     certs = tuple(dict(c) for c in (meta.get("certs") or []) if isinstance(c, dict))
     pending = tuple(dict(c) for c in (meta.get("pending_revocations") or [])
                     if isinstance(c, dict))
+    invited = tuple(dict(c) for c in (meta.get("invited") or []) if isinstance(c, dict))
     chor = meta.get("choreography")
     name = str(meta.get("project") or path.stem)
     raw_repos = [RepoRef.from_dict(r) for r in (meta.get("repos") or [])
@@ -446,6 +452,7 @@ def _parse(path: Path) -> CertProject:
         members=members,
         certs=certs,
         pending_revocations=pending,
+        invited=invited,
         repos=repos,
         data_folders=_str_list(meta.get("data_folders")),
         reads_from=_str_list(meta.get("reads_from")),
@@ -529,6 +536,8 @@ def _render(p: CertProject) -> str:
         meta["retain_until"] = p.retain_until
     if p.pending_revocations:
         meta["pending_revocations"] = [dict(c) for c in p.pending_revocations]
+    if p.invited:
+        meta["invited"] = [dict(c) for c in p.invited]
     meta["members"] = list(p.members)
     meta["certs"] = [dict(c) for c in p.certs]
     front = yaml.safe_dump(meta, sort_keys=False, allow_unicode=True).strip()
@@ -584,7 +593,7 @@ def upsert(name: str, *, lab: str, member: str | None = None,
            data_folders: list[str] | tuple[str, ...] | None = None,
            reads_from: list[str] | tuple[str, ...] | None = None,
            retain_until: str | None = None,
-           pending_revocations=None,
+           pending_revocations=None, invited=None,
            today: str | None = None, env: dict | None = None) -> CertProject:
     """Create or update a cert project. Optionally add a certified ``member``
     (with their ``cert`` = {handle, fingerprint, card_id}) and/or set project
@@ -661,7 +670,8 @@ def upsert(name: str, *, lab: str, member: str | None = None,
         retain_until=(cur.retain_until if retain_until is None
                       else str(retain_until).strip()),
         pending_revocations=(cur.pending_revocations if pending_revocations is None
-                             else tuple(dict(c) for c in pending_revocations)))
+                             else tuple(dict(c) for c in pending_revocations)),
+        invited=(cur.invited if invited is None else tuple(dict(c) for c in invited)))
     _write(updated, env)
     return updated
 

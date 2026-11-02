@@ -407,7 +407,9 @@ See Delegating a project lead, below, for the full command set.
   dashboard; the bundle is DM'd to the lead).
 - `murmurent project-add-member <handle> --project <p>`: the lead signs a
   member in, one click when the member's key is already attested on the
-  roster. External or keyless members are put on the member list at once,
+  roster. An email address works too: one murmurent knows becomes its
+  handle; any other is recorded as an invitation, with the email drafted
+  for the lead to send. External or keyless members are put on the member list at once,
   awaiting a certificate; they run `murmurent enroll --project <p>` and
   send the file, and the lead finishes with `--enrollment`. The steps are
   sent to them by direct message when the project's workspace is connected.

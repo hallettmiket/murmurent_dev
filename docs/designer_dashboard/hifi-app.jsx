@@ -1762,6 +1762,7 @@ function ProjectMembersBlock({ proj: p }) {
   const [outside, setOutside] = useState("");
   const certMembers = p.cert_members || [];
   const uncertified = p.uncertified_members || [];
+  const invited = p.invited_members || [];
   const groupMembers = window.DATA.group_members || [];
   const [busy, setBusy] = React.useState(null);   // handle currently in flight
   const [err, setErr] = React.useState(null);
@@ -1779,6 +1780,7 @@ function ProjectMembersBlock({ proj: p }) {
 
   const addMember = async (handle, enrollment) => {
     if (!handle) return;
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(handle)) handle = handle.replace(/^@/, "");
     setBusy(handle); setErr(null);
     try {
       const r = await fetch("/api/project/" + encodeURIComponent(p.name) + "/members" + q,
@@ -1786,6 +1788,20 @@ function ProjectMembersBlock({ proj: p }) {
           body: JSON.stringify({ handle, enrollment: enrollment || null }) });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error((typeof j.detail === "string" ? j.detail : null) || r.statusText);
+      if (!j.ok && j.error === "invited") {
+        // An email murmurent has not met (#258): the project records the
+        // invitation; the lead sends the drafted email. Open the mail client
+        // with it, and keep the text on screen in case nothing opens.
+        setBusy(null);
+        await refresh();
+        const d = j.draft || {};
+        window.alert(j.email + " is invited to " + p.name + ". murmurent has not met them, " +
+                     "so send them the email now opening in your mail app (its text follows " +
+                     "in case it did not open). Their handle fills in when their enrollment arrives.\n\n" +
+                     "Subject: " + (d.subject || "") + "\n\n" + (d.body || ""));
+        if (d.mailto) window.location.href = d.mailto;
+        return;
+      }
       if (!j.ok && j.error === "no_recorded_key") {
         // PoP fallback: the member has no attested key on the roster (carded
         // before pubkey recording, or from another group). The server has
@@ -1916,17 +1932,26 @@ function ProjectMembersBlock({ proj: p }) {
             {addable.map(h => <option key={h} value={h}>{h}</option>)}
           </select>
         )}
+        {invited.map(r => (
+          <span key={"inv:" + r.email} className="mono"
+                style={{fontSize:11, padding:"2px 6px", borderRadius:2,
+                        border:"1px dotted var(--rule-strong)", color:"var(--muted)"}}
+                title={"Invited by email" + (r.by ? " by " + r.by : "") + (r.at ? " on " + r.at : "") +
+                       ". murmurent has not met them yet; their handle takes this place when their enrollment arrives."}>
+            ✉ {r.email} · invited
+          </span>
+        ))}
         {canManage && (
           <span style={{display:"inline-flex", gap:4}}>
             <input value={outside} onChange={e => setOutside(e.target.value)}
                    onKeyDown={e => { if (e.key === "Enter" && outside.trim()) {
-                     addMember(outside.trim().replace(/^@/, "")); setOutside(""); } }}
-                   placeholder="@handle from another group"
-                   title="Someone outside this lab: type their murmurent handle and press Enter. They join the member list at once. If their key is not on record they show as 'no cert' until you paste the enrollment request they send you, now or later."
-                   style={{fontSize:11, padding:"2px 4px", fontFamily:"var(--mono)", width:170,
+                     addMember(outside.trim()); setOutside(""); } }}
+                   placeholder="@handle or email, from another group"
+                   title="Someone outside this lab: type their murmurent handle, or their email address, and press Enter. A handle joins the member list at once, shown as 'no cert' until you paste the enrollment request they send you. An email murmurent knows becomes the handle; any other records an invitation and drafts the email for you to send."
+                   style={{fontSize:11, padding:"2px 4px", fontFamily:"var(--mono)", width:200,
                            border:"1px solid var(--rule-strong)", borderRadius:2}} />
             <button type="button" className="btn sm" disabled={!!busy || !outside.trim()}
-                    onClick={() => { addMember(outside.trim().replace(/^@/, "")); setOutside(""); }}>
+                    onClick={() => { addMember(outside.trim()); setOutside(""); }}>
               add
             </button>
           </span>

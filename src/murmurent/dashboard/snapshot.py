@@ -146,6 +146,7 @@ def build_response(
                   for c in cp.certs}
         for cp in cert_projects_all}
     cert_ws_by_name = {cp.name: cp.slack_workspace for cp in cert_projects_all}
+    cert_invited_by_name = {cp.name: [dict(r) for r in cp.invited] for cp in cert_projects_all}
     cert_hosted_by_name = {
         v.name: v.lab for v in visible
         if v.lab and home_group and v.lab.lower() != home_group.lower()}
@@ -227,6 +228,7 @@ def build_response(
                            cert_names=cert_names, cert_members=cert_members_by_name,
                            cert_repos=cert_repos_by_name,
                            cert_certified=cert_certified_by_name,
+                           cert_invited=cert_invited_by_name,
                            cert_ws=cert_ws_by_name, viewer=norm,
                            cert_hosted=cert_hosted_by_name,
                            cert_source=cert_source_by_name),
@@ -1136,8 +1138,10 @@ def _projects(
     viewer: str = "",
     cert_hosted: dict[str, str] | None = None,
     cert_source: dict[str, str] | None = None,
+    cert_invited: dict[str, list[dict]] | None = None,
 ) -> list[C.ProjectRow]:
     cert_names = cert_names or set()
+    cert_invited = cert_invited or {}
     cert_hosted = cert_hosted or {}
     cert_source = cert_source or {}
     cert_members = cert_members or {}
@@ -1262,6 +1266,7 @@ def _projects(
                     m for m in cert_members.get(p.name, [])
                     if m.lstrip("@").lower() not in cert_certified.get(p.name, set())
                 ],
+                invited_members=cert_invited.get(p.name, []),
                 my_cert=_viewer_project_cert(p.name, viewer,
                                              cert_members.get(p.name, [])),
                 slack_workspace=(cert_ws.get(p.name) or None),
