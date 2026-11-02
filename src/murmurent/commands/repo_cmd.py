@@ -236,6 +236,8 @@ def cmd_adopt(*, path: str, lab: str | None, agents_csv: str | None,
 
     agents = ([a.strip() for a in agents_csv.split(",") if a.strip()]
               if agents_csv else None)
+    if agents == ["none"]:            # deliberately link nothing
+        agents = []
     fresh = host_name == "local" and _rr.read_marker(Path(path).expanduser()) is None
     if all_agents or (agents is None and fresh):
         src = commons_root() / "agents"

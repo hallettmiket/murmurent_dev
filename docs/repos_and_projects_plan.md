@@ -1,7 +1,24 @@
 # Repositories and projects: how it works, what is wrong, and the plan
 
 **Date:** 2 November 2026. **Author:** Mike Hallett with Claude Code.
-**Status:** a review for the PI to decide on; nothing here is built yet.
+**Status:** approved by the PI on 2 November 2026 and built the same day. The
+seven stages below are merged in `murmurent_dev`:
+
+| Stage | Issue | Pull request |
+|---|---|---|
+| 1. Collaborators from another group can finish joining | 252 | 262 |
+| 2. A repository may belong to several projects | 253 | 263 |
+| 3. Membership grants and revokes access on every repository | 255 | 265 |
+| 4. Readiness travels with the clone | 257 | 267 |
+| 5. Invite by email | 258 | 268 |
+| 6. The dashboard shows each person exactly their projects | 259 | 270 |
+| 7. The documents and the millwright agree with the code | 260 | this one |
+
+Open after the plan: issue 269 (`add-repo --create-remote`, so a new
+repository is created on GitHub and access granted in one step). Deferred by
+decision: issues 254 and 256 (see the end of Part 3). Part 1 below describes
+the code as it was before the stages; the file references point at commit
+`55a6d6e`.
 
 This document answers a request to look closely at how murmurent handles
 repositories, projects and membership. It has three parts: what the code does

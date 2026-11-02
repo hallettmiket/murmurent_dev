@@ -8,7 +8,11 @@ A Murmurent **project** is two coordinated sets:
   (`~/repos` unless you chose another; `murmurent config repos-root` shows
   it) or from the lab's GitHub organisation. A repo picked from GitHub is
   copied to this machine when the project is created, and every repo is made
-  murmurent-ready for you. Creating a project never creates a new repo;
+  murmurent-ready for you. Approval creates one thing on GitHub: a private
+  `<org>/<project>` remote for the project's primary repository when it has
+  none yet (`<org>` is the lab's `github_org`). Any other repository is added
+  later with `murmurent project add-repo`, and a repository may belong to
+  several projects;
 - a set of **members**, and membership is *cryptographic*: each member holds
   a signed **project certificate**, a credential that cryptographically
   proves their membership and can be verified (offline) against the
@@ -56,13 +60,16 @@ She clicks **create**. Because she is a member, not the PI, the request goes
 to the PI to confirm. (When the PI creates a project, it is created at once.)
 
 **2. PI approves.** The PI approves the request from the dashboard.
-Murmurent registers the project over the
-selected repos, creates the **private** Slack channel, and (because Allie is
-the creator) issues her the **project-lead card** and DMs it to her:
+Murmurent registers the project over the selected repos, creates the
+**private** Slack channel (`#proj-brca_17`), gives the primary repository a
+GitHub remote if it has none, and (because Allie is the creator) issues her
+the **project-lead card** and DMs it to her:
 
-> **Slack DM to @allie:** Your Murmurent project LEAD card for 'brca_17' is
-> ready. Save the JSON below as bundle.json, then run:
-> `murmurent import-card bundle.json`
+> **Slack DM to @allie:** Your murmurent project LEAD card for project
+> 'brca_17' is ready. Your signed bundle.json is attached to this message.
+> Download it, then run: `murmurent import-card bundle.json --trust-root
+> ed25519:...` (the `--trust-root` part is needed once; it pins the key of
+> the PI who signed the card)
 
 **3. Allie certifies her members.** After importing her lead card, her
 dashboard shows the project with Bob listed as *no cert* and an **issue**

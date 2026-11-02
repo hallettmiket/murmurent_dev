@@ -60,7 +60,8 @@ def _ref(repo: Path, name: str, *, mirrors=()):
 
 
 def _install_project(monkeypatch, name: str, refs, *, channel: str = ""):
-    cp = _cp.CertProject(name=name, lab="mh", repos=tuple(refs))
+    # The channel sits on the record, where the one resolver reads it (#260).
+    cp = _cp.CertProject(name=name, lab="mh", repos=tuple(refs), slack_channel_id=channel)
     monkeypatch.setattr(_cp, "get", lambda n, env=None: cp if n == name else None)
     monkeypatch.setattr(_cp, "slack_channel_for", lambda n, env=None: channel)
     return cp

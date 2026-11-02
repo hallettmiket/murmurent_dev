@@ -6,7 +6,8 @@ a dozen projects were found in one channel: an always-loaded rule named a
 single channel for every push, while the push skill and the push command each
 resolved the project channel their own way. There is now one resolver,
 `core/slack_routing.py`, and one command, `murmurent project note`, and the
-rule tells sessions to use it.
+rule tells sessions to use it. `murmurent project push` posts its backup note
+through the same resolver, by project name.
 
 ## The five destinations
 

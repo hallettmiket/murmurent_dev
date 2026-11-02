@@ -536,8 +536,9 @@ def repo_status_cmd(target: str, host_name: str | None) -> None:
                    "repository with no marker yet gets every agent anyway, as "
                    "the dashboard does.")
 @click.option("--agents", "agents_csv", default=None,
-              help="Comma-separated agents to link instead of all of them. The "
-                   "links stay on this machine (listed in .gitignore).")
+              help="Comma-separated agents to link instead of all of them, or "
+                   "'none' to link nothing. The links stay on this machine "
+                   "(listed in .gitignore).")
 @click.option("--host", "host_name", default="local", show_default=True,
               help="'local' or a registered SSH host; remote adopts bootstrap "
                    "over one batched SSH session.")
