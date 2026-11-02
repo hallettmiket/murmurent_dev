@@ -53,7 +53,13 @@ Allie enters the workspace id in the form and the proposal goes through.
 in between.)
 
 **3. Certifying an outside member.** Allie types `@carlos` into the
-project's member box and he is on the list at once, marked *no cert*.
+project's member box and he is on the list at once, marked *no cert*. (She
+may type his email address instead. If murmurent knows it, from her roster or
+from the Xia lab's records on her machine, it becomes `@carlos`; if not, the
+project records an invitation under the address and murmurent drafts the
+email for her to send, with the command below, where to send the file, and the
+trust root he will need. His handle takes the invitation's place when his
+enrollment arrives.)
 Carlos's key lives only on the Xia lab's roster, so Allie has none for him
 on record. He runs, on his own machine:
 

@@ -101,7 +101,7 @@ class ProjectMemberBody(BaseModel):
     """JSON body for ``POST /api/project/{project}/members`` — add a member.
     ``enrollment`` is the PoP fallback for keyless/external members."""
 
-    handle: str
+    handle: str                  # a murmurent handle, or an email address (#258)
     enrollment: dict | None = None
     dm: bool = True
     # When their key is not on file (someone from another group), still put
@@ -4181,17 +4181,23 @@ def create_app() -> FastAPI:
         ``{"ok": false, "error": "no_recorded_key", "recorded": true}``: they
         are on the project's member list, awaiting a certificate. Re-call with
         their PoP ``enrollment`` (they run `murmurent enroll --project <p>`)
-        whenever it arrives."""
+        whenever it arrives. ``handle`` may be an email address (#258): one
+        murmurent knows becomes its handle; any other is recorded as an
+        invitation and the reply carries the drafted email
+        (``{"ok": false, "error": "invited", "draft": {...}}``)."""
         from ..core import issuance as _iss
         from ..core import project_members as _pm
 
-        _require_project_lead(project, user)
-        handle = body.handle.strip().lstrip("@")
+        actor = _require_project_lead(project, user)
+        handle = body.handle.strip()
+        if not ("@" in handle[1:] and "." in handle):      # an email keeps its @
+            handle = handle.lstrip("@")
         if not handle:
             raise HTTPException(status_code=422, detail="handle is required")
         try:
             out = _pm.add_member(project, handle, enrollment=body.enrollment,
-                                 dm=body.dm, record_pending=body.record_pending)
+                                 dm=body.dm, record_pending=body.record_pending,
+                                 actor=actor)
         except (_iss.IssuanceError, _pm.ProjectMemberError) as exc:
             raise HTTPException(status_code=400, detail=str(exc))
         # Don't ship the full bundle back to the browser unless the DM failed

@@ -144,7 +144,8 @@ def record_pending_member(project: str, handle: str, *, lab: str | None = None,
 def add_member(project: str, handle: str, *, lab: str | None = None,
                env: dict | None = None, enrollment: dict | None = None,
                dm: bool = True, dm_sender=None, inviter=None,
-               record_pending: bool = False) -> dict:
+               record_pending: bool = False, actor: str = "",
+               open_mail: bool = False, mail_opener=None) -> dict:
     """Add ``handle`` to ``project``: the LEAD signs their project card (against
     the roster-attested pubkey, or a PoP ``enrollment`` for keyless/external
     members), the bundle is DM'd over the project's workspace, and they are
@@ -160,11 +161,35 @@ def add_member(project: str, handle: str, *, lab: str | None = None,
     handle onto the project record in that case, so a person from another
     group is a member of the project at once, shown as awaiting a certificate,
     and the enrollment can be finished later from their row. The reply then
-    carries ``"recorded": True``."""
+    carries ``"recorded": True``.
+
+    ``handle`` may be an email address (#258). One murmurent already knows,
+    on this lab's roster or on another lab's records this machine holds,
+    becomes that handle. Any other is recorded as an invitation on the
+    project and the reply carries the drafted email to send
+    (``{"ok": False, "error": "invited", "draft": {...}}``); ``open_mail``
+    opens it in the mail client. When the enrollment later arrives, the
+    handle takes the invitation's place."""
+    from . import project_invites as _inv
+    if _inv.is_email(handle):
+        resolved = _inv.resolve_email(handle, env=env)
+        if not resolved:
+            try:
+                out = _inv.invite(project, handle, actor=actor, env=env,
+                                  open_mail=open_mail, opener=mail_opener)
+            except _cp.CertProjectError as exc:
+                raise ProjectMemberError(str(exc)) from exc
+            return {"ok": False, "error": "invited", "handle": "", "recorded": True,
+                    "dm": {"sent": False, "detail": "not attempted"}, **out}
+        handle = resolved
     try:
         if enrollment is not None:
             bundle = _iss.issue_project_card_pop(handle, enrollment=enrollment,
                                                  project=project, lab=lab, env=env)
+            # The person murmurent had only an email for now has a handle.
+            invited_as = _inv.invited_email_of(enrollment)
+            if invited_as:
+                _inv.settle_invite(project, invited_as, env=env)
         else:
             bundle = _iss.issue_project_card_from_roster(handle, project=project,
                                                          lab=lab, env=env)
