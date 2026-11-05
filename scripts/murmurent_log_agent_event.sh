@@ -15,7 +15,8 @@
 # the `piper` command and its voices are present; else the macOS `say`
 # command; else Linux `spd-say`. The file is both the on switch and the voice
 # table: empty means the defaults below; a line "<agent> <voice>" overrides
-# one agent, and a line "engine say|piper|spd-say" forces an engine.
+# one agent, a line "engine say|piper|spd-say" forces an engine, and
+# "speed <n>" / "noise <n>" tune Piper (see PIPER_SPEED_DEFAULT below).
 # MURMURENT_SPEAK=0 mutes everything for one session; MURMURENT_SPEAK=1 turns
 # it on without the file. The main session never speaks: only a dispatched
 # subagent carries an agent type, and nothing else reaches this branch.
@@ -183,28 +184,37 @@ default_voice() {
 }
 
 # The default Piper voice per agent (scripts/install_piper_voices.sh fetches
-# them into $VOICES_DIR). Each is a distinct single-speaker English voice.
+# them into $VOICES_DIR). Each is a distinct single-speaker English voice,
+# chosen for being easy to follow: "high" quality where one exists, and none
+# of the voices that listeners found hard to understand (#272).
 VOICES_DIR="${MURMURENT_VOICES_DIR:-$HOME/.murmurent/voices}"
 default_piper_voice() {
     case "$1" in
-        adversary)         echo "en_GB-alba-medium" ;;
-        conscience)        echo "en_GB-jenny_dioco-medium" ;;
-        judge)             echo "en_GB-alan-medium" ;;
+        teacher)           echo "en_US-lessac-high" ;;
+        judge)             echo "en_US-ryan-high" ;;
+        adversary)         echo "en_GB-cori-high" ;;
+        scribe)            echo "en_US-ljspeech-high" ;;
         bookworm)          echo "en_GB-southern_english_female-low" ;;
+        conscience)        echo "en_GB-jenny_dioco-medium" ;;
         oracle)            echo "en_US-amy-medium" ;;
         lab_oracle)        echo "en_US-kristin-medium" ;;
-        blacksmith)        echo "en_US-ryan-medium" ;;
+        blacksmith)        echo "en_US-hfc_male-medium" ;;
         artist)            echo "en_US-hfc_female-medium" ;;
-        teacher)           echo "en_US-norman-medium" ;;
-        scribe)            echo "en_US-joe-medium" ;;
-        lawyer)            echo "en_GB-northern_english_male-medium" ;;
+        lawyer)            echo "en_GB-alan-medium" ;;
         millwright)        echo "en_US-john-medium" ;;
         centre_millwright) echo "en_US-bryce-medium" ;;
-        registrar)         echo "en_GB-cori-medium" ;;
-        security_guard)    echo "en_US-hfc_male-medium" ;;
+        registrar)         echo "en_US-joe-medium" ;;
+        security_guard)    echo "en_GB-northern_english_male-medium" ;;
         *)                 echo "en_US-lessac-medium" ;;
     esac
 }
+
+# Piper's own defaults are fast and breathy enough that some voices slur.
+# Verdicts are read 15% slower with less noise; "speed" and "noise" lines in
+# $SPEAK_FILE change that (speed 1.0 is Piper's pace, larger is slower;
+# noise 0.667 is Piper's default, smaller is cleaner).
+PIPER_SPEED_DEFAULT=1.15
+PIPER_NOISE_DEFAULT=0.4
 
 # A line "<key> <value>" from $SPEAK_FILE, last one wins; empty if none.
 speak_setting() {
@@ -260,7 +270,12 @@ speak_with_piper() {
     [[ -f "$model" ]] || return 0
     player="$(wav_player)"; [[ -n "$player" ]] || return 0
     wav="$(mktemp "${TMPDIR:-/tmp}/murmurent_verdict.XXXXXX").wav"
-    printf '%s\n' "$text" | piper -m "$model" -f "$wav" >/dev/null 2>&1 || { rm -f "$wav"; return 0; }
+    local speed noise
+    speed="$(speak_setting speed)"; speed="${speed:-$PIPER_SPEED_DEFAULT}"
+    noise="$(speak_setting noise)"; noise="${noise:-$PIPER_NOISE_DEFAULT}"
+    printf '%s\n' "$text" | piper -m "$model" -f "$wav" \
+        --length-scale "$speed" --noise-scale "$noise" --noise-w-scale 0.5 >/dev/null 2>&1 \
+      || { rm -f "$wav"; return 0; }
     case "$player" in
         ffplay) ffplay -nodisp -autoexit -loglevel quiet "$wav" ;;
         *)      "$player" "$wav" ;;
@@ -273,7 +288,7 @@ speak_with_piper() {
 # arrives while another is being spoken waits its turn rather than talking
 # over it. Silent unless enabled (see the header), and on anything but a Mac.
 speak_verdict() {
-    local agent="$1" text="$2" voice clean name
+    local agent="$1" text="$2" full="${3:-}" voice clean name aloud
     [[ "${MURMURENT_SPEAK:-}" == "0" ]] && return 0
     [[ "${MURMURENT_SPEAK:-}" != "1" && ! -f "$SPEAK_FILE" ]] && return 0
     local engine
@@ -292,27 +307,32 @@ speak_verdict() {
     printf '%s %s\n' "$now" "$key" > "$stamp"
     voice="$(voice_for "$agent" "$engine")"
     name="${agent//_/ }"
-    # What is read: the headline only (the first sentence of the first line),
-    # with web addresses, file paths, identifiers and markdown marks removed.
-    # A verdict is a sentence for the ear; anything a person would need to
-    # read stays in the log.
-    clean="$(printf '%s' "$text" | /usr/bin/python3 -c '
-import re, sys
+    # What is read: the agent's "Aloud:" line when it wrote one (plain English,
+    # up to 100 words; see rules/headline_first.md), else the headline only
+    # (the first sentence of the first line). Either way web addresses, file
+    # paths, identifiers and markdown marks are removed: a verdict is a
+    # sentence for the ear, and anything a person would need to read stays in
+    # the log.
+    aloud="$(printf '%s' "$full" | grep -m1 -E '^[[:space:]]*[*_]*Aloud:' | sed -E 's/^[[:space:]]*[*_]*Aloud:[*_]*[[:space:]]*//' || true)"
+    clean="$(printf '%s' "${aloud:-$text}" | ALOUD="${aloud:+1}" /usr/bin/python3 -c '
+import os, re, sys
 t = sys.stdin.read().strip().splitlines()
 t = t[0] if t else ""
 t = re.sub(r"https?://\S+|www\.\S+", "", t)            # web addresses
 t = re.sub(r"(?<![\w])~?/[\w./-]+", "", t)               # file paths
 t = re.sub(r"\b(doi|pmid|arxiv)\s*:?\s*\S+", "", t, flags=re.I)
 t = re.sub(r"[*_`#>\[\]()]", "", t)
-m = re.match(r"(.+?[.!?])(\s|$)|(.+?)(\s+-\s+)", t)                    # first sentence, before dashes become commas
-t = (m.group(1) or m.group(3)) if m else t
+if not os.environ.get("ALOUD"):
+    m = re.match(r"(.+?[.!?])(\s|$)|(.+?)(\s+-\s+)", t)                # first sentence, before dashes become commas
+    t = (m.group(1) or m.group(3)) if m else t
 t = re.sub(r"\s*[—–]\s*|\s+-\s+", ", ", t)
 t = re.sub(r"\s+", " ", t)
 t = re.sub(r"\s*,(\s*,)+", ",", t)                                   # doubled commas
 t = re.sub(r"\b(in|at|see|from|to|of|under|on)\s*([,.]|$)", r"\2", t)   # word left dangling by a removed path
 t = re.sub(r"\s+([,.])", r"\1", t)                                  # space before punctuation
 t = re.sub(r"\s+", " ", t).strip(" ,;:")
-print(t[:200])
+t = " ".join(t.split()[:100])                                        # at most 100 words
+print(t if os.environ.get("ALOUD") else t[:200])
 ')"
     [[ -z "$clean" ]] && clean="done"
     (
@@ -361,7 +381,7 @@ case "$EVENT" in
         [[ -z "$msg" ]] && msg="done"
         printf '\033[%sm[%s] %s: %s\033[0m\n\n' \
             "$COLOR" "$ts" "$AGENT" "$msg" >> "$LOG"
-        speak_verdict "$AGENT" "$msg"
+        speak_verdict "$AGENT" "$msg" "$LAST_MSG"
         ;;
     *)
         # Unrecognised event — log a single dim line so the user knows

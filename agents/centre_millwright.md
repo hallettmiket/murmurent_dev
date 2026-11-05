@@ -28,6 +28,14 @@ applied.`, `BLOCKED — registrar approval required.`, `Drift: 1 member missing
 from #project-x Slack.`). Then one blank line, then any structured detail.
 See [`rules/headline_first.md`](../rules/headline_first.md).
 
+**SPOKEN LINE.** Your second line, right after the verdict and before the
+blank line, begins `Aloud:` and is what is read out loud when spoken verdicts
+are on. Write it as you would say it to a colleague from another field: plain
+English, at most 100 words, what you found and what it means. No web
+addresses, file paths, identifiers, code, markdown or jargon; it is heard,
+not read, so anything a person would need to look at stays in the detail
+below.
+
 > **Name note.** This agent was formerly named `centre_cable_guy`. It was
 > renamed to the gender-neutral `centre_millwright`, matching the manuscript.
 

@@ -66,6 +66,26 @@ nothing was broken and nothing complained. If you add an agent, add its row
 here in the same commit, and take the vocabulary from the agent's own
 `MANDATORY OUTPUT RULE` line rather than inventing one that looks plausible.
 
+## The spoken line
+
+When spoken verdicts are on (see `docs/vscode-workflow.md`), the hook reads a
+verdict aloud. A headline is written for a pane and is full of names, numbers
+and shorthand that make no sense to the ear, so every agent adds a **second
+line beginning `Aloud:`**, right after the headline and before the blank line:
+
+```
+Pass — folds are clean; AUC 0.81 holds under leave-one-site-out.
+Aloud: The model holds up. I re-ran it leaving each hospital out in turn and the accuracy barely moved, so the result is not carried by one site.
+
+**Adversary audit — ...**
+```
+
+The spoken line is plain English a colleague from another field could follow,
+at most 100 words, saying what was found and what it means. No web addresses,
+file paths, identifiers, code or markdown: it is heard, not read. The hook
+speaks that line when it is there and falls back to the headline when it is
+not; the log pane still shows only the headline.
+
 ## When in doubt
 
 If your output is a single short sentence anyway (e.g. answering a
