@@ -72,6 +72,12 @@ they receive.
   is present, on a Mac or on Linux, and otherwise the Mac's `say` or
   Linux's `spd-say` as before. `engine say` in `~/.murmurent/speak` forces
   the old engine; `audition` plays every voice.
+- **Agents say their verdict in plain English.** Every agent now writes a
+  second line beginning `Aloud:` under its headline, a summary of at most 100
+  words written to be heard, and the hook speaks that line instead of the
+  headline's shorthand. Piper voices were re-chosen by listening (the `high`
+  voices for the agents heard most often) and are read a little slower with
+  less noise; `speed` and `noise` lines in `~/.murmurent/speak` tune that.
 
 ### Changed
 - **Readiness travels with the clone** (#257). Make ready commits the marker,
