@@ -163,3 +163,45 @@ def test_dashboard_refuses_revoked_card(monkeypatch, tmp_path):
     res = client.get("/api/dashboard?user=yxia266")
     assert res.status_code == 403
     assert "has been withdrawn" in res.json()["detail"]
+
+
+def test_current_crl_ignores_root_key_of_another_centre():
+    """A machine that holds the root key of its own test centre and is a member of
+    another centre must not sign the other centre's list with that key: the list
+    would fail verification against the other centre's pin. It gets the
+    distributed list instead (None when there is none)."""
+    other = Ed25519PrivateKey.generate()
+    C.pin_root("mh", other.public_key())
+    CR.generate_root_key()                      # this machine's own test centre
+    C.pin_root("qa", CR.root_public())
+    assert REV.current_crl("mh") is None        # nothing distributed yet
+    dist = C.build_crl(centre="mh", revoked=[], root_priv=other, serial=3)
+    REV.import_distributed_crl("mh", dist)
+    assert REV.current_crl("mh") == dist
+    ok, _, reason = C._check_crl(REV.current_crl("mh"), other.public_key(),
+                                 datetime.now(timezone.utc), "mh")
+    assert ok, reason
+    # its own centre's list is still signed fresh with its own root key
+    own = REV.current_crl("qa")
+    assert K.verify(own["payload"], own["signature"], CR.root_public())
+
+
+def test_revoke_refuses_root_key_of_another_centre():
+    C.pin_root("mh", Ed25519PrivateKey.generate().public_key())
+    CR.generate_root_key()
+    with pytest.raises(REV.RevocationError, match="not the key trusted"):
+        REV.revoke("mh", card_id="c1")
+
+
+def test_signing_key_must_match_pinned_anchor():
+    """revoke_with_local_key / revoke_project sign with a key only when it matches
+    the centre's pin."""
+    K.generate_keypair()
+    CR.generate_root_key()
+    C.pin_root("mh", Ed25519PrivateKey.generate().public_key())
+    assert REV._crl_signing_priv("mh") is None
+    with pytest.raises(REV.RevocationError, match="no signing key"):
+        REV.revoke_with_local_key("mh", card_id="c1")
+    C.pin_root("pi_lab", K.load_public())       # standalone PI: machine key is the anchor
+    priv = REV._crl_signing_priv("pi_lab")
+    assert K.fingerprint(priv.public_key()) == K.local_fingerprint()
