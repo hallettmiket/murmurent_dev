@@ -199,7 +199,9 @@ def test_missing_bot_token_names_the_fix(world):
                                       poster=lambda *a, **k: True)
     assert not ok
     assert "no Slack bot token on this machine for project 'brca'" in detail
-    assert "murmurent group-slack-setup mh" in detail
+    # no identity card in this world, so this is a member's machine: it is told
+    # to unlock the copy the PI shared, not to set the token up itself
+    assert "murmurent group-slack-unlock mh" in detail
 
 
 def test_cli_adopt_links_every_agent_by_default_like_the_dashboard(world):

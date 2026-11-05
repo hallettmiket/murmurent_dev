@@ -17,6 +17,18 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 
 ## [Unreleased]
 
+### Added
+- **Members can post project notes from their own machines.** The lab's Slack
+  bot token used to exist only on the PI's machine, so `murmurent project note`
+  from a member's machine stopped at "no Slack bot token on this machine". New
+  `murmurent group-slack-share <lab>` (PI) seals the token to the card key each
+  active member attested at issuance and commits the box to the lab records
+  (`security/slack_bot_token.sealed.json`); new `murmurent group-slack-unlock
+  <lab>` (member) opens it with the machine's own key and stores the token at
+  the usual per-machine path. `murmurent project note` tries the unlock itself
+  when a machine has no token, and otherwise prints the exact command for that
+  machine. Design and the relay alternative: `docs/slack_routing.md`.
+
 ## [2026.11.0] - 2026-11-02
 
 **To upgrade:** `uv tool upgrade murmurent`, then `murmurent install --hooks`,
