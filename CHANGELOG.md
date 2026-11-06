@@ -18,6 +18,11 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 ## [Unreleased]
 
 ### Added
+- **Windows on ARM installs without a compiler** (#281). `cryptography`
+  stopped shipping Windows ARM wheels after 46.0.3, so `uv tool install`
+  on a Surface or a Parallels VM tried to build it with Rust and failed.
+  That platform is now held at 46.0.3 in `pyproject.toml`; every other
+  platform keeps the current release.
 - **Windows: supported through WSL, and `murmurent` now starts on a native
   Windows Python** (#281). Every command used to stop with "No module named
   'pwd'" before printing anything, and the vault-sync hook failed the same way
