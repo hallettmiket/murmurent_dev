@@ -134,3 +134,16 @@ def test_doctor_uses_ascii_icons_on_a_legacy_console(monkeypatch):
     assert doctor_cmd._icons() == {doctor_cmd.OK: "ok", doctor_cmd.WARN: "!", doctor_cmd.FAIL: "x"}
     monkeypatch.setattr(sys, "stdout", io.TextIOWrapper(io.BytesIO(), encoding="utf-8"))
     assert doctor_cmd._icons()[doctor_cmd.OK] == "✓"
+
+
+def test_run_supervisor_imports_without_sigkill(monkeypatch) -> None:
+    """Windows has no SIGKILL; the supervisor's hint table must not need it (#281)."""
+    import importlib
+    import signal
+
+    monkeypatch.delattr(signal, "SIGKILL")
+    sys.modules.pop("murmurent.core.run_supervisor", None)
+    rs = importlib.import_module("murmurent.core.run_supervisor")
+    assert signal.SIGSEGV in rs.SIGNAL_HINTS
+    assert len(rs.SIGNAL_HINTS) == 1
+    sys.modules.pop("murmurent.core.run_supervisor", None)
