@@ -45,6 +45,23 @@ WARN = "warn"
 FAIL = "fail"
 
 _ICON = {OK: "✓", WARN: "!", FAIL: "✗"}
+_ASCII_ICON = {OK: "ok", WARN: "!", FAIL: "x"}
+
+
+def _icons() -> dict[str, str]:
+    """The ✓/✗ icons, or ASCII ones on a console that cannot encode them.
+
+    A Windows console with a legacy code page would otherwise show "?" for
+    both OK and FAIL, which is the one distinction the report is for (#281).
+    """
+    import sys
+
+    encoding = getattr(sys.stdout, "encoding", None) or "utf-8"
+    try:
+        "✓✗".encode(encoding)
+    except (UnicodeEncodeError, LookupError):
+        return _ASCII_ICON
+    return _ICON
 
 #: The release repository carries one commit per release. A clone with far more
 #: history than that is a development clone, whatever its remote says.
@@ -363,8 +380,9 @@ def run_checks() -> list[Check]:
 
 def cmd_doctor() -> int:
     checks = run_checks()
+    icons = _icons()
     for c in checks:
-        click.echo(f"  {_ICON[c.status]} {c.name}: {c.detail}")
+        click.echo(f"  {icons[c.status]} {c.name}: {c.detail}")
         if c.fix and c.status != OK:
             click.echo(f"      fix: {c.fix}")
     fails = sum(1 for c in checks if c.status == FAIL)

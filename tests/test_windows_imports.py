@@ -123,3 +123,14 @@ def test_setup_refuses_plainly_when_symlinks_are_not_allowed(tmp_path, monkeypat
     assert "cannot create symlinks" in err
     assert "WSL" in err and "Developer Mode" in err
     assert not (tmp_path / "claude" / "agents" / "oracle.md").exists()
+
+
+def test_doctor_uses_ascii_icons_on_a_legacy_console(monkeypatch):
+    import io
+
+    from murmurent.commands import doctor_cmd
+
+    monkeypatch.setattr(sys, "stdout", io.TextIOWrapper(io.BytesIO(), encoding="cp1252"))
+    assert doctor_cmd._icons() == {doctor_cmd.OK: "ok", doctor_cmd.WARN: "!", doctor_cmd.FAIL: "x"}
+    monkeypatch.setattr(sys, "stdout", io.TextIOWrapper(io.BytesIO(), encoding="utf-8"))
+    assert doctor_cmd._icons()[doctor_cmd.OK] == "✓"
