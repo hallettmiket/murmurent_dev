@@ -309,6 +309,20 @@ def check_launcher() -> Check:
     return Check("dashboard icon", WARN, "no Murmurent Dashboard icon", "murmurent launcher")
 
 
+def check_platform() -> Check:
+    """Where this operating system stands (#281). Windows is supported through
+    WSL (Windows Subsystem for Linux, an Ubuntu inside Windows); a native
+    Windows Python can run this command but not the bash hooks, the symlinked
+    commons or spoken verdicts. Inside WSL ``sys.platform`` is ``linux``, so
+    this check passes there."""
+    if sys.platform.startswith("win"):
+        return Check("operating system", WARN,
+                     "native Windows: murmurent is supported on Windows through WSL only",
+                     "install WSL (`wsl --install` in an administrator PowerShell), then "
+                     "follow the Linux steps in docs/setup.md inside it")
+    return Check("operating system", OK, {"darwin": "macOS"}.get(sys.platform, sys.platform))
+
+
 def check_lab_records() -> Check:
     """Is the group's records repo on this machine, and if not, can this
     GitHub account get it? A failed clone has four different causes that all
@@ -336,7 +350,8 @@ def check_lab_records() -> Check:
 
 
 def run_checks() -> list[Check]:
-    checks: list[Check] = [check_python(), check_path_tools(), check_version(), check_clone_remote()]
+    checks: list[Check] = [check_platform(), check_python(), check_path_tools(), check_version(),
+                           check_clone_remote()]
     checks.extend(check_links())
     checks.append(check_hooks())
     checks.append(check_packaged_commons())
