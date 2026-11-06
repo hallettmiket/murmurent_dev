@@ -71,3 +71,55 @@ def test_doctor_names_wsl_on_windows(monkeypatch) -> None:
 def test_doctor_passes_the_platform_check_on_unix(monkeypatch) -> None:
     monkeypatch.setattr(sys, "platform", "linux")
     assert doctor_cmd.check_platform().status == doctor_cmd.OK
+
+
+def test_a_legacy_console_gets_question_marks_not_a_crash(monkeypatch):
+    """A cp1252 console (the Windows default) must not kill a command on ✓ (#281)."""
+    import io
+
+    from murmurent import cli as _cli
+
+    console = io.TextIOWrapper(io.BytesIO(), encoding="cp1252", errors="strict")
+    monkeypatch.setattr(sys, "stdout", console)
+    monkeypatch.setattr(sys, "stderr", console)
+    _cli.tolerate_console_encoding()
+    console.write("  ✓ operating system: macOS\n")
+    console.flush()
+    assert console.buffer.getvalue() == b"  ? operating system: macOS\n"
+
+
+def test_a_utf8_console_is_left_alone(monkeypatch):
+    import io
+
+    from murmurent import cli as _cli
+
+    console = io.TextIOWrapper(io.BytesIO(), encoding="utf-8", errors="strict")
+    monkeypatch.setattr(sys, "stdout", console)
+    monkeypatch.setattr(sys, "stderr", console)
+    _cli.tolerate_console_encoding()
+    assert console.errors == "strict"
+
+
+def test_setup_refuses_plainly_when_symlinks_are_not_allowed(tmp_path, monkeypatch, capsys):
+    """Windows without Developer Mode refuses symlinks (WinError 1314); setup
+    must say so and point at WSL, not die in a traceback (#281)."""
+    from pathlib import Path
+
+    from murmurent.commands import setup_cmd
+
+    root = tmp_path / "commons"
+    (root / "agents").mkdir(parents=True)
+    (root / "agents" / "oracle.md").write_text("# oracle\n", encoding="utf-8")
+    monkeypatch.setenv("MURMURENT_COMMONS_ROOT", str(root))
+    monkeypatch.setenv("MURMURENT_CC_DIR", str(tmp_path / "claude"))
+
+    def refuse(self, target, target_is_directory=False):
+        raise OSError(1314, "A required privilege is not held by the client")
+
+    monkeypatch.setattr(Path, "symlink_to", refuse)
+    rc = setup_cmd.cmd_setup(show_next_step=False)
+    err = capsys.readouterr().err
+    assert rc == 1
+    assert "cannot create symlinks" in err
+    assert "WSL" in err and "Developer Mode" in err
+    assert not (tmp_path / "claude" / "agents" / "oracle.md").exists()

@@ -10,6 +10,7 @@ Output: Side effects per subcommand; v1 working commands write to stdout.
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 import click
@@ -53,11 +54,30 @@ def _stub(*_args, **_kwargs) -> None:
     click.echo(NOT_IMPLEMENTED_MSG)
 
 
+def tolerate_console_encoding() -> None:
+    """Let murmurent's ✓ and ✗ reach a console that cannot encode them.
+
+    A Windows console usually runs with a legacy code page (cp1252), on which
+    ``click.echo("✓")`` raises ``UnicodeEncodeError`` and the command dies
+    half-way through its output (#281). Swap the undecodable character for
+    ``?`` instead. Streams that are not real consoles (the test runner's, a
+    pipe already in UTF-8) are left alone.
+    """
+    for stream in (sys.stdout, sys.stderr):
+        encoding = (getattr(stream, "encoding", None) or "").lower().replace("-", "")
+        if encoding and encoding != "utf8" and hasattr(stream, "reconfigure"):
+            try:
+                stream.reconfigure(errors="replace")
+            except (ValueError, OSError):  # pragma: no cover - closed or odd stream
+                pass
+
+
 @click.group(help="murmurent — group-level agentic infrastructure CLI.")
 @click.version_option(__version__, prog_name="murmurent")
 @click.pass_context
 def cli(ctx: click.Context) -> None:
     """Top-level entry point."""
+    tolerate_console_encoding()
     # Clone-first identity: the first real command a member runs after cloning
     # mints THIS machine's ed25519 keypair (their unique murmurent ID). Idempotent
     # + best-effort; ``MURMURENT_NO_AUTOKEY`` (set by the test suite) opts out. Only

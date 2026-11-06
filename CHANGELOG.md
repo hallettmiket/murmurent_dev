@@ -23,8 +23,10 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
   'pwd'" before printing anything, and the vault-sync hook failed the same way
   on `fcntl`; those imports are now made only where Unix has them. `murmurent
   doctor` gains an "operating system" check that names WSL on Windows, and
-  `docs/setup.md` says how to install it. Nothing else is ported: the bash
-  hooks, the symlinked commons and spoken verdicts still need Unix.
+  `docs/setup.md` says how to install it. A Windows console with a legacy
+  code page no longer kills a command at the first ✓: the character is
+  replaced instead. Nothing else is ported: the bash hooks, the symlinked
+  commons and spoken verdicts still need Unix.
 - **Agents can speak their verdicts in another language** (#279).
   `murmurent config speak-language fr_FR` (or any of the languages
   `--list` shows) records the choice in `~/.murmurent/speak` and fetches that
