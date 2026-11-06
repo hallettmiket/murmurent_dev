@@ -159,10 +159,14 @@ frontmatter schema + the membership.add() writer; then extend
 **Done for Mac and Linux** (issue #156): `murmurent launcher` creates the icon
 on every install route, and `murmurent install` runs it.
 
-**Remaining: Windows.** First decide whether murmurent supports Windows
-directly or only through WSL (Linux running inside Windows). If WSL only, say
-so in the docs and stop. If directly, add a Start-menu shortcut to
-`core/launcher.py`, opening port 8770, and test it on a real Windows machine.
+**Decided for now: WSL only** (issue #281, 2026-11-05). `docs/setup.md`
+says so, `murmurent doctor` says so on a native Windows Python, and the CLI,
+hooks and MCP servers at least import there (`tests/test_windows_imports.py`
+keeps it that way). A native port would still need: the bash agent-event hook
+rewritten (it calls `/usr/bin/python3`, `say`, `pgrep`), copies instead of
+symlinks when Windows refuses them, guards on every `chmod` and `getuid`, a
+socket probe instead of `lsof`, a Windows CI job, and then the Start-menu
+shortcut in `core/launcher.py`. Revisit if WSL proves too much for students.
 
 ---
 

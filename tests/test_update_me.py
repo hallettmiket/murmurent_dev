@@ -21,6 +21,10 @@ from pathlib import Path
 import pytest
 import yaml
 
+# The skill reads a lab server (Unix accounts, groups, tilde paths); the scripts
+# must import on Windows (#281), but what they do only makes sense on Unix.
+pytestmark = pytest.mark.skipif(sys.platform == "win32", reason="update-me reads a Unix lab server")
+
 SKILL = Path(__file__).resolve().parent.parent / "skills" / "murmurent-update-me"
 
 

@@ -33,6 +33,8 @@ from murmurent.core.millwright_policy import POLICY_ENV, load_policy
 
 MB = 1024 * 1024
 DAY = 86400
+if not hasattr(os, "getuid"):  # Windows: lab space scans run on a Unix server (#281)
+    pytest.skip("lab space scans need a Unix server", allow_module_level=True)
 ME = ss.owner_name(os.getuid())
 
 

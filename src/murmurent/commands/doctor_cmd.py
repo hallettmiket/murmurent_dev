@@ -45,6 +45,23 @@ WARN = "warn"
 FAIL = "fail"
 
 _ICON = {OK: "✓", WARN: "!", FAIL: "✗"}
+_ASCII_ICON = {OK: "ok", WARN: "!", FAIL: "x"}
+
+
+def _icons() -> dict[str, str]:
+    """The ✓/✗ icons, or ASCII ones on a console that cannot encode them.
+
+    A Windows console with a legacy code page would otherwise show "?" for
+    both OK and FAIL, which is the one distinction the report is for (#281).
+    """
+    import sys
+
+    encoding = getattr(sys.stdout, "encoding", None) or "utf-8"
+    try:
+        "✓✗".encode(encoding)
+    except (UnicodeEncodeError, LookupError):
+        return _ASCII_ICON
+    return _ICON
 
 #: The release repository carries one commit per release. A clone with far more
 #: history than that is a development clone, whatever its remote says.
@@ -309,6 +326,20 @@ def check_launcher() -> Check:
     return Check("dashboard icon", WARN, "no Murmurent Dashboard icon", "murmurent launcher")
 
 
+def check_platform() -> Check:
+    """Where this operating system stands (#281). Windows is supported through
+    WSL (Windows Subsystem for Linux, an Ubuntu inside Windows); a native
+    Windows Python can run this command but not the bash hooks, the symlinked
+    commons or spoken verdicts. Inside WSL ``sys.platform`` is ``linux``, so
+    this check passes there."""
+    if sys.platform.startswith("win"):
+        return Check("operating system", WARN,
+                     "native Windows: murmurent is supported on Windows through WSL only",
+                     "install WSL (`wsl --install` in an administrator PowerShell), then "
+                     "follow the Linux steps in docs/setup.md inside it")
+    return Check("operating system", OK, {"darwin": "macOS"}.get(sys.platform, sys.platform))
+
+
 def check_lab_records() -> Check:
     """Is the group's records repo on this machine, and if not, can this
     GitHub account get it? A failed clone has four different causes that all
@@ -336,7 +367,8 @@ def check_lab_records() -> Check:
 
 
 def run_checks() -> list[Check]:
-    checks: list[Check] = [check_python(), check_path_tools(), check_version(), check_clone_remote()]
+    checks: list[Check] = [check_platform(), check_python(), check_path_tools(), check_version(),
+                           check_clone_remote()]
     checks.extend(check_links())
     checks.append(check_hooks())
     checks.append(check_packaged_commons())
@@ -348,8 +380,9 @@ def run_checks() -> list[Check]:
 
 def cmd_doctor() -> int:
     checks = run_checks()
+    icons = _icons()
     for c in checks:
-        click.echo(f"  {_ICON[c.status]} {c.name}: {c.detail}")
+        click.echo(f"  {icons[c.status]} {c.name}: {c.detail}")
         if c.fix and c.status != OK:
             click.echo(f"      fix: {c.fix}")
     fails = sum(1 for c in checks if c.status == FAIL)
