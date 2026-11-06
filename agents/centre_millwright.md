@@ -34,7 +34,9 @@ are on. Write it as you would say it to a colleague from another field: plain
 English, at most 100 words, what you found and what it means. No web
 addresses, file paths, identifiers, code, markdown or jargon; it is heard,
 not read, so anything a person would need to look at stays in the detail
-below.
+below. In English, unless the session context names the spoken language
+set for this machine (`murmurent config speak-language`): then the
+`Aloud:` line alone is written in that language.
 
 > **Name note.** This agent was formerly named `centre_cable_guy`. It was
 > renamed to the gender-neutral `centre_millwright`, matching the manuscript.

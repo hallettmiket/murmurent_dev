@@ -86,6 +86,14 @@ file paths, identifiers, code or markdown: it is heard, not read. The hook
 speaks that line when it is there and falls back to the headline when it is
 not; the log pane still shows only the headline.
 
+**Language.** The spoken line is in English unless the machine has chosen a
+language (`murmurent config speak-language fr_FR`, say). Then a hook tells
+each subagent, before its first prompt, to write the `Aloud:` line in that
+language, and the hook reads it with a voice for that language; the headline
+and the detail stay as they are. An agent with no such note in its context
+writes English. The choices and how the voices are installed:
+`docs/vscode-workflow.md`, "Spoken verdicts".
+
 ## When in doubt
 
 If your output is a single short sentence anyway (e.g. answering a

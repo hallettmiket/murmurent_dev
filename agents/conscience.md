@@ -40,7 +40,9 @@ are on. Write it as you would say it to a colleague from another field: plain
 English, at most 100 words, what you found and what it means. No web
 addresses, file paths, identifiers, code, markdown or jargon; it is heard,
 not read, so anything a person would need to look at stays in the detail
-below.
+below. In English, unless the session context names the spoken language
+set for this machine (`murmurent config speak-language`): then the
+`Aloud:` line alone is written in that language.
 
 **Reviewing is the default.** You are pointed at something and infer whether one of two other things is wanted: **DESIGN** when nothing is built yet, **EXPLAIN** when a concept needs to land. Nobody types a mode. `Gap` is the one word for an honest failure on any path — *I cannot deliver this* — and saying which is the delivery.
 

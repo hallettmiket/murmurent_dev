@@ -18,6 +18,16 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 ## [Unreleased]
 
 ### Added
+- **Agents can speak their verdicts in another language** (#279).
+  `murmurent config speak-language fr_FR` (or any of the languages
+  `--list` shows) records the choice in `~/.murmurent/speak` and fetches that
+  language's Piper voice. A new `SubagentStart` hook (installed by
+  `murmurent install --hooks`) tells each agent, before its first prompt, to
+  write its `Aloud:` line in that language; the hook then reads it with a
+  voice for the language (one Piper voice per language, or the Mac's own).
+  Headline and detail stay in English. English stays the default; a machine
+  that picks no language is unchanged. `docs/vscode-workflow.md`, "Spoken
+  verdicts".
 - **Members can post project notes from their own machines.** The lab's Slack
   bot token used to exist only on the PI's machine, so `murmurent project note`
   from a member's machine stopped at "no Slack bot token on this machine". New

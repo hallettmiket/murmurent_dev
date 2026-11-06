@@ -216,6 +216,61 @@ def config_project_layout(layout: str | None) -> None:
                "(to move one: murmurent project gather <name>).")
 
 
+@config_group.command("speak-language",
+                      help="Show or set the language agents speak their verdicts in on "
+                           "this computer (a Piper language code such as fr_FR; "
+                           "'en' goes back to English). Stored as the 'language' "
+                           "line of ~/.murmurent/speak. Fetches the language's voice "
+                           "when Piper is installed.")
+@click.argument("code", required=False)
+@click.option("--voice", default="", metavar="NAME",
+              help="A Piper voice for every agent in this language, instead of the "
+                   "table's. Required for a language the table does not list.")
+@click.option("--list", "list_", is_flag=True, help="List the languages with a voice.")
+def config_speak_language(code: str | None, voice: str, list_: bool) -> None:
+    import shutil
+    import subprocess
+    from .core import speak as _speak
+
+    table = _speak.languages()
+    if list_:
+        click.echo("en     English     (one voice per agent)")
+        for l in table:
+            click.echo(f"{l.code:6} {l.name:11} {l.piper_voice:28} {l.say_voice}")
+        return
+    if not code:
+        lang, chosen = _speak.current()
+        if not lang:
+            click.echo("English (the default; one voice per agent)")
+            return
+        known = {l.code: l for l in table}.get(lang)
+        name = known.name if known else lang
+        v = chosen or (known.piper_voice if known else "no voice set")
+        click.echo(f"{name} ({lang}), Piper voice {v}")
+        return
+    known = {l.code: l for l in table}.get(code)
+    if not _speak.is_english(code) and known is None and not voice:
+        raise click.ClickException(
+            f"{code} is not in the table (murmurent config speak-language --list). "
+            "Name a Piper voice for it with --voice; "
+            "~/.local/share/uv/tools/piper-tts/bin/python -m piper.download_voices lists them.")
+    path = _speak.set_language(code, voice)
+    if _speak.is_english(code):
+        click.echo(f"Agents speak English again ({path}).")
+        return
+    chosen = voice or known.piper_voice
+    click.echo(f"Agents will write and speak their Aloud line in "
+               f"{known.name if known else code}, Piper voice {chosen} ({path}).")
+    installer = _speak.hook_script().with_name("install_piper_voices.sh")
+    if shutil.which("piper") and installer.is_file():
+        click.echo("Fetching the voice if it is not there yet...")
+        subprocess.run(["bash", str(installer)], check=False)
+    else:
+        click.echo(f"Piper is not installed; the Mac's own voice is used. "
+                   f"For Piper voices: bash {installer}")
+    click.echo("Restart Claude Code for agents already running to pick it up.")
+
+
 @cli.command("setup", help="Wire the murmurent commons (agents, rules, skills) into ~/.claude/.")
 def setup_command() -> None:
     raise SystemExit(setup_cmd.cmd_setup())

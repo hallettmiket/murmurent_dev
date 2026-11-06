@@ -8,6 +8,8 @@
 # Wired up via .claude/settings.json:
 #   PreToolUse(Agent) → "<agent>: starting — <description>"
 #   SubagentStop      → "<agent>: done"
+#   SubagentStart     → nothing logged; when a spoken language is set, tells
+#                       the subagent to write its "Aloud:" line in it (#279)
 #
 # Spoken verdicts: when ~/.murmurent/speak exists, each SubagentStop line is
 # also read aloud, one voice per agent. Two engines: Piper (neural voices,
@@ -16,7 +18,11 @@
 # command; else Linux `spd-say`. The file is both the on switch and the voice
 # table: empty means the defaults below; a line "<agent> <voice>" overrides
 # one agent, a line "engine say|piper|spd-say" forces an engine, and
-# "speed <n>" / "noise <n>" tune Piper (see PIPER_SPEED_DEFAULT below).
+# "speed <n>" / "noise <n>" tune Piper (see PIPER_SPEED_DEFAULT below), and
+# "language <code>" (a Piper language code such as fr_FR; set with
+# `murmurent config speak-language`) makes every agent write and speak its
+# "Aloud:" line in that language, with one voice for that language from the
+# table in language_voice below; a "voice <name>" line replaces that voice.
 # MURMURENT_SPEAK=0 mutes everything for one session; MURMURENT_SPEAK=1 turns
 # it on without the file. The main session never speaks: only a dispatched
 # subagent carries an agent type, and nothing else reaches this branch.
@@ -209,6 +215,69 @@ default_piper_voice() {
     esac
 }
 
+# Spoken language (#279). One row per language murmurent knows how to voice:
+# the Piper language code, the language's English name (what the agent is
+# told to write in), the Piper voice every agent shares in that language
+# (few languages have fifteen voices, so agents are told apart by name, not
+# voice), and the Mac `say` voice shipped for it. English keeps the per-agent
+# tables above. `murmurent config speak-language` and
+# scripts/install_piper_voices.sh read this table from here, so the three can
+# never disagree. A language not listed still works when a "voice" line in
+# $SPEAK_FILE names a Piper voice for it.
+language_voice() {
+    case "$1" in
+        fr_FR) echo "French|fr_FR-siwis-medium|Thomas" ;;
+        de_DE) echo "German|de_DE-thorsten-high|Anna" ;;
+        es_ES) echo "Spanish|es_ES-davefx-medium|Mónica" ;;
+        es_MX) echo "Spanish|es_MX-claude-high|Paulina" ;;
+        it_IT) echo "Italian|it_IT-paola-medium|Alice" ;;
+        pt_BR) echo "Portuguese|pt_BR-faber-medium|Luciana" ;;
+        pt_PT) echo "Portuguese|pt_PT-tugão-medium|Joana" ;;
+        nl_NL) echo "Dutch|nl_NL-pim-medium|Xander" ;;
+        nl_BE) echo "Dutch|nl_BE-nathalie-medium|Ellen" ;;
+        sv_SE) echo "Swedish|sv_SE-nst-medium|Alva" ;;
+        da_DK) echo "Danish|da_DK-talesyntese-medium|Sara" ;;
+        no_NO) echo "Norwegian|no_NO-talesyntese-medium|Nora" ;;
+        fi_FI) echo "Finnish|fi_FI-harri-medium|Satu" ;;
+        pl_PL) echo "Polish|pl_PL-gosia-medium|Zosia" ;;
+        cs_CZ) echo "Czech|cs_CZ-jirka-medium|Zuzana" ;;
+        hu_HU) echo "Hungarian|hu_HU-anna-medium|Tünde" ;;
+        ro_RO) echo "Romanian|ro_RO-mihai-medium|Ioana" ;;
+        el_GR) echo "Greek|el_GR-rapunzelina-medium|Melina" ;;
+        tr_TR) echo "Turkish|tr_TR-dfki-medium|Yelda" ;;
+        ru_RU) echo "Russian|ru_RU-irina-medium|Milena" ;;
+        uk_UA) echo "Ukrainian|uk_UA-ukrainian_tts-medium|Lesya" ;;
+        ca_ES) echo "Catalan|ca_ES-upc_ona-medium|Montse" ;;
+        he_IL) echo "Hebrew|he_IL-saspeech-medium|Carmit" ;;
+        ar_JO) echo "Arabic|ar_JO-kareem-medium|Majed" ;;
+        hi_IN) echo "Hindi|hi_IN-priyamvada-medium|Lekha" ;;
+        zh_CN) echo "Chinese|zh_CN-huayan-medium|Tingting" ;;
+        ja_JP) echo "Japanese|ja_JP-hi_fi_captain-medium|Kyoko" ;;
+        ko_KR) echo "Korean|ko_KR-kss-medium|Yuna" ;;
+        vi_VN) echo "Vietnamese|vi_VN-vais1000-medium|Linh" ;;
+        *)     echo "" ;;
+    esac
+}
+
+# The spoken language: the "language" line in $SPEAK_FILE, or English (empty)
+# when there is none or it names English.
+speak_language() {
+    local l
+    l="$(speak_setting language)"
+    case "$l" in ""|en|en_*|english|English) echo "" ;; *) echo "$l" ;; esac
+}
+
+# The one voice every agent uses in the spoken language: the "voice" line in
+# $SPEAK_FILE if there is one, else the table's voice for the language. Empty
+# for English, and for an unknown language with no "voice" line.
+language_piper_voice() {
+    local lang v
+    lang="$(speak_language)"; [[ -n "$lang" ]] || return 0
+    v="$(speak_setting voice)"
+    [[ -n "$v" ]] && { printf '%s' "$v"; return 0; }
+    language_voice "$lang" | cut -d'|' -f2
+}
+
 # Piper's own defaults are fast and breathy enough that some voices slur.
 # Verdicts are read 15% slower with less noise; "speed" and "noise" lines in
 # $SPEAK_FILE change that (speed 1.0 is Piper's pace, larger is slower;
@@ -231,7 +300,9 @@ speak_engine() {
     local e
     e="$(speak_setting engine)"
     if [[ -n "$e" ]]; then echo "$e"; return 0; fi
-    if command -v piper >/dev/null 2>&1 && [[ -f "$VOICES_DIR/$(default_piper_voice _)".onnx ]]; then
+    local probe
+    probe="$(language_piper_voice)"; probe="${probe:-$(default_piper_voice _)}"
+    if command -v piper >/dev/null 2>&1 && [[ -f "$VOICES_DIR/$probe".onnx ]]; then
         echo piper
     elif command -v say >/dev/null 2>&1; then
         echo say
@@ -255,6 +326,12 @@ voice_for() {
     local agent="$1" engine="$2" v
     v="$(speak_setting "$agent")"
     if [[ -n "$v" ]]; then printf '%s' "$v"; return 0; fi
+    local lang
+    lang="$(speak_language)"
+    if [[ -n "$lang" ]]; then
+        if [[ "$engine" == piper ]]; then language_piper_voice; else language_voice "$lang" | cut -d'|' -f3; fi
+        return 0
+    fi
     if [[ "$engine" == piper ]]; then default_piper_voice "$agent"; else default_voice "$agent"; fi
 }
 
@@ -265,8 +342,18 @@ voice_for() {
 speak_with_piper() {
     local agent="$1" voice="$2" text="$3" model player wav
     model="$voice"; [[ "$model" != *.onnx ]] && model="$VOICES_DIR/$model.onnx"
-    [[ -f "$model" ]] || model="$VOICES_DIR/$(default_piper_voice "$agent").onnx"
-    [[ -f "$model" ]] || model="$VOICES_DIR/$(default_piper_voice _).onnx"
+    if [[ ! -f "$model" ]]; then
+        local lv
+        lv="$(language_piper_voice)"
+        if [[ -n "$lv" ]]; then
+            # Another language: its voice or nothing. An English voice reading
+            # French is worse than silence, and the installer fetches it.
+            model="$VOICES_DIR/$lv.onnx"
+        else
+            model="$VOICES_DIR/$(default_piper_voice "$agent").onnx"
+            [[ -f "$model" ]] || model="$VOICES_DIR/$(default_piper_voice _).onnx"
+        fi
+    fi
     [[ -f "$model" ]] || return 0
     player="$(wav_player)"; [[ -n "$player" ]] || return 0
     wav="$(mktemp "${TMPDIR:-/tmp}/murmurent_verdict.XXXXXX").wav"
@@ -288,7 +375,7 @@ speak_with_piper() {
 # arrives while another is being spoken waits its turn rather than talking
 # over it. Silent unless enabled (see the header), and on anything but a Mac.
 speak_verdict() {
-    local agent="$1" text="$2" full="${3:-}" voice clean name aloud
+    local agent="$1" text="$2" full="${3:-}" voice clean name aloud lang
     [[ "${MURMURENT_SPEAK:-}" == "0" ]] && return 0
     [[ "${MURMURENT_SPEAK:-}" != "1" && ! -f "$SPEAK_FILE" ]] && return 0
     local engine
@@ -340,7 +427,8 @@ print(t if os.environ.get("ALOUD") else t[:200])
         while pgrep -q -x 'say|spd-say|piper|afplay|paplay|aplay|pw-play|ffplay'; do sleep 0.3; done
         case "$engine" in
             piper)   speak_with_piper "$agent" "$voice" "$name. $clean" ;;
-            spd-say) if [[ -n "$voice" ]]; then spd-say -w -y "$voice" -- "$name. $clean"; else spd-say -w -- "$name. $clean"; fi ;;
+            spd-say) local lang_flag=(); lang="$(speak_language)"; [[ -n "$lang" ]] && lang_flag=(-l "${lang%%_*}")
+                     if [[ -n "$voice" ]]; then spd-say -w "${lang_flag[@]}" -y "$voice" -- "$name. $clean"; else spd-say -w "${lang_flag[@]}" -- "$name. $clean"; fi ;;
             *)       if [[ -n "$voice" ]]; then say -v "$voice" -- "$name. $clean"; else say -- "$name. $clean"; fi ;;
         esac
     ) </dev/null >/dev/null 2>&1 &
@@ -362,6 +450,29 @@ case "$EVENT" in
         # to scan one event at a time than a dense wall of text.
         printf '\033[%sm[%s] %s: starting — %s\033[0m\n\n' \
             "$COLOR" "$ts" "$AGENT" "$short" >> "$LOG"
+        ;;
+    SubagentStart)
+        # Nothing is logged (PreToolUse already wrote the "starting" line).
+        # When a spoken language is set, tell the subagent before its first
+        # prompt to write its "Aloud:" line in that language (#279). Claude
+        # Code adds what is printed here to the subagent's context. Silent for
+        # English and when spoken verdicts are off, so nothing changes then.
+        [[ -z "$AGENT" ]] && exit 0
+        [[ "${MURMURENT_SPEAK:-}" == "0" ]] && exit 0
+        [[ "${MURMURENT_SPEAK:-}" != "1" && ! -f "$SPEAK_FILE" ]] && exit 0
+        lang="$(speak_language)"
+        [[ -n "$lang" ]] || exit 0
+        lang_name="$(language_voice "$lang" | cut -d'|' -f1)"
+        lang_name="${lang_name:-the language with code $lang}"
+        printf '%s' "$lang_name" | /usr/bin/python3 -c '
+import json, sys
+name = sys.stdin.read()
+ctx = ("Spoken verdicts on this machine are in " + name + ". Write your Aloud: line "
+       "(the second line of your final reply, see rules/headline_first.md) in " + name +
+       ", keeping the label Aloud: itself as it is. Everything else, headline included, "
+       "stays as you would normally write it.")
+print(json.dumps({"hookSpecificOutput": {"hookEventName": "SubagentStart", "additionalContext": ctx}}))
+'
         ;;
     SubagentStop)
         # No agent_type → this stop did not come from a dispatched subagent,

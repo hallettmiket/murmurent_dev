@@ -143,6 +143,39 @@ To mute: delete the file, or set `MURMURENT_SPEAK=0` in the shell that
 starts Claude Code for one session. `MURMURENT_SPEAK=1` turns it on
 without the file.
 
+**Another language.** Agents speak English unless this machine chooses a
+language:
+
+```bash
+murmurent config speak-language fr_FR      # French; --list shows the choices
+murmurent config speak-language en         # back to English
+```
+
+That writes a `language fr_FR` line into `~/.murmurent/speak` and, when
+Piper is installed, fetches the French voice (about 60 MB). From the next
+session on, a hook tells each agent as it starts to write its `Aloud:` line
+in French; the headline and the detail stay in English, so the log pane and
+the dashboard read as before. The hook then speaks the line with the
+language's voice: one Piper voice shared by every agent (few languages have
+fifteen), chosen from the table that `bash scripts/install_piper_voices.sh
+languages` prints, or the Mac voice Apple ships for that language when
+`say` is the engine (download it once in System Settings, Accessibility,
+Spoken Content, if it is not there). Agents are still told apart because
+each verdict begins with the agent's name. Nothing changes on a machine
+that picks no language, and the Mac's own voices need no download for
+English.
+
+The choices made, and the alternatives: the setting is per machine, in the
+voice table the hook already reads, rather than per project or per member,
+because the person listening is the one at the machine. Agents learn the
+language from a `SubagentStart` hook rather than by reading a file, so an
+agent costs nothing extra and the agent files carry one sentence, not a
+language each. To give one agent a different voice in that language, add
+`<agent> <voice>` as for English; to use a language the table lacks, pass
+`--voice <piper voice>` (the `piper.download_voices` command lists them all,
+over forty languages), which writes a `voice` line the hook uses for every
+agent.
+
 **Known limit**: CC subagents return one final message rather than a
 live stream of their thinking. The reporter shows agent start/end
 boundaries with the verdict line rather than granular progress. This

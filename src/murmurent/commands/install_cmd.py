@@ -41,6 +41,17 @@ HOOK_REGISTRATIONS: list[dict[str, Any]] = [
         "label": "murmurent-agent-report-stop",
     },
     {
+        # Tells each subagent, before its first prompt, which language to
+        # write its spoken "Aloud:" line in when the machine has chosen one
+        # (`murmurent config speak-language`, #279). Prints nothing for
+        # English, so a machine with no choice is unchanged.
+        "event": "SubagentStart",
+        "matcher": None,
+        "command": "bash <MURMURENT_COMMONS>/scripts/murmurent_log_agent_event.sh",
+        "env": {},
+        "label": "murmurent-agent-report-start",
+    },
+    {
         "event": "PreToolUse",
         "matcher": "Write|Edit|Bash|NotebookEdit",
         "module": "murmurent.hooks.raw_guard",
