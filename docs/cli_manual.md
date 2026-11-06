@@ -58,6 +58,7 @@ Stored in `~/.murmurent/machine.yaml`. Each applies to this computer only.
 |---|---|
 | `murmurent config repos-root [FOLDER]` | Show, or set, the folder where this computer keeps its git repositories (default `~/repos`). Setting it moves nothing |
 | `murmurent config project-layout [nested\|flat]` | Show, or set, where new projects go: `nested` (one project folder holding its code, manuscript and seminar repositories; the default) or `flat` (each repository directly in the repositories folder). Existing projects are not moved |
+| `murmurent config speak-language [CODE] [--voice NAME] [--list]` | Show, or set, the language agents speak their verdicts in on this computer (a Piper language code such as `fr_FR`; `en` is English, the default). Writes the `language` line of `~/.murmurent/speak` and fetches that language's voice when Piper is installed; `--list` shows the languages with a voice, `--voice` names a Piper voice for one the table lacks |
 
 ## Command reference
 
