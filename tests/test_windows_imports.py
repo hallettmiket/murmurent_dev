@@ -79,7 +79,7 @@ def test_a_legacy_console_gets_question_marks_not_a_crash(monkeypatch):
 
     from murmurent import cli as _cli
 
-    console = io.TextIOWrapper(io.BytesIO(), encoding="cp1252", errors="strict")
+    console = io.TextIOWrapper(io.BytesIO(), encoding="cp1252", errors="strict", newline="\n")
     monkeypatch.setattr(sys, "stdout", console)
     monkeypatch.setattr(sys, "stderr", console)
     _cli.tolerate_console_encoding()
@@ -141,7 +141,7 @@ def test_run_supervisor_imports_without_sigkill(monkeypatch) -> None:
     import importlib
     import signal
 
-    monkeypatch.delattr(signal, "SIGKILL")
+    monkeypatch.delattr(signal, "SIGKILL", raising=False)
     sys.modules.pop("murmurent.core.run_supervisor", None)
     rs = importlib.import_module("murmurent.core.run_supervisor")
     assert signal.SIGSEGV in rs.SIGNAL_HINTS
