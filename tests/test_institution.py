@@ -414,7 +414,9 @@ def test_verify_on_read_restamps_or_reports_change(pack):
     assert inst.needs_verify(pack, fact, today=date(2026, 11, 7))
     ch = inst.verify_fact(pack, fact, fetcher=fetcher, today=date(2026, 11, 7))
     assert ch.status == "confirmed" and fact.data["date_read"] == "2026-11-07"
-    assert not inst.needs_verify(pack, fact, today=date(2026, 11, 7))
+    assert inst.needs_verify(pack, fact, today=date(2026, 11, 7))        # default: re-read every time
+    pack.meta["verify_after_days"] = 30
+    assert not inst.needs_verify(pack, fact, today=date(2026, 11, 7))    # unless the pack allows an age
     changed = _fetcher({src: "<html><body>Papers must reach the Registrar ten days before.</body></html>"})
     ch2 = inst.verify_fact(pack, fact, fetcher=changed, today=date(2026, 12, 1))
     assert ch2.status == "changed" and fact.data["date_read"] == "2026-11-07"

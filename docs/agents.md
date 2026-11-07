@@ -665,9 +665,9 @@ university, and some of it is years old.
 
 What it looks up goes into the **institution pack**
 (`institution/<unique_name>/`), its memory: the question, the answer, the
-page, the date. Nobody precomputes it. A remembered fact older than a month
-is re-read from its page before the Clerk relies on it, a weekly refresh
-re-reads the rest, and every answer carries its date. A centre keeps a few
+page, the date. Nobody precomputes it. A remembered fact is re-read from its
+page every time before the Clerk relies on it (the memory says where to
+look), a weekly refresh re-reads the rest, and every answer carries its date. A centre keeps a few
 things there on purpose (the thesis procedure, holidays, the letterhead); a
 company is a different pack, not a different agent.
 

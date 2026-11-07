@@ -323,7 +323,15 @@ def elevenlabs_transcribe(path: Path, *, key: str = "", model: str = ELEVENLABS_
         with urllib.request.urlopen(req, timeout=300) as r:
             payload = json.loads(r.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:
-        raise CaptureError(f"ElevenLabs answered {exc.code}") from exc
+        detail = ""
+        try:
+            body = json.loads(exc.read().decode("utf-8", errors="replace"))
+            detail = str((body.get("detail") or {}).get("message") or body.get("detail") or "")
+        except Exception:  # noqa: BLE001 - the code alone is still a usable message
+            pass
+        if "speech_to_text" in detail:
+            detail = "the key lacks the speech-to-text permission; grant it at elevenlabs.io under API keys"
+        raise CaptureError(f"ElevenLabs answered {exc.code}" + (f": {detail}" if detail else "")) from exc
     except (urllib.error.URLError, OSError, ValueError) as exc:
         raise CaptureError(f"ElevenLabs could not be reached: {exc}") from exc
     return str(payload.get("text") or "").strip()

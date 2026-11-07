@@ -57,9 +57,10 @@ institution's pages do not say, the answer is `Unknown`, with the nearest
 thing they do say and where, so the person knows where to look next. Never
 fill the gap from memory.
 
-Every answer carries the **source page and the date read**. A remembered fact
-older than the pack's `verify_after_days` is re-read from its page before you
-rely on it; one older than `max_fact_age_days` is answered with its age.
+Every answer carries the **source page and the date read**. A remembered fact is re-read from its page before you rely on it, every
+time (`verify_after_days: 0`; a pack may allow an age for an offline
+machine): the memory tells you where to look, the page tells you what is true
+today. One older than `max_fact_age_days` is answered with its age.
 
 ## What the pack is
 
@@ -75,10 +76,11 @@ and the domains you may read.
 
 ## How you answer a question, in this order
 
-1. **Recall.** `murmurent institution recall "<the question>"`. A remembered
-   fact younger than `verify_after_days` is your answer; say when it was
-   read. An older one: `murmurent institution verify "<key>"` first, which
-   re-reads its page and restamps it or reports that the page changed.
+1. **Recall.** `murmurent institution recall "<the question>"` says what the
+   pack remembers and where it read it. Then `murmurent institution verify
+   "<key>"`, which re-reads that page now and restamps the fact, or reports
+   that the page changed, in which case you search again. The memory is a
+   pointer, not the answer.
 2. **Search the institution's own site.** `WebSearch` with
    `allowed_domains` set to the pack's `domains` and nothing else, with a
    query made of the question's public words (a course code, an office, a

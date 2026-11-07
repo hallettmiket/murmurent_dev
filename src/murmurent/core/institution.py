@@ -1039,7 +1039,7 @@ __all__ = [
 # Looking a fact up when the pack lacks it, learning it, and verifying one on read
 # --------------------------------------------------------------------------- #
 
-DEFAULT_VERIFY_AFTER_DAYS = 30
+DEFAULT_VERIFY_AFTER_DAYS = 0   # re-read a remembered fact every time; raise it only for an offline or slow machine
 LOOKUP_MAX_PAGES = 12
 _ROLE_WORDS = re.compile(r"(?i)\b(president|vice-president|vice president|provost|dean|chair|director|head|"
                          r"coordinator|co-ordinator|manager|lead|officer|registrar|secretary)\b")
@@ -1198,8 +1198,11 @@ def verify_fact(pack: Pack, fact: Fact, *, fetcher: Fetcher | None = None, today
 
 
 def needs_verify(pack: Pack, fact: Fact | dict[str, Any], today: date | None = None) -> bool:
+    """Whether a remembered fact must be re-read from its page before it is relied on.
+    With the default ``verify_after_days: 0`` that is every time: the memory says where
+    to look, and the answer comes from the page as it reads today."""
     age = fact_age_days(fact, today)
-    return age is None or age > verify_after_days(pack)
+    return age is None or age >= verify_after_days(pack) if verify_after_days(pack) > 0 else True
 
 
 def learn_fact(pack: Pack, *, question: str, answer: str, source: str, evidence: str = "",

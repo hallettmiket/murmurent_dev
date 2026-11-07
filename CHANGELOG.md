@@ -18,6 +18,15 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 ## [Unreleased]
 
 ### Added
+- **Two more training movies**: the lab notebook (adding text, photos and
+  voice notes from Claude Code, the entry as Obsidian shows it, prompts moved
+  out of old notes, a report for a supervisor from entries marked for them)
+  and the data root (tier-3 memory: what immutable, append_only, modifiable,
+  mothballed, release, cottage, tools and db are for, how a project's folders
+  mirror its repository, what the hooks refuse, the layout check). The
+  bookworm, blacksmith, artist, scribe and adversary movies gain a "how to
+  direct it" scene: example requests that name the format, the destination
+  (Zotero, a Streamlit app, a slide deck in Western's colours) and the method.
 - **Five more training movies** (#290): working through Claude Code (the one
   every other movie assumes), the two push skills, the status update, a
   course across sessions, and the mayor's and PI's tools, under

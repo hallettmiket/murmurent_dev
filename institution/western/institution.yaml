@@ -8,7 +8,7 @@ max_fact_age_days: 180
 note: 'The pack is the clerk''s memory: what it looked up on the institution''s own pages, each with the
   page and the date read, plus what the centre keeps on purpose (procedures, holidays). A fact that cannot
   be read is left out.'
-verify_after_days: 30
+verify_after_days: 0   # re-read a remembered fact from its page every time it is used; the memory says where to look
 lookup:
   pages:
   - https://www.uwo.ca/a-z.html

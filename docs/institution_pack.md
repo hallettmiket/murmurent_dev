@@ -26,14 +26,14 @@ never changed would be worse than none. Three mechanisms:
 | When | What happens |
 |---|---|
 | Every answer | carries the page and the date it was read |
-| A remembered fact is older than `verify_after_days` (30 by default) | the Clerk re-reads its page before relying on it (`murmurent institution verify`): the page still says so, and the fact is restamped; or it no longer does, and the Clerk says the page changed and looks again |
+| A remembered fact is used | the Clerk re-reads its page first, every time by default (`verify_after_days: 0`; `murmurent institution verify`): the page still says so, and the fact is restamped; or it no longer does, and the Clerk says the page changed and looks again. The memory says where to look; the page says what is true today |
 | Weekly, on the lab server | `murmurent institution refresh --apply` re-reads every remembered fact from its page and reports what changed; a changed fact is left for a person to settle |
 | A fact is older than `max_fact_age_days` (180) | it is answered with its age stated |
 
 ## How the Clerk answers a question
 
 1. **Recall**: `murmurent institution recall "<question>"` lists what the
-   pack remembers on it, with dates, and says which entries need verifying.
+   pack remembers on it, with the pages; `verify` re-reads the page now.
 2. **Search the institution's own site**: `WebSearch` with `allowed_domains`
    set to the pack's domains, then `WebFetch` the page. A question that
    combines a rule and a date (the printing deadline for a course's exam)
