@@ -134,6 +134,7 @@ use it through Claude Code.
 | [`judge`](https://github.com/hallettmiket/murmurent/blob/main/agents/judge.md) | [The judge](https://mikehallett.science/assets/videos/murmurent_agent_judge.html) | 1:45 |
 | [`registrar`](https://github.com/hallettmiket/murmurent/blob/main/agents/registrar.md) | [The registrar](https://mikehallett.science/assets/videos/murmurent_agent_registrar.html) | 1:52 |
 | [`security_guard`](https://github.com/hallettmiket/murmurent/blob/main/agents/security_guard.md) | [The security guard](https://mikehallett.science/assets/videos/murmurent_agent_security_guard.html) | 1:52 |
+| [`clerk`](https://github.com/hallettmiket/murmurent/blob/main/agents/clerk.md) | [The clerk](https://mikehallett.science/assets/videos/murmurent_agent_clerk.html) | 2:20 |
 | [`docent`](https://github.com/hallettmiket/murmurent/blob/main/agents/docent.md) | [The docent](https://mikehallett.science/assets/videos/murmurent_agent_docent.html) | 1:51 |
 
 **News**, newest first (releases and new capabilities; the full record is the

@@ -1,0 +1,39 @@
+1
+00:00:00,400 --> 00:00:13,710
+This is the clerk. It knows the institution: who holds which office, the holidays and term dates, the forms and deadlines of a procedure, the letterhead. And it knows them only from a pack.
+
+2
+00:00:14,099 --> 00:00:27,228
+Its file has one rule above the others: it answers only from the pack, a folder of facts for one institution, each with its source and the date it was read. Every answer carries both.
+
+3
+00:00:27,228 --> 00:00:42,559
+Three jobs. Check a document: is the person named as Dean the Dean. Compute a date in working days that never lands on a holiday. Walk a procedure to its next steps, with the form and the deadline.
+
+4
+00:00:42,949 --> 00:00:58,028
+What it never does: state a fact that is not in the pack, from memory or from a search. Name a person the pack does not name, or say anything about one beyond the office, title, public email and campus address.
+
+5
+00:00:58,028 --> 00:01:11,409
+Offer a date that falls on a holiday. Or edit a document or the pack by hand: the scribe writes, the bookworm keeps the pack, and a refresh command writes what it re-read.
+
+6
+00:01:11,800 --> 00:01:20,934
+A real run, on a letter written for the movie with two office holders from years ago. The member asks the clerk to check it before sending.
+
+7
+00:01:20,934 --> 00:01:34,240
+The verdict is Fix. Each finding names the office, who the pack says holds it, the source page and the date it was read. The letter is not rewritten; that is the scribe's job.
+
+8
+00:01:34,650 --> 00:01:46,930
+Asked for a deadline and the next steps, it counts working days backwards, skipping the pack's holidays, and walks the thesis procedure from the defence date.
+
+9
+00:01:47,350 --> 00:02:04,379
+To use it, type to Claude Code and name it: ask the clerk to check a letter, to count working days from a date, or to walk a procedure. The pack for your institution lives in the deployment, not in the public release; a company is a different pack, not a different agent.
+
+10
+00:02:04,379 --> 00:02:20,425
+The first line is the verdict: Correct, Fix or Unknown. Unknown names the nearest fact the pack holds. A fact older than the pack's limit says its age, and the bookworm refreshes it.

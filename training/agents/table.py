@@ -10,7 +10,7 @@ sys.path.insert(0, str(HERE.parent))
 from lib.agent_movie import parse_index_titles  # noqa: E402
 
 ORDER = ["oracle", "bookworm", "adversary", "artist", "scribe", "teacher", "lab_oracle", "blacksmith",
-         "conscience", "lawyer", "millwright", "centre_millwright", "judge", "registrar", "security_guard", "docent"]
+         "conscience", "lawyer", "millwright", "centre_millwright", "judge", "registrar", "security_guard", "clerk", "docent"]
 SITE = "https://mikehallett.science/assets/videos/murmurent_agent_"
 info = parse_index_titles()
 text = (HERE.parent / "index.yaml").read_text()

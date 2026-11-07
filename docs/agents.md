@@ -9,7 +9,7 @@ and are symlinked into `~/.claude/agents/` by `scripts/setup.sh`. They
 fall into three categories:
 
 **▶ Each agent has a two-minute video**: what it does, what it will not do, one real run,
-and how to use it through Claude Code. All sixteen are at
+and how to use it through Claude Code. All seventeen are at
 [mikehallett.science/assets/videos](https://mikehallett.science/assets/videos/).
 
 - **Member** — the per-member/per-lab science toolkit (Oracle, Lab

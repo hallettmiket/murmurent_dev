@@ -424,7 +424,7 @@ movies:
   tagline: "Guide to a paper or thesis package: every answer with a location"
   version: 2026.11.0
   date: 2026-11-07
-  agent_sha256: 709e3d67f0a6ff6fa947312a97fdec47419aa4a65bca86f85d2f0f5a1147b72e
+  agent_sha256: d0d1246dcbe638da683dcd35c8f7d2a6be8ee2a867961142e296a19defa05db4
   file: training/agents/docent/docent_narrated.mp4
   make: python3 training/agents/docent/make.py
   seconds: 111
@@ -434,3 +434,18 @@ movies:
     - ["0:34", "What it will not do"]
     - ["0:54", "A real example"]
     - ["1:23", "How to use it"]
+- agent: clerk
+  title: The clerk
+  tagline: "The institution expert: offices, deadlines, holidays, letterhead, from a pack it never leaves"
+  version: 2026.11.0
+  date: 2026-11-07
+  agent_sha256: d7cf3dade8284dcb1393ab1165eca09875918e290ea8120368fb62860b21ac55
+  file: training/agents/clerk/clerk_narrated.mp4
+  make: python3 training/agents/clerk/make.py
+  seconds: 140
+  chapters:
+    - ["0:00", "Welcome"]
+    - ["0:13", "What it does"]
+    - ["0:42", "What it will not do"]
+    - ["1:11", "A real example"]
+    - ["1:46", "How to use it"]

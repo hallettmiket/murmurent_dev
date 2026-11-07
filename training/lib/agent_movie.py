@@ -46,7 +46,7 @@ MAX_SECONDS = 180
 GLYPHS = {"oracle": "🔮", "lab_oracle": "📜", "bookworm": "📚", "blacksmith": "⚒️", "adversary": "⚔️",
           "artist": "🎨", "teacher": "🎓", "conscience": "🧭", "scribe": "✒️", "docent": "🗺️",
           "lawyer": "⚖️", "millwright": "🔧", "centre_millwright": "🏗️", "judge": "🧮",
-          "registrar": "🗂️", "security_guard": "🛡️"}
+          "registrar": "🗂️", "security_guard": "🛡️", "clerk": "📋"}
 MEMBER_GLYPH = "🧑‍🔬"
 
 
