@@ -22,6 +22,8 @@ import os
 import re
 import subprocess
 import sys
+import time
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -48,8 +50,18 @@ def request(path: str, key: str, data: dict | None = None, accept: str = "applic
     if data is not None:
         req.add_header("content-type", "application/json")
         req.data = json.dumps(data).encode()
-    with urllib.request.urlopen(req, timeout=120) as r:
-        return r.read()
+    # ElevenLabs sometimes answers a burst of requests with a 401 or a 429 that goes
+    # away on its own; retry a few times before giving up.
+    for attempt in range(5):
+        try:
+            with urllib.request.urlopen(req, timeout=120) as r:
+                return r.read()
+        except urllib.error.HTTPError as e:
+            if e.code not in (401, 429, 500, 502, 503) or attempt == 4:
+                raise
+            print(f"  ElevenLabs {e.code}; retrying in {5 * (attempt + 1)} s", file=sys.stderr)
+            time.sleep(5 * (attempt + 1))
+    raise RuntimeError("unreachable")
 
 
 def parse_srt(path: Path) -> list[tuple[float, float, str]]:

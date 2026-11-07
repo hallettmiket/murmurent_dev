@@ -1,0 +1,35 @@
+1
+00:00:00,400 --> 00:00:12,699
+This is the security guard. It audits what is about to leave a project: a diff, a pull request, an artefact, for secrets, patient data and restricted paths.
+
+2
+00:00:13,099 --> 00:00:25,600
+Its file lists what it scans for. Credentials, tokens and keys in a diff. Patient-shaped patterns in a protected project: health numbers, record numbers, a birth date near a name.
+
+3
+00:00:25,600 --> 00:00:39,299
+It refuses to approve a change that touches the immutable data root. And it treats a private identity key in any diff, log or message as an immediate block.
+
+4
+00:00:39,699 --> 00:00:49,399
+It renders a verdict; it does not fix the code. It does not comment on cross-validation or model choice; that is the adversary's.
+
+5
+00:00:49,399 --> 00:01:03,899
+It flags a bad permission but never changes it; the millwrights own permissions. And it never changes the repository to remediate: it writes the suggested fix, and a person applies it.
+
+6
+00:01:04,299 --> 00:01:13,599
+A real run, on a throwaway repository with a fake token and an invented patient line. The member is about to push.
+
+7
+00:01:13,599 --> 00:01:29,700
+The verdict is Blocked. Each finding has a rule name, a file and line, what was observed, and a fix. It notes that both problems are already in history, so a new commit is not enough.
+
+8
+00:01:30,100 --> 00:01:43,400
+To use it, type to Claude Code and name it: ask the security guard to audit a branch, a diff or a folder before it leaves. Say if the project is protected.
+
+9
+00:01:43,400 --> 00:02:00,000
+The first line is the verdict: Clear, Concerns or Blocked. Then each finding with a rule, a location, what was observed and the fix. Blocked means do not push until the history is clean.

@@ -1,0 +1,35 @@
+1
+00:00:00,400 --> 00:00:14,300
+This is the lawyer. It reads the patent landscape around a molecule or a method, and it rules on whether a project may move or publish governed data, always from the instrument.
+
+2
+00:00:14,700 --> 00:00:25,600
+Its file lists the work. Search the patent databases for genes, molecules and devices, and summarize the claims in plain language a scientist can act on.
+
+3
+00:00:25,600 --> 00:00:39,700
+Rule on whether governed data may move, by reading the agreement, never by assuming it. And triage every referral first, so a question with no IP surface costs one step.
+
+4
+00:00:40,100 --> 00:00:53,400
+It is not a substitute for counsel of record: a binding opinion goes through the Research and Innovation Office. It does not do the science, and it does not file or prosecute.
+
+5
+00:00:53,400 --> 00:01:03,900
+And it always separates fact from optimism: a status is confirmed across databases, or it is inferred, and it says which.
+
+6
+00:01:04,300 --> 00:01:13,200
+A real run, on a synthetic question: can we publish a protocol note and post our script under an open licence?
+
+7
+00:01:13,200 --> 00:01:28,900
+The verdict is Clear, after triage alone. Disclosure is not an act a patent reaches, so no database was searched, and the answer says so. It adds the one clock the lab should know about.
+
+8
+00:01:29,300 --> 00:01:47,000
+To use it, type to Claude Code and name it: ask the lawyer whether you can act on a molecule, or whether a data move is permitted. Say what you intend to do; a landscape for its own sake is not a question.
+
+9
+00:01:47,000 --> 00:02:03,200
+The first line is the verdict: Clear, Conflict or Unknown. Then what it searched, or why triage said nothing needed searching. The adversary also sends it work on its own during an audit.

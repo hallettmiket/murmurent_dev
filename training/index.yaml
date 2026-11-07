@@ -17,3 +17,73 @@ movies:
     - ["0:38", "What it will not do"]
     - ["1:04", "A real example"]
     - ["1:42", "How to use it"]
+- agent: bookworm
+  title: The bookworm
+  version: 2026.11.0
+  date: 2026-11-07
+  agent_sha256: 705fec4b04253ba77bc16824932f1e1d41d89d981158a7e8db98acdb554db11b
+  file: training/agents/bookworm/bookworm_narrated.mp4
+  make: python3 training/agents/bookworm/make.py
+  seconds: 113
+  chapters:
+    - ["0:00", "Welcome"]
+    - ["0:13", "What it does"]
+    - ["0:35", "What it will not do"]
+    - ["0:55", "A real example"]
+    - ["1:18", "How to use it"]
+- agent: adversary
+  title: The adversary
+  version: 2026.11.0
+  date: 2026-11-07
+  agent_sha256: 10de8035a56e66b9cac23af36fb4c2d5bd9870ffc58f3c043e5a8cc84d324547
+  file: training/agents/adversary/adversary_narrated.mp4
+  make: python3 training/agents/adversary/make.py
+  seconds: 112
+  chapters:
+    - ["0:00", "Welcome"]
+    - ["0:12", "What it does"]
+    - ["0:34", "What it will not do"]
+    - ["0:55", "A real example"]
+    - ["1:22", "How to use it"]
+- agent: artist
+  title: The artist
+  version: 2026.11.0
+  date: 2026-11-07
+  agent_sha256: 30b918640fbe02472cea2bd7eff6ae80ddf9e4292264dbc3a6b014ec340955d0
+  file: training/agents/artist/artist_narrated.mp4
+  make: python3 training/agents/artist/make.py
+  seconds: 112
+  chapters:
+    - ["0:00", "Welcome"]
+    - ["0:11", "What it does"]
+    - ["0:30", "What it will not do"]
+    - ["0:53", "A real example"]
+    - ["1:17", "How to use it"]
+- agent: scribe
+  title: The scribe
+  version: 2026.11.0
+  date: 2026-11-07
+  agent_sha256: 9fe45c31d2d977b3fcc1c8724b4e8ba752c9a897e2ff7ab01d5767e894605e97
+  file: training/agents/scribe/scribe_narrated.mp4
+  make: python3 training/agents/scribe/make.py
+  seconds: 120
+  chapters:
+    - ["0:00", "Welcome"]
+    - ["0:13", "What it does"]
+    - ["0:40", "What it will not do"]
+    - ["1:05", "A real example"]
+    - ["1:30", "How to use it"]
+- agent: teacher
+  title: The teacher
+  version: 2026.11.0
+  date: 2026-11-07
+  agent_sha256: e1ee79164cd5db3afcbe53e3a51d0c05020d1a75c94a8ff2346ae0e1f05081a5
+  file: training/agents/teacher/teacher_narrated.mp4
+  make: python3 training/agents/teacher/make.py
+  seconds: 123
+  chapters:
+    - ["0:00", "Welcome"]
+    - ["0:10", "What it does"]
+    - ["0:39", "What it will not do"]
+    - ["1:09", "A real example"]
+    - ["1:33", "How to use it"]

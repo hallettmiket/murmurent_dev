@@ -109,6 +109,16 @@ HOOK_REGISTRATIONS: list[dict[str, Any]] = [
         "env": {},
         "label": "murmurent-conscience-gaps",
     },
+    {
+        # When agents/<x>.md is edited, remind the session once that the agent's
+        # training movie was checked against an older version of the file and
+        # name the command that re-renders it (#288). A prompt, never a block.
+        "event": "PostToolUse",
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit",
+        "module": "murmurent.hooks.agent_movie",
+        "env": {},
+        "label": "murmurent-agent-movie",
+    },
     # The personal vault follows you between machines without a button:
     # brought in when a session starts, sent as soon as a session writes a
     # note in it, and checked at the end of each reply. Notes marked protected
