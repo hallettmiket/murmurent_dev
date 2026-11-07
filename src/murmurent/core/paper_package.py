@@ -71,6 +71,7 @@ PAPER_STATUSES = ("in-prep", "submitted", "published")
 # Data references that live under the lab's data root rather than inside the
 # package. ``rules/data-storage.md`` names the folders.
 DATA_ROOT_FOLDERS = ("immutable", "append_only", "modifiable", "release")
+LEGACY_DATA_ROOT_FOLDERS = {"immutable": "raw", "append_only": "refined"}
 DATA_ROOT_ENV = ("MURMURENT_DATA_ROOT", "MURMURENT_LAB_VM_ROOT")
 CHAPTER_KINDS = ("introduction", "paper", "chapter", "conclusion")
 
@@ -173,7 +174,16 @@ def resolve_data_ref(package: Path, ref: str) -> tuple[Path | None, str]:
         root = data_root()
         if root is None:
             return None, "unreachable"
-        return root / ref, "root"
+        path = root / ref
+        if not path.exists():
+            # A data root that still uses the previous folder names
+            # (``rules/data-storage.md``: raw/ became immutable/, refined/
+            # became append_only/) is read under those names.
+            parts = Path(ref).parts
+            legacy = LEGACY_DATA_ROOT_FOLDERS.get(parts[0])
+            if legacy and (root / legacy).joinpath(*parts[1:]).exists():
+                path = (root / legacy).joinpath(*parts[1:])
+        return path, "root"
     return Path(package) / ref, "package"
 
 

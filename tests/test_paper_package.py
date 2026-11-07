@@ -592,3 +592,16 @@ def test_talk_puts_background_methods_and_supplementary_claims_in_backup(example
     assert slides[-2].section == "acknowledgements"
     assert abs(sum(s.minutes for s in slides) - 20) < 1e-6
     assert all(s.section != "chapter 4" or s.title != "Methods" for s in slides)
+
+
+def test_data_root_reference_falls_back_to_legacy_folder_names(tmp_path, monkeypatch):
+    """A server whose data root still says raw/ and refined/ resolves the new names."""
+    root = tmp_path / "lab_vm"
+    (root / "refined" / "proj" / "exp").mkdir(parents=True)
+    (root / "refined" / "proj" / "exp" / "out.csv").write_text("x\n")
+    monkeypatch.setenv("MURMURENT_DATA_ROOT", str(root))
+    path, kind = pp.resolve_data_ref(tmp_path, "append_only/proj/exp/out.csv")
+    assert kind == "root" and path.exists()
+    assert path == root / "refined" / "proj" / "exp" / "out.csv"
+    missing, kind = pp.resolve_data_ref(tmp_path, "append_only/proj/exp/nope.csv")
+    assert kind == "root" and not missing.exists()
