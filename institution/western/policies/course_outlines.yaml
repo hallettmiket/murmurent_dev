@@ -1,0 +1,35 @@
+name: course_outlines
+rules:
+- id: no_new_assignments_6_weeks
+  says: no new (i.e., previously unannounced) assignments are introduced in the last six weeks
+  source: https://westerncalendar.uwo.ca/PolicyPages.cfm?ArchiveID=&PolicyCategoryID=5&SelectedCalendar=Live&command=showCategory
+  date_read: '2026-11-07'
+  heading: Scheduling Assignments
+  check:
+    kind: no_new_assignments_in_last_weeks
+    weeks: 6
+- id: final_exam_last_3_weeks
+  says: Final examinations in one-term courses and full-year courses may not be scheduled during the last
+    3 weeks of classes in any term
+  source: https://westerncalendar.uwo.ca/PolicyPages.cfm?ArchiveID=&PolicyCategoryID=5&SelectedCalendar=Live&command=showCategory
+  date_read: '2026-11-07'
+  heading: Scheduling of Examinations
+  check:
+    kind: no_final_exam_in_last_weeks
+    weeks: 3
+- id: last_day_for_assignments
+  says: the last day of scheduled classes in any course will be the last day on which course assignments
+    will be accepted
+  source: https://westerncalendar.uwo.ca/PolicyPages.cfm?ArchiveID=&PolicyCategoryID=5&SelectedCalendar=Live&command=showCategory
+  date_read: '2026-11-07'
+  heading: Evaluation of Academic Performance
+  check:
+    kind: note
+- id: tests_last_3_weeks
+  says: Tests for one- term courses may not be scheduled during the last 3 weeks of classes in the term.
+  source: https://westerncalendar.uwo.ca/PolicyPages.cfm?ArchiveID=&PolicyCategoryID=5&SelectedCalendar=Live&command=showCategory
+  date_read: '2026-11-07'
+  heading: Scheduling Tests
+  check:
+    kind: no_tests_in_last_weeks
+    weeks: 3

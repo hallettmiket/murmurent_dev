@@ -452,3 +452,72 @@ def test_cli_recall_learn_verify_and_show_fact(pack_dir, tmp_path, monkeypatch):
     assert out.exit_code == 0 and "CONFIRMED" in out.output
     out = r.invoke(cli, ["institution", "show", "fact", "registrar", "--pack", str(pack_dir)])
     assert out.exit_code == 0 and "exams.html" in out.output
+
+
+# --------------------------------------------------------------------------- #
+# Policies: a syllabus against the institution's rules (Mike's review, 2026-11-07)
+# --------------------------------------------------------------------------- #
+
+SYLLABUS = """# A course, Fall 2026
+Term: 10 September to 9 December 2026.
+| Assessment | Date | Weight |
+| Quiz 1 | 1 October 2026 | 5% |
+| Quiz 2 | 3 December 2026 | 15% |
+| Lab report 2 (new, announced 20 November 2026) | 8 December 2026 | 15% |
+| Final examination | December examination period | 30% |
+"""
+POLICY_PAGE = "<html><body><h3>Scheduling Tests</h3>Tests for one-term courses may not be scheduled during the last 3 weeks of classes in the term.</body></html>"
+
+
+def test_parse_assessments_reads_names_dates_weights_and_announcements():
+    items = inst.parse_assessments(SYLLABUS)
+    names = [a.name for a in items]
+    assert names[:2] == ["Quiz 1", "Quiz 2"]
+    q2 = items[1]
+    assert q2.when == date(2026, 12, 3) and q2.weight == 15 and q2.is_test
+    lab = items[2]
+    assert lab.announced == date(2026, 11, 20) and lab.when == date(2026, 12, 8) and not lab.is_test
+    assert items[3].is_final and items[3].when is None
+
+
+def test_announcement_date_without_a_year_takes_the_assessment_year():
+    items = inst.parse_assessments("| Lab report 2 (new, announced 20 November) | 8 December 2026 | 15% |")
+    assert items[0].announced == date(2026, 11, 20) and items[0].when == date(2026, 12, 8)
+
+
+def test_learn_rule_needs_the_page_and_check_syllabus_reports_fix_correct_unknown(pack):
+    src = "https://www.example.edu/calendar/exams.html"
+    fetcher = _fetcher({src: POLICY_PAGE})
+    with pytest.raises(inst.PackError):
+        inst.learn_rule(pack, policy="course_outlines", rule_id="x", says="no quiz over 5% in the last two weeks",
+                        source=src, fetcher=fetcher)
+    inst.learn_rule(pack, policy="course_outlines", rule_id="tests_last_3_weeks",
+                    says="Tests for one-term courses may not be scheduled during the last 3 weeks of classes in the term.",
+                    source=src, heading="Scheduling Tests", check={"kind": "no_tests_in_last_weeks", "weeks": 3},
+                    fetcher=fetcher, today=date(2026, 11, 7))
+    inst.learn_rule(pack, policy="course_outlines", rule_id="no_new_6_weeks", says="no new assignments in the last six weeks",
+                    source=src, check={"kind": "no_new_assignments_in_last_weeks", "weeks": 6}, confirm=False)
+    again = inst.load_pack(pack.root)
+    assert "course_outlines" in again.policies and (pack.root / "policies" / "course_outlines.yaml").exists()
+    assert any(f.kind == "rule" for f in again.facts())
+    findings = inst.check_syllabus(again, SYLLABUS, "course_outlines")
+    by = {(f.verdict, f.what): f.detail for f in findings}
+    assert ("Correct", "Quiz 1") in by
+    assert ("Fix", "Quiz 2") in by and "last 3 weeks" in by[("Fix", "Quiz 2")] and "read 2026-11-07" in by[("Fix", "Quiz 2")]
+    assert ("Fix", "Lab report 2") in by and "announced 2026-11-20" in by[("Fix", "Lab report 2")]
+    assert inst.check_verdict(findings) == "Fix"
+    no_term = inst.check_syllabus(again, SYLLABUS.replace("Term: 10 September to 9 December 2026.", ""), "course_outlines")
+    assert all(f.verdict == "Unknown" for f in no_term)
+
+
+def test_cli_check_with_policy(pack_dir, tmp_path):
+    from murmurent.cli import cli
+    r = CliRunner()
+    out = r.invoke(cli, ["institution", "learn-rule", "course_outlines", "--id", "t3", "--says",
+                         "Tests for one-term courses may not be scheduled during the last 3 weeks of classes in the term.",
+                         "--source", "https://www.example.edu/calendar/exams.html", "--check-kind", "no_tests_in_last_weeks",
+                         "--weeks", "3", "--no-confirm", "--pack", str(pack_dir)])
+    assert out.exit_code == 0, out.output
+    syl = tmp_path / "syllabus.md"; syl.write_text(SYLLABUS)
+    out = r.invoke(cli, ["institution", "check", str(syl), "--policy", "course_outlines", "--pack", str(pack_dir)])
+    assert out.exit_code == 1 and "Fix: Quiz 2" in out.output and "Correct: Quiz 1" in out.output

@@ -45,6 +45,7 @@ CALENDAR_FILE = "calendar.yaml"
 COURSES_FILE = "courses.yaml"
 FACTS_FILE = "facts.yaml"       # what the clerk looked up: question, answer, source, date_read
 PROCEDURES_DIR = "procedures"
+POLICIES_DIR = "policies"      # rules read from the institution's pages, applied to documents (a syllabus)
 TEMPLATES_DIR = "templates"
 LETTERHEAD_FILE = "letterhead.yaml"
 
@@ -93,6 +94,7 @@ class Pack:
     procedures: dict[str, dict[str, Any]]
     templates: dict[str, dict[str, Any]]
     learned: list[dict[str, Any]] = field(default_factory=list)   # facts.yaml: the clerk's memory of lookups
+    policies: dict[str, dict[str, Any]] = field(default_factory=dict)   # policies/<name>.yaml: rules with source and date
 
     @property
     def name(self) -> str:
@@ -173,6 +175,11 @@ class Pack:
         for i, f in enumerate(self.learned):
             if isinstance(f, dict):
                 out.append(Fact("fact", str(f.get("question", f"#{i}")), f, self.root / FACTS_FILE, f"facts[{i}]"))
+        for pname, pol in self.policies.items():
+            for i, r in enumerate(pol.get("rules") or []):
+                if isinstance(r, dict):
+                    out.append(Fact("rule", f"{pname}: {r.get('id', f'#{i}')}", r,
+                                    self.root / POLICIES_DIR / f"{pname}.yaml", f"rules[{i}]"))
         return out
 
 
@@ -296,6 +303,13 @@ def load_pack(root: Path) -> Pack:
             doc = _read_yaml(p)
             if isinstance(doc, dict):
                 procedures[p.stem] = doc
+    policies: dict[str, dict[str, Any]] = {}
+    poldir = root / POLICIES_DIR
+    if poldir.is_dir():
+        for p in sorted(poldir.glob("*.yaml")):
+            doc = _read_yaml(p)
+            if isinstance(doc, dict):
+                policies[p.stem] = doc
     templates: dict[str, dict[str, Any]] = {}
     tdir = root / TEMPLATES_DIR
     if tdir.is_dir():
@@ -314,6 +328,7 @@ def load_pack(root: Path) -> Pack:
         templates=templates,
         learned=[f for f in ((facts_doc.get("facts") if isinstance(facts_doc, dict) else None) or [])
                  if isinstance(f, dict)],
+        policies=policies,
     )
 
 
@@ -866,6 +881,8 @@ def _fact_evidence(fact: Fact) -> list[str]:
         return [str(c.get("hex", "")) for c in (d.get("colours") or []) if isinstance(c, dict) and c.get("hex")]
     if fact.kind == "fact":
         return [str(d.get("evidence") or d.get("answer") or "")]
+    if fact.kind == "rule":
+        return [str(d.get("evidence") or d.get("says") or "")]
     return [str(d.get("evidence") or "")]
 
 
@@ -981,6 +998,8 @@ def write_pack(pack: Pack) -> None:
         dump(pack.root / PROCEDURES_DIR / f"{name}.yaml", proc)
     for name, tpl in pack.templates.items():
         dump(pack.root / TEMPLATES_DIR / f"{name}.yaml", tpl)
+    for name, pol in pack.policies.items():
+        dump(pack.root / POLICIES_DIR / f"{name}.yaml", pol)
 
 
 # --------------------------------------------------------------------------- #
@@ -1251,3 +1270,177 @@ def recall(pack: Pack, query: str) -> list[dict[str, Any]]:
             scored.append((n, {"kind": "office", **o}))
     scored.sort(key=lambda t: -t[0])
     return [d for _, d in scored]
+
+
+# --------------------------------------------------------------------------- #
+# Policies: rules read from the institution's pages, applied to a document such as a syllabus
+# --------------------------------------------------------------------------- #
+
+RULE_KINDS = ("no_tests_in_last_weeks", "no_new_assignments_in_last_weeks", "no_final_exam_in_last_weeks",
+              "min_weight_before_date", "note")
+_TEST_WORDS = re.compile(r"\b(test|quiz|quizzes|midterm|exam|examination)\b", re.I)
+_FINAL_WORDS = re.compile(r"\bfinal (exam|examination)\b", re.I)
+_PCT = re.compile(r"(\d{1,3}(?:\.\d+)?)\s*%")
+_MONTHS = "January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec"
+_DATE_WORDS = re.compile(rf"\b(\d{{1,2}})\s+({_MONTHS})\.?\s+(\d{{4}})\b|\b({_MONTHS})\.?\s+(\d{{1,2}}),?\s+(\d{{4}})\b|\b(\d{{4}}-\d{{2}}-\d{{2}})\b", re.I)
+
+
+def _parse_date_words(text: str) -> list[date]:
+    out = []
+    for m in _DATE_WORDS.finditer(text):
+        try:
+            if m.group(7):
+                out.append(date.fromisoformat(m.group(7)))
+            elif m.group(1):
+                out.append(datetime.strptime(f"{m.group(1)} {m.group(2)[:3]} {m.group(3)}", "%d %b %Y").date())
+            else:
+                out.append(datetime.strptime(f"{m.group(5)} {m.group(4)[:3]} {m.group(6)}", "%d %b %Y").date())
+        except ValueError:
+            continue
+    return out
+
+
+@dataclass
+class Assessment:
+    name: str
+    when: date | None
+    weight: float | None
+    line: str
+    announced: date | None = None
+    is_test: bool = False
+    is_final: bool = False
+
+
+def parse_assessments(text: str) -> list[Assessment]:
+    """Lines of a syllabus that carry a percentage: the assessment's name, its date (the
+    first date on the line), its weight, and whether it is a test or a final examination.
+    A date after the word 'announced' or 'new' is the announcement date."""
+    out: list[Assessment] = []
+    for raw in text.splitlines():
+        line = raw.strip().strip("|").strip()
+        if not line or "%" not in line or set(line) <= set("|-: "):
+            continue
+        m = _PCT.search(line)
+        if not m:
+            continue
+        weight = float(m.group(1))
+        dates = _parse_date_words(line)
+        ann = None
+        am = re.search(r"(announced|new)[^|]*?(" + _DATE_WORDS.pattern + ")", line, re.I)
+        if am:
+            got = _parse_date_words(am.group(0))
+            ann = got[0] if got else None
+        when = next((d for d in dates if d != ann), dates[0] if dates else None)
+        if ann is None and when is not None:
+            # "announced 20 November" with no year: the year is the assessment's
+            am2 = re.search(rf"(?i)(announced|new)\D{{0,20}}?(\d{{1,2}})\s+({_MONTHS})\b|(?i)(announced|new)\D{{0,20}}?({_MONTHS})\.?\s+(\d{{1,2}})\b", line)
+            if am2:
+                try:
+                    dd, mm = (am2.group(2), am2.group(3)) if am2.group(2) else (am2.group(6), am2.group(5))
+                    ann = datetime.strptime(f"{dd} {mm[:3]} {when.year}", "%d %b %Y").date()
+                except ValueError:
+                    ann = None
+        name = re.split(r"\s*\|\s*", line)[0]
+        name = re.sub(r"\s*\(.*?\)\s*", " ", name).strip() or line[:40]
+        out.append(Assessment(name, when, weight, line, ann, bool(_TEST_WORDS.search(name)), bool(_FINAL_WORDS.search(name))))
+    return out
+
+
+def term_end_of(text: str, pack: Pack | None = None, term_name: str = "") -> tuple[date | None, str]:
+    """The last day of classes: from a 'Term: ... to <date>' line in the document, else the
+    pack's term of that name (calendar.yaml terms with `classes_end`), else None."""
+    m = re.search(r"(?i)(term|classes)[^\n]*?\bto\s+(" + _DATE_WORDS.pattern + ")", text)
+    if m:
+        got = _parse_date_words(m.group(2))
+        if got:
+            return got[0], "the document's own term dates"
+    if pack is not None and term_name:
+        for t in pack.terms():
+            if term_name.lower() in str(t.get("name", "")).lower():
+                for key in ("classes_end", "end", "last_day_of_classes"):
+                    d = _parse_date(t.get(key))
+                    if d:
+                        return d, f"the pack's term {t.get('name')} [{t.get('source')}, read {t.get('date_read')}]"
+    return None, ""
+
+
+def check_syllabus(pack: Pack, text: str, policy: str, *, term_name: str = "",
+                   today: date | None = None) -> list[Finding]:
+    """Apply a policy's rules to a syllabus. Each finding quotes the rule as the institution's
+    page states it, with the source and the date read; what the parser could not establish
+    (no term end, no date on a line) is reported as Unknown rather than passed."""
+    pol = pack.policies.get(policy)
+    if pol is None:
+        raise PackError(f"no policy `{policy}` in the pack; the clerk learns one with `murmurent institution learn-rule`"
+                        + (f" (have: {', '.join(pack.policies)})" if pack.policies else ""))
+    items = parse_assessments(text)
+    end, end_src = term_end_of(text, pack, term_name)
+    out: list[Finding] = []
+    for r in pol.get("rules") or []:
+        chk = r.get("check") or {}
+        kind = chk.get("kind", "note")
+        cite = f"[{r.get('source')}, read {r.get('date_read')}]"
+        says = f"The {pack.name} rule says: \"{r.get('says')}\" {cite}"
+        if kind == "note":
+            out.append(Finding("Note", str(r.get("id")), f"{says} (applied by reading, not by the parser)"))
+            continue
+        if end is None:
+            out.append(Finding("Unknown", str(r.get("id")), f"cannot place the last weeks of term: no 'Term: ... to <date>' line and no term given; {says}"))
+            continue
+        weeks = int(chk.get("weeks", 0))
+        start = end - timedelta(weeks=weeks)
+        for a in items:
+            if kind == "no_tests_in_last_weeks" and a.is_test and not a.is_final:
+                if a.when is None:
+                    out.append(Finding("Unknown", a.name, f"no date on this line, so its place in the last {weeks} weeks is unknown; {says}"))
+                elif start < a.when <= end:
+                    out.append(Finding("Fix", a.name, f"a test on {a.when.isoformat()}, inside the last {weeks} weeks of classes (from {start.isoformat()} to {end.isoformat()}, {end_src}); {says}"))
+                else:
+                    out.append(Finding("Correct", a.name, f"on {a.when.isoformat()}, outside the last {weeks} weeks; {cite}"))
+            elif kind == "no_final_exam_in_last_weeks" and a.is_final and a.when is not None:
+                if start < a.when <= end:
+                    out.append(Finding("Fix", a.name, f"a final examination on {a.when.isoformat()}, inside the last {weeks} weeks of classes; {says}"))
+            elif kind == "no_new_assignments_in_last_weeks" and not a.is_test:
+                if a.announced is not None and start < a.announced <= end:
+                    out.append(Finding("Fix", a.name, f"announced {a.announced.isoformat()}, inside the last {weeks} weeks of classes (from {start.isoformat()}); {says}"))
+                elif a.announced is None and a.when is not None and start < a.when <= end:
+                    out.append(Finding("Unknown", a.name, f"due {a.when.isoformat()}, inside the last {weeks} weeks: allowed if it was announced before {start.isoformat()}; the document does not say when; {says}"))
+            elif kind == "min_weight_before_date":
+                pass
+        if kind == "min_weight_before_date":
+            by = _parse_date(chk.get("by")) or (pack.deadline_date(chk.get("deadline", "")) if hasattr(pack, "deadline_date") else None)
+            need = float(chk.get("percent", 0))
+            if by is None:
+                out.append(Finding("Unknown", str(r.get("id")), f"the date to count to is not in the pack; {says}"))
+            else:
+                total = sum(a.weight or 0 for a in items if a.when and a.when <= by)
+                out.append(Finding("Correct" if total >= need else "Fix", str(r.get("id")),
+                                   f"{total:g}% of the grade is assessed by {by.isoformat()} (the rule asks {need:g}%); {says}"))
+    return out
+
+
+def learn_rule(pack: Pack, *, policy: str, rule_id: str, says: str, source: str, heading: str = "",
+               check: dict[str, Any] | None = None, today: date | None = None, fetcher: Fetcher | None = None,
+               confirm: bool = True) -> dict[str, Any]:
+    """Record a rule the clerk read on one of the institution's pages, quoted as the page
+    states it. With ``confirm`` the page is fetched and must contain the quote, so no rule
+    enters the pack from recollection. ``check`` makes it machine-checkable
+    (kind in RULE_KINDS, with weeks or percent); without it the rule is applied by reading."""
+    today = today or date.today()
+    if not host_allowed(source, pack.domains):
+        raise PackError(f"refused: {source} is outside the pack's domains {pack.domains}")
+    if check and check.get("kind") not in RULE_KINDS:
+        raise PackError(f"check.kind must be one of {RULE_KINDS}")
+    if confirm:
+        fetcher = fetcher or (lambda u, d: fetch_text(u, d, domains=pack.domains))
+        text = re.sub(r"\s+", " ", html_to_text(fetcher(source, None))).lower()
+        if re.sub(r"\s+", " ", says).lower() not in text:
+            raise PackError(f"refused: {source} does not state {says!r}; a rule is learned only as the page words it")
+    entry: dict[str, Any] = {"id": rule_id, "says": says, "source": source, "date_read": today.isoformat()}
+    if heading:
+        entry["heading"] = heading
+    entry["check"] = check or {"kind": "note"}
+    pol = pack.policies.setdefault(policy, {"name": policy, "rules": []})
+    pol["rules"] = [r for r in (pol.get("rules") or []) if str(r.get("id")) != rule_id] + [entry]
+    write_pack(pack)
+    return entry

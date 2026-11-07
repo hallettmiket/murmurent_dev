@@ -18,6 +18,15 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 ## [Unreleased]
 
 ### Added
+- **The clerk reviews a syllabus against the institution's rules.** Rules live
+  in the pack under `policies/<name>.yaml`, each quoted as the institution's
+  page words it with the page and the date read (`murmurent institution
+  learn-rule`, which fetches the page and refuses a quote it does not find);
+  `murmurent institution check <file> --policy course_outlines` finds the
+  assessments in a course outline and reports each rule as Fix, Correct or
+  Unknown: a test in the last weeks of classes, a new assignment introduced
+  too late, a final examination too early. The Western pack holds the
+  Academic Calendar's rules on scheduling tests, assignments and examinations.
 - **Prompts written in Obsidian, sent with one keystroke, and kept.**
   `murmurent prompt new` opens today's `prompts/<date>.md` in the vault;
   `murmurent prompt send` copies the selected prompt or the latest block,

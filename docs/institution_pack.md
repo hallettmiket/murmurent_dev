@@ -51,13 +51,14 @@ On a machine without a web search tool, `murmurent institution lookup
 A-Z, listed under `lookup.pages` in `institution.yaml`) and lists the pages
 that mention the question.
 
-## The three jobs on top
+## The jobs on top
 
 | Ask it | It runs | Verdict |
 |---|---|---|
 | "Is this letter to the Dean right?" (a document) | `murmurent institution check <file>` | `Correct / Fix / Unknown` per office holder, email, postal code, colour and font named in the document; an office the pack lacks is looked up first |
 | "25 working days before the defence" (a date) | `murmurent institution date 2027-04-16 --days -25` | the date, the weekday, and the holidays it skipped; never a holiday |
 | "What is next for the thesis, and by when?" (a procedure) | `murmurent institution walk thesis_examination --anchor 2027-04-16 --variant doctoral` | the steps with their forms and dates |
+| "Look over my syllabus" (a document against the rules) | `murmurent institution check syllabus.md --policy course_outlines` | each rule `Fix / Correct / Unknown`, quoted as the institution's page words it, with source and date; a test in the last weeks of classes, a new assignment introduced too late |
 
 ## Where a pack lives and which one is used
 
@@ -198,6 +199,33 @@ change each term. Two things keep the pack honest:
 The fetch is `urllib` with a strict host rule: the page must be on one of the
 pack's domains, and a redirect to another host is refused. A redirect the
 institution's own site makes to plain `http` on its own host is followed.
+
+## Policies: the institution's rules, applied to a document
+
+`policies/<name>.yaml` holds rules the Clerk read on the institution's pages,
+each quoted as the page words it, with the page and the date read, and an
+optional machine check:
+
+```yaml
+rules:
+- id: tests_last_3_weeks
+  says: Tests for one-term courses may not be scheduled during the last 3 weeks of classes in the term.
+  heading: Scheduling Tests
+  source: https://westerncalendar.uwo.ca/PolicyPages.cfm?...
+  date_read: '2026-11-07'
+  check: {kind: no_tests_in_last_weeks, weeks: 3}
+```
+
+Check kinds: `no_tests_in_last_weeks`, `no_final_exam_in_last_weeks`,
+`no_new_assignments_in_last_weeks` (each with `weeks`),
+`min_weight_before_date` (`percent`, `by`), and `note` for a rule the Clerk
+applies by reading. `murmurent institution learn-rule` adds one; the page is
+fetched and must state the quote. `murmurent institution check <file>
+--policy <name>` finds the assessments in a syllabus (a line with a
+percentage; its first date; "announced <date>" for the announcement) and
+reports each rule, with the last weeks of classes counted from the
+document's own term dates or from `--term`. What the parser cannot establish
+is `Unknown`, never a pass.
 
 ## What the Clerk may do online
 

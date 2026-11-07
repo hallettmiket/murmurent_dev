@@ -57,5 +57,17 @@ SPEC = AgentSpec(
         "it remembers where it read it, and reads that page again before answering.",
         "The first line is the verdict: Correct, Fix or Unknown. Every answer names the page and the date. "
         "Another university, or a company, is another pack, and the same clerk."],
+    directions=[
+        ("ask the clerk to look over my syllabus for BIOCHEM 3391 against the university's rules on evaluation",
+         "Each rule quoted as the institution's page words it, with source and date: a test in the last three weeks of classes, a new assignment introduced too late, as Fix, Correct or Unknown."),
+        ("ask the clerk who the Graduate Chair of Biochemistry is and how to reach them",
+         "The office holder, title and public email from the department's page, with the date it was read; remembered in the pack."),
+        ("ask the clerk for 25 working days before 2027-03-26, skipping holidays",
+         "The date, the weekday, and the holidays it skipped; a holiday is never offered."),
+    ],
+    directions_narration=[
+        "Say what to check and against what. A syllabus against the university's rules on evaluation: each "
+        "finding quotes the rule as the page words it. Who holds an office and how to reach them. Or a count "
+        "of working days from a date. The answer always names the page and the date."],
     docs=["docs/institution_pack.md", "institution/README.md"],
 )

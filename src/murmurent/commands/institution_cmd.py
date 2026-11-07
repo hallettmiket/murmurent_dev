@@ -203,13 +203,22 @@ def institution_show(kind: str, key: str | None, no_verify: bool, pack_name: str
         emit(lh, lh)
 
 
-@institution_group.command("check", help="Check a document's office holders, emails, addresses and letterhead against the pack.")
+@institution_group.command("check", help="Check a document's office holders, emails, addresses and letterhead against the pack; with --policy, a syllabus against the institution's rules.")
 @click.argument("path", type=click.Path(exists=True, dir_okay=False))
+@click.option("--policy", default=None, help="Apply this policy's rules (policies/<name>.yaml) to the document, e.g. course_outlines.")
+@click.option("--term", default="", help="With --policy: the term whose last day of classes to count from, when the document does not say.")
 @_PACK_OPT
-def institution_check(path: str, pack_name: str | None) -> None:
+def institution_check(path: str, policy: str | None, term: str, pack_name: str | None) -> None:
     pack = _pack(pack_name)
     text = Path(path).read_text(encoding="utf-8", errors="replace")
-    findings = inst.check_document(pack, text)
+    if policy:
+        try:
+            findings = inst.check_syllabus(pack, text, policy, term_name=term)
+        except inst.PackError as exc:
+            click.echo(str(exc), err=True)
+            sys.exit(2)
+    else:
+        findings = inst.check_document(pack, text)
     verdict = inst.check_verdict(findings)
     click.echo(f"{verdict}: {len(findings)} finding(s) in {path} against {pack.name}.")
     for f in findings:
@@ -374,3 +383,36 @@ def institution_verify(key: str, no_apply: bool, pack_name: str | None) -> None:
     if change.status == "changed":
         click.echo("the page no longer states this; read it and `learn` the current fact, or leave it for a person")
         sys.exit(1)
+
+
+@institution_group.command("learn-rule", help="Remember a rule read on one of the institution's pages, quoted as the page words it, into policies/<policy>.yaml.")
+@click.argument("policy")
+@click.option("--id", "rule_id", required=True, help="A short id for the rule, e.g. tests_last_3_weeks.")
+@click.option("--says", required=True, help="The rule, verbatim from the page.")
+@click.option("--source", required=True, help="The page (must be on the pack's domains).")
+@click.option("--heading", default="", help="The heading the rule sits under on the page.")
+@click.option("--check-kind", default="note", type=click.Choice(list(inst.RULE_KINDS)), show_default=True,
+              help="How the check command applies it; note = by reading.")
+@click.option("--weeks", default=None, type=int, help="For the last-weeks checks.")
+@click.option("--percent", default=None, type=float, help="For min_weight_before_date.")
+@click.option("--by", default=None, help="For min_weight_before_date: the date (YYYY-MM-DD).")
+@click.option("--no-confirm", is_flag=True, help="Do not fetch the page (tests only).")
+@_PACK_OPT
+def institution_learn_rule(policy: str, rule_id: str, says: str, source: str, heading: str, check_kind: str,
+                           weeks: int | None, percent: float | None, by: str | None, no_confirm: bool,
+                           pack_name: str | None) -> None:
+    pack = _pack(pack_name)
+    check: dict = {"kind": check_kind}
+    if weeks is not None:
+        check["weeks"] = weeks
+    if percent is not None:
+        check["percent"] = percent
+    if by:
+        check["by"] = by
+    try:
+        e = inst.learn_rule(pack, policy=policy, rule_id=rule_id, says=says, source=source, heading=heading,
+                            check=check, confirm=not no_confirm)
+    except inst.PackError as exc:
+        click.echo(str(exc), err=True)
+        sys.exit(1)
+    click.echo(f"learned rule {policy}/{rule_id}: \"{says}\" [{source}, read {e['date_read']}]")

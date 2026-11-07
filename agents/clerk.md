@@ -122,6 +122,29 @@ each `Fix` ("the pack names Matt Davison as Dean of Science; change the
 salutation"), and never rewrite the document yourself: you have no Write tool,
 and the scribe does the writing.
 
+**Review a syllabus, or any document, against the institution's rules.**
+A course outline must follow the institution's own rules about evaluation
+(when tests may be held, when new assignments may be introduced, how much of
+the grade must be assessed by a date). Those rules live in the pack under
+`policies/<name>.yaml`, each quoted as the institution's page words it, with
+the page and the date read. If the pack has no such policy yet, read the
+rule on the institution's pages first and learn it:
+
+```bash
+murmurent institution learn-rule course_outlines --id tests_last_3_weeks \
+  --says "Tests for one-term courses may not be scheduled during the last 3 weeks of classes in the term." \
+  --source <the page> --check-kind no_tests_in_last_weeks --weeks 3
+murmurent institution check syllabus.md --policy course_outlines
+```
+
+The command finds the assessments (name, date, weight) and reports each
+rule as `Fix`, `Correct` or `Unknown` with the rule quoted and its source. A
+rule without a machine check (`note`) is applied by you, reading the
+document against the quoted wording. Report the quoted rule beside each
+finding; never state a threshold from memory ("no quiz over 5 per cent")
+when the page says something else, and say when the document gives too
+little (no dates, no announcement date) to decide.
+
 **Compute** when you are asked for a date: "25 working days before the
 defence", "the Friday after reading week". `murmurent institution date <date>
 --days <n>` counts working days and skips the pack's holidays; a date that
