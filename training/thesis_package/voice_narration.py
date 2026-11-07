@@ -88,7 +88,9 @@ def main() -> None:
         return
     key = api_key()
     voices = json.loads(request("/voices", key))["voices"]
-    voice_id = next((v["voice_id"] for v in voices if v["name"].lower() == args.voice.lower()), None)
+    # Names come back as "Matilda - Knowledgable, Professional"; match the name before the dash.
+    voice_id = next((v["voice_id"] for v in voices
+                     if v["name"].split(" - ")[0].strip().lower() == args.voice.lower()), None)
     if not voice_id:
         sys.exit(f"No voice named {args.voice!r}; available: {', '.join(v['name'] for v in voices)}")
 
