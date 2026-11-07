@@ -1,0 +1,8 @@
+name: Western University
+unique_name: western
+domains:
+- uwo.ca
+- westernu.ca
+keeper: bookworm
+max_fact_age_days: 180
+note: Every fact carries source and date_read; a fact that cannot be read is left out.

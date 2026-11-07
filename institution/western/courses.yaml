@@ -1,0 +1,65 @@
+# Course timetables are a fetch rule plus a cache, not a hand-typed list: they change
+# every term. `murmurent institution fetch-course BIOCHEM 3380 --apply` runs the rule
+# for one course and caches it; `murmurent institution refresh --kind course` re-runs
+# it for every cached course and reports what changed.
+fetch:
+  url: https://studentservices.uwo.ca/secure/timetables/mastertt/ttindex.cfm
+  method: POST
+  fields:
+    subject: '{subject}'
+    catalognbr: '{number}'
+    Designation: Any
+    CourseTime: All
+    Component: All
+    LocationCode: Any
+    command: search
+  parser: timetable_tables
+  limits: >-
+    Read on 2026-11-07. The public master timetable (Undergraduate Fall/Winter Academic
+    Timetable 2026/2027) returns, per section, the section number, component (LEC, LAB,
+    TUT), class number, requisites, status, campus and delivery type. It does not show
+    meeting days, times or rooms; those are in the Student Center after registration and
+    are not on a public page the clerk may read. So the clerk can say which sections a
+    course has and whether they are full; asked when or where a course meets, it answers
+    Unknown and names the timetable page as the nearest fact. The subject code is the
+    timetable's own (BIOCHEM, COMPSCI, ...), the course number is the four digits without
+    the suffix, and the fetch is one POST per course.
+cache:
+- code: BIOCHEM 3380G
+  subject: BIOCHEM
+  number: '3380'
+  title: BIOCHEMISTRY LABORATORY
+  found: true
+  sections:
+  - section: '001'
+    component: LEC
+    class_nbr: '9313'
+    requisites: 'PRIORITY INFORMATION IS ON BMSc WEBSITE: http://www.schulich.uwo.ca/bmsc/academic_resources/courses/access_to_courses.html.
+      WAIT LIST OPTION AVAILABLE. REQUISITES: Prerequisite(s): Biochemistry 3381A and Biochemistry 3382A.'
+    status: Full
+    campus: Main
+    delivery_type: In Person
+  - section: '003'
+    component: LAB
+    class_nbr: '9511'
+    requisites: WAIT LIST OPTION AVAILABLE.
+    status: Full
+    campus: Main
+    delivery_type: In Person
+  - section: '002'
+    component: LEC
+    class_nbr: '9312'
+    requisites: 'PRIORITY INFORMATION IS ON BMSc WEBSITE: http://www.schulich.uwo.ca/bmsc..WAIT LIST OPTION
+      AVAILABLE. REQUISITES: Prerequisite(s): Biochemistry 3381A and Biochemistry 3382A.'
+    status: Full
+    campus: Main
+    delivery_type: In Person
+  - section: '004'
+    component: LAB
+    class_nbr: '9512'
+    requisites: WAIT LIST OPTION AVAILABLE.
+    status: Full
+    campus: Main
+    delivery_type: In Person
+  source: https://studentservices.uwo.ca/secure/timetables/mastertt/ttindex.cfm
+  date_read: '2026-11-07'

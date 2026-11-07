@@ -1,0 +1,116 @@
+offices:
+- office: President and Vice-Chancellor
+  person: Alan Shepard
+  title: President & Vice-Chancellor
+  address: Stevenson Hall, Suite 2107, London, Ontario, Canada, N6A 5B8
+  source: https://www.president.uwo.ca/
+  date_read: '2026-11-07'
+  note: The page gives no email address for the office.
+- office: Provost and Vice-President (Academic)
+  person: Florentine Strzelczyk
+  title: Provost & Vice-President (Academic)
+  email: provostvpa@uwo.ca
+  address: Office of the Provost, Stevenson Hall, Suite 2107, London, Ontario, Canada, N6A 5B8
+  source: https://www.provost.uwo.ca/
+  date_read: '2026-11-07'
+- office: Deputy Provost
+  person: Jeffrey Hutter
+  title: Deputy Provost
+  source: https://www.provost.uwo.ca/leadership/index.html
+  date_read: '2026-11-07'
+  note: Name and title only; the leadership page gives no email or address.
+- office: Vice-Provost (Academic Planning, Policy and Faculty)
+  person: Margaret McGlynn
+  title: Vice-Provost (Academic Planning, Policy & Faculty)
+  source: https://www.provost.uwo.ca/leadership/index.html
+  date_read: '2026-11-07'
+  note: Name and title only; the leadership page gives no email or address.
+- office: Vice-Provost (Graduate and Postdoctoral Studies)
+  person: Kamran Siddiqui
+  title: Vice-Provost (Graduate & Postdoctoral Studies)
+  source: https://www.provost.uwo.ca/leadership/index.html
+  date_read: '2026-11-07'
+  note: Name and title only. The SGPS site's own leadership and contact pages returned
+    "page not found" on 2026-11-07, so no SGPS email or address is recorded.
+- office: Vice-President (Research)
+  person: Penny Pexman
+  title: Vice-President (Research)
+  email: vpr@uwo.ca
+  source: https://www.uwo.ca/research/about/leadership/vpr.html
+  date_read: '2026-11-07'
+  note: The page gives the office email but no campus address.
+- office: Dean, Schulich School of Medicine and Dentistry
+  person: John Yoo
+  title: Dean of the Schulich School of Medicine & Dentistry
+  email: schulichdean@uwo.ca
+  address: Office of the Dean, Schulich School of Medicine & Dentistry, Clinical Skills Building,
+    3rd floor, London, Ontario, Canada, N6A 5C1
+  phone: 519-661-3459
+  source: https://www.schulich.uwo.ca/about/office-of-the-dean/meet-the-dean.html
+  date_read: '2026-11-07'
+- office: Dean of Science
+  person: Matt Davison
+  title: Dean of Science
+  email: sciencedean@uwo.ca
+  address: Faculty of Science, North Campus Building, Room 240, 1151 Richmond Street, London,
+    Ontario, Canada, N6A 5B7
+  source: https://www.uwo.ca/sci/about_science/people.html
+  date_read: '2026-11-07'
+- office: Associate Dean (Graduate and Postdoctoral Studies), Faculty of Science
+  person: Elizabeth Webb
+  title: Associate Dean, Graduate and Post-Doctoral Studies
+  email: gradsci@uwo.ca
+  address: Faculty of Science, North Campus Building, Room 240, 1151 Richmond Street, London,
+    Ontario, Canada, N6A 5B7
+  source: https://www.uwo.ca/sci/about_science/people.html
+  date_read: '2026-11-07'
+- office: Associate Dean (Research), Faculty of Science
+  person: Paul Ragogna
+  title: Associate Dean, Research
+  email: pragogna@uwo.ca
+  address: Faculty of Science, North Campus Building, Room 240, 1151 Richmond Street, London,
+    Ontario, Canada, N6A 5B7
+  source: https://www.uwo.ca/sci/about_science/people.html
+  date_read: '2026-11-07'
+- office: Dean, Faculty of Health Sciences
+  person: Shaun Boe
+  title: Dean of the Faculty of Health Sciences
+  email: fhsdo@uwo.ca
+  address: Arthur and Sonia Labatt Health Sciences Building, Room 400, 1151 Richmond Street,
+    London, Ontario, Canada, N6A 3K7
+  source: https://www.uwo.ca/fhs/about/dean/
+  date_read: '2026-11-07'
+  note: The email and address are the Faculty's administrative office, as the page lists them.
+- office: University Secretary
+  person: Amy Bryson
+  title: University Secretary
+  email: abryson4@uwo.ca
+  address: Stevenson Hall, Suite 4101, London, Ontario, Canada, N6A 3K7
+  source: https://www.uwo.ca/univsec/about/staff_directory.html
+  date_read: '2026-11-07'
+- office: Chair, Department of Biochemistry
+  person: Greg Gloor
+  title: Chair
+  email: ggloor@uwo.ca
+  room: MSB 342C
+  address: Department of Biochemistry, Medical Sciences Building Rm. 342, London, Ontario, Canada,
+    N6A 5C1
+  source: https://www.schulich.uwo.ca/biochem/people/staff.html
+  date_read: '2026-11-07'
+- office: Graduate Program Chair, Biochemistry
+  person: Wing-Yiu (James) Choy
+  title: Graduate Program Chair
+  email: jchoy4@uwo.ca
+  room: MSB 302
+  address: Department of Biochemistry, Medical Sciences Building Rm. 342, London, Ontario, Canada,
+    N6A 5C1
+  source: https://www.schulich.uwo.ca/biochem/people/undergrad_grad_contacts.html
+  date_read: '2026-11-07'
+- office: Graduate Program Coordinator, Biochemistry
+  person: Susan Simpson
+  title: Graduate Program Co-ordinator (interim)
+  email: biochem-gradadmin@uwo.ca
+  address: Department of Biochemistry, Medical Sciences Building Rm. 342, London, Ontario, Canada,
+    N6A 5C1
+  source: https://www.schulich.uwo.ca/biochem/people/undergrad_grad_contacts.html
+  date_read: '2026-11-07'
