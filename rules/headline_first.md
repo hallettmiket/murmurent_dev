@@ -42,6 +42,7 @@ vocabulary:
 | `centre_millwright` | `Reconciled / Drift / BLOCKED — <one-line on what changed or what is blocking>` |
 | `registrar` | `Recorded / Conflict / Skipped — <one-line on what>` |
 | `judge` | `Presented / Split / Insufficient — <one-line on the combined result>` |
+| `docent` | `Located / Absent / Incomplete — <one-line: where in the work, what it lacks, or what the package is missing>` |
 | `teacher` | `Explained / Gap — <one-line on what was/wasn't understood>` |
 
 Then a blank line. Then the detail. Example:

@@ -25,6 +25,7 @@ ship:
   - scripts/                # setup.sh, bootstrap.sh, install helpers
   - templates/              # scaffolding written into new repos
   - instruments/            # instrument descriptors
+  - examples/               # synthetic paper and thesis packages the tests and docs use (#284)
   - tests/                  # see DECIDE-1
   - .github/                # issue template + docs workflow
 
