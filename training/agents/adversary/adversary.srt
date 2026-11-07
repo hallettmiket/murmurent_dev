@@ -1,0 +1,35 @@
+1
+00:00:00,400 --> 00:00:12,699
+This is the adversary. It audits how a result was produced, the way a hard reviewer would, and it re-runs the code rather than taking the write-up's word.
+
+2
+00:00:13,099 --> 00:00:23,600
+Its file says what it looks for. Data leakage between training and test. Claims that seem too good. Whether a computation is correct and reproducible.
+
+3
+00:00:23,600 --> 00:00:34,500
+And when the work carries intellectual property, it refers that to the lawyer itself, and folds the lawyer's verdict into its own.
+
+4
+00:00:34,899 --> 00:00:47,000
+It audits; it does not build. It does not produce figures. It never presents speculation as fact: what it has not checked by running code is labelled as speculated.
+
+5
+00:00:47,000 --> 00:00:55,100
+And it never launders a disagreement into a verdict. Ambiguous evidence is reported as ambiguous.
+
+6
+00:00:55,500 --> 00:01:04,000
+A real run, on the synthetic example that ships with Murmurent. The member asks whether a claimed result is sound.
+
+7
+00:01:04,000 --> 00:01:22,099
+The verdict is Questions. The number reproduces exactly, but the adversary found that the two groups come from different countries, and that the Methods text describes a step the code does not take. The last line is the mandatory counsel note.
+
+8
+00:01:22,500 --> 00:01:36,199
+To use it, type to Claude Code and name it: ask the adversary to audit an experiment or a write-up. Give it the folder with the code and the data, not a summary.
+
+9
+00:01:36,199 --> 00:01:52,399
+The first line is the verdict: Pass, Questions or Reject. Every finding says whether it was observed or speculated, and the audit ends with the counsel line. Run it before someone else does.

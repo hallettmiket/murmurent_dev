@@ -1,0 +1,19 @@
+# One entry per script-rendered training movie: which agent, which version and
+# date it was checked against, the hash of the agent file at that moment, and
+# its chapters. Written by training/lib/agent_movie.py on every render; read by
+# the agent_movie hook, which prompts to re-render when agents/<x>.md changes.
+movies:
+- agent: oracle
+  title: The oracle
+  version: 2026.11.0
+  date: 2026-11-07
+  agent_sha256: 905ca061d5fd1e96d3ef85ba0e6b1d0eedbb6f3ec6e23b65a4f7ea24ba9cabb8
+  file: training/agents/oracle/oracle_narrated.mp4
+  make: python3 training/agents/oracle/make.py
+  seconds: 134
+  chapters:
+    - ["0:00", "Welcome"]
+    - ["0:11", "What it does"]
+    - ["0:38", "What it will not do"]
+    - ["1:04", "A real example"]
+    - ["1:42", "How to use it"]

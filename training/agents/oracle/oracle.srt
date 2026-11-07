@@ -1,0 +1,39 @@
+1
+00:00:00,400 --> 00:00:11,099
+This is the oracle, your personal research memory in Murmurent. It remembers what you found, and gives it back months later with its source.
+
+2
+00:00:11,500 --> 00:00:24,000
+Its own file says what it is for: to accumulate, organize and recall scientific knowledge across all of your projects. There is one oracle per person, not one per project.
+
+3
+00:00:24,000 --> 00:00:38,500
+Every entry lands in your own Obsidian vault, where you can browse, search and graph it. Sharing a finding with the lab oracle is a separate step that you take yourself.
+
+4
+00:00:38,899 --> 00:00:51,000
+What it will not do is just as clear. It does not publish to the lab; it only stages a draft. It never publishes a protected or restricted entry.
+
+5
+00:00:51,000 --> 00:01:04,700
+It does not fetch literature or run analyses; the bookworm and the blacksmith do that. And it never fabricates: if it holds nothing on a topic, it says so.
+
+6
+00:01:05,100 --> 00:01:16,799
+A real run, on a demo vault. The member asks it to remember a finding from a synthetic colony study, with the project, the experiment and their handle.
+
+7
+00:01:16,799 --> 00:01:28,500
+The oracle writes one entry with the full schema, and adds a line to the index. The first line of its reply is the verdict.
+
+8
+00:01:28,900 --> 00:01:42,200
+Asked later what it knows about serum and colony size, it finds that one entry, cites the project and the experiment, and says plainly that it holds nothing else.
+
+9
+00:01:42,600 --> 00:01:57,900
+To use it, type to Claude Code and name the agent: ask the oracle to remember something, or ask it what you know about a topic. Give it the finding, where it came from, and the sensitivity.
+
+10
+00:01:57,900 --> 00:02:13,699
+The first line of the reply is the verdict: Found, Not found or Unsure, or Remembered when it filed something. The detail names the entry, so you can open it in Obsidian.
