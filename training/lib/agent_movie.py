@@ -32,6 +32,7 @@ from PIL import ImageDraw
 from .draw import (AMBER, BG, CHARS_PER_SECOND, DIM, F_BIG, F_BODY, F_H, F_LABEL, F_MONO_S, F_SMALL, F_SUB,
                    F_TINY, LAV, MUTED, PANEL, PANEL2, RED, TEAL, TERM_BG, TEXT, W, P, appear, eback, figure,
                    font, glow, heading, icon, mono_block, paste_c, person, rrect, text_c, tw, wrap)
+from . import scene as scene_mod
 from .scene import EM_DASH, Scene, mmss, render
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -344,6 +345,13 @@ def main(spec: AgentSpec, folder: Path, argv: list[str] | None = None) -> None:
     args = ap.parse_args(argv)
     version = murmurent_version()
     sha = check_quotes(spec)
+    from .narrate import clip_durations
+    texts = spec.intro + spec.does_narration + spec.refuses_narration + spec.howto_narration
+    for ex in spec.examples:
+        texts += ex.narration
+    scene_mod.DURATIONS.update(clip_durations(folder, texts, args.voice))
+    if scene_mod.DURATIONS:
+        print(f"timed {len(scene_mod.DURATIONS)} of {len(texts)} sentences from their voice clips")
     scenes = build_scenes(spec, folder, version)
     total = sum(s.seconds for s in scenes)
     if total > MAX_SECONDS:

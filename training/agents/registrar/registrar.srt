@@ -1,35 +1,35 @@
 1
-00:00:00,400 --> 00:00:13,500
+00:00:00,400 --> 00:00:12,131
 This is the registrar, the agent above the lab level. It keeps the centre's roster of labs, cores and collaborations, and it signs the cards that say who leads what.
 
 2
-00:00:13,900 --> 00:00:28,399
+00:00:12,550 --> 00:00:28,278
 Its file says the scope: the centre-level roster, the lifecycle of labs, cores and collaborations, and the one registry file that is authoritative. It enforces that every PI leads at most one lab or core.
 
 3
-00:00:28,399 --> 00:00:40,900
+00:00:28,278 --> 00:00:39,895
 It gives the administrative head a read-only view of the centre. And it is the certificate authority: it signs PI cards and holds the revocation list.
 
 4
-00:00:41,299 --> 00:00:51,000
+00:00:40,299 --> 00:00:51,895
 What it must never do: read inside a lab, its notebooks, deliberations, source code or personal oracles. Labs are opaque units to it.
 
 5
-00:00:51,000 --> 00:01:05,099
+00:00:51,895 --> 00:01:05,184
 It never edits a lab's charter, members or profiles; those belong to the lab. And it never deletes a lab's data: archiving flips a status flag and the repository stays.
 
 6
-00:01:05,500 --> 00:01:12,399
+00:01:05,600 --> 00:01:13,480
 A real run, read-only, on this machine's registry. The administrative head asks for the institution-level view.
 
 7
-00:01:12,399 --> 00:01:23,699
+00:01:13,480 --> 00:01:26,508
 The verdict is Clear: one lab, its PI, no cores yet, and one gap named plainly: nobody is recorded as registrar. Nothing was changed.
 
 8
-00:01:24,099 --> 00:01:38,999
+00:01:26,900 --> 00:01:38,774
 To use it, type to Claude Code and name it: ask the registrar for the roster, to record a new lab, or to issue a PI card. It refuses a PI who already leads another group.
 
 9
-00:01:38,999 --> 00:01:51,199
+00:01:38,774 --> 00:01:51,476
 The first line is the verdict: Recorded, Conflict or Skipped. Then the roster, with every pointer checked, or the conflict that stopped it.

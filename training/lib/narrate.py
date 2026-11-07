@@ -93,6 +93,18 @@ def voice_id_for(name: str, key: str) -> str:
     return vid
 
 
+def clip_durations(folder: Path, texts: list[str], voice_name: str = "Matilda") -> dict[str, float]:
+    """The measured length of every sentence whose clip is already cached, so a
+    scene can be timed from the real narration rather than a reading-pace guess."""
+    out: dict[str, float] = {}
+    for text in texts:
+        h = hashlib.sha1((voice_name + MODEL + text).encode()).hexdigest()[:12]
+        clip = folder / "audio" / f"{h}.mp3"
+        if clip.exists():
+            out[text] = duration(clip)
+    return out
+
+
 def voice(folder: Path, stem: str, voice_name: str = "Matilda", dry_run: bool = False) -> Path | None:
     audio = folder / "audio"
     cues = parse_srt(folder / f"{stem}.srt")

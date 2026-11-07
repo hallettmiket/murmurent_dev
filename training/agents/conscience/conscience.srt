@@ -1,35 +1,35 @@
 1
-00:00:00,400 --> 00:00:11,500
+00:00:00,400 --> 00:00:10,691
 This is the conscience. It reviews a document for equity, inclusion and bias, line by line, and every flag comes with where it came from.
 
 2
-00:00:11,900 --> 00:00:26,399
+00:00:11,099 --> 00:00:24,320
 Its file has four rules. Reviewing is the default: it is pointed at something and infers what is wanted. Say it, and say where it came from: a citation, or marked as its own knowledge.
 
 3
-00:00:26,399 --> 00:00:39,300
+00:00:24,320 --> 00:00:37,609
 Decide the work, not for a community: it recommends one change. And it separates what it read from what it suspects; a suspicion is never a flag.
 
 4
-00:00:39,699 --> 00:00:52,599
+00:00:37,999 --> 00:00:48,759
 It never writes in a community's voice or on its behalf, and never presents its own knowledge as a community's account of itself. That is where a fluent model does harm.
 
 5
-00:00:52,599 --> 00:01:03,100
+00:00:48,759 --> 00:00:58,658
 Applying a fix is something you ask for, never something it infers. And it never edits institutional boilerplate; it flags it.
 
 6
-00:01:03,499 --> 00:01:09,599
+00:00:59,049 --> 00:01:04,887
 A real run, on a synthetic participants paragraph. The member asks for a review.
 
 7
-00:01:09,599 --> 00:01:26,909
+00:01:04,887 --> 00:01:22,459
 The verdict is Flagged. Each finding quotes the line, names the source in the resources or says it is not there, and the gap register lists what the bookworm should go and find.
 
 8
-00:01:27,299 --> 00:01:40,599
+00:01:22,849 --> 00:01:33,284
 To use it, type to Claude Code and name it: ask the conscience to review a section, a grant, a course. Point it at the file; you do not pick a mode.
 
 9
-00:01:40,599 --> 00:01:56,399
+00:01:33,284 --> 00:01:48,494
 The first line is the verdict: OK or Flagged. Then each finding with its line and its source, a recommended change, and the register of what the resources could not back up.

@@ -1,35 +1,35 @@
 1
-00:00:00,400 --> 00:00:12,300
+00:00:00,400 --> 00:00:12,084
 This is the blacksmith, the computational workhorse. It loads the data, engineers the features, trains and evaluates the models, and builds the apps you explore results in.
 
 2
-00:00:12,700 --> 00:00:21,600
+00:00:12,500 --> 00:00:22,005
 Its file lists the work. Load and preprocess data in any common format. Engineer features, handle class imbalance, make the splits.
 
 3
-00:00:21,600 --> 00:00:32,500
+00:00:22,005 --> 00:00:32,275
 Train and tune classifiers, evaluate them with the right metrics, and leave clean, commented code behind so the run can be repeated.
 
 4
-00:00:32,899 --> 00:00:43,399
+00:00:32,699 --> 00:00:44,434
 Publication figures are the artist's; its own plots are quick diagnostics. Methodological validation is the adversary's: it does not mark its own homework as sound.
 
 5
-00:00:43,399 --> 00:00:52,700
+00:00:44,434 --> 00:00:52,800
 And it does not write to the immutable data root. Outputs go under append only, versioned, never overwriting.
 
 6
-00:00:53,100 --> 00:01:04,400
+00:00:53,199 --> 00:01:04,424
 A real run, on simulated data. The adversary had found a confound, so the member asks the blacksmith for the within-country differences and a stratified permutation test.
 
 7
-00:01:04,400 --> 00:01:17,299
+00:01:04,424 --> 00:01:16,848
 The verdict is Done, with the numbers: the effect survives stratification, and the caveat that the countries do not agree. The results file and the code are named.
 
 8
-00:01:17,700 --> 00:01:30,200
+00:01:17,250 --> 00:01:27,777
 To use it, type to Claude Code and name it: ask the blacksmith to compute, train or build something. Give it the data, what to predict and where outputs go.
 
 9
-00:01:30,200 --> 00:01:47,200
+00:01:27,777 --> 00:01:44,287
 The first line is the verdict: Done, Failed or Partial. Then the numbers, the files it wrote and the code, so the adversary can re-run it. Send the result to the adversary before the PI.

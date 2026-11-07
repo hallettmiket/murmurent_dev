@@ -30,6 +30,12 @@ from .draw import FPS, H, LEAD, TAIL, TEAL, W, WORDS_PER_SECOND, XFADE, backgrou
 
 EM_DASH = "—"
 
+# Measured length of each narration sentence's voice clip, filled in by the movie
+# script when the clips already exist (narrate.clip_durations). A sentence with a
+# measured clip gets a slot of that length plus a breath; the rest are estimated
+# from the reading pace, as before.
+DURATIONS: dict[str, float] = {}
+
 
 @dataclass
 class Scene:
@@ -50,7 +56,10 @@ class Scene:
                 raise ValueError(f"{self.name}: em dash in the narration: {text!r}")
         t = self.lead
         for text in self.narration:
-            d = max(len(text.split()) / WORDS_PER_SECOND + 0.5, 2.5)
+            if text in DURATIONS:
+                d = DURATIONS[text] + 0.45
+            else:
+                d = max(len(text.split()) / WORDS_PER_SECOND + 0.5, 2.5)
             self.cues.append(t)
             self.durs.append(d)
             t += d

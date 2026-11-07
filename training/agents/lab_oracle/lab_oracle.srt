@@ -1,39 +1,39 @@
 1
-00:00:00,400 --> 00:00:09,500
+00:00:00,400 --> 00:00:08,741
 This is the lab oracle, the lab's shared, reviewed memory. It answers one question: what has the lab agreed on?
 
 2
-00:00:09,900 --> 00:00:21,600
+00:00:09,150 --> 00:00:20,838
 Its file says what it covers: recall, cross-reference and summarize the lab's reviewed knowledge, with provenance. It answers what the lab has agreed on, and who published it.
 
 3
-00:00:21,600 --> 00:00:30,100
+00:00:20,838 --> 00:00:28,693
 Entries arrive only through the publish command, after review. Nothing gets in by being said once.
 
 4
-00:00:30,500 --> 00:00:42,600
+00:00:29,099 --> 00:00:39,116
 It never writes; that is enforced by the tools it is denied. It is not your personal oracle and never blends the two tiers without saying which is which.
 
 5
-00:00:42,600 --> 00:00:54,300
+00:00:39,116 --> 00:00:49,247
 It does not fetch literature or run analyses. And it never improvises: if the lab has no entry, it says so in those words.
 
 6
-00:00:54,699 --> 00:01:04,399
+00:00:49,649 --> 00:00:57,158
 A real run, on a demo lab vault. The member asks what the lab agreed for a quality threshold, and who published it.
 
 7
-00:01:04,399 --> 00:01:14,099
+00:00:57,158 --> 00:01:06,425
 Found one lab entry: the threshold, the publisher, the date of the lab meeting, and the value earlier runs used.
 
 8
-00:01:14,500 --> 00:01:28,599
+00:01:06,850 --> 00:01:20,156
 Asked to change the entry, it refuses. The verdict is Unsure: it cannot edit; the change goes through a member's vault and the publish command, and the lab should decide first.
 
 9
-00:01:29,000 --> 00:01:44,699
+00:01:20,550 --> 00:01:33,120
 To use it, type to Claude Code and name it: ask the lab oracle what the lab has agreed on about something. To add to it, write the entry in your own oracle and run murmurent oracle publish.
 
 10
-00:01:44,699 --> 00:02:00,899
+00:01:33,120 --> 00:01:47,495
 The first line is the verdict: Found, Not found or Unsure, naming who published the entry. When it says the lab has no entry, that is the answer, not a gap to fill.

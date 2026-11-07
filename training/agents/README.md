@@ -31,7 +31,10 @@ Rendering needs Python with PIL and numpy, and ffmpeg. Voicing needs the
 ElevenLabs key in the macOS Keychain (service `elevenlabs-api-key`, as
 [`training/README.md`](../README.md) step 4 stores it); the voice is Matilda.
 Rendered mp4s and audio clips are not committed. Clips are cached by the text
-of the sentence, so a re-render that changes two sentences re-voices two.
+of the sentence, so a re-render that changes two sentences re-voices two. When
+the clips exist, each scene is timed from the measured length of its clip, so
+the picture follows the voice; a sentence not yet voiced is timed from a
+reading pace and may need a second render once it is.
 
 **The agent's file is the source.** The "what it does" and "what it will not
 do" scenes quote `agents/<agent>.md`, and the renderer refuses to run if a

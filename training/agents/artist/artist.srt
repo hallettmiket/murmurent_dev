@@ -1,35 +1,35 @@
 1
-00:00:00,400 --> 00:00:11,900
+00:00:00,400 --> 00:00:11,202
 This is the artist. It turns finished results into figures, reports and slides, on the principle that a result that cannot be communicated does not exist.
 
 2
-00:00:12,300 --> 00:00:20,399
+00:00:11,599 --> 00:00:22,406
 Its file lists the work. Publication-quality figures with matplotlib and seaborn. ROC curves, heatmaps, volcano plots, the standard set.
 
 3
-00:00:20,399 --> 00:00:30,500
+00:00:22,406 --> 00:00:33,465
 Slide decks that summarise a pipeline and its findings. And every figure legible, labelled, with proper axes, titles and legends.
 
 4
-00:00:30,899 --> 00:00:41,399
+00:00:33,850 --> 00:00:44,191
 It does not train models or run statistics; the numbers come from the blacksmith. It does not decide scientific validity; the adversary checks the figure.
 
 5
-00:00:41,399 --> 00:00:53,900
+00:00:44,191 --> 00:00:55,158
 It never presents synthetic data as real, and it does not fabricate data to fill a plot. An empty axis is better than an invented one.
 
 6
-00:00:54,299 --> 00:01:04,000
+00:00:55,550 --> 00:01:05,705
 A real run, on simulated data. The member asks for one publication figure: colony diameter by medium, every point shown, the means marked.
 
 7
-00:01:04,000 --> 00:01:17,700
+00:01:05,705 --> 00:01:17,712
 The verdict is Rendered. The figure is labelled as simulated on the image itself, the caption says what to notice, and the artist says plainly that it ran no test.
 
 8
-00:01:18,100 --> 00:01:34,200
+00:01:18,100 --> 00:01:29,556
 To use it, type to Claude Code and name it: ask the artist to make a figure from a results file, and say what it is for. A figure for a talk is not a figure for a paper.
 
 9
-00:01:34,200 --> 00:01:52,000
+00:01:29,556 --> 00:01:45,695
 The first line is the verdict: Rendered, Skipped or Failed. Then the file it wrote and a caption that says what to notice. If an input is missing, it stops and says so rather than inventing one.

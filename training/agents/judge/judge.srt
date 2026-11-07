@@ -1,35 +1,35 @@
 1
-00:00:00,400 --> 00:00:12,300
+00:00:00,400 --> 00:00:11,620
 This is the judge. In a choreography where several labs each contribute an answer to one question, the judge lines the answers up and presents them honestly.
 
 2
-00:00:12,700 --> 00:00:22,399
+00:00:12,000 --> 00:00:22,109
 Its file says how it combines. Align every contribution on the shared candidate key, apply the poser's criteria, and present with full provenance.
 
 3
-00:00:22,399 --> 00:00:34,100
+00:00:22,109 --> 00:00:34,051
 It never silently discards a contribution's output. Every number carries the contribution it came from. And it surfaces disagreement rather than averaging it away.
 
 4
-00:00:34,500 --> 00:00:47,000
+00:00:34,449 --> 00:00:45,999
 It does not run the contributions; they arrive already produced. It does not decide the science; the poser holds that gate. It does not make it pretty; the artist does.
 
 5
-00:00:47,000 --> 00:00:58,300
+00:00:45,999 --> 00:00:56,361
 And it never invents a common score across metrics that do not share units. When they differ, the verdict is Split, not Presented.
 
 6
-00:00:58,699 --> 00:01:07,599
+00:00:56,749 --> 00:01:06,023
 A real run, on a synthetic run package: two invented labs, five invented compounds, a docking score and a measured binding.
 
 7
-00:01:07,599 --> 00:01:21,299
+00:01:06,023 --> 00:01:18,633
 The verdict is Split, because the two metrics are not on one scale. All five compounds are shown, the disagreement is named, and the untested compound stays in the table.
 
 8
-00:01:21,700 --> 00:01:31,799
+00:01:19,049 --> 00:01:27,719
 To use it, prepare the run package with murmurent choreography prepare run, then type to Claude Code and ask the judge to present it.
 
 9
-00:01:31,799 --> 00:01:47,599
+00:01:27,719 --> 00:01:44,694
 The first line is the verdict: Presented, Split or Insufficient. Then the aligned table, every number with its source, and what it hands the artist. The adversary reviews the judge's combination step.

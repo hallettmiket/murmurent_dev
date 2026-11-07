@@ -10,13 +10,13 @@ movies:
   agent_sha256: 905ca061d5fd1e96d3ef85ba0e6b1d0eedbb6f3ec6e23b65a4f7ea24ba9cabb8
   file: training/agents/oracle/oracle_narrated.mp4
   make: python3 training/agents/oracle/make.py
-  seconds: 134
+  seconds: 118
   chapters:
     - ["0:00", "Welcome"]
-    - ["0:11", "What it does"]
-    - ["0:38", "What it will not do"]
-    - ["1:04", "A real example"]
-    - ["1:42", "How to use it"]
+    - ["0:09", "What it does"]
+    - ["0:34", "What it will not do"]
+    - ["0:57", "A real example"]
+    - ["1:29", "How to use it"]
 - agent: bookworm
   title: The bookworm
   version: 2026.11.0
@@ -24,13 +24,13 @@ movies:
   agent_sha256: 705fec4b04253ba77bc16824932f1e1d41d89d981158a7e8db98acdb554db11b
   file: training/agents/bookworm/bookworm_narrated.mp4
   make: python3 training/agents/bookworm/make.py
-  seconds: 113
+  seconds: 107
   chapters:
     - ["0:00", "Welcome"]
-    - ["0:13", "What it does"]
-    - ["0:35", "What it will not do"]
-    - ["0:55", "A real example"]
-    - ["1:18", "How to use it"]
+    - ["0:11", "What it does"]
+    - ["0:33", "What it will not do"]
+    - ["0:52", "A real example"]
+    - ["1:14", "How to use it"]
 - agent: adversary
   title: The adversary
   version: 2026.11.0
@@ -38,13 +38,13 @@ movies:
   agent_sha256: 10de8035a56e66b9cac23af36fb4c2d5bd9870ffc58f3c043e5a8cc84d324547
   file: training/agents/adversary/adversary_narrated.mp4
   make: python3 training/agents/adversary/make.py
-  seconds: 112
+  seconds: 104
   chapters:
     - ["0:00", "Welcome"]
-    - ["0:12", "What it does"]
-    - ["0:34", "What it will not do"]
-    - ["0:55", "A real example"]
-    - ["1:22", "How to use it"]
+    - ["0:10", "What it does"]
+    - ["0:31", "What it will not do"]
+    - ["0:51", "A real example"]
+    - ["1:16", "How to use it"]
 - agent: artist
   title: The artist
   version: 2026.11.0
@@ -52,12 +52,12 @@ movies:
   agent_sha256: 30b918640fbe02472cea2bd7eff6ae80ddf9e4292264dbc3a6b014ec340955d0
   file: training/agents/artist/artist_narrated.mp4
   make: python3 training/agents/artist/make.py
-  seconds: 112
+  seconds: 106
   chapters:
     - ["0:00", "Welcome"]
     - ["0:11", "What it does"]
-    - ["0:30", "What it will not do"]
-    - ["0:53", "A real example"]
+    - ["0:33", "What it will not do"]
+    - ["0:55", "A real example"]
     - ["1:17", "How to use it"]
 - agent: scribe
   title: The scribe
@@ -66,13 +66,13 @@ movies:
   agent_sha256: 9fe45c31d2d977b3fcc1c8724b4e8ba752c9a897e2ff7ab01d5767e894605e97
   file: training/agents/scribe/scribe_narrated.mp4
   make: python3 training/agents/scribe/make.py
-  seconds: 120
+  seconds: 112
   chapters:
     - ["0:00", "Welcome"]
-    - ["0:13", "What it does"]
-    - ["0:40", "What it will not do"]
-    - ["1:05", "A real example"]
-    - ["1:30", "How to use it"]
+    - ["0:11", "What it does"]
+    - ["0:36", "What it will not do"]
+    - ["1:00", "A real example"]
+    - ["1:26", "How to use it"]
 - agent: teacher
   title: The teacher
   version: 2026.11.0
@@ -80,13 +80,13 @@ movies:
   agent_sha256: e1ee79164cd5db3afcbe53e3a51d0c05020d1a75c94a8ff2346ae0e1f05081a5
   file: training/agents/teacher/teacher_narrated.mp4
   make: python3 training/agents/teacher/make.py
-  seconds: 123
+  seconds: 112
   chapters:
     - ["0:00", "Welcome"]
     - ["0:10", "What it does"]
-    - ["0:39", "What it will not do"]
-    - ["1:09", "A real example"]
-    - ["1:33", "How to use it"]
+    - ["0:37", "What it will not do"]
+    - ["1:02", "A real example"]
+    - ["1:24", "How to use it"]
 - agent: lab_oracle
   title: The lab oracle
   version: 2026.11.0
@@ -94,13 +94,13 @@ movies:
   agent_sha256: 040d8579d1a1fc415362bfddca15ff6b859dc95add4848b29ca49a3b24c2540e
   file: training/agents/lab_oracle/lab_oracle_narrated.mp4
   make: python3 training/agents/lab_oracle/make.py
-  seconds: 121
+  seconds: 108
   chapters:
     - ["0:00", "Welcome"]
-    - ["0:09", "What it does"]
-    - ["0:30", "What it will not do"]
-    - ["0:54", "A real example"]
-    - ["1:28", "How to use it"]
+    - ["0:08", "What it does"]
+    - ["0:28", "What it will not do"]
+    - ["0:49", "A real example"]
+    - ["1:20", "How to use it"]
 - agent: blacksmith
   title: The blacksmith
   version: 2026.11.0
@@ -108,13 +108,13 @@ movies:
   agent_sha256: 45b32ffc161a50718b4ef96323fd79a4d11d98a5319067131302973e3dea6d24
   file: training/agents/blacksmith/blacksmith_narrated.mp4
   make: python3 training/agents/blacksmith/make.py
-  seconds: 107
+  seconds: 104
   chapters:
     - ["0:00", "Welcome"]
     - ["0:12", "What it does"]
     - ["0:32", "What it will not do"]
     - ["0:52", "A real example"]
-    - ["1:17", "How to use it"]
+    - ["1:16", "How to use it"]
 - agent: conscience
   title: The conscience
   version: 2026.11.0
@@ -122,13 +122,13 @@ movies:
   agent_sha256: d2038feea86a734313d012dfdcfc6922424d7148c56de9b661f0c4c42cf9580f
   file: training/agents/conscience/conscience_narrated.mp4
   make: python3 training/agents/conscience/make.py
-  seconds: 116
+  seconds: 108
   chapters:
     - ["0:00", "Welcome"]
-    - ["0:11", "What it does"]
-    - ["0:39", "What it will not do"]
-    - ["1:03", "A real example"]
-    - ["1:26", "How to use it"]
+    - ["0:10", "What it does"]
+    - ["0:37", "What it will not do"]
+    - ["0:58", "A real example"]
+    - ["1:22", "How to use it"]
 - agent: lawyer
   title: The lawyer
   version: 2026.11.0
@@ -136,13 +136,13 @@ movies:
   agent_sha256: 3303d2ee3c5e7ea870af38f5e6dffcfc2c8987fc63642b5b0dac91dc2b6468df
   file: training/agents/lawyer/lawyer_narrated.mp4
   make: python3 training/agents/lawyer/make.py
-  seconds: 123
+  seconds: 112
   chapters:
     - ["0:00", "Welcome"]
-    - ["0:14", "What it does"]
-    - ["0:39", "What it will not do"]
-    - ["1:03", "A real example"]
-    - ["1:28", "How to use it"]
+    - ["0:12", "What it does"]
+    - ["0:37", "What it will not do"]
+    - ["0:58", "A real example"]
+    - ["1:20", "How to use it"]
 - agent: millwright
   title: The millwright
   version: 2026.11.0
@@ -150,13 +150,13 @@ movies:
   agent_sha256: 425252681c7ac9b221e4ea79e6d2e3b0636dfb01e799f5159fc0ea5248e54ae6
   file: training/agents/millwright/millwright_narrated.mp4
   make: python3 training/agents/millwright/make.py
-  seconds: 116
+  seconds: 108
   chapters:
     - ["0:00", "Welcome"]
-    - ["0:10", "What it does"]
-    - ["0:37", "What it will not do"]
-    - ["1:03", "A real example"]
-    - ["1:25", "How to use it"]
+    - ["0:11", "What it does"]
+    - ["0:35", "What it will not do"]
+    - ["1:00", "A real example"]
+    - ["1:20", "How to use it"]
 - agent: centre_millwright
   title: The centre millwright
   version: 2026.11.0
@@ -164,12 +164,12 @@ movies:
   agent_sha256: 1cbc96e730fb153e1acca70c9fa61c03c3f782911d1187416202713704a1149c
   file: training/agents/centre_millwright/centre_millwright_narrated.mp4
   make: python3 training/agents/centre_millwright/make.py
-  seconds: 109
+  seconds: 106
   chapters:
     - ["0:00", "Welcome"]
-    - ["0:13", "What it does"]
-    - ["0:37", "What it will not do"]
-    - ["0:59", "A real example"]
+    - ["0:12", "What it does"]
+    - ["0:39", "What it will not do"]
+    - ["1:01", "A real example"]
     - ["1:20", "How to use it"]
 - agent: judge
   title: The judge
@@ -178,13 +178,13 @@ movies:
   agent_sha256: bd86954fe8c9fd9da362185d4d0c9a58d0bcf78ddf6d889018298c6f32d03b3b
   file: training/agents/judge/judge_narrated.mp4
   make: python3 training/agents/judge/make.py
-  seconds: 108
+  seconds: 105
   chapters:
     - ["0:00", "Welcome"]
-    - ["0:12", "What it does"]
+    - ["0:11", "What it does"]
     - ["0:34", "What it will not do"]
-    - ["0:58", "A real example"]
-    - ["1:21", "How to use it"]
+    - ["0:56", "A real example"]
+    - ["1:18", "How to use it"]
 - agent: registrar
   title: The registrar
   version: 2026.11.0
@@ -192,13 +192,13 @@ movies:
   agent_sha256: e62f392b00af9fc5250240cf0b4ba2efd54bed5b3990d84b8601dd3e4d6c2b93
   file: training/agents/registrar/registrar_narrated.mp4
   make: python3 training/agents/registrar/make.py
-  seconds: 111
+  seconds: 112
   chapters:
     - ["0:00", "Welcome"]
-    - ["0:13", "What it does"]
-    - ["0:40", "What it will not do"]
+    - ["0:12", "What it does"]
+    - ["0:39", "What it will not do"]
     - ["1:05", "A real example"]
-    - ["1:23", "How to use it"]
+    - ["1:26", "How to use it"]
 - agent: security_guard
   title: The security guard
   version: 2026.11.0
@@ -206,13 +206,13 @@ movies:
   agent_sha256: 57e55efefee0725b99b58fb1ec22cfb598068c62a0dcdf5b25d904d0d10976b2
   file: training/agents/security_guard/security_guard_narrated.mp4
   make: python3 training/agents/security_guard/make.py
-  seconds: 120
+  seconds: 112
   chapters:
     - ["0:00", "Welcome"]
     - ["0:12", "What it does"]
-    - ["0:39", "What it will not do"]
-    - ["1:03", "A real example"]
-    - ["1:29", "How to use it"]
+    - ["0:37", "What it will not do"]
+    - ["1:00", "A real example"]
+    - ["1:23", "How to use it"]
 - agent: docent
   title: The docent
   version: 2026.11.0
@@ -220,10 +220,10 @@ movies:
   agent_sha256: 709e3d67f0a6ff6fa947312a97fdec47419aa4a65bca86f85d2f0f5a1147b72e
   file: training/agents/docent/docent_narrated.mp4
   make: python3 training/agents/docent/make.py
-  seconds: 120
+  seconds: 111
   chapters:
     - ["0:00", "Welcome"]
-    - ["0:12", "What it does"]
-    - ["0:37", "What it will not do"]
-    - ["0:58", "A real example"]
-    - ["1:31", "How to use it"]
+    - ["0:11", "What it does"]
+    - ["0:34", "What it will not do"]
+    - ["0:54", "A real example"]
+    - ["1:23", "How to use it"]
