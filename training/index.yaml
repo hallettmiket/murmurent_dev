@@ -75,7 +75,7 @@ videos:
   transcript: training/skills/claude_code/claude_code.srt
   make: python3 training/skills/claude_code/make.py
   sources:
-    docs/agents.md: 86609311d26c91d6c11d276fa61809c9dea99327c0f70d8e3dc7fe40e736e589
+    docs/agents.md: b0c60d11e27d0dbf53c181b0f8dea96af16757bf35cba59ffd934702a7d2bc22
   chapters:
     - ["0:00", "Welcome"]
     - ["0:09", "Opening a project"]
@@ -168,26 +168,26 @@ videos:
     - ["1:40", "How to use it"]
 - key: notebook
   title: "Your lab notebook"
-  tagline: "Notes, photos and voice notes in your vault; prompts kept apart; reports you choose to share"
+  tagline: "A day at the bench, and how it ends up in your notebook"
   date: 2026-11-07
   version: 2026.11.0
-  seconds: 159
-  summary: "The lab notebook in your Obsidian vault: how to add text, photos, voice notes and files from Claude Code, where large files go, how prompts are kept out of your notes, and how to build a report for your supervisor or the lab from entries you chose to share."
+  seconds: 149
+  summary: "A bench scientist's day with the lab notebook: the plan in the morning, a gel photo from the phone, a voice note with gloves on, a prompt written in Obsidian and sent to Claude Code with one keystroke, the day recalled, and a report for the supervisor. Natural language throughout; the commands as footnotes."
   page: https://mikehallett.science/assets/videos/murmurent_notebook.html
   file: https://mikehallett.science/assets/videos/murmurent_notebook_720p.mp4
   transcript: training/skills/notebook/notebook.srt
   make: python3 training/skills/notebook/make.py
   sources:
-    docs/lab_notebook.md: be0a56fbb894c5a0df52064921361cdc6a43b3734c8fa3812dba1b61a1c77f95
   chapters:
     - ["0:00", "Welcome"]
-    - ["0:14", "Two streams"]
-    - ["0:34", "Adding things"]
-    - ["1:03", "In Obsidian"]
-    - ["1:22", "Cleaning up old entries"]
-    - ["1:37", "Sharing"]
-    - ["2:06", "A report for your supervisor"]
-    - ["2:21", "How to use it"]
+    - ["0:13", "Morning: the plan"]
+    - ["0:23", "The gel photo"]
+    - ["0:49", "A voice note"]
+    - ["1:07", "The entry"]
+    - ["1:23", "Prompts: write, send, keep"]
+    - ["1:43", "End of day: ask"]
+    - ["1:58", "End of week: the report"]
+    - ["2:12", "How to use it"]
 - key: data_root
   title: "The data root: where big files live"
   tagline: "Tier-3 memory: immutable, append_only, modifiable, and the rest of the lab folder"

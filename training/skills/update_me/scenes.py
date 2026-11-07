@@ -15,7 +15,7 @@ Clock: Sat 2026-11-07 12:20:28 EST (from `date`)
   Started with no certain finish line, and certainly stopped (last 24 h): 33
 == Git ==
   branch claude/charming-cartwright-c0a434 at 41b35f8, in step with GitHub
-  13 commits today by Mike Hallett
+  13 commits today by the PI
 """
 
 MOVIE = Movie(

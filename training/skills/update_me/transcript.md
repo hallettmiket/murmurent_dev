@@ -2,7 +2,8 @@
 
 A real dry run of /murmurent-update-me on 2026-11-07 (Murmurent 2026.11.0), in the murmurent
 development repository on a laptop; nothing was posted. The facts came from the skill's
-read-only script; the text is what the skill would have posted. Home folder paths are ~.
+read-only script; the text is what the skill would have posted. Home folder paths are ~, and
+the author's name in the git facts is shown as "the PI".
 
 ## 1
 Member: /murmurent-update-me dry-run
@@ -13,7 +14,7 @@ Running now
   outside Claude Code would not show. No AI helper started today is still
   running.)
 Finished since the last update (since 00:00 today)
-- Thirteen commits saved to GitHub today by Mike Hallett, all for the
+- Thirteen commits saved to GitHub today by the PI, all for the
   training videos: sixteen narrated agent movies, the thesis-package movie,
   a shared renderer in training/lib, and an index file that drives the
   README section and the site page.
@@ -22,6 +23,6 @@ Blocked
 - Nothing. There are no open progress issues on GitHub and no state
   document to compare against.
 Next steps
-1. Mike Hallett reviews the sixteen agent movies and publishes them.
+1. The PI reviews the sixteen agent movies and publishes them.
 
 Rules: all passed. Nothing was posted (dry-run).

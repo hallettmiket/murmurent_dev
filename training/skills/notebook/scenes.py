@@ -1,49 +1,34 @@
-"""Your lab notebook: notes, captured media, prompts kept apart, and reports you choose to share (issues #292 to #294)."""
+"""Your lab notebook: a bench scientist's day, in natural language, with the commands as footnotes
+(issues #292 to #294, revised after the PI's review of the first cut)."""
 from lib.draw import AMBER, LAV, RED, TEAL
 from lib.movie import Movie, Part, Quote
 
 ENTRY = """---
-title: '2026-11-07'
 date: '2026-11-07'
 project: demo_project
 sensitivity: standard
 audience: supervisor
-tags: []
 ---
 # 2026-11-07
 Sessions: [[sessions/2026-11-07]]
-## 14:48
-Run 3 serum plates look bigger than the controls; re-plate the two Peru isolates tomorrow.
-## 14:48 image: colony_figure.png
-![[attachments/2026-11-07/colony_figure_thumb.jpg]]
-- original: local:~/append_only/demo_project/notebook/2026-11-07/colony_figure.png (137.5 KB)
-- note: the figure from this morning's run
+## 09:10
+Plan: run gel 27 on the four serum samples, lane 3 is the control; extract RNA from plates 5 and 6 after lunch.
+## 11:40 image: gel_27.jpg
+![[attachments/2026-11-07/gel_27_thumb.jpg]]
+- original: lab-server:/data/lab_vm/append_only/demo_project/notebook/2026-11-07/gel_27.jpg (32 KB)
+- note: lane 3 is the control
 > Machine reading (image description, not the record): to be added in this session
-## 14:48 sound note: voice_note.m4a
-- original: local:~/append_only/demo_project/notebook/2026-11-07/voice_note.m4a (63.8 KB)
-## 14:48 file: counts_run3.csv
-[[attachments/2026-11-07/counts_run3.csv]] (63 B)""".split("\n")
-
-T_SPLIT = """
-$ murmurent notebook split --dry-run
-Would move pasted prompts from 1 entry:
-  lab-notebook/2026-11-05.md: 1 block(s), 426 characters -> sessions/2026-11-05/pasted.md
-      "You are the blacksmith. Please load data/signal.csv, compute the mean colony ..."
-Nothing written (--dry-run).
-$ murmurent notebook split
-lab-notebook/2026-11-05.md: moved 1 block(s) to sessions/2026-11-05/pasted.md; original kept at obsolete/
-Moved pasted prompts out of 1 entry. Originals are under obsolete/; nothing was deleted.
-"""
+## 11:52 sound note: gel27_voice.m4a
+- original: lab-server:/data/lab_vm/append_only/demo_project/notebook/2026-11-07/gel27_voice.m4a (83 KB)""".split("\n")
 
 T_REPORT = """
-$ murmurent notebook report --for supervisor --since 2026-11-01 --title "Week of 3 November, for Mike"
+$ (what Claude Code runs: murmurent notebook report --for supervisor --since 2026-11-01)
 Report for supervisor, 2026-11-01 to 2026-11-07: 1 entry of 2 in the range.
 Entries drawn on (whole entries; audience is per entry):
   - lab-notebook/2026-11-07.md (2026-11-07, project demo_project, audience supervisor)
 Files drawn on:
-  - attachments/2026-11-07/colony_figure_thumb.jpg (from the vault, embedded)
-  - attachments/2026-11-07/counts_run3.csv (from the vault, embedded)
-  - local:~/append_only/demo_project/notebook/2026-11-07/colony_figure.png (on the server, linked)
+  - attachments/2026-11-07/gel_27_thumb.jpg (from the vault, embedded)
+  - local:~/append_only/demo_project/notebook/2026-11-07/gel_27.jpg (on the server, linked)
 Written: report.html (the page), material.md (for the scribe), sources.md (the source list)
 Nothing has been sent. Read the page and the source list first; then deliver it:
   as a private Claude artifact, to the channel with murmurent project note, or as a file.
@@ -52,69 +37,74 @@ Nothing has been sent. Read the page and the source list first; then deliver it:
 MOVIE = Movie(
     key="notebook",
     title="Your lab notebook",
-    tagline="Notes, photos and voice notes in your vault; prompts kept apart; reports you choose to share",
+    tagline="A day at the bench, and how it ends up in your notebook",
     glyph="📓",
     colour=LAV,
-    summary="The lab notebook in your Obsidian vault: how to add text, photos, voice notes and files from Claude Code, where large files go, how prompts are kept out of your notes, and how to build a report for your supervisor or the lab from entries you chose to share.",
+    summary="A bench scientist's day with the lab notebook: the plan in the morning, a gel photo from the phone, a voice note with gloves on, a prompt written in Obsidian and sent to Claude Code with one keystroke, the day recalled, and a report for the supervisor. Natural language throughout; the commands as footnotes.",
     parts=[
-        Part("title", ["This is your lab notebook in Murmurent: in your own Obsidian vault, read by the oracle. From "
-                       "Claude Code you drop in a line, a photo, a voice note or a file, and build a report from the "
-                       "entries you choose to share."]),
-        Part("cards", chapter="Two streams", heading="Two streams, written by two hands", source="docs/lab_notebook.md",
-             colour=TEAL,
-             quotes=[Quote("the day's own notes: short, headed, with frontmatter", "own notes"),
-                     Quote("every prompt you gave Claude Code, with the time, project, repository and commit", "every prompt"),
-                     Quote("you never paste a prompt into the notebook again", "pastes")],
-             narration=["Two streams, because notes used to drown among pasted prompts. The day's entry holds your "
-                        "own notes, and only that. Every prompt you give Claude Code goes to a separate sessions "
-                        "stream, written by a hook with the time, project and commit. Nobody pastes a prompt again."]),
-        Part("chat", chapter="Adding things", key="1", agent="notebook", agent_title="murmurent notebook add",
-             colour=LAV, who="Member",
-             chips=[("text", True), ("image to the server", True), ("thumbnail", True), ("sound note", True), ("transcribe", False)],
-             narration=["A real run on a throwaway vault: add this to today's notebook, a line of text, a figure and a "
-                        "voice note. Each becomes a block under a time heading.",
-                        "The image goes to the project's folder on the data host, never overwritten; the vault keeps a "
-                        "thumbnail and the link. A machine-written description is marked as a reading, not the record. "
-                        "The voice note was not transcribed here, and the entry says why."]),
-        Part("obsidian", chapter="In Obsidian", heading="The entry as Obsidian shows it", note_title="2026-11-07",
-             note_lines=ENTRY, sidebar=["2026-11-05", "2026-11-07", "attachments", "sessions"],
-             narration=["In Obsidian the entry is one page: the project, the sensitivity and the audience at the top; "
-                        "a link to the day's sessions; then each block with its time, the thumbnail, the link to the "
-                        "original on the server, and the small result file beside it."]),
-        Part("terminal", chapter="Cleaning up old entries", heading="Prompts out of old notes: notebook split",
-             transcript=T_SPLIT, title="Terminal: the skill runs this for you", colour=TEAL,
-             notes=[("Prompt-shaped blocks move to the sessions stream; the notes stay.", "sessions stream"),
-                    ("The original is kept under obsolete; nothing is deleted.", "deleted"),
-                    ("Dry run first, so you see what moves.", "Dry run")],
-             narration=["For older entries, one command moves the prompt-shaped blocks into the sessions stream "
-                        "and leaves the notes. The original is kept under obsolete; nothing is deleted. A dry run "
-                        "first shows what would move."]),
-        Part("cards", chapter="Sharing", heading="What leaves the vault, and what never does", source="docs/lab_notebook.md",
-             colour=RED, mark="cross",
-             quotes=[Quote("Nothing leaves the notebook without an explicit audience.", "explicit audience"),
-                     Quote("Audience is per entry, and a report takes whole entries.", "whole entries"),
-                     Quote("nothing lets a supervisor read your me entries", "me entries")],
-             narration=["Sharing is per entry. Each entry's audience is me by default, or supervisor, lab, or a "
-                        "project. Nothing without an explicit audience ever leaves the vault, and a report takes whole "
-                        "entries: to share one sentence, move it into its own entry.",
-                        "Nothing lets a PI read a student's me entries. Restricted and protected entries are refused, "
-                        "as publishing to the lab oracle refuses them."]),
-        Part("terminal", chapter="A report for your supervisor", heading="A report for your supervisor",
-             transcript=T_REPORT, title="Terminal: the skill runs this for you", colour=LAV,
-             notes=[("Only the entries marked for that reader, in the date range.", "marked"),
+        Part("title", ["Your lab notebook lives in your own Obsidian vault. This is a day at the bench and how it "
+                       "gets into the notebook, by talking to Claude Code. The command behind each step is a "
+                       "footnote; you never type it."]),
+        Part("story", chapter="Morning: the plan", heading="Morning: write the plan in Obsidian", picture="bench",
+             prompt="(in Obsidian, in today's entry) Plan: run gel 27 on the four serum samples, lane 3 is the control.",
+             reply=["Nothing to run: the entry is a Markdown file in your vault, and the oracle reads it as it is."],
+             footnote="none: lab-notebook/2026-11-07.md is yours to write; murmurent reads it",
+             narration=["In the morning you write the plan in Obsidian, in today's entry, as in a paper notebook: a "
+                        "line or two under a heading."]),
+        Part("story", chapter="The gel photo", heading="At the bench: the gel photo, phone to laptop to notebook", picture="phone",
+             prompt="add this photo of gel 27 to today's notebook, lane 3 is the control",
+             reply=["Added image gel_27.jpg to today's entry under 11:40. Original sent to the lab server,",
+                    "append_only/demo_project/notebook/2026-11-07/, never overwritten; a thumbnail in the vault.",
+                    "Machine reading (not the record): four lanes, bands at two heights; lane 4 has an extra band."],
+             footnote="murmurent notebook add ~/Desktop/gel_27.jpg --note \"lane 3 is the control\"",
+             narration=["You photograph the gel with your phone and AirDrop it to the laptop. Drag the file into the "
+                        "Claude Code window and say: add this photo of gel 27 to today's notebook, lane 3 is the "
+                        "control.",
+                        "The original goes to the lab server, never overwritten; the vault keeps a thumbnail and the "
+                        "link; Claude Code adds one line on what it sees, marked as a reading, not the record."]),
+        Part("story", chapter="A voice note", heading="Gloves on: a voice note", picture="gel",
+             prompt="add my voice note gel27_voice.m4a to today's notebook",
+             reply=["Added sound note gel27_voice.m4a under 11:52; the recording is on the lab server.",
+                    "Not transcribed: the ElevenLabs key lacks the speech-to-text permission. The entry says so."],
+             footnote="murmurent notebook add ~/Desktop/gel27_voice.m4a",
+             narration=["With gloves on you record a voice note: lane four has an extra band, re-run it tomorrow. "
+                        "Dropped into Claude Code the same way, it goes to the server and is transcribed when the "
+                        "speech-to-text key is set up. Here it was not, and the entry says so."]),
+        Part("obsidian", chapter="The entry", heading="The day's entry, as Obsidian shows it", note_title="2026-11-07",
+             note_lines=ENTRY, sidebar=["2026-11-05", "2026-11-07", "attachments", "prompts", "sessions"],
+             narration=["In Obsidian the day is one page: the plan, the gel with its thumbnail and the link to the "
+                        "original, the voice note. At the top, the project and the audience: who may read this entry."]),
+        Part("story", chapter="Prompts: write, send, keep", heading="Afternoon: a prompt written in Obsidian, sent with one keystroke",
+             picture="obsidian",
+             prompt="(written in prompts/2026-11-07.md, sent with the hotkey) ask the blacksmith to count the bands in gel_27.jpg per lane and compare lane 3, the control, with the others",
+             reply=["The prompt lands in Claude Code and the blacksmith gets to work. It is also recorded in",
+                    "sessions/2026-11-07/sent.md with the time, so it is never lost when the session closes."],
+             footnote="murmurent prompt send   (an Obsidian hotkey runs it on the selected text)",
+             narration=["Long prompts are easier to write in Obsidian than in a terminal. So you write them in a "
+                        "prompts file in the vault and press one key: the prompt is pasted into Claude Code and "
+                        "recorded with the time. A hook records every prompt that reaches Claude Code the same way, "
+                        "so none scrolls away and vanishes."]),
+        Part("chat", chapter="End of day: ask", key="1", agent="oracle", colour=LAV, who="Member",
+             chips=[("read today's entry", True), ("read the sessions", True)],
+             narration=["At the end of the day you ask the oracle what you noted about gel 27 and what is for "
+                        "tomorrow. It answers from the entry, block by block, with the times, and says what it "
+                        "could not read."]),
+        Part("terminal", chapter="End of week: the report", heading="End of week: a report for your supervisor",
+             transcript=T_REPORT, title="What Claude Code runs when you ask for the report", colour=LAV,
+             notes=[("Only the entries you marked for a supervisor, whole entries.", "marked"),
                     ("Every entry and file it drew on is listed first.", "lists"),
-                    ("Nothing is sent until you say so: an artifact, the channel, or a file.", "sent")],
-             narration=["Say: make my weekly report for Mike. It takes only the entries marked for a supervisor, "
-                        "lists every entry and file it drew on, and writes a page with a place for the scribe's "
-                        "narrative. Nothing is sent until you say so."]),
-        Part("howto", heading="How to use it",
-             prompt="add this photo of the gel to today's notebook, lane 3 is the control",
-             cards=[("Say it to Claude Code", "Add text, a photo, a voice note, a file; make my weekly report for Mike; split my old entries."),
-                    ("Mark the audience", "In the entry's frontmatter: me, supervisor, lab, or project. Whole entries only."),
-                    ("Search it", "Ask the oracle: it searches your notes first, then the prompts you gave Claude Code.")],
-             docs=["docs/lab_notebook.md", "agents/oracle.md"],
-             narration=["Say it to Claude Code: add this to today's notebook, make my weekly report, split my old "
-                        "entries. Mark the audience when an entry is for someone else. And ask the oracle, which "
-                        "searches your notes first and the prompts after."]),
+                    ("Nothing is sent until you say so.", "sends nothing")],
+             narration=["At the end of the week: make my report for my supervisor since Monday. It takes only the "
+                        "entries you marked for a supervisor, lists every entry and file it drew on, and writes a "
+                        "page, and sends nothing until you say so."]),
+        Part("howto", heading="How to use it, day to day",
+             prompt="add this photo of gel 27 to today's notebook, lane 3 is the control",
+             cards=[("Photos and voice notes", "AirDrop from the phone to the laptop, then drag the file into Claude Code and say what it is."),
+                    ("Prompts", "Write them in prompts/<date>.md in Obsidian; one hotkey sends the selection to Claude Code and keeps it."),
+                    ("Sharing", "Set the entry's audience: me, supervisor, lab or a project. Ask for the report; nothing leaves without it.")],
+             docs=["docs/lab_notebook.md"],
+             narration=["Day to day: photos and voice notes go from the phone to the laptop and into Claude Code with "
+                        "a sentence. Prompts are written in Obsidian and sent with a key. Sharing is per entry, by "
+                        "its audience."]),
     ],
 )

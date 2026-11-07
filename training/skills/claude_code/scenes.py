@@ -74,7 +74,7 @@ MOVIE = Movie(
                         "The messages above are what the hooks really say. They are guardrails for the agents, not a "
                         "security perimeter: a plain shell does not go through them, and that is on purpose."]),
         Part("howto", heading="The habits that matter",
-             prompt="ask the adversary to audit exp/3_classifier before I send the results to Mike",
+             prompt="ask the adversary to audit exp/3_classifier before I send the results to my PI",
              cards=[("Name the agent", "Say which agent and what to give it: a folder, a file, a question. Files, not summaries."),
                     ("Read the verdict line", "The first line is the answer. The agent log pane shows only that line."),
                     ("Trust the documentation", "When a movie and the written documentation disagree, the documentation is right.")],
