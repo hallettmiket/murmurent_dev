@@ -434,6 +434,16 @@ Note: `provision` is no longer a CLI command; it is a tool on the `inventory` MC
 | `murmurent capture` | Open `inbox/YYYY-MM-DD_HHMM.md` for a quick note |
 | `murmurent triage` | Run `/process-inbox`-equivalent flow on `inbox/` |
 
+### `murmurent prompt`
+
+Prompts written in Obsidian, sent to Claude Code, and kept
+([`docs/lab_notebook.md`](lab_notebook.md)).
+
+| Command | What it does |
+|---|---|
+| `murmurent prompt new` | Open today's `prompts/<date>.md` in the vault, created with a heading when missing. |
+| `murmurent prompt send [--text T] [--file F] [--to APP] [--tmux PANE] [--no-paste] [--project P]` | Copy a prompt to the clipboard, paste it into Claude Code (an app on macOS, or a tmux pane) and record it under `sessions/<date>/sent.md`. With no `--text` or `--file`, the latest block of today's prompts file. |
+
 ## Examples
 
 ### First-time setup

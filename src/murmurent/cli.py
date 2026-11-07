@@ -3025,6 +3025,8 @@ cli.add_command(_thesis_group)
 cli.add_command(_notebook_group)
 from .commands.institution_cmd import institution_group as _institution_group
 cli.add_command(_institution_group)
+from .commands.prompt_cmd import prompt_group as _prompt_group
+cli.add_command(_prompt_group)
 cli.add_command(_centre_init_cmd)
 cli.add_command(_centre_status_cmd)
 cli.add_command(_centre_slack_smoke)

@@ -18,6 +18,14 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 ## [Unreleased]
 
 ### Added
+- **Prompts written in Obsidian, sent with one keystroke, and kept.**
+  `murmurent prompt new` opens today's `prompts/<date>.md` in the vault;
+  `murmurent prompt send` copies the selected prompt or the latest block,
+  pastes it into Claude Code (an app on macOS, or a tmux pane) and records it
+  under `sessions/<date>/sent.md`, so prompts no longer vanish with the
+  session. Bound to a hotkey through Obsidian's Shell commands plugin
+  (`docs/lab_notebook.md`). The notebook movie is re-made as a bench
+  scientist's day in natural language, with the commands as footnotes.
 - **Two more training movies**: the lab notebook (adding text, photos and
   voice notes from Claude Code, the entry as Obsidian shows it, prompts moved
   out of old notes, a report for a supervisor from entries marked for them)
