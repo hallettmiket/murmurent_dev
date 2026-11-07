@@ -1,39 +1,43 @@
 1
 00:00:00,400 --> 00:00:16,914
-This is the clerk. Ask it anything about your institution: who runs an office, when an exam must be printed, what a procedure requires next. It reads the answer off the institution's own web pages, and tells you which page and when.
+This is the clerk. Ask it anything about your institution: who runs an office, when an exam must be printed, whether a syllabus follows the rules. It reads the answer off the institution's own pages, and says which page and when.
 
 2
 00:00:17,299 --> 00:00:37,208
 Its file has one rule above the others: it answers from the institution's own pages, and says which page and when it read it. What it finds goes into a folder called the pack, which is its memory: the question, the answer, the page, the date. Nobody fills it in beforehand.
 
 3
-00:00:37,208 --> 00:00:57,509
-People change. A remembered fact is re-read from its page every time before the clerk relies on it: the memory says where to look, the page says what is true today. On top of that it checks a document against what it knows, and computes dates in working days.
+00:00:37,208 --> 00:00:49,893
+People change, so a remembered fact is re-read from its page every time before the clerk relies on it: the memory says where to look, the page says what is true today.
 
 4
-00:00:57,899 --> 00:01:11,120
-What it never does: fill a gap from memory, or from a page outside the institution's own sites. When the institution's pages do not say, the answer is Unknown, with the nearest thing they do say.
+00:00:50,299 --> 00:01:01,245
+It never fills a gap from memory or from a page outside the institution's own sites. When the pages do not say, the answer is Unknown, with the nearest thing they do say.
 
 5
-00:01:11,120 --> 00:01:30,957
+00:01:01,245 --> 00:01:21,081
 It says nothing about a person beyond the office, title, public email and campus address the institution publishes. It never offers a date that falls on a holiday. And it never edits a document or the pack by hand: the scribe writes, and the commands record what it read.
 
 6
-00:01:31,350 --> 00:01:45,081
+00:01:21,500 --> 00:01:35,231
 A real run. A course instructor asks when the final exam for their course must be printed, for the fall of twenty twenty-six. The clerk recalls, searches the institution's own site, and reads the pages.
 
 7
-00:01:45,081 --> 00:01:56,855
+00:01:35,231 --> 00:01:47,005
 The answer names the rule, the page it came from, and the date it was read, and says which part was read and which was computed. What it found is now remembered.
 
 8
-00:01:57,250 --> 00:02:08,605
+00:01:47,400 --> 00:01:58,755
 Asked who runs the equity, diversity and inclusion office, it finds the office's own page, reads it, records the office holder with the page and the date, and answers.
 
 9
-00:02:09,000 --> 00:02:27,375
-To use it, type to Claude Code and name it: ask the clerk a question about the institution, to check a letter, or to count working days from a date. The first time, it looks the answer up; the next time, it remembers where it read it, and reads that page again before answering.
+00:01:59,150 --> 00:02:15,050
+Say what to check and against what: a syllabus against the university's rules on evaluation, with each rule quoted as the page words it; who holds an office; or a count of working days.
 
 10
-00:02:27,375 --> 00:02:42,353
-The first line is the verdict: Correct, Fix or Unknown. Every answer names the page and the date. Another university, or a company, is another pack, and the same clerk.
+00:02:15,450 --> 00:02:33,825
+To use it, type to Claude Code and name it: ask the clerk a question about the institution, to check a letter, or to count working days from a date. The first time, it looks the answer up; the next time, it remembers where it read it, and reads that page again before answering.
+
+11
+00:02:33,825 --> 00:02:48,896
+The first line is the verdict: Correct, Fix or Unknown, and every answer names the page and the date. Another university, or a company, is another pack and the same clerk.

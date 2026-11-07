@@ -9,22 +9,19 @@ SPEC = AgentSpec(
     colour=SAND,
     icon="cal",
     intro=["This is the clerk. Ask it anything about your institution: who runs an office, when an exam must "
-           "be printed, what a procedure requires next. It reads the answer off the institution's own web "
-           "pages, and tells you which page and when."],
+           "be printed, whether a syllabus follows the rules. It reads the answer off the institution's own "
+           "pages, and says which page and when."],
     does=[
         Quote("You answer from the institution's own pages, and you say which page and when you read it.", "which page"),
         Quote("The pack (institution/<unique_name>/) is your memory, not your source of truth", "memory"),
         Quote("A remembered fact is re-read from its page before you rely on it, every time", "re-read"),
-        Quote("Check when you are handed a document", "Check"),
-        Quote("Compute when you are asked for a date", "Compute"),
     ],
     does_narration=[
         "Its file has one rule above the others: it answers from the institution's own pages, and says which "
         "page and when it read it. What it finds goes into a folder called the pack, which is its memory: "
         "the question, the answer, the page, the date. Nobody fills it in beforehand.",
-        "People change. A remembered fact is re-read from its page every time before the clerk relies on "
-        "it: the memory says where to look, the page says what is true today. On top of that it checks a document against what it "
-        "knows, and computes dates in working days."],
+        "People change, so a remembered fact is re-read from its page every time before the clerk relies "
+        "on it: the memory says where to look, the page says what is true today."],
     refuses=[
         Quote("Never fill the gap from memory.", "from memory"),
         Quote("Name a person the pack does not name", "about a person"),
@@ -32,8 +29,8 @@ SPEC = AgentSpec(
         Quote("Edit a document or the pack by hand.", "Edit"),
     ],
     refuses_narration=[
-        "What it never does: fill a gap from memory, or from a page outside the institution's own sites. "
-        "When the institution's pages do not say, the answer is Unknown, with the nearest thing they do say.",
+        "It never fills a gap from memory or from a page outside the institution's own sites. When the "
+        "pages do not say, the answer is Unknown, with the nearest thing they do say.",
         "It says nothing about a person beyond the office, title, public email and campus address the "
         "institution publishes. It never offers a date that falls on a holiday. And it never edits a document "
         "or the pack by hand: the scribe writes, and the commands record what it read."],
@@ -55,8 +52,8 @@ SPEC = AgentSpec(
         "To use it, type to Claude Code and name it: ask the clerk a question about the institution, to check a "
         "letter, or to count working days from a date. The first time, it looks the answer up; the next time, "
         "it remembers where it read it, and reads that page again before answering.",
-        "The first line is the verdict: Correct, Fix or Unknown. Every answer names the page and the date. "
-        "Another university, or a company, is another pack, and the same clerk."],
+        "The first line is the verdict: Correct, Fix or Unknown, and every answer names the page and the "
+        "date. Another university, or a company, is another pack and the same clerk."],
     directions=[
         ("ask the clerk to look over my syllabus for BIOCHEM 3391 against the university's rules on evaluation",
          "Each rule quoted as the institution's page words it, with source and date: a test in the last three weeks of classes, a new assignment introduced too late, as Fix, Correct or Unknown."),
@@ -66,8 +63,7 @@ SPEC = AgentSpec(
          "The date, the weekday, and the holidays it skipped; a holiday is never offered."),
     ],
     directions_narration=[
-        "Say what to check and against what. A syllabus against the university's rules on evaluation: each "
-        "finding quotes the rule as the page words it. Who holds an office and how to reach them. Or a count "
-        "of working days from a date. The answer always names the page and the date."],
+        "Say what to check and against what: a syllabus against the university's rules on evaluation, with "
+        "each rule quoted as the page words it; who holds an office; or a count of working days."],
     docs=["docs/institution_pack.md", "institution/README.md"],
 )

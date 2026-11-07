@@ -46,7 +46,7 @@ re-voicing a changed sentence re-times the picture with it.
 | [`judge`](../agents/judge.md) | [The judge](https://mikehallett.science/assets/videos/murmurent_agent_judge.html) | 1:45 | yes | 0:00 Welcome, 0:11 What it does, 0:34 What it will not do, 0:56 A real example, 1:18 How to use it |
 | [`registrar`](../agents/registrar.md) | [The registrar](https://mikehallett.science/assets/videos/murmurent_agent_registrar.html) | 1:52 | yes | 0:00 Welcome, 0:12 What it does, 0:39 What it will not do, 1:05 A real example, 1:26 How to use it |
 | [`security_guard`](../agents/security_guard.md) | [The security guard](https://mikehallett.science/assets/videos/murmurent_agent_security_guard.html) | 1:52 | yes | 0:00 Welcome, 0:12 What it does, 0:37 What it will not do, 1:00 A real example, 1:23 How to use it |
-| [`clerk`](../agents/clerk.md) | [The clerk](https://mikehallett.science/assets/videos/murmurent_agent_clerk.html) | 2:42 | yes | 0:00 Welcome, 0:16 What it does, 0:57 What it will not do, 1:30 A real example, 2:08 How to use it |
+| [`clerk`](../agents/clerk.md) | [The clerk](https://mikehallett.science/assets/videos/murmurent_agent_clerk.html) | 2:49 | yes | 0:00 Welcome, 0:16 What it does, 0:49 What it will not do, 1:21 A real example, 1:58 How to direct it, 2:15 How to use it |
 | [`docent`](../agents/docent.md) | [The docent](https://mikehallett.science/assets/videos/murmurent_agent_docent.html) | 1:51 | yes | 0:00 Welcome, 0:11 What it does, 0:34 What it will not do, 0:54 A real example, 1:23 How to use it |
 
 
