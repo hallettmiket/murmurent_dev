@@ -90,6 +90,17 @@ HOOK_REGISTRATIONS: list[dict[str, Any]] = [
         "label": "murmurent-context-inject",
     },
     {
+        # Records each prompt in the personal vault's sessions/<date>/ stream
+        # with the time, project, repository and commit (#292), so nobody
+        # pastes prompts into the lab notebook. Withholds a prompt that
+        # matches a PHI or secret pattern and says so. Never blocks.
+        "event": "UserPromptSubmit",
+        "matcher": ".*",
+        "module": "murmurent.hooks.session_log",
+        "env": {},
+        "label": "murmurent-session-log",
+    },
+    {
         "event": "PostToolUse",
         "matcher": ".*",
         "module": "murmurent.hooks.audit",

@@ -206,6 +206,19 @@ Experiments follow the lab project structure: `exp/<integer>_<slug>/` in the pro
 | `murmurent experiment ingest <project> <slug> <source> [--instrument <t>] [--accept] [--dry-run]` | Classify files in `<source>` as raw vs derived (instrument profile + generic patterns), present for mandatory review, then copy: raw → `$MURMURENT_DATA_ROOT/immutable/<project>/<slug>/` (chmod a-w), derived → `.../append_only/<project>/<slug>/instrument_outputs/`. Compute SHA-256; update `immutable_data:`, `instrument_outputs:`, `checksums:` in `notebook.md`. |
 | `murmurent experiment attach <project> <slug> <file>` | Place a documentation file (photo of paper notebook page, sketch) into the appropriate subfolder; downsamples camera photos; never used for data files |
 
+### Lab notebook
+
+The daily notebook in your vault: notes in `lab-notebook/<date>.md`, the
+prompts you gave Claude Code recorded by a hook in `sessions/<date>/`. Full
+page: [The lab notebook](lab_notebook.md).
+
+| Command | Effect |
+|---|---|
+| `murmurent notebook add <text or file> [--project P] [--host H] [--handwritten] [--kind K] [--note T] [--sensitivity S] [--date D] [--dry-run]` | Put a line of text, a photo, a handwritten page, a sound note, a video or a result file into today's entry. Small result files stay in the vault's `attachments/`; images, sound, video and large files go to `append_only/<P>/notebook/<date>/` on the project's data host, never overwritten; the entry keeps the link, a thumbnail or poster frame (none for a protected project), and any transcription or description marked as machine-made |
+| `murmurent notebook open <host>:<path> [--no-open]` | Fetch a copy of a file the notebook links to into `~/.murmurent/notebook_cache/` and open it |
+| `murmurent notebook split [--dry-run]` | Move pasted prompts (long second-person paragraphs) out of existing entries into `sessions/<date>/pasted.md`; each original kept under `obsolete/`; prints every move; deletes nothing |
+| `murmurent notebook report --for <supervisor\|lab\|project:<name>> --since <date> [--until <date>] [--out DIR] [--title T]` | Collect the whole entries whose `audience` admits the reader, refuse restricted and protected ones, write `material.md` + `sources.md` for the scribe and artist, render one self-contained `report.html`, list every entry and file drawn on; sends nothing |
+
 ### Inventory
 
 Inventory is served by the **`inventory` MCP server**, not by CLI subcommands. Any agent in CC calls these tools directly:

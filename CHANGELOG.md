@@ -31,6 +31,36 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
   the "Videos and news" section of the README and the page at
   mikehallett.science/assets/videos/, so the two cannot drift apart. The
   agent movies carry their own emoji badge, as the seminar slides mark them.
+- **The lab notebook: two streams** (#292). A new `UserPromptSubmit` hook,
+  `murmurent.hooks.session_log`, records every prompt given to Claude Code in
+  the personal vault under `sessions/<date>/<session>.md` with the time,
+  project, repository and commit, so the day's notes in `lab-notebook/` hold
+  only notes. A prompt matching a PHI or secret pattern is withheld and the
+  hook says so; the stream is never published to the lab. The oracle MCP gains
+  `kind=sessions`, and `kind=all` lists the notes before the sessions.
+  `murmurent notebook split` moves prompt-shaped blocks out of existing
+  entries into `sessions/<date>/pasted.md`, keeps each original under
+  `obsolete/`, prints what it moved and deletes nothing.
+- **The lab notebook: capture** (#293). `murmurent notebook add` puts text,
+  an image, a handwritten page, a sound note, a video or a result file into
+  today's entry. Small result files stay in the vault's `attachments/`;
+  images, sound, video and large files go to
+  `append_only/<project>/notebook/<date>/` on the project's data host (the
+  lab's `data_host`, else the main repository's host; local or over SSH),
+  never overwriting. The entry keeps the link, a thumbnail or poster frame
+  (none for a protected project), and machine-made text marked as such: an
+  ElevenLabs transcription when the Keychain holds `elevenlabs-api-key`,
+  checked for PHI patterns first, or a marked placeholder for the session to
+  fill. `murmurent notebook open <host>:<path>` fetches a copy to look at.
+  `core.remote.Remote` gains `copy_to` and `copy_from`.
+- **The lab notebook: audience and reports** (#294). An entry's `audience`
+  (`me` by default, `supervisor`, `lab`, `project:<name>`) says who may read
+  it. `murmurent notebook report --for <audience> --since <date>` collects
+  the whole entries marked for that reader, refuses restricted and protected
+  ones as `oracle publish` does, writes `material.md` and `sources.md` for
+  the scribe and the artist, renders one self-contained `report.html` with a
+  marked slot for the scribe's `narrative.md`, prints every entry and file it
+  drew on, and sends nothing. Documented in `docs/lab_notebook.md`.
 - **One short training movie per commons agent** (#288): sixteen movies under
   `training/agents/<agent>/`, each 90 seconds to 3 minutes, rendered from a
   scene file by the shared renderer in `training/lib/` (lifted from the

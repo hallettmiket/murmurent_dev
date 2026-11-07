@@ -3019,8 +3019,10 @@ from .commands.centre_cmd import join_request_group as _join_request_group
 from .commands.keyring_cmd import keyring_group as _keyring_group
 from .commands.thesis_cmd import paper_group as _paper_group
 from .commands.thesis_cmd import thesis_group as _thesis_group
+from .commands.notebook_cmd import notebook_group as _notebook_group
 cli.add_command(_paper_group)
 cli.add_command(_thesis_group)
+cli.add_command(_notebook_group)
 cli.add_command(_centre_init_cmd)
 cli.add_command(_centre_status_cmd)
 cli.add_command(_centre_slack_smoke)
