@@ -41,17 +41,7 @@ AGENTS = ROOT / "agents"
 INDEX = ROOT / "training" / "index.yaml"
 MAX_SECONDS = 180
 
-# Each agent's glyph, as the seminar slides mark them (blacksmith ⚒, bookworm 📚, artist 🎨,
-# adversary ⚔), extended to the rest of the commons. The member is a scientist.
-GLYPHS = {"oracle": "🔮", "lab_oracle": "📜", "bookworm": "📚", "blacksmith": "⚒️", "adversary": "⚔️",
-          "artist": "🎨", "teacher": "🎓", "conscience": "🧭", "scribe": "✒️", "docent": "🗺️",
-          "lawyer": "⚖️", "millwright": "🔧", "centre_millwright": "🏗️", "judge": "🧮",
-          "registrar": "🗂️", "security_guard": "🛡️", "clerk": "📋"}
-MEMBER_GLYPH = "🧑‍🔬"
-
-
-def glyph_of(agent: str) -> str:
-    return GLYPHS.get(agent, "🤖")
+from .glyphs import GLYPHS, MEMBER_GLYPH, glyph_of  # noqa: E402,F401
 MIN_SECONDS = 90
 
 

@@ -24,7 +24,7 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.agent_movie import GLYPHS  # noqa: E402  (each agent's avatar, as its movie draws it)
+from lib.glyphs import GLYPHS  # noqa: E402  (each agent's avatar, as its movie draws it)
 
 ROOT = Path(__file__).resolve().parents[1]
 INDEX = ROOT / "training" / "index.yaml"
