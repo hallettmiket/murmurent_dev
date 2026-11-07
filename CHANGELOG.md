@@ -18,6 +18,17 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 ## [Unreleased]
 
 ### Added
+- **Paper packages, thesis packages and the `docent`.** A paper becomes a
+  queryable package: `paper.yaml` maps each central claim to the code and
+  data behind it; `murmurent paper init|check|build` scaffold, validate and
+  render `build/claim_map.md`. A thesis is composed of paper packages or of
+  chapters with their own claims: `murmurent thesis init|check|build` assemble
+  `build/main.tex` in Western's SGPS order, `thesis talk` drafts a timed
+  defence talk (one slide per claim, Beamer), and `thesis paperwork` writes
+  the SGPS submission checklist from the manifest. The new `docent` agent
+  answers an examiner's or reader's questions with a location, logs them
+  append-only, and walks the candidate through the commands. Examples under
+  `examples/`. Design, limits and sources: `docs/paper_package.md` (issue #284).
 - **Windows on ARM installs without a compiler** (#281). `cryptography`
   stopped shipping Windows ARM wheels after 46.0.3, so `uv tool install`
   on a Surface or a Parallels VM tried to build it with Rust and failed.

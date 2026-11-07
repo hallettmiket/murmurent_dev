@@ -331,6 +331,23 @@ The full workflow is in [Assembling a choreography](assembling_choreographies.md
 
 The full guide is [Running long jobs](run_launcher.md).
 
+### Papers and theses
+
+A paper as a queryable package, and a thesis composed of them; see
+[`paper_package.md`](paper_package.md).
+
+| Command | What it does |
+|---|---|
+| `murmurent paper init <dir> --title ... [--author ...] [--lab ...]` | Scaffold a paper package: `paper.yaml`, `main.tex`, `CLAUDE.md`, `queries/`, marker. Never overwrites. |
+| `murmurent paper check [<dir>] [--strict]` | Every claim has its code, data and figure; exits 1 on an error (or a warning with `--strict`). |
+| `murmurent paper build [<dir>] [--pdf]` | Write `build/claim_map.md`; with `--pdf`, run latexmk on the source. |
+| `murmurent thesis init <dir> --title ... [--candidate ...]` | Scaffold a thesis package with SGPS front matter and chapter stubs. |
+| `murmurent thesis adopt <thesis.tex> <dir> [--title ...] [--candidate ...]` | Turn one monolithic thesis `.tex` into a package: preamble kept, SGPS front matter and chapters split, a draft claim per figure, figures and `.bib` files copied. The source folder is not changed. |
+| `murmurent thesis check [<dir>] [--strict]` | Check the thesis and every paper package in it: front matter and its word limits, chapter order, permissions, sensitivity. |
+| `murmurent thesis build [<dir>] [--pdf]` | Assemble `build/main.tex` in the SGPS order and `build/claim_map.md` for every chapter. |
+| `murmurent thesis talk [<dir>] [--minutes 20] [--pdf]` | Draft the defence talk: `build/talk_plan.md` (timed, one slide per claim) and `build/talk.tex` (Beamer). |
+| `murmurent thesis paperwork [<dir>]` | Write `build/paperwork.md`: the Western (SGPS) submission checklist, deadlines from the defence date, board, forms, Veritas and final-submission steps. |
+
 ### Space
 
 | Command | Effect |
