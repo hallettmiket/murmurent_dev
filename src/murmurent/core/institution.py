@@ -1333,7 +1333,7 @@ def parse_assessments(text: str) -> list[Assessment]:
         when = next((d for d in dates if d != ann), dates[0] if dates else None)
         if ann is None and when is not None:
             # "announced 20 November" with no year: the year is the assessment's
-            am2 = re.search(rf"(?i)(announced|new)\D{{0,20}}?(\d{{1,2}})\s+({_MONTHS})\b|(?i)(announced|new)\D{{0,20}}?({_MONTHS})\.?\s+(\d{{1,2}})\b", line)
+            am2 = re.search(rf"(?i)(announced|new)\D{{0,20}}?(\d{{1,2}})\s+({_MONTHS})\b|(announced|new)\D{{0,20}}?({_MONTHS})\.?\s+(\d{{1,2}})\b", line)
             if am2:
                 try:
                     dd, mm = (am2.group(2), am2.group(3)) if am2.group(2) else (am2.group(6), am2.group(5))
