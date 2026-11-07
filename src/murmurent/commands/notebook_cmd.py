@@ -217,4 +217,81 @@ def cmd_open(link: str, *, no_open: bool = False) -> int:
     return 0
 
 
-__all__ = ["notebook_group", "cmd_split", "cmd_add", "cmd_open"]
+# ---------------------------------------------------------------------------
+# report (#294)
+# ---------------------------------------------------------------------------
+
+
+@notebook_group.command(
+    "report",
+    help="Assemble a report (or, --for lab, an exposition) from the whole notebook "
+         "entries marked for one audience in a date range. Writes the material and a "
+         "source list for the scribe and the artist, renders one self-contained HTML "
+         "page, and lists every entry and file it drew on. Sends nothing.")
+@click.option("--for", "reader", required=True,
+              help="supervisor, lab, or project:<name>. Entries without an audience stay in the vault.")
+@click.option("--since", required=True, help="First date, YYYY-MM-DD.")
+@click.option("--until", default="", help="Last date (default: today).")
+@click.option("--out", "out_dir", default="", help="Folder to write into (default: <vault>/reports/<until>_<audience>/).")
+@click.option("--title", default="", help="Title of the page.")
+def notebook_report(reader: str, since: str, until: str, out_dir: str, title: str) -> None:
+    raise SystemExit(cmd_report(reader, since=since, until=until, out_dir=out_dir, title=title))
+
+
+def cmd_report(reader: str, *, since: str, until: str = "", out_dir: str = "", title: str = "") -> int:
+    from ..core import notebook_report as _rep
+
+    try:
+        paths = _nb.require_paths()
+    except _nb.NotebookError as exc:
+        click.echo(f"error: {exc}")
+        return 1
+    until = until or _today()
+    for label, value in (("--since", since), ("--until", until)):
+        try:
+            _dt.date.fromisoformat(value)
+        except ValueError:
+            click.echo(f"error: {label} must be YYYY-MM-DD, not {value!r}")
+            return 1
+    try:
+        bundle = _rep.collect(paths, reader=reader, since=since, until=until)
+    except _rep.ReportError as exc:
+        click.echo(f"error: {exc}")
+        return 1
+    out = Path(out_dir).expanduser() if out_dir else _rep.default_out_dir(paths, bundle)
+    written = _rep.write_bundle(paths, bundle, out, title=title)
+
+    kind = "Exposition" if bundle.reader == _nb.AUDIENCE_LAB else "Report"
+    click.echo(f"{kind} for {bundle.reader}, {since} to {until}: {len(bundle.included)} "
+               f"entr{'y' if len(bundle.included) == 1 else 'ies'} of {bundle.considered} in the range.")
+    click.echo("Entries drawn on (whole entries; audience is per entry):")
+    for e in bundle.included:
+        click.echo(f"  - {e.rel} ({e.date}, project {e.project or 'general'}, audience {', '.join(e.audience)})")
+    if not bundle.included:
+        click.echo("  - none")
+    click.echo("Files drawn on:")
+    for f in bundle.files:
+        click.echo(f"  - {f} ({'on the server, linked' if ':/' in f else 'from the vault, embedded'})")
+    if not bundle.files:
+        click.echo("  - none")
+    if bundle.refused:
+        click.echo("Refused (as `murmurent oracle publish` would):")
+        for rel, why in bundle.refused:
+            click.echo(f"  - {rel}: {why}")
+    click.echo("Written:")
+    click.echo(f"  - {written['page']} (the page)")
+    click.echo(f"  - {written['material']} (for the scribe: draft narrative.md beside it, then run this again)")
+    click.echo(f"  - {written['sources']} (the source list)")
+    if "narrative" in written:
+        click.echo(f"  - {written['narrative']} (the scribe's narrative, included in the page)")
+    else:
+        click.echo("  The page has a marked gap where the narrative goes until narrative.md exists.")
+    click.echo("Nothing has been sent. Read the page and the source list first; then deliver it one of three ways:")
+    click.echo("  - as a private Claude artifact: ask Claude Code to publish the page as an artifact;")
+    click.echo(f"  - to the channel: murmurent project note \"<one line about it>\" with the page attached or linked;")
+    click.echo(f"  - as a file: send {written['page'].name} yourself.")
+    click.echo("The vault and the server keep the record; the delivered copy is a carrier, not the archive.")
+    return 0
+
+
+__all__ = ["notebook_group", "cmd_split", "cmd_add", "cmd_open", "cmd_report"]
