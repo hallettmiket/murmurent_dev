@@ -1,0 +1,35 @@
+1
+00:00:00,400 --> 00:00:12,084
+This is the status update skill. It tells the project's channel what is running, what finished, what is blocked and on whom, from facts a script read, not from memory.
+
+2
+00:00:12,500 --> 00:00:25,488
+Its file says why it exists: status reports went wrong three ways in one day, so the facts now come from a script, and where the state document and the facts disagree, the facts win.
+
+3
+00:00:25,488 --> 00:00:34,058
+You run it from inside the project's repository. With the word dry run, it shows the text and posts nothing.
+
+4
+00:00:34,449 --> 00:00:45,627
+The script reads running jobs on every lab account, the agent log, the outputs folder, quality gates, git and the GitHub progress issues. It changes nothing.
+
+5
+00:00:45,627 --> 00:00:53,036
+A check it cannot run says so, as here on a laptop, rather than reporting that nothing is running.
+
+6
+00:00:53,449 --> 00:01:04,859
+A real dry run, in the murmurent development repository. The summary is plain English: what finished, what is blocked, the next step and whose it is.
+
+7
+00:01:04,859 --> 00:01:13,382
+The posting script checks every rule before it would post, and here it stops, because the member asked for a dry run.
+
+8
+00:01:13,800 --> 00:01:27,942
+Three things never go into a channel: credentials, paths under a publication folder, and counts under six, which could identify a person. The skill refuses the whole post rather than trimming it.
+
+9
+00:01:28,350 --> 00:01:42,817
+To use it, type the skill name in the project's repository, with dry run the first time to read the text. Settings are optional. And when the summary says a job stopped, a script saw it stop.

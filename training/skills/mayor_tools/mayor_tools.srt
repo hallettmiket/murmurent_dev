@@ -1,0 +1,35 @@
+1
+00:00:00,400 --> 00:00:11,945
+These are the three skills for the people who run a centre or a lab: priming context before administrative work, processing a join request, and resetting a machine safely.
+
+2
+00:00:12,349 --> 00:00:28,032
+The admin skill does no work of its own. Before any centre, registrar or provisioning change, it reloads the design from the documents and the code, so the session acts from murmurent's actual design and not a half-remembered version.
+
+3
+00:00:28,032 --> 00:00:36,416
+It also settles a confusion: there is no mayor agent. The mayor is a person who bootstraps a centre once.
+
+4
+00:00:36,799 --> 00:00:50,485
+The onboard skill processes an encrypted join request. It checks that a centre exists first; on this laptop there is none, so a real run stops there, and the rest is what it runs on the mayor's machine.
+
+5
+00:00:50,485 --> 00:01:03,234
+Decrypt and file the request, show who is asking, then an explicit decision. Approval creates a channel, a repository and permissions, so it waits for a clear yes.
+
+6
+00:01:03,649 --> 00:01:17,049
+It never approves without the mayor's explicit yes, never invents the requester's details, and treats the decrypted request as the private data it is: it never goes into Slack or GitHub.
+
+7
+00:01:17,450 --> 00:01:29,742
+The reset skill returns a machine to a clean start, in levels. A real dry run on this laptop: it shows every step it would take, the backup it would write first, and what it keeps.
+
+8
+00:01:29,742 --> 00:01:40,633
+Credentials and other projects' installs are never removed without an explicit flag. The real run happens only after you have read this and said yes.
+
+9
+00:01:41,050 --> 00:01:57,281
+To use them: admin before any change to the administrative layer. Onboard when a join request arrives, and answer its question yourself. Reset only after reading the preview; the backup is taken for you.

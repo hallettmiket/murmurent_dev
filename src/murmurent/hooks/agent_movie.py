@@ -67,6 +67,9 @@ def parse_index(text: str) -> dict[str, dict[str, str]]:
             cur = {"agent": m.group(1)}
             movies[m.group(1)] = cur
             continue
+        if line.startswith("- ") or re.match(r"^\w+:\s*$", line):
+            cur = None          # a `videos:` or `news:` entry, not a movie
+            continue
         m = re.match(r"^  (\w+):\s*(.*?)\s*$", line)
         if m and cur is not None and m.group(2):
             cur[m.group(1)] = m.group(2)

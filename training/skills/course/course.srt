@@ -1,0 +1,31 @@
+1
+00:00:00,400 --> 00:00:11,155
+This is the course mode of the teacher. When a subject takes weeks rather than one sitting, you type teacher course and the subject, and a course folder becomes its memory.
+
+2
+00:00:11,550 --> 00:00:23,424
+The skill's own file sets the first rule: no lesson in an empty folder. It interviews you first, one question at a time, for the concrete reason you need the subject.
+
+3
+00:00:23,424 --> 00:00:33,804
+Where you currently get stuck is the most useful answer, because it tells the course what to cut. The mission is written down and re-read every session.
+
+4
+00:00:34,199 --> 00:00:45,331
+A real first session, with a learner whose answers were fixed for the movie. The mission names the deadline and what done looks like. The plan is three lessons, one an hour.
+
+5
+00:00:45,331 --> 00:00:58,033
+The first lesson is a page with a figure you can play with: shuffle the labels and watch the gaps pile up. The sources are pending, because the bookworm finds them, not memory.
+
+6
+00:00:58,449 --> 00:01:14,682
+Everything lives in the course folder: the mission, the plan, the resources, the lessons and the learning records. A record says what you demonstrated and what you fumbled, so a later session never teaches twice what you have shown.
+
+7
+00:01:15,099 --> 00:01:31,007
+Later sessions open with retrieval, not content: two or three questions from earlier lessons, weighted to what you fumbled. Struggling to recall is where the retention comes from, and the skill does not rescue you from a pause.
+
+8
+00:01:31,399 --> 00:01:51,300
+To use it, type teacher course and the subject in your main session. Answer the interview. Open each lesson, mark the sentence that lost you, take the quiz, and the next session starts from your record. For one method or one paper, teacher explain is enough.

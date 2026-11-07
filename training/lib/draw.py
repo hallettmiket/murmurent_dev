@@ -569,3 +569,45 @@ class Term:
 
 
 # --------------------------------------------------------------------------- #
+
+
+# --------------------------------------------------------------------------- #
+# Emoji badges: each agent has its own glyph, as on the seminar slides
+# --------------------------------------------------------------------------- #
+
+EMOJI_FONT = Path("/System/Library/Fonts/Apple Color Emoji.ttc")
+_EMOJI: dict = {}
+
+
+def emoji_sprite(glyph: str, size: int) -> Image.Image:
+    """The glyph drawn with Apple's colour emoji font (bitmap at 160 px, scaled)."""
+    key = (glyph, size)
+    if key not in _EMOJI:
+        f = ImageFont.truetype(str(EMOJI_FONT), 160)
+        im = Image.new("RGBA", (220, 220), (0, 0, 0, 0))
+        ImageDraw.Draw(im).text((110, 110), glyph, font=f, embedded_color=True, anchor="mm")
+        box = im.getbbox() or (0, 0, 220, 220)
+        im = im.crop(box)
+        k = size / max(im.width, im.height)
+        _EMOJI[key] = im.resize((max(1, int(im.width * k)), max(1, int(im.height * k))), Image.LANCZOS)
+    return _EMOJI[key]
+
+
+def badge(img: Image.Image, glyph: str, colour, cx: float, cy: float, size: int = 110,
+          scale: float = 1.0, alpha: float = 1.0, ring: bool = True) -> None:
+    """A round badge in the agent's colour with its emoji inside."""
+    if scale <= 0.02:
+        return
+    key = ("badge", glyph, colour, size, ring)
+    if key not in _SPR:
+        S = 4
+        im = Image.new("RGBA", (size * S, size * S), (0, 0, 0, 0))
+        d = ImageDraw.Draw(im)
+        if ring:
+            d.ellipse([0, 0, size * S - 1, size * S - 1], fill=(*mix(colour, BG, 0.78), 255),
+                      outline=(*colour, 255), width=int(size * S * 0.04))
+        im = im.resize((size, size), Image.LANCZOS)
+        g = emoji_sprite(glyph, int(size * 0.62))
+        im.paste(g, (int((size - g.width) / 2), int((size - g.height) / 2)), g)
+        _SPR[key] = im
+    paste_c(img, _SPR[key], cx, cy, scale, alpha)

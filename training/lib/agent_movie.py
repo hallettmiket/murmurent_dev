@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import re
 import sys
 from dataclasses import dataclass, field
@@ -30,8 +31,8 @@ from pathlib import Path
 from PIL import ImageDraw
 
 from .draw import (AMBER, BG, CHARS_PER_SECOND, DIM, F_BIG, F_BODY, F_H, F_LABEL, F_MONO_S, F_SMALL, F_SUB,
-                   F_TINY, LAV, MUTED, PANEL, PANEL2, RED, TEAL, TERM_BG, TEXT, W, P, appear, eback, figure,
-                   font, glow, heading, icon, mono_block, paste_c, person, rrect, text_c, tw, wrap)
+                   F_TINY, LAV, MUTED, PANEL, PANEL2, RED, TEAL, TERM_BG, TEXT, W, P, appear, eback,
+                   badge, font, glow, heading, icon, mono_block, paste_c, rrect, text_c, tw, wrap)
 from . import scene as scene_mod
 from .scene import EM_DASH, Scene, mmss, render
 
@@ -39,6 +40,18 @@ ROOT = Path(__file__).resolve().parents[2]
 AGENTS = ROOT / "agents"
 INDEX = ROOT / "training" / "index.yaml"
 MAX_SECONDS = 180
+
+# Each agent's glyph, as the seminar slides mark them (blacksmith ⚒, bookworm 📚, artist 🎨,
+# adversary ⚔), extended to the rest of the commons. The member is a scientist.
+GLYPHS = {"oracle": "🔮", "lab_oracle": "📜", "bookworm": "📚", "blacksmith": "⚒️", "adversary": "⚔️",
+          "artist": "🎨", "teacher": "🎓", "conscience": "🧭", "scribe": "✒️", "docent": "🗺️",
+          "lawyer": "⚖️", "millwright": "🔧", "centre_millwright": "🏗️", "judge": "🧮",
+          "registrar": "🗂️", "security_guard": "🛡️"}
+MEMBER_GLYPH = "🧑‍🔬"
+
+
+def glyph_of(agent: str) -> str:
+    return GLYPHS.get(agent, "🤖")
 MIN_SECONDS = 90
 
 
@@ -147,8 +160,7 @@ def s_title(img, t, sc, spec: AgentSpec, version: str):
     p = P(t, 0.6, 0.7)
     if p > 0:
         glow(img, cx, cy, 90, col, 0.3 * p)
-        paste_c(img, person(col, 230, spec.kind), cx, cy + 20, eback(p), min(1.0, p * 3))
-        icon(img, spec.icon, cx + 150, cy - 110, 70, col, AMBER, eback(P(t, 1.2, 0.5)))
+        badge(img, glyph_of(spec.agent), col, cx, cy + 10, 260, eback(p), min(1.0, p * 3))
 
 
 def _quote_cards(img, t, sc, spec, quotes, narration, colour, mark):
@@ -187,15 +199,24 @@ def s_refuses(img, t, sc, spec):
     _quote_cards(img, t, sc, spec, spec.refuses, spec.refuses_narration, RED, "cross")
 
 
+def _who(img, t, t0, cx, cy, colour, glyph, label):
+    p = P(t, t0, 0.5)
+    if p <= 0:
+        return
+    badge(img, glyph, colour, cx, cy, 110, eback(p), min(1.0, p * 3))
+    appear(img, t, t0 + 0.25, lambda d: text_c(d, cx, cy + 64, label, F_LABEL, colour), 0.4, 8)
+
+
 def chat_duration(question: str, chips, reply) -> float:
     return 0.8 + len(question) / CHARS_PER_SECOND + 0.5 + len(chips) * 0.55 + 0.7 + len(reply) * 0.28 + 1.5
 
 
 def s_chat(img, t, sc, spec: AgentSpec, who: str, question: str, reply: list[str], chips):
     col = spec.colour
-    heading(img, t, f"In Claude Code, with the {spec.title.split(' ', 1)[-1]}", 28)
-    figure(img, t, 0.3, 100, 250, AMBER, who, "", 100, "person", 150)
-    figure(img, t, 0.5, 100, 470, col, spec.agent, "", 100, spec.kind, 150)
+    label = spec.title[4:] if spec.title.startswith("The ") else spec.title
+    heading(img, t, f"In Claude Code, with {'the ' + label if spec.title.startswith('The ') else label}", 28)
+    _who(img, t, 0.3, 100, 200, AMBER, MEMBER_GLYPH, who)
+    _who(img, t, 0.5, 100, 420, col, glyph_of(spec.agent), spec.agent)
     q0 = 0.8
     q_dur = len(question) / CHARS_PER_SECOND
     n = int(len(question) * P(t, q0, q_dur))
@@ -256,7 +277,7 @@ def s_howto(img, t, sc, spec: AgentSpec, version: str):
     # Claude Code hands it to the agent
     a = P(t, t_done, 0.6)
     if a > 0:
-        paste_c(img, person(col, 120, spec.kind), 160, 330, eback(a))
+        badge(img, glyph_of(spec.agent), col, 160, 320, 120, eback(a))
         appear(img, t, t_done + 0.3, lambda d: text_c(d, 160, 392, spec.agent, F_LABEL, col), 0.4, 6)
         appear(img, t, t_done + 0.3, lambda d: d.text((240, 300), "Claude Code reads agents/" + spec.agent + ".md and hands it the task.",
                                                       font=F_SMALL, fill=MUTED), 0.5, 6)
@@ -311,6 +332,7 @@ def update_index(spec: AgentSpec, folder: Path, version: str, sha: str, seconds:
     at render time (the hook reads it with the murmurent package's yaml)."""
     entry = [f"- agent: {spec.agent}",
              f"  title: {spec.title}",
+             f"  tagline: {json.dumps(spec.tagline.rstrip('.'))}",
              f"  version: {version}",
              f"  date: {date.today().isoformat()}",
              f"  agent_sha256: {sha}",

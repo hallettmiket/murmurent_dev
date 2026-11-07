@@ -1,10 +1,202 @@
-# One entry per script-rendered training movie: which agent, which version and
-# date it was checked against, the hash of the agent file at that moment, and
-# its chapters. Written by training/lib/agent_movie.py on every render; read by
-# the agent_movie hook, which prompts to re-render when agents/<x>.md changes.
+# The training videos and the news about murmurent, in one file (issue #289).
+#
+# Three lists. `videos:` are the standalone videos (hand-kept: title, date, the
+# page on the site, the version checked against, chapters). `movies:` are the
+# one-per-agent movies, written by training/lib/agent_movie.py on every render
+# (do not edit by hand) and read by the agent_movie hook, which prompts to
+# re-render when agents/<x>.md changes. `news:` is one line per release or new
+# capability, newest first, the same bar as CHANGELOG.md: not every merged PR.
+#
+# training/front_page.py writes, from this file, the "Videos and news" section
+# of README.md and release/README_public.md, and the page at
+# https://mikehallett.science/assets/videos/ on the site.
+videos:
+- key: getting_started
+  title: Getting started with Murmurent
+  date: 2026-10-14
+  version: 2026.11.0   # made against 2026.9.9; every command it shows re-checked on 2026-11-07 and still present
+  seconds: 430
+  summary: What Murmurent is, installing it, saying who you are, setting up a folder, the agents, and joining a lab or a centre.
+  page: https://mikehallett.science/assets/videos/murmurent_getting_started.html
+  file: https://mikehallett.science/assets/videos/murmurent_getting_started_1080p.mp4
+  transcript: training/murmurent_getting_started.srt
+  chapters:
+    - ["0:00", "Welcome"]
+    - ["0:14", "What Murmurent is"]
+    - ["0:55", "The plan"]
+    - ["1:10", "Before you start"]
+    - ["1:28", "Step 1: install"]
+    - ["2:00", "Step 2: check the install"]
+    - ["2:20", "Step 3: say who you are"]
+    - ["2:48", "Step 4: set up a folder"]
+    - ["3:20", "Meet the agents"]
+    - ["3:58", "Joining a lab (members)"]
+    - ["4:38", "Joining a centre (PIs)"]
+    - ["5:09", "Starting a centre (mayors)"]
+    - ["5:26", "Choreographies"]
+    - ["6:03", "Getting help"]
+    - ["6:30", "Recap"]
+    - ["6:50", "Coda: watch the Claude Code movie next"]
+- key: thesis_package
+  title: A thesis an examiner can question
+  date: 2026-11-07
+  version: 2026.11.0
+  seconds: 380
+  summary: Paper packages, thesis packages and the docent. Who is in the room at a defence, how every claim is mapped to its evidence, what the candidate runs, how an examiner questions the package.
+  page: https://mikehallett.science/assets/videos/murmurent_thesis_package.html
+  file: https://mikehallett.science/assets/videos/murmurent_thesis_package_720p.mp4
+  transcript: training/thesis_package/thesis_package.srt
+  chapters:
+    - ["0:00", "Welcome"]
+    - ["0:15", "Who is in the room"]
+    - ["0:41", "The problem"]
+    - ["1:01", "The idea"]
+    - ["1:30", "The package"]
+    - ["1:46", "The candidate: check"]
+    - ["2:11", "The candidate: build"]
+    - ["2:38", "The candidate: the talk"]
+    - ["3:19", "The candidate: paperwork"]
+    - ["3:51", "The examiner: asking"]
+    - ["4:16", "The examiner: Absent"]
+    - ["4:35", "The committee"]
+    - ["5:07", "The candidate asks"]
+    - ["5:22", "From package to defence"]
+    - ["5:44", "What it does not do"]
+    - ["5:59", "Recap"]
+- key: claude_code
+  title: "Working through Claude Code"
+  tagline: "How a member reaches Murmurent: no command line needed"
+  date: 2026-11-07
+  version: 2026.11.0
+  seconds: 138
+  summary: "Open a project, how Murmurent's agents and rules reach the session, how to address an agent by name, what a verdict line is, the agent log pane, and what the hooks refuse and why."
+  page: https://mikehallett.science/assets/videos/murmurent_claude_code.html
+  file: https://mikehallett.science/assets/videos/murmurent_claude_code_720p.mp4
+  transcript: training/skills/claude_code/claude_code.srt
+  make: python3 training/skills/claude_code/make.py
+  sources:
+    docs/agents.md: 86609311d26c91d6c11d276fa61809c9dea99327c0f70d8e3dc7fe40e736e589
+  chapters:
+    - ["0:00", "Welcome"]
+    - ["0:09", "Opening a project"]
+    - ["0:31", "Addressing an agent"]
+    - ["0:51", "A real exchange"]
+    - ["1:13", "The agent log pane"]
+    - ["1:31", "What the hooks refuse"]
+    - ["1:58", "How to use it"]
+- key: push
+  title: "Backing up with /murmurent-push"
+  tagline: "Commit and push with the lab's safety checks, and a note where the project reads it"
+  date: 2026-11-07
+  version: 2026.11.0
+  seconds: 124
+  summary: "The two push skills: what the pre-flight refuses (secrets, secret-shaped names, large files, governed data), how a whole project is backed up, and where the Slack note goes."
+  page: https://mikehallett.science/assets/videos/murmurent_push.html
+  file: https://mikehallett.science/assets/videos/murmurent_push_720p.mp4
+  transcript: training/skills/push/push.srt
+  make: python3 training/skills/push/make.py
+  sources:
+    skills/murmurent-push/SKILL.md: ea9acd75140a768ccc748051601d4fa3deed61a09e33e493d37b789c950a798c
+    skills/murmurent-project-push/SKILL.md: 35eba62f7053bbe8416a15a0ed971f9efa29bf82a2395dd6a378801a7065f7f1
+  chapters:
+    - ["0:00", "Welcome"]
+    - ["0:09", "What it refuses"]
+    - ["0:37", "A real run"]
+    - ["1:01", "Where the note goes"]
+    - ["1:22", "The whole project"]
+    - ["1:43", "How to use it"]
+- key: update_me
+  title: "A status update with /murmurent-update-me"
+  tagline: "What is running, what finished, what is blocked, and on whom"
+  date: 2026-11-07
+  version: 2026.11.0
+  seconds: 103
+  summary: "The status-update skill: facts from a read-only script, a plain-English summary for the project's channel, the refusals, and the dry run that shows the text without posting."
+  page: https://mikehallett.science/assets/videos/murmurent_update_me.html
+  file: https://mikehallett.science/assets/videos/murmurent_update_me_720p.mp4
+  transcript: training/skills/update_me/update_me.srt
+  make: python3 training/skills/update_me/make.py
+  sources:
+    skills/murmurent-update-me/SKILL.md: 64d915bf42e98e86ab047f7788cc77f7f2fc679bd13aa692590a0009cd3e06ad
+  chapters:
+    - ["0:00", "Welcome"]
+    - ["0:12", "Where the facts come from"]
+    - ["0:34", "The script"]
+    - ["0:53", "A real dry run"]
+    - ["1:13", "What it refuses"]
+    - ["1:27", "How to use it"]
+- key: course
+  title: "Learning a subject with teacher course"
+  tagline: "A course across sessions, with a folder as its memory"
+  date: 2026-11-07
+  version: 2026.11.0
+  seconds: 111
+  summary: "The course mode of the teacher: an interview for the mission, a plan, self-contained lessons with a drawn figure and a quiz, and learning records so it never re-teaches what you have shown."
+  page: https://mikehallett.science/assets/videos/murmurent_course.html
+  file: https://mikehallett.science/assets/videos/murmurent_course_720p.mp4
+  transcript: training/skills/course/course.srt
+  make: python3 training/skills/course/make.py
+  sources:
+    skills/murmurent-course/SKILL.md: 8c611015791e0082ba627280ea041a7c1955ce6ce52dbe9f34f9a0139a54d537
+  chapters:
+    - ["0:00", "Welcome"]
+    - ["0:11", "The interview"]
+    - ["0:33", "A real first session"]
+    - ["0:58", "The folder is the memory"]
+    - ["1:14", "Later sessions"]
+    - ["1:30", "How to use it"]
+- key: mayor_tools
+  title: "The mayor's and PI's tools"
+  tagline: "/murmurent-admin, /murmurent-onboard and /murmurent-reset: three skills, three users"
+  date: 2026-11-07
+  version: 2026.11.0
+  seconds: 117
+  summary: "The three administrative skills: priming context before admin work, processing an encrypted join request with an explicit decision, and resetting a machine after a backup and a dry run."
+  page: https://mikehallett.science/assets/videos/murmurent_mayor_tools.html
+  file: https://mikehallett.science/assets/videos/murmurent_mayor_tools_720p.mp4
+  transcript: training/skills/mayor_tools/mayor_tools.srt
+  make: python3 training/skills/mayor_tools/make.py
+  sources:
+    skills/murmurent-admin/SKILL.md: 061f6936994beb6e3f863d676e360fa3ccf8be8358a0a1f53a14fe215fa32108
+    skills/murmurent-onboard/SKILL.md: 68e55484cdb573157f717e98b94001556afd565b01357c5c338fa699f056cbbc
+  chapters:
+    - ["0:00", "Welcome"]
+    - ["0:11", "/murmurent-admin"]
+    - ["0:36", "/murmurent-onboard"]
+    - ["1:03", "What onboard refuses"]
+    - ["1:17", "/murmurent-reset"]
+    - ["1:40", "How to use it"]
+
+news:
+- date: 2026-11-07
+  title: One short movie per agent
+  summary: Sixteen two-minute movies, one per commons agent, each with a real run, at the videos page.
+  link: https://mikehallett.science/assets/videos/
+- date: 2026-11-07
+  title: Paper packages, thesis packages and the docent
+  summary: A paper or a thesis becomes a package an examiner can question in Claude Code; the docent answers with locations and logs every question. Six-minute video.
+  link: https://mikehallett.science/assets/videos/murmurent_thesis_package.html
+- date: 2026-11-02
+  title: Release 2026.11.0, repositories and projects settled
+  summary: A repository may belong to several projects, membership grants access on every one, readiness travels with the clone, and a collaborator from another lab can finish joining from the message they receive.
+  link: https://github.com/hallettmiket/murmurent/blob/main/CHANGELOG.md
+- date: 2026-10-30
+  title: Release 2026.10.8, one route for every Slack note
+  summary: Every release note, job notice and status update follows the same route to a project's channel, and the lab's channel otherwise.
+  link: https://github.com/hallettmiket/murmurent/blob/main/CHANGELOG.md
+- date: 2026-10-19
+  title: Release 2026.10.5, citations checked and the vault syncs itself
+  summary: murmurent cite check looks up every DOI, PMID and arXiv identifier; the personal vault follows you between machines; spoken verdicts on macOS.
+  link: https://github.com/hallettmiket/murmurent/blob/main/CHANGELOG.md
+- date: 2026-10-14
+  title: The getting-started video
+  summary: Seven minutes from a fresh machine to a working lab member.
+  link: https://mikehallett.science/assets/videos/murmurent_getting_started.html
+
 movies:
 - agent: oracle
   title: The oracle
+  tagline: "Your personal research memory"
   version: 2026.11.0
   date: 2026-11-07
   agent_sha256: 905ca061d5fd1e96d3ef85ba0e6b1d0eedbb6f3ec6e23b65a4f7ea24ba9cabb8
@@ -19,6 +211,7 @@ movies:
     - ["1:29", "How to use it"]
 - agent: bookworm
   title: The bookworm
+  tagline: "Literature, databases, and the guard against invented citations"
   version: 2026.11.0
   date: 2026-11-07
   agent_sha256: 705fec4b04253ba77bc16824932f1e1d41d89d981158a7e8db98acdb554db11b
@@ -33,6 +226,7 @@ movies:
     - ["1:14", "How to use it"]
 - agent: adversary
   title: The adversary
+  tagline: "Methodological audit and peer review, before a reviewer does it"
   version: 2026.11.0
   date: 2026-11-07
   agent_sha256: 10de8035a56e66b9cac23af36fb4c2d5bd9870ffc58f3c043e5a8cc84d324547
@@ -47,6 +241,7 @@ movies:
     - ["1:16", "How to use it"]
 - agent: artist
   title: The artist
+  tagline: "Figures, reports and slides that communicate the science"
   version: 2026.11.0
   date: 2026-11-07
   agent_sha256: 30b918640fbe02472cea2bd7eff6ae80ddf9e4292264dbc3a6b014ec340955d0
@@ -61,6 +256,7 @@ movies:
     - ["1:17", "How to use it"]
 - agent: scribe
   title: The scribe
+  tagline: "Scientific writing in the house style, without touching a fact"
   version: 2026.11.0
   date: 2026-11-07
   agent_sha256: 9fe45c31d2d977b3fcc1c8724b4e8ba752c9a897e2ff7ab01d5767e894605e97
@@ -75,6 +271,7 @@ movies:
     - ["1:26", "How to use it"]
 - agent: teacher
   title: The teacher
+  tagline: "Three modes: debrief, explain, course. It answers to Feynman"
   version: 2026.11.0
   date: 2026-11-07
   agent_sha256: e1ee79164cd5db3afcbe53e3a51d0c05020d1a75c94a8ff2346ae0e1f05081a5
@@ -89,6 +286,7 @@ movies:
     - ["1:24", "How to use it"]
 - agent: lab_oracle
   title: The lab oracle
+  tagline: "What the whole lab has agreed on, read-only"
   version: 2026.11.0
   date: 2026-11-07
   agent_sha256: 040d8579d1a1fc415362bfddca15ff6b859dc95add4848b29ca49a3b24c2540e
@@ -103,6 +301,7 @@ movies:
     - ["1:20", "How to use it"]
 - agent: blacksmith
   title: The blacksmith
+  tagline: "The computational workhorse: data, features, models, dashboards"
   version: 2026.11.0
   date: 2026-11-07
   agent_sha256: 45b32ffc161a50718b4ef96323fd79a4d11d98a5319067131302973e3dea6d24
@@ -117,6 +316,7 @@ movies:
     - ["1:16", "How to use it"]
 - agent: conscience
   title: The conscience
+  tagline: "Equity, diversity, inclusion and bias review, with a citation for every flag"
   version: 2026.11.0
   date: 2026-11-07
   agent_sha256: d2038feea86a734313d012dfdcfc6922424d7148c56de9b661f0c4c42cf9580f
@@ -131,6 +331,7 @@ movies:
     - ["1:22", "How to use it"]
 - agent: lawyer
   title: The lawyer
+  tagline: "Patents, freedom to operate, and whether governed data may move"
   version: 2026.11.0
   date: 2026-11-07
   agent_sha256: 3303d2ee3c5e7ea870af38f5e6dffcfc2c8987fc63642b5b0dac91dc2b6468df
@@ -145,6 +346,7 @@ movies:
     - ["1:20", "How to use it"]
 - agent: millwright
   title: The millwright
+  tagline: "Infrastructure for one lab: members, projects, machines, health checks"
   version: 2026.11.0
   date: 2026-11-07
   agent_sha256: 425252681c7ac9b221e4ea79e6d2e3b0636dfb01e799f5159fc0ea5248e54ae6
@@ -159,6 +361,7 @@ movies:
     - ["1:20", "How to use it"]
 - agent: centre_millwright
   title: The centre millwright
+  tagline: "Centre-wide infrastructure: cross-lab projects, ACLs and the drift loop"
   version: 2026.11.0
   date: 2026-11-07
   agent_sha256: 1cbc96e730fb153e1acca70c9fa61c03c3f782911d1187416202713704a1149c
@@ -173,6 +376,7 @@ movies:
     - ["1:20", "How to use it"]
 - agent: judge
   title: The judge
+  tagline: "Combines what several labs contributed to one question, without laundering it"
   version: 2026.11.0
   date: 2026-11-07
   agent_sha256: bd86954fe8c9fd9da362185d4d0c9a58d0bcf78ddf6d889018298c6f32d03b3b
@@ -187,6 +391,7 @@ movies:
     - ["1:18", "How to use it"]
 - agent: registrar
   title: The registrar
+  tagline: "The centre's roster of labs, cores and collaborations, and its certificate authority"
   version: 2026.11.0
   date: 2026-11-07
   agent_sha256: e62f392b00af9fc5250240cf0b4ba2efd54bed5b3990d84b8601dd3e4d6c2b93
@@ -201,6 +406,7 @@ movies:
     - ["1:26", "How to use it"]
 - agent: security_guard
   title: The security guard
+  tagline: "Secrets, patient data and world-readable files, caught before they leave"
   version: 2026.11.0
   date: 2026-11-07
   agent_sha256: 57e55efefee0725b99b58fb1ec22cfb598068c62a0dcdf5b25d904d0d10976b2
@@ -215,6 +421,7 @@ movies:
     - ["1:23", "How to use it"]
 - agent: docent
   title: The docent
+  tagline: "Guide to a paper or thesis package: every answer with a location"
   version: 2026.11.0
   date: 2026-11-07
   agent_sha256: 709e3d67f0a6ff6fa947312a97fdec47419aa4a65bca86f85d2f0f5a1147b72e
