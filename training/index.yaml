@@ -436,16 +436,16 @@ movies:
     - ["1:23", "How to use it"]
 - agent: clerk
   title: The clerk
-  tagline: "The institution expert: offices, deadlines, holidays, letterhead, from a pack it never leaves"
+  tagline: "Ask it anything about your institution; it reads the answer off the institution's own pages"
   version: 2026.11.0
   date: 2026-11-07
-  agent_sha256: d7cf3dade8284dcb1393ab1165eca09875918e290ea8120368fb62860b21ac55
+  agent_sha256: 68bf3b6460c623533edf9e25fcc8234bb58ed9bd6d3be9af3583667ad5b4a30c
   file: training/agents/clerk/clerk_narrated.mp4
   make: python3 training/agents/clerk/make.py
-  seconds: 140
+  seconds: 159
   chapters:
     - ["0:00", "Welcome"]
-    - ["0:13", "What it does"]
-    - ["0:42", "What it will not do"]
-    - ["1:11", "A real example"]
-    - ["1:46", "How to use it"]
+    - ["0:16", "What it does"]
+    - ["0:55", "What it will not do"]
+    - ["1:28", "A real example"]
+    - ["2:06", "How to use it"]

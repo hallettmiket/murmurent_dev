@@ -1,42 +1,38 @@
 # The exchanges shown in the movie
 
-Real replies of the clerk, run on 2026-11-07 (Murmurent 2026.11.0) on the Western pack, with
-a letter written for the movie that names two office holders from years ago. The verdict
-lines are verbatim; the detail is shortened to fit a frame. Nothing was written, edited,
-refreshed or fetched.
+Real replies of the clerk, run on 2026-11-07 (Murmurent 2026.11.0) with the Western pack,
+reading live from uwo.ca. The verdict lines are verbatim; the detail is shortened to fit a
+frame. What it read was learned into the pack with its page and date.
 
 ## 1
-Member: Check this letter before I send it: letter_to_dean.md (addressed to Dr. Sarah Prichard, Dean of Science; questions to the Vice-President (Research), Dr. John Capone).
-Fix — Dean of Science is Matt Davison, not Sarah Prichard; Vice-President (Research) is Penny Pexman, not John Capone; postal code for the Dean's office is N6A 5B7.
+Instructor: When is the due date for printing the final exam for my course, Biochemistry 3391, in the fall of 2026?
+Unknown — the course's own exam date is not on a public page; earliest case: deliver the printed exam by Friday 4 December 2026 (seven days before the period opens 11 December).
 
-Pack western (Western University): 70 facts, 0 errors, 0 stale.
-murmurent institution check letter.md returned 2 Fix findings:
-- Fix: Dean of Science. The pack names Matt Davison as Dean of Science
-  [uwo.ca/sci/about_science/people.html, read 2026-11-07]. Correction:
-  change addressee and salutation to Dr. Matt Davison.
-- Fix: Vice-President (Research). The pack names Penny Pexman
-  [uwo.ca/research/about/leadership/vpr.html, read 2026-11-07].
-  Correction: "Dr. Penny Pexman".
-- Also from the pack: the Dean of Science's postal code is N6A 5B7; the
-  letter's N6A 3K7 is the University Secretary's office. Correction: N6A 5B7.
-Confirmed: "twenty-five working days" matches the doctoral lead the
-procedure sets (read 2026-11-06). Letter not rewritten; the scribe does that.
+- Rule (read): "at least seven days prior to the scheduled examination",
+  with 10% extra copies. Academic Calendar, Examinations policy page
+  [westerncalendar.uwo.ca, read 2026-11-07].
+- Fall 2026 examination period (read): 2026-12-11 to 2026-12-22; study day
+  2026-12-10 [westerncalendar.uwo.ca/sessionalDates.cfm, read 2026-11-07].
+- Course exam date: Unknown. The Registrar's page says the December 2026
+  schedule is live at myexams.uwo.ca, which needs a login I do not have
+  [registrar.uwo.ca/features/december_exams_2026/, read 2026-11-07].
+- Computed: seven days before 2026-12-11 is Friday 2026-12-04, a working
+  day. Counted as working days instead it is Wednesday 2026-12-02, the
+  safer date if the Registrar counts that way.
+- If the course's exam is later than 11 December, the deadline moves with it.
+Learned: where the December 2026 schedule is published.
 
 ## 2
-Member: The defence is on 2027-03-26. When must the preliminary submission be in, and what are the next three steps?
-Fix — 2027-03-26 is Good Friday, so the defence moves to Monday 2027-03-29; the preliminary submission is due Friday 2027-02-19 either way.
+Instructor: Who runs the EDI office at Western, and how do I reach them?
+Correct — Opiyo Oloya, Associate Vice-President (Equity, Diversity and Inclusion); public email oloya@uwo.ca; no general office email or address on the office's own pages.
 
-- murmurent institution date 2027-03-26 --days 0: Good Friday
-  [uwo.ca/hr/holiday_schedule.html, read 2026-11-07]; next working day
-  2027-03-29 (Monday). Confirm the new date with the Graduate Program
-  Coordinator, who alone opens the examination in Veritas.
-- murmurent institution date 2027-03-29 --days -25: 2027-02-19 (Friday),
-  the latest day for the Proposed Examiner Form, the Thesis Examination
-  Request Form and the Veritas preliminary submission (Family Day
-  2027-02-15 falls inside the count).
-- murmurent institution walk thesis_examination --anchor 2027-03-29 --next:
-  8. Examiners' preliminary reports by 2027-03-19.
-  9. The defence on 2027-03-29: talk of 10 to 15 minutes; no devices.
-  11. Final submission to the Open Repository by 2027-04-05.
-- Procedure read 2026-11-06 from the SGPS pages; confirm with the
-  Graduate Program Coordinator.
+- Holder and title (read): Opiyo Oloya, Associate Vice-President (Equity,
+  Diversity and Inclusion)
+  [edi.uwo.ca/about-us/meet-our-associate-vice-president/, read 2026-11-07].
+- Email (read): oloya@uwo.ca, on the Our Team page
+  [edi.uwo.ca/about-us/our-team/, read 2026-11-07].
+- General email, address, phone: Unknown. Not on the office home page,
+  About Us, Our Team or the AVP page. A search snippet mentioned a mailbox
+  and a room, but no page I opened states them, so I do not report them.
+Learned into the pack: the office holder, title and email, with the page
+and the date.
