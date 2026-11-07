@@ -18,9 +18,9 @@ examination.
 
 | | |
 |---|---|
-| **Video** | `thesis_package.mp4`, rendered by `make_movie.py`; not committed (ask Mike, or re-render) |
-| **Captions / narration** | [`thesis_package.srt`](thesis_package.srt): the narration with timings |
-| **Narration audio** | not yet recorded; `voice_narration.py` does it with ElevenLabs (below) |
+| **Where it is** | [mikehallett.science](https://mikehallett.science/assets/videos/murmurent_thesis_package.html), to watch in the browser. The [video file itself](https://mikehallett.science/assets/videos/murmurent_thesis_package_720p.mp4) (12 MB, 720p) can be downloaded. |
+| **Transcript** | [`thesis_package.srt`](thesis_package.srt): the narration with timings, which also works as a subtitle file |
+| **Made with** | `make_movie.py` for the picture; ElevenLabs (voice "Matilda") for the narration, through `voice_narration.py` |
 | **Checked against** | Murmurent 2026.11.0 |
 
 ## Chapters
@@ -59,10 +59,10 @@ narrator reach these words" and makes the figure, link or bullet appear then,
 and it refuses to render if a phrase is no longer in the narration. Caption
 timing is estimated from a reading pace, not measured.
 
-**Narration.** `voice_narration.py` voices each caption with ElevenLabs (voice
+**Narration.** `voice_narration.py` voiced each caption with ElevenLabs (voice
 Matilda, model `eleven_multilingual_v2`, as the getting-started video), caches
 one clip per sentence, places each at its cue and writes
-`thesis_package_narrated.mp4`. It needs the API key in the macOS Keychain, as
+`thesis_package_narrated.mp4` (the file on the website). It needs the API key in the macOS Keychain, as
 [`training/README.md`](../README.md) step 4 stores it, and reports any clip
 longer than its caption slot so the scene can be re-timed. Audio clips are not
 committed.
