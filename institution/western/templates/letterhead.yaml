@@ -1,0 +1,36 @@
+# Western's visual identity, as read from the brand site. The letterhead itself is a
+# Word template per faculty, department and support unit, downloaded from the
+# templates page; this file records what a document made elsewhere must match.
+source: https://brand.westernu.ca/visual-identity/colours.html
+date_read: '2026-11-07'
+colours:
+- {name: Western Purple, role: primary, pantone: 268 C, cmyk: '82, 100, 0, 12', rgb: '79, 38, 131', hex: '#4F2683'}
+- {name: White, role: primary, cmyk: '0, 0, 0, 0', rgb: '255, 255, 255', hex: '#FFFFFF'}
+- {name: Orchid, role: secondary, pantone: 265 C, rgb: '154, 100, 246', hex: '#8F55E0'}
+- {name: Deep Focus, role: secondary, pantone: 275 C, cmyk: '85, 90, 45, 60', rgb: '32, 20, 54', hex: '#201436'}
+- {name: Black, role: secondary, pantone: BLACK 6C, cmyk: '0, 0, 0, 100', rgb: '0, 0, 0', hex: '#000000'}
+- {name: Grey, role: secondary, pantone: COOL GRAY 6C, cmyk: '0, 0, 0, 60', rgb: '129, 130, 132', hex: '#818284'}
+- {name: Sky, role: accent, cmyk: '40, 0, 0, 0', rgb: '125, 234, 250', hex: '#7DEAFB'}
+- {name: Spring, role: accent, cmyk: '40, 0, 80, 0', rgb: '185, 248, 118', hex: '#B9F876'}
+- {name: Vivid, role: accent, cmyk: '5, 0, 75, 0', rgb: '252, 240, 94', hex: '#FCF05E'}
+- {name: Tiger, role: accent, cmyk: '0, 20, 80, 0', rgb: '240, 167, 87', hex: '#F0A757'}
+colour_rules:
+- Purple and white are primary and are used liberally (backgrounds, headlines, text containers).
+- Orchid and Deep Focus may be used with Western Purple to add depth.
+- Purple is always the primary colour; accent colours are limited to small elements.
+fonts:
+- {name: Benton Sans, role: primary, weights: 'Book for body copy; Bold for headers, sub-heads and callouts, never whole paragraphs',
+   source: https://brand.westernu.ca/visual-identity/typography.html, date_read: '2026-11-07'}
+- {name: Tahoma, role: system alternative to Benton Sans, weights: Regular,
+   source: https://brand.westernu.ca/visual-identity/typography.html, date_read: '2026-11-07'}
+- {name: Tiempos Headline, role: accent, weights: 'Regular; pull quotes and emphasis only, never body copy',
+   source: https://brand.westernu.ca/visual-identity/typography.html, date_read: '2026-11-07'}
+- {name: Georgia, role: system alternative to Tiempos Headline, weights: Regular,
+   source: https://brand.westernu.ca/visual-identity/typography.html, date_read: '2026-11-07'}
+letterhead_templates:
+  source: https://brand.westernu.ca/templates/letterhead.html
+  date_read: '2026-11-07'
+  format: Word (.docx), one template per faculty, department and support unit, downloaded from the page
+  university_contact_block: 1151 Richmond Street, London, Ontario, Canada, N6A 3K7; 519-661-2111; brand@uwo.ca
+  note: The page lists the templates and does not state placement, margins or who may use which;
+    the Western Brand Standards Guide (PDF, linked from the page) was not read.

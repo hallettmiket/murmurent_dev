@@ -136,6 +136,7 @@ nav:
   - Reference:
       - CLI manual: cli_manual.md
       - "Reporting checklists (TRIPOD+AI, PROBAST+AI, REMARK)": reporting_guidelines.md
+      - "The institution pack (the Clerk)": institution_pack.md
       - "Writing guide for manuscripts (the Scribe)": scientific_writing.md
       - Architecture diagrams: diagrams.md
       - Versioning: versioning.md

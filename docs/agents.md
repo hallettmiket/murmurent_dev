@@ -107,6 +107,7 @@ and with which it must open its reply.
 | Millwright | Provisions and health-checks member environments, repositories, storage and communication channels for one group | group | Provisioned / Skipped / Failed |
 | Centre Millwright | Centre-wide reconciler: cross-group permissions, membership drift and shared-infrastructure differences | centre | Reconciled / Drift / BLOCKED |
 | Registrar | Registry of groups, cores and collaborations; the centre-level administrative view | centre | Recorded / Conflict / Skipped |
+| Clerk | Institution expert on a replaceable institution pack: office holders, holidays and term dates, procedures and forms, letterhead; checks documents, computes working-day dates, walks procedures | centre | Correct / Fix / Unknown |
 
 ---
 
@@ -648,6 +649,50 @@ can be forked like any reference agent.
 > **Judge:** Split: the docking and ML contributions agree on the top two
 > candidates, but the wet-lab affinities rank them in the opposite order;
 > presenting both rankings side by side with the measured values flagged.
+
+---
+
+## Clerk
+
+The Clerk answers questions about the institution and checks documents against
+it: who holds an office (with the public email and campus address), the
+statutory holidays and term dates, which sections a course has, the steps of a
+procedure with their forms and deadlines, and the letterhead colours and fonts a
+document must use. It answers **only from the institution pack**
+([`institution_pack.md`](institution_pack.md)), a folder of facts each carrying
+the page it was read from and the date. What the pack does not hold is
+`Unknown`, said with the nearest fact the pack does hold; a fact older than the
+pack's limit is answered with its age stated. A language model already "knows"
+a great deal about any university, some of it years old, and that is the error
+the Clerk exists to prevent.
+
+Three jobs, inferred from what it is given:
+
+- **Check** a document: is the person named as Vice-President (Research) the
+  one the pack names, is the email the office's, is the postal code current, are
+  the colours and fonts the letterhead's. `murmurent institution check <file>`.
+- **Compute** a date: 25 working days before the defence, skipping weekends and
+  the pack's holidays, never landing on one. `murmurent institution date
+  <date> --days -25`.
+- **Walk** a procedure: what is next, which form, by when, from an anchor date.
+  `murmurent institution walk thesis_examination --anchor <date>`.
+
+It may go online only to the domains the pack lists, only to refresh a fact,
+and it writes what it found into the pack with the source and date rather than
+only into its reply (`murmurent institution refresh`). The bookworm keeps the
+pack on a schedule; the lawyer reads the schema once before a pack is filled,
+because the directory holds people. The agent does not know the word
+"Western": a company or another university is a different pack, not a
+different agent. The Docent asks the Clerk for the institution-specific
+paperwork of a thesis instead of holding it.
+
+**Verdict vocabulary:** `Correct / Fix / Unknown — <one-line: what the pack confirms, what to change, or what it does not hold>`
+
+> **You:** Clerk, is this letter to the Dean of Science right?
+>
+> **Clerk:** Fix: the letter names the Dean's predecessor; the pack names
+> Matt Davison (sciencedean@uwo.ca, read 2026-11-07). The address block is
+> correct. The letter's red heading is not a letterhead colour.
 
 ---
 

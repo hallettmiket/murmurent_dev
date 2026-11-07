@@ -30,6 +30,7 @@ EXPECTED_AGENTS = {
     "bookworm",
     "millwright",
     "centre_millwright",
+    "clerk",
     "conscience",
     "docent",
     "judge",
@@ -46,6 +47,7 @@ EXPECTED_AGENTS = {
 EXPECTED_CATEGORY = {
     "registrar": "administrative",
     "centre_millwright": "administrative",
+    "clerk": "administrative",
     "judge": "choreography-support",
 }
 

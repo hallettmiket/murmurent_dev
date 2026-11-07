@@ -3023,6 +3023,8 @@ from .commands.notebook_cmd import notebook_group as _notebook_group
 cli.add_command(_paper_group)
 cli.add_command(_thesis_group)
 cli.add_command(_notebook_group)
+from .commands.institution_cmd import institution_group as _institution_group
+cli.add_command(_institution_group)
 cli.add_command(_centre_init_cmd)
 cli.add_command(_centre_status_cmd)
 cli.add_command(_centre_slack_smoke)
