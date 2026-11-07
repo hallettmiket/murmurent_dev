@@ -7,33 +7,37 @@ This is the oracle, your personal research memory in Murmurent. It remembers wha
 Its own file says what it is for: to accumulate, organize and recall scientific knowledge across all of your projects. There is one oracle per person, not one per project.
 
 3
-00:00:21,895 --> 00:00:34,533
+00:00:21,895 --> 00:00:32,933
 Every entry lands in your own Obsidian vault, where you can browse, search and graph it. Sharing a finding with the lab oracle is a separate step that you take yourself.
 
 4
-00:00:34,949 --> 00:00:45,152
-What it will not do is just as clear. It does not publish to the lab; it only stages a draft. It never publishes a protected or restricted entry.
+00:00:32,933 --> 00:00:45,107
+It also reads your lab notebook: your own notes for each day, and a separate stream of every prompt you gave Claude Code, written by a hook so you never paste one again.
 
 5
-00:00:45,152 --> 00:00:57,512
-It does not fetch literature or run analyses; the bookworm and the blacksmith do that. And it never fabricates: if it holds nothing on a topic, it says so.
+00:00:45,500 --> 00:00:55,702
+What it will not do is just as clear. It does not publish to the lab; it only stages a draft. It never publishes a protected or restricted entry.
 
 6
-00:00:57,899 --> 00:01:08,055
-A real run, on a demo vault. The member asks it to remember a finding from a synthetic colony study, with the project, the experiment and their handle.
+00:00:55,702 --> 00:01:08,062
+It does not fetch literature or run analyses; the bookworm and the blacksmith do that. And it never fabricates: if it holds nothing on a topic, it says so.
 
 7
-00:01:08,055 --> 00:01:17,832
-The oracle writes one entry with the full schema, and adds a line to the index. The first line of its reply is the verdict.
+00:01:08,450 --> 00:01:18,605
+A real run, on a demo vault. The member asks it to remember a finding from a synthetic colony study, with the project, the experiment and their handle.
 
 8
-00:01:18,250 --> 00:01:29,652
-Asked later what it knows about serum and colony size, it finds that one entry, cites the project and the experiment, and says plainly that it holds nothing else.
+00:01:18,605 --> 00:01:28,382
+The oracle writes one entry with the full schema, and adds a line to the index. The first line of its reply is the verdict.
 
 9
-00:01:30,049 --> 00:01:43,038
-To use it, type to Claude Code and name the agent: ask the oracle to remember something, or ask it what you know about a topic. Give it the finding, where it came from, and the sensitivity.
+00:01:28,800 --> 00:01:40,202
+Asked later what it knows about serum and colony size, it finds that one entry, cites the project and the experiment, and says plainly that it holds nothing else.
 
 10
-00:01:43,038 --> 00:01:57,645
+00:01:40,600 --> 00:01:53,588
+To use it, type to Claude Code and name the agent: ask the oracle to remember something, or ask it what you know about a topic. Give it the finding, where it came from, and the sensitivity.
+
+11
+00:01:53,588 --> 00:02:08,195
 The first line of the reply is the verdict: Found, Not found or Unsure, or Remembered when it filed something. The detail names the entry, so you can open it in Obsidian.

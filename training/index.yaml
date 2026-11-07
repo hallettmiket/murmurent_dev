@@ -199,16 +199,16 @@ movies:
   tagline: "Your personal research memory"
   version: 2026.11.0
   date: 2026-11-07
-  agent_sha256: 905ca061d5fd1e96d3ef85ba0e6b1d0eedbb6f3ec6e23b65a4f7ea24ba9cabb8
+  agent_sha256: a1bdd0ee31d651cc34fe2c90d4db30715844f2906f60eae50b335f60409e8071
   file: training/agents/oracle/oracle_narrated.mp4
   make: python3 training/agents/oracle/make.py
-  seconds: 118
+  seconds: 128
   chapters:
     - ["0:00", "Welcome"]
     - ["0:09", "What it does"]
-    - ["0:34", "What it will not do"]
-    - ["0:57", "A real example"]
-    - ["1:29", "How to use it"]
+    - ["0:45", "What it will not do"]
+    - ["1:08", "A real example"]
+    - ["1:40", "How to use it"]
 - agent: bookworm
   title: The bookworm
   tagline: "Literature, databases, and the guard against invented citations"
@@ -424,7 +424,7 @@ movies:
   tagline: "Guide to a paper or thesis package: every answer with a location"
   version: 2026.11.0
   date: 2026-11-07
-  agent_sha256: 709e3d67f0a6ff6fa947312a97fdec47419aa4a65bca86f85d2f0f5a1147b72e
+  agent_sha256: d0d1246dcbe638da683dcd35c8f7d2a6be8ee2a867961142e296a19defa05db4
   file: training/agents/docent/docent_narrated.mp4
   make: python3 training/agents/docent/make.py
   seconds: 111
@@ -434,3 +434,18 @@ movies:
     - ["0:34", "What it will not do"]
     - ["0:54", "A real example"]
     - ["1:23", "How to use it"]
+- agent: clerk
+  title: The clerk
+  tagline: "Ask it anything about your institution; it reads the answer off the institution's own pages"
+  version: 2026.11.0
+  date: 2026-11-07
+  agent_sha256: 68bf3b6460c623533edf9e25fcc8234bb58ed9bd6d3be9af3583667ad5b4a30c
+  file: training/agents/clerk/clerk_narrated.mp4
+  make: python3 training/agents/clerk/make.py
+  seconds: 159
+  chapters:
+    - ["0:00", "Welcome"]
+    - ["0:16", "What it does"]
+    - ["0:55", "What it will not do"]
+    - ["1:28", "A real example"]
+    - ["2:06", "How to use it"]

@@ -240,10 +240,15 @@ Form, both to the Graduate Program Coordinator; the front-matter limits; the
 copyright releases; a scan for email addresses and phone numbers, which must be
 removed; the 100 MB limit on each supplementary file; the Veritas steps for
 the preliminary submission; and the Open Repository steps for the final one.
-Each line is a box, ticked when the manifest can tell. The requirements were
-read from the SGPS pages on the date the file names; a deadline or a form that
-matters is confirmed with the Graduate Program Coordinator, who is the only
-person who can open an examination in Veritas.
+Each line is a box, ticked when the manifest can tell. The steps, limits and
+deadline rules come from the institution pack's
+`procedures/thesis_examination.yaml` when a pack is found (see
+[`institution_pack.md`](institution_pack.md)): the deadlines then skip the
+pack's holidays. With no pack, the seed built into murmurent is used, and
+weekends alone are skipped. The requirements were read from the SGPS pages on
+the date the file names; a deadline or a form that matters is confirmed with
+the Graduate Program Coordinator, who is the only person who can open an
+examination in Veritas. The docent asks the clerk for this part.
 
 ## The docent
 
@@ -292,5 +297,8 @@ Read on 2026-11-06: the SGPS [thesis](https://grad.uwo.ca/academics/thesis/index
 [examination](https://grad.uwo.ca/academics/thesis/examination.html) and
 [timelines](https://grad.uwo.ca/academics/thesis/timelines.html) pages; the
 Senate [Procedure for Thesis Formats and Content](https://www.uwo.ca/univsec/pdf/academic_policies/grad_postdoc/thesis_procedures_format.pdf);
-and the Veritas student instructions (Schulich's copy). The constants that
-encode them sit at the top of `src/murmurent/core/paper_package.py`.
+and the Veritas student instructions (Schulich's copy). They live in the
+institution pack as `procedures/thesis_examination.yaml`, each source with the
+date it was read; the constants at the top of
+`src/murmurent/core/paper_package.py` are only the seed that
+`murmurent institution init --seed-thesis` writes into a new pack.

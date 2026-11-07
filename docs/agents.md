@@ -9,7 +9,7 @@ and are symlinked into `~/.claude/agents/` by `scripts/setup.sh`. They
 fall into three categories:
 
 **▶ Each agent has a two-minute video**: what it does, what it will not do, one real run,
-and how to use it through Claude Code. All sixteen are at
+and how to use it through Claude Code. All seventeen are at
 [mikehallett.science/assets/videos](https://mikehallett.science/assets/videos/).
 
 - **Member** — the per-member/per-lab science toolkit (Oracle, Lab
@@ -107,6 +107,7 @@ and with which it must open its reply.
 | Millwright | Provisions and health-checks member environments, repositories, storage and communication channels for one group | group | Provisioned / Skipped / Failed |
 | Centre Millwright | Centre-wide reconciler: cross-group permissions, membership drift and shared-infrastructure differences | centre | Reconciled / Drift / BLOCKED |
 | Registrar | Registry of groups, cores and collaborations; the centre-level administrative view | centre | Recorded / Conflict / Skipped |
+| Clerk | Ask it anything about the institution: it reads the answer off the institution's own pages, names the page and the date, and remembers it in the institution pack; checks documents, computes working-day dates, walks procedures | `Correct / Fix / Unknown` |
 
 ---
 
@@ -650,6 +651,31 @@ can be forked like any reference agent.
 > presenting both rankings side by side with the measured values flagged.
 
 ---
+
+## Clerk
+
+Ask the Clerk anything about your institution: who runs an office and how to
+reach them, when a course's final exam must be printed, what a procedure
+requires next and by when, the holidays in a count of working days, the
+letterhead. It reads the answer off the institution's own web pages (a web
+search limited to the institution's domains, then the page), tells you which
+page and when it read it, and says `Unknown` when the institution's pages do
+not say. Never from memory: a language model "knows" a great deal about any
+university, and some of it is years old.
+
+What it looks up goes into the **institution pack**
+(`institution/<unique_name>/`), its memory: the question, the answer, the
+page, the date. Nobody precomputes it. A remembered fact older than a month
+is re-read from its page before the Clerk relies on it, a weekly refresh
+re-reads the rest, and every answer carries its date. A centre keeps a few
+things there on purpose (the thesis procedure, holidays, the letterhead); a
+company is a different pack, not a different agent.
+
+Three jobs on top: **check** a document's office holders, emails, postal
+codes and letterhead; **compute** a date in working days that never lands on
+a holiday; **walk** a procedure to its next steps with their forms. The
+Docent asks the Clerk for the institution-specific paperwork. Everything
+about the pack: [`docs/institution_pack.md`](institution_pack.md).
 
 ## Where to go next
 
