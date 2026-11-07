@@ -107,7 +107,7 @@ and with which it must open its reply.
 | Millwright | Provisions and health-checks member environments, repositories, storage and communication channels for one group | group | Provisioned / Skipped / Failed |
 | Centre Millwright | Centre-wide reconciler: cross-group permissions, membership drift and shared-infrastructure differences | centre | Reconciled / Drift / BLOCKED |
 | Registrar | Registry of groups, cores and collaborations; the centre-level administrative view | centre | Recorded / Conflict / Skipped |
-| Clerk | Institution expert on a replaceable institution pack: office holders, holidays and term dates, procedures and forms, letterhead; checks documents, computes working-day dates, walks procedures | centre | Correct / Fix / Unknown |
+| Clerk | Ask it anything about the institution: it reads the answer off the institution's own pages, names the page and the date, and remembers it in the institution pack; checks documents, computes working-day dates, walks procedures | `Correct / Fix / Unknown` |
 
 ---
 
@@ -654,47 +654,28 @@ can be forked like any reference agent.
 
 ## Clerk
 
-The Clerk answers questions about the institution and checks documents against
-it: who holds an office (with the public email and campus address), the
-statutory holidays and term dates, which sections a course has, the steps of a
-procedure with their forms and deadlines, and the letterhead colours and fonts a
-document must use. It answers **only from the institution pack**
-([`institution_pack.md`](institution_pack.md)), a folder of facts each carrying
-the page it was read from and the date. What the pack does not hold is
-`Unknown`, said with the nearest fact the pack does hold; a fact older than the
-pack's limit is answered with its age stated. A language model already "knows"
-a great deal about any university, some of it years old, and that is the error
-the Clerk exists to prevent.
+Ask the Clerk anything about your institution: who runs an office and how to
+reach them, when a course's final exam must be printed, what a procedure
+requires next and by when, the holidays in a count of working days, the
+letterhead. It reads the answer off the institution's own web pages (a web
+search limited to the institution's domains, then the page), tells you which
+page and when it read it, and says `Unknown` when the institution's pages do
+not say. Never from memory: a language model "knows" a great deal about any
+university, and some of it is years old.
 
-Three jobs, inferred from what it is given:
+What it looks up goes into the **institution pack**
+(`institution/<unique_name>/`), its memory: the question, the answer, the
+page, the date. Nobody precomputes it. A remembered fact older than a month
+is re-read from its page before the Clerk relies on it, a weekly refresh
+re-reads the rest, and every answer carries its date. A centre keeps a few
+things there on purpose (the thesis procedure, holidays, the letterhead); a
+company is a different pack, not a different agent.
 
-- **Check** a document: is the person named as Vice-President (Research) the
-  one the pack names, is the email the office's, is the postal code current, are
-  the colours and fonts the letterhead's. `murmurent institution check <file>`.
-- **Compute** a date: 25 working days before the defence, skipping weekends and
-  the pack's holidays, never landing on one. `murmurent institution date
-  <date> --days -25`.
-- **Walk** a procedure: what is next, which form, by when, from an anchor date.
-  `murmurent institution walk thesis_examination --anchor <date>`.
-
-It may go online only to the domains the pack lists, only to refresh a fact,
-and it writes what it found into the pack with the source and date rather than
-only into its reply (`murmurent institution refresh`). The bookworm keeps the
-pack on a schedule; the lawyer reads the schema once before a pack is filled,
-because the directory holds people. The agent does not know the word
-"Western": a company or another university is a different pack, not a
-different agent. The Docent asks the Clerk for the institution-specific
-paperwork of a thesis instead of holding it.
-
-**Verdict vocabulary:** `Correct / Fix / Unknown — <one-line: what the pack confirms, what to change, or what it does not hold>`
-
-> **You:** Clerk, is this letter to the Dean of Science right?
->
-> **Clerk:** Fix: the letter names the Dean's predecessor; the pack names
-> Matt Davison (sciencedean@uwo.ca, read 2026-11-07). The address block is
-> correct. The letter's red heading is not a letterhead colour.
-
----
+Three jobs on top: **check** a document's office holders, emails, postal
+codes and letterhead; **compute** a date in working days that never lands on
+a holiday; **walk** a procedure to its next steps with their forms. The
+Docent asks the Clerk for the institution-specific paperwork. Everything
+about the pack: [`docs/institution_pack.md`](institution_pack.md).
 
 ## Where to go next
 

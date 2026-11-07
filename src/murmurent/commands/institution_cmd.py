@@ -99,10 +99,12 @@ def institution_validate(pack_name: str | None) -> None:
 
 @institution_group.command("show", help="Show one thing from the pack: office, procedure, holiday, term, course, letterhead, packs.")
 @click.argument("kind", type=click.Choice(["office", "procedure", "holiday", "term", "deadline", "course",
-                                           "letterhead", "packs", "offices", "holidays", "terms", "procedures"]))
+                                           "letterhead", "packs", "offices", "holidays", "terms", "procedures",
+                                           "fact", "facts"]))
 @click.argument("key", required=False)
+@click.option("--no-verify", is_flag=True, help="Do not re-read an office's page even if the fact is older than verify_after_days.")
 @_PACK_OPT
-def institution_show(kind: str, key: str | None, pack_name: str | None) -> None:
+def institution_show(kind: str, key: str | None, no_verify: bool, pack_name: str | None) -> None:
     import yaml
 
     if kind == "packs":
@@ -126,9 +128,26 @@ def institution_show(kind: str, key: str | None, pack_name: str | None) -> None:
                 click.echo(f"Unknown: no office `{key}` in the pack. Nearest it holds: {near}")
                 sys.exit(1)
             emit(o, o)
+            if not no_verify and inst.needs_verify(pack, o):
+                fact = next(f for f in pack.facts() if f.kind == "office" and f.data is o)
+                change = inst.verify_fact(pack, fact)
+                click.echo(f"verified on read: {change.status}" + (f" ({change.detail})" if change.detail else "")
+                           + (f"; now read {date.today().isoformat()}" if change.status == "confirmed" else ""))
         else:
             for o in pack.offices:
                 click.echo(f"- {o.get('office')}: {o.get('person')} ({o.get('title')}) read {o.get('date_read')}")
+    elif kind in ("fact", "facts"):
+        fs = pack.learned
+        if key:
+            fs = inst.recall(pack, key)
+            fs = [f for f in fs if f.get("kind") == "fact"]
+            if not fs:
+                click.echo(f"Unknown: nothing remembered on `{key}`."); sys.exit(1)
+        for f in fs:
+            click.echo(f"- {f.get('question')}\n  {f.get('answer')}\n  [{f.get('source')}, read {f.get('date_read')}]")
+            note = inst.age_note(f, pack)
+            if note:
+                click.echo(f"  note: {note}")
     elif kind in ("holiday", "holidays"):
         hs = pack.holidays()
         if key:
@@ -269,3 +288,89 @@ def institution_refresh(apply: bool, kinds: tuple[str, ...], pack_name: str | No
         click.echo(f"applied: confirmed facts now read {date.today().isoformat()}; changed facts left for a person to edit.")
     else:
         click.echo("dry run; add --apply to write.")
+
+
+@institution_group.command("recall", help="What the pack already holds on a question: learned facts and offices, best first.")
+@click.argument("question")
+@_PACK_OPT
+def institution_recall(question: str, pack_name: str | None) -> None:
+    pack = _pack(pack_name)
+    found = inst.recall(pack, question)
+    if not found:
+        click.echo("nothing remembered on that; look it up on the institution's own pages and `learn` it")
+        sys.exit(1)
+    for f in found[:8]:
+        if f["kind"] == "fact":
+            click.echo(f"- {f.get('question')}\n  {f.get('answer')}\n  [{f.get('source')}, read {f.get('date_read')}]")
+        else:
+            click.echo(f"- {f.get('office')}: {f.get('person')} ({f.get('title')}) [{f.get('source')}, read {f.get('date_read')}]")
+        note = inst.age_note(f, pack)
+        if note:
+            click.echo(f"  note: {note}")
+        if inst.needs_verify(pack, f):
+            click.echo(f"  verify before relying on it: `murmurent institution verify \"{f.get('question') or f.get('office')}\"`")
+
+
+@institution_group.command("lookup", help="Without a web search: crawl from the pack's hub pages for pages on the institution's own site that mention the question.")
+@click.argument("question")
+@click.option("--max-pages", default=inst.LOOKUP_MAX_PAGES, show_default=True, type=int)
+@_PACK_OPT
+def institution_lookup(question: str, max_pages: int, pack_name: str | None) -> None:
+    pack = _pack(pack_name)
+    hubs = (pack.meta.get("lookup") or {}).get("pages") or []
+    if not hubs:
+        click.echo("the pack lists no lookup.pages in institution.yaml (a websites A-Z, say); nothing to crawl from", err=True)
+        sys.exit(2)
+    hits = inst.lookup(pack, question, max_pages=max_pages)
+    if not hits:
+        click.echo(f"no page reached from {', '.join(hubs)} mentions that; a search limited to the pack's domains is the next step")
+        sys.exit(1)
+    for h in hits[:8]:
+        click.echo(f"- {h.title or h.url}\n  {h.url}\n  {h.snippet}")
+
+
+@institution_group.command("learn", help="Remember a fact read on one of the institution's pages: the page is fetched and must state it.")
+@click.argument("question")
+@click.option("--answer", required=True, help="The answer, in one or two sentences.")
+@click.option("--source", required=True, help="The page it was read on (must be on the pack's domains).")
+@click.option("--evidence", default="", help="A short phrase that is on the page (default: the answer itself).")
+@click.option("--office", default=None, help="Record it as an office holder instead: the office name; --answer is the person.")
+@click.option("--title", default="", help="With --office: the holder's title as the page gives it.")
+@click.option("--email", default="", help="With --office: the office's public email.")
+@click.option("--address", default="", help="With --office: the campus address.")
+@click.option("--no-confirm", is_flag=True, help="Do not fetch the page (tests only; the page is normally checked).")
+@_PACK_OPT
+def institution_learn(question: str, answer: str, source: str, evidence: str, office: str | None, title: str,
+                      email: str, address: str, no_confirm: bool, pack_name: str | None) -> None:
+    pack = _pack(pack_name)
+    try:
+        if office:
+            entry = inst.learn_office(pack, office=office, person=answer, title=title, email=email, address=address,
+                                      source=source, confirm=not no_confirm)
+            click.echo(f"learned office {office}: {answer} [{source}, read {entry['date_read']}]")
+        else:
+            entry = inst.learn_fact(pack, question=question, answer=answer, source=source, evidence=evidence,
+                                    confirm=not no_confirm)
+            click.echo(f"learned: {question}\n  {answer}\n  [{source}, read {entry['date_read']}]")
+    except inst.PackError as exc:
+        click.echo(str(exc), err=True)
+        sys.exit(1)
+
+
+@institution_group.command("verify", help="Re-read one remembered fact or office from its page now; restamp it if the page still says so.")
+@click.argument("key")
+@click.option("--no-apply", is_flag=True, help="Report only; do not restamp.")
+@_PACK_OPT
+def institution_verify(key: str, no_apply: bool, pack_name: str | None) -> None:
+    pack = _pack(pack_name)
+    want = inst._norm(key)
+    fact = next((f for f in pack.facts() if f.kind in ("fact", "office") and
+                 (inst._norm(f.key) == want or want in inst._norm(f.key))), None)
+    if fact is None:
+        click.echo(f"Unknown: nothing remembered under `{key}`."); sys.exit(1)
+    change = inst.verify_fact(pack, fact, apply=not no_apply)
+    click.echo(f"{change.status.upper()}: {fact.kind} `{fact.key}`" + (f": {change.detail}" if change.detail else "")
+               + f" [{fact.source}, read {fact.data.get('date_read')}]")
+    if change.status == "changed":
+        click.echo("the page no longer states this; read it and `learn` the current fact, or leave it for a person")
+        sys.exit(1)

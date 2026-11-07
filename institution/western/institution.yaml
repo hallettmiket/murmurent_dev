@@ -5,4 +5,12 @@ domains:
 - westernu.ca
 keeper: bookworm
 max_fact_age_days: 180
-note: Every fact carries source and date_read; a fact that cannot be read is left out.
+note: 'The pack is the clerk''s memory: what it looked up on the institution''s own pages, each with the
+  page and the date read, plus what the centre keeps on purpose (procedures, holidays). A fact that cannot
+  be read is left out.'
+verify_after_days: 30
+lookup:
+  pages:
+  - https://www.uwo.ca/a-z.html
+  note: Hub pages the crawl starts from when no web search is available. The clerk's first route is a
+    web search limited to the domains above.

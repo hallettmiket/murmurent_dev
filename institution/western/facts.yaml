@@ -1,0 +1,12 @@
+facts:
+- question: When must a department deliver its own printed final exams to the Registrar?
+  answer: At least seven days before the scheduled examination, with an extra 10% of copies.
+  evidence: at least seven days prior to the scheduled examination
+  source: https://westerncalendar.uwo.ca/PolicyPages.cfm?ArchiveID=&PolicyCategoryID=5&SelectedCalendar=Live&command=showCategory
+  date_read: '2026-11-07'
+- question: Where is the December 2026 final exam schedule published?
+  answer: The December 2026 exam schedule is live; personal schedules are at myexams.uwo.ca or in the
+    Student Center under Academics > Examinations.
+  evidence: The December 2026 exam schedule is live
+  source: https://registrar.uwo.ca/features/december_exams_2026/index.html
+  date_read: '2026-11-07'

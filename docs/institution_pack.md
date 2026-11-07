@@ -1,32 +1,63 @@
-# The institution pack and the Clerk
+# The Clerk and the institution pack
 
-An **institution pack** is a folder of facts about one institution, each fact
-with the page it was read from and the date it was read: who holds an office,
-the holidays and term dates, which sections a course has, the steps of a
-procedure with their forms and deadlines, and the letterhead colours and
-fonts. The [Clerk](agents.md#clerk) answers from a pack and from nothing else.
+Ask the [Clerk](agents.md#clerk) anything about your institution: who runs
+an office and how to reach them, when the final exams for a course must be
+printed, which holidays fall in a count of working days, what a procedure
+requires next and by when, which colours and fonts a letter must use. It reads
+the answer off the **institution's own web pages** (a web search limited to
+the institution's domains, then the page itself), tells you which page and
+when it read it, and says `Unknown` when the institution's pages do not say.
+Never from memory: a language model "knows" a great deal about any
+university, and some of it is years old.
 
-The agent is small; the knowledge is the pack. A language model already
-"knows" a great deal about any university, and some of it is years old. The
-Clerk's value is that it answers only from the pack and says `Unknown`, with
-the nearest fact it does hold, when the pack is silent. Relax that and it is a
-chatbot with the university's logo. Everything below exists to keep the pack
-right: every fact dated, every fact sourced, and a command that re-reads them.
+The **institution pack** (`institution/<unique_name>/`) is the Clerk's
+**memory**, not a reference it was loaded with. Nobody precomputes it. When
+the Clerk looks something up, it records the question, the answer, the page
+and the date in `facts.yaml`, and an office holder it confirmed in
+`directory.yaml`, so the next person who asks gets the answer at once, and so
+the lab can see what the Clerk has been relying on. A centre may also keep a
+few things there on purpose, because they change rarely and are relied on
+often: the thesis procedure with its forms and deadlines, the holidays and
+term dates, the letterhead.
 
-## What the Clerk does
+**How it stays current.** People and office holders change; a pack that
+never changed would be worse than none. Three mechanisms:
 
-Three jobs, inferred from what it is given, and a fourth small one:
+| When | What happens |
+|---|---|
+| Every answer | carries the page and the date it was read |
+| A remembered fact is older than `verify_after_days` (30 by default) | the Clerk re-reads its page before relying on it (`murmurent institution verify`): the page still says so, and the fact is restamped; or it no longer does, and the Clerk says the page changed and looks again |
+| Weekly, on the lab server | `murmurent institution refresh --apply` re-reads every remembered fact from its page and reports what changed; a changed fact is left for a person to settle |
+| A fact is older than `max_fact_age_days` (180) | it is answered with its age stated |
+
+## How the Clerk answers a question
+
+1. **Recall**: `murmurent institution recall "<question>"` lists what the
+   pack remembers on it, with dates, and says which entries need verifying.
+2. **Search the institution's own site**: `WebSearch` with `allowed_domains`
+   set to the pack's domains, then `WebFetch` the page. A question that
+   combines a rule and a date (the printing deadline for a course's exam)
+   is answered from the rule page and the schedule page together, with
+   `murmurent institution date` for the arithmetic, and the answer says
+   which part was read and which computed.
+3. **Learn**: `murmurent institution learn "<question>" --answer "..."
+   --source <url> --evidence "<a phrase on the page>"` (or `--office` for an
+   office holder). The command fetches the page and refuses a fact the page
+   does not state, so nothing enters the memory from recollection.
+4. **Answer**, with the page and the date.
+
+On a machine without a web search tool, `murmurent institution lookup
+"<question>"` crawls two links deep from the pack's hub pages (a websites
+A-Z, listed under `lookup.pages` in `institution.yaml`) and lists the pages
+that mention the question.
+
+## The three jobs on top
 
 | Ask it | It runs | Verdict |
 |---|---|---|
-| "Is this letter to the Dean right?" (a document) | `murmurent institution check <file>` | `Correct / Fix / Unknown` per office holder, email, postal code, colour and font named in the document |
+| "Is this letter to the Dean right?" (a document) | `murmurent institution check <file>` | `Correct / Fix / Unknown` per office holder, email, postal code, colour and font named in the document; an office the pack lacks is looked up first |
 | "25 working days before the defence" (a date) | `murmurent institution date 2027-04-16 --days -25` | the date, the weekday, and the holidays it skipped; never a holiday |
 | "What is next for the thesis, and by when?" (a procedure) | `murmurent institution walk thesis_examination --anchor 2027-04-16 --variant doctoral` | the steps with their forms and dates |
-| "Who is the Graduate Chair?" (a fact) | `murmurent institution show office "Graduate Program Chair"` | the entry with its source, date and age note |
-
-Every answer carries the source page and the date read. A fact older than the
-pack's `max_fact_age_days` (180 by default) is answered with its age stated,
-so a reader knows to confirm it.
 
 ## Where a pack lives and which one is used
 
@@ -115,7 +146,36 @@ procedure when a pack is found: the steps, the limits and the deadlines, which
 then skip the pack's holidays. With no pack, it uses the seed and skips
 weekends only, and says so in the file.
 
-## Keeping it: the refresh
+## Keeping it: the refresh, on a schedule
+
+On the lab server, under the lab service account that runs the other timers
+([`docs/service_account.md`](service_account.md)), a weekly user timer runs
+the refresh and keeps its report:
+
+```ini
+# ~/.config/systemd/user/murmurent-institution-refresh.service
+[Unit]
+Description=murmurent: re-read the institution pack from its sources
+[Service]
+Type=oneshot
+WorkingDirectory=%h/repos/murmurent
+ExecStart=/bin/sh -lc 'murmurent institution refresh --apply > %h/.murmurent/institution_refresh.log 2>&1'
+
+# ~/.config/systemd/user/murmurent-institution-refresh.timer
+[Unit]
+Description=murmurent: weekly institution refresh
+[Timer]
+OnCalendar=Mon 06:30
+Persistent=true
+[Install]
+WantedBy=timers.target
+```
+
+`systemctl --user enable --now murmurent-institution-refresh.timer`. The
+report lists every fact the page no longer confirms; those are for a person
+(the bookworm, on the PI's say) to settle, and the Clerk says "the page
+changed" until they do. Between refreshes, the verify-on-read rule above
+catches a change the moment someone relies on the fact.
 
 Reliability is a maintenance commitment. Office holders change; timetables
 change each term. Two things keep the pack honest:
@@ -141,11 +201,12 @@ institution's own site makes to plain `http` on its own host is followed.
 
 ## What the Clerk may do online
 
-Only fetch from the pack's domains, and only for two reasons: to refresh a
-fact a person is about to rely on, and to cache a course. Both write into the
-pack with source and date, through the commands, so what it learns is there
-for the next session. It has no search tool. It has no write tool: the
-commands write the pack, and a person edits a changed fact.
+Read pages on the pack's domains and on no other host; search only with the
+results limited to those domains; put into a query the public words of the
+question (a course code, an office, a term) and never a sentence from a
+document, a project's data, or a person's details beyond their public office.
+What it reads goes into the pack through the commands, never into the YAML by
+hand (it has no Write tool), and never into an answer as an unsourced fact.
 
 ## Sources for the Western pack
 

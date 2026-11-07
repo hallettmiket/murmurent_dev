@@ -355,3 +355,98 @@ def test_cli_init_scaffolds_a_pack(tmp_path):
     problems = inst.validate_pack(pack)
     # The seed's sources are Western's; a new centre's domains do not admit them, and validate says so.
     assert problems and all("outside the pack's domains" in p for p in problems)
+
+
+# --------------------------------------------------------------------------- #
+# The pack as memory: learn, recall, verify on read, crawl lookup (issue #291, Mike's review)
+# --------------------------------------------------------------------------- #
+
+RULE_PAGE = "<html><title>Exams</title><body>If a department prints its own papers they must reach the Registrar at least seven days prior to the scheduled examination.</body></html>"
+
+
+def _fetcher(pages: dict[str, str]):
+    def f(url, data):
+        if url not in pages:
+            raise inst.PackError(f"could not read {url}: 404")
+        return pages[url]
+    return f
+
+
+def test_learn_fact_needs_the_page_to_state_it_and_recall_finds_it(pack):
+    src = "https://www.example.edu/exams.html"
+    fetcher = _fetcher({src: RULE_PAGE})
+    with pytest.raises(inst.PackError):
+        inst.learn_fact(pack, question="exam printing deadline", answer="ten days before",
+                        source=src, fetcher=fetcher, today=date(2026, 11, 7))
+    entry = inst.learn_fact(pack, question="When must printed exams reach the Registrar?",
+                            answer="At least seven days before the exam.",
+                            evidence="at least seven days prior to the scheduled examination",
+                            source=src, fetcher=fetcher, today=date(2026, 11, 7))
+    assert entry["date_read"] == "2026-11-07"
+    again = inst.load_pack(pack.root)
+    assert len(again.learned) == 1 and (pack.root / inst.FACTS_FILE).exists()
+    found = inst.recall(again, "printed exams registrar")
+    assert found and found[0]["kind"] == "fact"
+    assert any(f.kind == "fact" for f in again.facts())
+    with pytest.raises(inst.PackError):
+        inst.learn_fact(pack, question="q", answer="a", source="https://elsewhere.org/p", fetcher=fetcher)
+
+
+def test_learn_office_replaces_and_refuses_an_unstated_person(pack):
+    src = "https://www.example.edu/edi/team.html"
+    fetcher = _fetcher({src: "<html><body>Associate Vice-President (EDI): Dr. A. Person, edi@example.edu</body></html>"})
+    with pytest.raises(inst.PackError):
+        inst.learn_office(pack, office="EDI office", person="Someone Else", source=src, fetcher=fetcher)
+    e = inst.learn_office(pack, office="EDI office", person="A. Person", title="Associate Vice-President (EDI)",
+                          email="edi@example.edu", source=src, fetcher=fetcher, today=date(2026, 11, 7))
+    assert e["email"] == "edi@example.edu"
+    e2 = inst.learn_office(pack, office="EDI office", person="A. Person", source=src, fetcher=fetcher)
+    again = inst.load_pack(pack.root)
+    assert sum(1 for o in again.offices if o["office"] == "EDI office") == 1
+
+
+def test_verify_on_read_restamps_or_reports_change(pack):
+    src = "https://www.example.edu/exams.html"
+    fetcher = _fetcher({src: RULE_PAGE})
+    inst.learn_fact(pack, question="q1", answer="seven days", evidence="seven days prior", source=src,
+                    fetcher=fetcher, today=date(2026, 1, 1))
+    fact = next(f for f in pack.facts() if f.kind == "fact")
+    assert inst.needs_verify(pack, fact, today=date(2026, 11, 7))
+    ch = inst.verify_fact(pack, fact, fetcher=fetcher, today=date(2026, 11, 7))
+    assert ch.status == "confirmed" and fact.data["date_read"] == "2026-11-07"
+    assert not inst.needs_verify(pack, fact, today=date(2026, 11, 7))
+    changed = _fetcher({src: "<html><body>Papers must reach the Registrar ten days before.</body></html>"})
+    ch2 = inst.verify_fact(pack, fact, fetcher=changed, today=date(2026, 12, 1))
+    assert ch2.status == "changed" and fact.data["date_read"] == "2026-11-07"
+
+
+def test_lookup_crawls_from_the_hub_inside_the_domains(pack):
+    pack.meta["lookup"] = {"pages": ["https://www.example.edu/a-z.html"]}
+    pages = {
+        "https://www.example.edu/a-z.html": '<a href="https://www.example.edu/edi/">Equity, Diversity and Inclusion</a>'
+                                            '<a href="https://other.org/edi">Elsewhere</a>',
+        "https://www.example.edu/edi/": '<title>EDI office</title><a href="team.html">Our team</a>',
+        "https://www.example.edu/edi/team.html": "<title>Our team</title><body>The Director of the EDI office is Dr. B.</body>",
+    }
+    hits = inst.lookup(pack, "who is the head of the EDI office", fetcher=_fetcher(pages))
+    assert hits and hits[0].url == "https://www.example.edu/edi/team.html"
+    assert "Director" in hits[0].snippet
+    assert all("other.org" not in h.url for h in hits)
+
+
+def test_cli_recall_learn_verify_and_show_fact(pack_dir, tmp_path, monkeypatch):
+    from murmurent.cli import cli
+    src = "https://www.example.edu/exams.html"
+    monkeypatch.setattr(inst, "fetch_text", lambda u, d=None, **k: RULE_PAGE if u == src else (_ for _ in ()).throw(inst.PackError("404")))
+    r = CliRunner()
+    out = r.invoke(cli, ["institution", "recall", "exam printing", "--pack", str(pack_dir)])
+    assert out.exit_code == 1 and "nothing remembered" in out.output
+    out = r.invoke(cli, ["institution", "learn", "When must printed exams reach the Registrar?", "--answer",
+                         "Seven days before.", "--evidence", "seven days prior", "--source", src, "--pack", str(pack_dir)])
+    assert out.exit_code == 0, out.output
+    out = r.invoke(cli, ["institution", "recall", "printed exams", "--pack", str(pack_dir)])
+    assert out.exit_code == 0 and "Seven days before." in out.output
+    out = r.invoke(cli, ["institution", "verify", "printed exams", "--pack", str(pack_dir)])
+    assert out.exit_code == 0 and "CONFIRMED" in out.output
+    out = r.invoke(cli, ["institution", "show", "fact", "registrar", "--pack", str(pack_dir)])
+    assert out.exit_code == 0 and "exams.html" in out.output

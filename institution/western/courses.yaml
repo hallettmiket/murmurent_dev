@@ -1,7 +1,3 @@
-# Course timetables are a fetch rule plus a cache, not a hand-typed list: they change
-# every term. `murmurent institution fetch-course BIOCHEM 3380 --apply` runs the rule
-# for one course and caches it; `murmurent institution refresh --kind course` re-runs
-# it for every cached course and reports what changed.
 fetch:
   url: https://studentservices.uwo.ca/secure/timetables/mastertt/ttindex.cfm
   method: POST
@@ -14,16 +10,14 @@ fetch:
     LocationCode: Any
     command: search
   parser: timetable_tables
-  limits: >-
-    Read on 2026-11-07. The public master timetable (Undergraduate Fall/Winter Academic
-    Timetable 2026/2027) returns, per section, the section number, component (LEC, LAB,
-    TUT), class number, requisites, status, campus and delivery type. It does not show
-    meeting days, times or rooms; those are in the Student Center after registration and
-    are not on a public page the clerk may read. So the clerk can say which sections a
-    course has and whether they are full; asked when or where a course meets, it answers
-    Unknown and names the timetable page as the nearest fact. The subject code is the
-    timetable's own (BIOCHEM, COMPSCI, ...), the course number is the four digits without
-    the suffix, and the fetch is one POST per course.
+  limits: Read on 2026-11-07. The public master timetable (Undergraduate Fall/Winter Academic Timetable
+    2026/2027) returns, per section, the section number, component (LEC, LAB, TUT), class number, requisites,
+    status, campus and delivery type. It does not show meeting days, times or rooms; those are in the
+    Student Center after registration and are not on a public page the clerk may read. So the clerk can
+    say which sections a course has and whether they are full; asked when or where a course meets, it
+    answers Unknown and names the timetable page as the nearest fact. The subject code is the timetable's
+    own (BIOCHEM, COMPSCI, ...), the course number is the four digits without the suffix, and the fetch
+    is one POST per course.
 cache:
 - code: BIOCHEM 3380G
   subject: BIOCHEM

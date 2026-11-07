@@ -43,6 +43,7 @@ PACK_META = "institution.yaml"
 DIRECTORY_FILE = "directory.yaml"
 CALENDAR_FILE = "calendar.yaml"
 COURSES_FILE = "courses.yaml"
+FACTS_FILE = "facts.yaml"       # what the clerk looked up: question, answer, source, date_read
 PROCEDURES_DIR = "procedures"
 TEMPLATES_DIR = "templates"
 LETTERHEAD_FILE = "letterhead.yaml"
@@ -91,6 +92,7 @@ class Pack:
     courses: dict[str, Any]
     procedures: dict[str, dict[str, Any]]
     templates: dict[str, dict[str, Any]]
+    learned: list[dict[str, Any]] = field(default_factory=list)   # facts.yaml: the clerk's memory of lookups
 
     @property
     def name(self) -> str:
@@ -168,6 +170,9 @@ class Pack:
             if isinstance(tpl, dict) and "source" in tpl:
                 out.append(Fact("template", tname, tpl,
                                 self.root / TEMPLATES_DIR / f"{tname}.yaml", "."))
+        for i, f in enumerate(self.learned):
+            if isinstance(f, dict):
+                out.append(Fact("fact", str(f.get("question", f"#{i}")), f, self.root / FACTS_FILE, f"facts[{i}]"))
         return out
 
 
@@ -283,6 +288,7 @@ def load_pack(root: Path) -> Pack:
     directory = _read_yaml(root / DIRECTORY_FILE) or {}
     calendar = _read_yaml(root / CALENDAR_FILE) or {}
     courses = _read_yaml(root / COURSES_FILE) or {}
+    facts_doc = _read_yaml(root / FACTS_FILE) or {}
     procedures: dict[str, dict[str, Any]] = {}
     pdir = root / PROCEDURES_DIR
     if pdir.is_dir():
@@ -306,6 +312,8 @@ def load_pack(root: Path) -> Pack:
         courses=courses if isinstance(courses, dict) else {},
         procedures=procedures,
         templates=templates,
+        learned=[f for f in ((facts_doc.get("facts") if isinstance(facts_doc, dict) else None) or [])
+                 if isinstance(f, dict)],
     )
 
 
@@ -856,6 +864,8 @@ def _fact_evidence(fact: Fact) -> list[str]:
         return [str(d.get("code", ""))]
     if fact.kind == "template":
         return [str(c.get("hex", "")) for c in (d.get("colours") or []) if isinstance(c, dict) and c.get("hex")]
+    if fact.kind == "fact":
+        return [str(d.get("evidence") or d.get("answer") or "")]
     return [str(d.get("evidence") or "")]
 
 
@@ -965,6 +975,8 @@ def write_pack(pack: Pack) -> None:
     dump(pack.root / CALENDAR_FILE, pack.calendar)
     if pack.courses:
         dump(pack.root / COURSES_FILE, pack.courses)
+    if pack.learned or (pack.root / FACTS_FILE).exists():
+        dump(pack.root / FACTS_FILE, {"facts": pack.learned})
     for name, proc in pack.procedures.items():
         dump(pack.root / PROCEDURES_DIR / f"{name}.yaml", proc)
     for name, tpl in pack.templates.items():
@@ -994,7 +1006,14 @@ def init_pack(root: Path, *, name: str, unique_name: str, domains: list[str], ke
 
     put(PACK_META, {"name": name, "unique_name": unique_name, "domains": domains, "keeper": keeper,
                     "max_fact_age_days": DEFAULT_MAX_FACT_AGE_DAYS,
-                    "note": "Every fact carries source and date_read; a fact that cannot be read is left out."})
+                    "verify_after_days": DEFAULT_VERIFY_AFTER_DAYS,
+                    "lookup": {"pages": [f"https://www.{domains[0]}/a-z.html"] if domains else [],
+                               "note": "Hub pages the crawl starts from when no web search is available; "
+                                       "the clerk's first route is a web search limited to the domains above."},
+                    "note": "The pack is the clerk's memory: what it looked up on the institution's own pages, "
+                            "each with the page and the date read, plus what the centre keeps on purpose. "
+                            "A fact that cannot be read is left out."})
+    put(FACTS_FILE, {"facts": []})
     put(DIRECTORY_FILE, {"offices": []})
     put(CALENDAR_FILE, {"holidays": [], "terms": [], "deadlines": []})
     put(COURSES_FILE, {"fetch": None, "cache": []})
@@ -1014,3 +1033,218 @@ __all__ = [
     "fetch_text", "html_to_text", "parse_timetable_tables", "fetch_course", "course",
     "refresh", "format_changes", "write_pack", "init_pack",
 ]
+
+
+# --------------------------------------------------------------------------- #
+# Looking a fact up when the pack lacks it, learning it, and verifying one on read
+# --------------------------------------------------------------------------- #
+
+DEFAULT_VERIFY_AFTER_DAYS = 30
+LOOKUP_MAX_PAGES = 12
+_ROLE_WORDS = re.compile(r"(?i)\b(president|vice-president|vice president|provost|dean|chair|director|head|"
+                         r"coordinator|co-ordinator|manager|lead|officer|registrar|secretary)\b")
+_STOP = {"the", "of", "for", "and", "at", "in", "who", "is", "office", "a", "an", "to", "our", "western"}
+
+
+@dataclass
+class Hit:
+    url: str
+    title: str
+    snippet: str
+    score: int
+
+
+def _query_words(query: str) -> list[str]:
+    return [w for w in re.findall(r"[a-z0-9]+", query.lower()) if w not in _STOP and len(w) > 1]
+
+
+def _links(markup: str, base: str) -> list[tuple[str, str]]:
+    out = []
+    for href, text in re.findall(r'<a[^>]+href="([^"#]+)"[^>]*>(.*?)</a>', markup, flags=re.S | re.I):
+        label = re.sub(r"<[^>]+>|\s+", " ", text).strip()
+        link = urllib.parse.urljoin(base, _html.unescape(href).strip())
+        link = urllib.parse.quote(link, safe=":/?&=%#+@;,~-._")   # a space in a link is the page's mistake, not ours
+        out.append((link, label))
+    return out
+
+
+def _title(markup: str) -> str:
+    m = re.search(r"<title[^>]*>(.*?)</title>", markup, flags=re.S | re.I)
+    return re.sub(r"\s+", " ", m.group(1)).strip() if m else ""
+
+
+def lookup(pack: Pack, query: str, *, fetcher: Fetcher | None = None,
+           max_pages: int = LOOKUP_MAX_PAGES) -> list[Hit]:
+    """Find pages on the institution's own site that may hold a fact the pack
+    lacks. Starts from the pack's ``lookup.pages`` (hub pages such as a
+    websites A-Z), follows links whose text or address matches the question,
+    up to two hops and ``max_pages`` pages, never leaving the pack's domains,
+    and returns the pages that mention the question's words, best first, with
+    a snippet around a role word (Dean, Director, Chair, ...). Nothing is
+    written: the clerk reads the best page and records the fact with
+    ``learn_office`` so the next session has it."""
+    domains = pack.domains
+    fetcher = fetcher or (lambda u, d: fetch_text(u, d, domains=domains))
+    words = _query_words(query)
+    if not words:
+        return []
+    hubs = [str(u) for u in ((pack.meta.get("lookup") or {}).get("pages") or [])]
+    seen: set[str] = set()
+    queue: list[tuple[str, int, int]] = [(u, 0, 0) for u in hubs]
+    hits: list[Hit] = []
+
+    def matches(s: str) -> int:
+        low = s.lower()
+        return sum(1 for w in words if w in low)
+
+    while queue and len(seen) < max_pages:
+        url, hop, _ = queue.pop(0)
+        if url in seen or not host_allowed(url, domains, require_https=False):
+            continue
+        seen.add(url)
+        try:
+            markup = fetcher(url, None)
+        except (PackError, ValueError, OSError):
+            continue
+        text = html_to_text(markup)
+        score = matches(text)
+        if score and hop > 0 or score >= len(words):
+            low = text.lower()
+            pos = min((low.find(w) for w in words if w in low), default=0)
+            window = text[max(0, pos - 200): pos + 400]
+            m = _ROLE_WORDS.search(window)
+            snippet = re.sub(r"\s+", " ", window[max(0, (m.start() - 80) if m else 0):][:260]).strip()
+            hits.append(Hit(url, _title(markup), snippet, score + (2 if m else 0)))
+        if hop < 2:
+            cands = []
+            for link, label in _links(markup, url):
+                s = matches(label) * 2 + matches(link)
+                if s and host_allowed(link, domains, require_https=False) and link not in seen:
+                    cands.append((s, link))
+            cands.sort(key=lambda c: -c[0])
+            for s, link in cands[:6]:
+                queue.append((link, hop + 1, s))
+    hits.sort(key=lambda h: -h.score)
+    return hits
+
+
+def learn_office(pack: Pack, *, office: str, person: str, title: str = "", email: str = "",
+                 address: str = "", source: str, note: str = "", today: date | None = None,
+                 fetcher: Fetcher | None = None, confirm: bool = True) -> dict[str, Any]:
+    """Record an office holder in the pack from a page on the pack's domains.
+    With ``confirm`` (the default) the page is fetched and must contain the
+    person's name, so a fact cannot be learned from memory under a borrowed
+    address. Replaces an entry for the same office; keeps everything else.
+    Only what an institution publishes about an office holder is accepted."""
+    today = today or date.today()
+    if not host_allowed(source, pack.domains):
+        raise PackError(f"refused: {source} is outside the pack's domains {pack.domains}")
+    if confirm:
+        fetcher = fetcher or (lambda u, d: fetch_text(u, d, domains=pack.domains))
+        text = html_to_text(fetcher(source, None)).lower()
+        missing = [v for v in (person, email) if v and v.lower() not in text]
+        if missing:
+            raise PackError(f"refused: {source} does not show {', '.join(missing)}; a fact is learned only "
+                            "from a page that states it")
+    entry: dict[str, Any] = {"office": office, "person": person}
+    if title:
+        entry["title"] = title
+    if email:
+        entry["email"] = email
+    if address:
+        entry["address"] = address
+    entry["source"] = source
+    entry["date_read"] = today.isoformat()
+    if note:
+        entry["note"] = note
+    pack.offices[:] = [o for o in pack.offices if _norm(str(o.get("office", ""))) != _norm(office)]
+    pack.offices.append(entry)
+    write_pack(pack)
+    return entry
+
+
+def verify_after_days(pack: Pack) -> int:
+    try:
+        return int(pack.meta.get("verify_after_days") or DEFAULT_VERIFY_AFTER_DAYS)
+    except (TypeError, ValueError):
+        return DEFAULT_VERIFY_AFTER_DAYS
+
+
+def verify_fact(pack: Pack, fact: Fact, *, fetcher: Fetcher | None = None, today: date | None = None,
+                apply: bool = True) -> Change:
+    """Re-read one fact's source page now. A fact the page still confirms is
+    restamped with today's date (when ``apply``); one it no longer confirms is
+    reported as changed and left for a person. This is what keeps an office
+    holder current between scheduled refreshes: the clerk verifies on read
+    once a fact is older than ``verify_after_days``."""
+    today = today or date.today()
+    fetcher = fetcher or (lambda u, d: fetch_text(u, d, domains=pack.domains))
+    if not fact.source:
+        return Change(fact, "no_source")
+    if not host_allowed(fact.source, pack.domains):
+        return Change(fact, "off_domain", f"{fact.source} is outside {pack.domains}")
+    try:
+        text = html_to_text(fetcher(fact.source, None)).lower()
+    except PackError as exc:
+        return Change(fact, "unreachable", str(exc))
+    evidence = [e for e in _fact_evidence(fact) if e]
+    missing = [e for e in evidence if e.lower() not in text]
+    if missing:
+        return Change(fact, "changed", "no longer on the page: " + "; ".join(missing))
+    if apply:
+        fact.data["date_read"] = today.isoformat()
+        write_pack(pack)
+    return Change(fact, "confirmed")
+
+
+def needs_verify(pack: Pack, fact: Fact | dict[str, Any], today: date | None = None) -> bool:
+    age = fact_age_days(fact, today)
+    return age is None or age > verify_after_days(pack)
+
+
+def learn_fact(pack: Pack, *, question: str, answer: str, source: str, evidence: str = "",
+               today: date | None = None, fetcher: Fetcher | None = None, confirm: bool = True) -> dict[str, Any]:
+    """Remember an answer the clerk read on one of the institution's pages:
+    the question in the asker's words, the answer in one or two sentences, the
+    page, the date, and ``evidence``, a short string from the page that the
+    refresh and the verify-on-read look for (the answer itself when none is
+    given). With ``confirm`` the page is fetched and must contain the
+    evidence, so nothing enters the memory from the model's own recollection.
+    A fact for the same question replaces the older one."""
+    today = today or date.today()
+    if not host_allowed(source, pack.domains):
+        raise PackError(f"refused: {source} is outside the pack's domains {pack.domains}")
+    evidence = evidence or answer
+    if confirm:
+        fetcher = fetcher or (lambda u, d: fetch_text(u, d, domains=pack.domains))
+        text = re.sub(r"\s+", " ", html_to_text(fetcher(source, None))).lower()
+        if re.sub(r"\s+", " ", evidence).lower() not in text:
+            raise PackError(f"refused: {source} does not show {evidence!r}; a fact is learned only from a page "
+                            "that states it (give --evidence a phrase that is on the page)")
+    entry = {"question": question, "answer": answer, "evidence": evidence, "source": source,
+             "date_read": today.isoformat()}
+    pack.learned[:] = [f for f in pack.learned if _norm(str(f.get("question", ""))) != _norm(question)]
+    pack.learned.append(entry)
+    write_pack(pack)
+    return entry
+
+
+def recall(pack: Pack, query: str) -> list[dict[str, Any]]:
+    """Learned facts and offices whose question or answer shares words with
+    the query, best first. What the clerk checks before it looks anything up."""
+    words = set(_query_words(query))
+    if not words:
+        return []
+    scored = []
+    for f in pack.learned:
+        text = (str(f.get("question", "")) + " " + str(f.get("answer", ""))).lower()
+        n = sum(1 for w in words if w in text)
+        if n:
+            scored.append((n, {"kind": "fact", **f}))
+    for o in pack.offices:
+        text = (str(o.get("office", "")) + " " + str(o.get("title", ""))).lower()
+        n = sum(1 for w in words if w in text)
+        if n:
+            scored.append((n, {"kind": "office", **o}))
+    scored.sort(key=lambda t: -t[0])
+    return [d for _, d in scored]

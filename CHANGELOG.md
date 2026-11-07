@@ -62,21 +62,22 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
   marked slot for the scribe's `narrative.md`, prints every entry and file it
   drew on, and sends nothing. Documented in `docs/lab_notebook.md`.
 - **The clerk and the institution pack** (#291). A new commons agent, the
-  `clerk`, answers questions about the institution and checks documents
-  against it, only from an **institution pack**: `institution/<unique_name>/`
-  with `directory.yaml` (office holders, public email, campus address),
-  `calendar.yaml` (holidays, term dates), `courses.yaml` (a fetch rule plus a
-  cache), `procedures/*.yaml` (ordered steps with form and deadline rule) and
-  `templates/letterhead.yaml` (colours, fonts), every fact with its source page
-  and the date it was read. Schema and the three jobs in
-  `src/murmurent/core/institution.py`; `murmurent institution
-  init|validate|show|check|date|walk|fetch-course|refresh`. The Western thesis
-  paperwork moved out of `paper_package.py` into the pack's
-  `thesis_examination` procedure, which `murmurent thesis paperwork` now reads
-  (the constants remain only as the seed `institution init --seed-thesis`
-  writes), and the docent asks the clerk for it. `institution/example/` ships
-  as a starting point; a deployment's own pack (`institution/western/`) does
-  not. Design and upkeep: `docs/institution_pack.md`.
+  `clerk`: ask it anything about your institution and it reads the answer off
+  the institution's own web pages (a web search limited to the institution's
+  domains, then the page), names the page and the date it read it, and
+  remembers the fact in the **institution pack**, `institution/<unique_name>/`
+  (`facts.yaml` for what it looked up, `directory.yaml` for office holders it
+  confirmed, plus what the centre keeps on purpose: procedures, holidays, the
+  letterhead). `Unknown` when the institution's pages do not say; never from
+  memory. A remembered fact older than `verify_after_days` is re-read before
+  it is relied on; `murmurent institution refresh` re-reads every fact on a
+  schedule. Three jobs on top: check a document's office holders and
+  addresses, compute a date in working days that never lands on a holiday,
+  walk a procedure to its next steps. `murmurent institution
+  recall|lookup|learn|verify|check|date|walk|refresh|fetch-course|init|validate`.
+  The Western pack is withheld from the release; an example pack ships. The
+  thesis paperwork reads the pack's procedure, and the docent asks the clerk
+  for it.
 - **One short training movie per commons agent** (#288): sixteen movies under
   `training/agents/<agent>/`, each 90 seconds to 3 minutes, rendered from a
   scene file by the shared renderer in `training/lib/` (lifted from the
