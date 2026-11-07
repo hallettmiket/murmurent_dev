@@ -166,6 +166,50 @@ videos:
     - ["1:03", "What onboard refuses"]
     - ["1:17", "/murmurent-reset"]
     - ["1:40", "How to use it"]
+- key: notebook
+  title: "Your lab notebook"
+  tagline: "Notes, photos and voice notes in your vault; prompts kept apart; reports you choose to share"
+  date: 2026-11-07
+  version: 2026.11.0
+  seconds: 159
+  summary: "The lab notebook in your Obsidian vault: how to add text, photos, voice notes and files from Claude Code, where large files go, how prompts are kept out of your notes, and how to build a report for your supervisor or the lab from entries you chose to share."
+  page: https://mikehallett.science/assets/videos/murmurent_notebook.html
+  file: https://mikehallett.science/assets/videos/murmurent_notebook_720p.mp4
+  transcript: training/skills/notebook/notebook.srt
+  make: python3 training/skills/notebook/make.py
+  sources:
+    docs/lab_notebook.md: be0a56fbb894c5a0df52064921361cdc6a43b3734c8fa3812dba1b61a1c77f95
+  chapters:
+    - ["0:00", "Welcome"]
+    - ["0:14", "Two streams"]
+    - ["0:34", "Adding things"]
+    - ["1:03", "In Obsidian"]
+    - ["1:22", "Cleaning up old entries"]
+    - ["1:37", "Sharing"]
+    - ["2:06", "A report for your supervisor"]
+    - ["2:21", "How to use it"]
+- key: data_root
+  title: "The data root: where big files live"
+  tagline: "Tier-3 memory: immutable, append_only, modifiable, and the rest of the lab folder"
+  date: 2026-11-07
+  version: 2026.11.0
+  seconds: 174
+  summary: "Murmurent's third tier of memory: the lab's data root on its server, what immutable, append_only, modifiable, mothballed, release, cottage, tools and db are for, how a project's folders mirror its repository, what the hooks refuse, and the layout check."
+  page: https://mikehallett.science/assets/videos/murmurent_data_root.html
+  file: https://mikehallett.science/assets/videos/murmurent_data_root_720p.mp4
+  transcript: training/skills/data_root/data_root.srt
+  make: python3 training/skills/data_root/make.py
+  sources:
+    rules/data-storage.md: c620aa6c358fc65717a5c80892db38a54386d27ef71157c3345cca2d385d5c0a
+    docs/lab_folders.md: d72762141d08db51fe2e29ea0bb2c7c09e4fe11c4fb5fb19c9a2dbbf39cb9a47
+  chapters:
+    - ["0:00", "Welcome"]
+    - ["0:15", "Three tiers"]
+    - ["0:39", "The folders"]
+    - ["1:11", "What each folder is for"]
+    - ["1:47", "What the hooks refuse"]
+    - ["2:12", "Keeping it tidy"]
+    - ["2:32", "How to use it"]
 
 news:
 - date: 2026-11-07
@@ -217,13 +261,14 @@ movies:
   agent_sha256: 705fec4b04253ba77bc16824932f1e1d41d89d981158a7e8db98acdb554db11b
   file: training/agents/bookworm/bookworm_narrated.mp4
   make: python3 training/agents/bookworm/make.py
-  seconds: 107
+  seconds: 136
   chapters:
     - ["0:00", "Welcome"]
     - ["0:11", "What it does"]
     - ["0:33", "What it will not do"]
     - ["0:52", "A real example"]
-    - ["1:14", "How to use it"]
+    - ["1:14", "How to direct it"]
+    - ["1:43", "How to use it"]
 - agent: adversary
   title: The adversary
   tagline: "Methodological audit and peer review, before a reviewer does it"
@@ -232,13 +277,14 @@ movies:
   agent_sha256: 10de8035a56e66b9cac23af36fb4c2d5bd9870ffc58f3c043e5a8cc84d324547
   file: training/agents/adversary/adversary_narrated.mp4
   make: python3 training/agents/adversary/make.py
-  seconds: 104
+  seconds: 131
   chapters:
     - ["0:00", "Welcome"]
     - ["0:10", "What it does"]
     - ["0:31", "What it will not do"]
     - ["0:51", "A real example"]
-    - ["1:16", "How to use it"]
+    - ["1:16", "How to direct it"]
+    - ["1:43", "How to use it"]
 - agent: artist
   title: The artist
   tagline: "Figures, reports and slides that communicate the science"
@@ -247,13 +293,14 @@ movies:
   agent_sha256: 30b918640fbe02472cea2bd7eff6ae80ddf9e4292264dbc3a6b014ec340955d0
   file: training/agents/artist/artist_narrated.mp4
   make: python3 training/agents/artist/make.py
-  seconds: 106
+  seconds: 135
   chapters:
     - ["0:00", "Welcome"]
     - ["0:11", "What it does"]
     - ["0:33", "What it will not do"]
     - ["0:55", "A real example"]
-    - ["1:17", "How to use it"]
+    - ["1:17", "How to direct it"]
+    - ["1:47", "How to use it"]
 - agent: scribe
   title: The scribe
   tagline: "Scientific writing in the house style, without touching a fact"
@@ -262,13 +309,14 @@ movies:
   agent_sha256: 9fe45c31d2d977b3fcc1c8724b4e8ba752c9a897e2ff7ab01d5767e894605e97
   file: training/agents/scribe/scribe_narrated.mp4
   make: python3 training/agents/scribe/make.py
-  seconds: 112
+  seconds: 137
   chapters:
     - ["0:00", "Welcome"]
     - ["0:11", "What it does"]
     - ["0:36", "What it will not do"]
     - ["1:00", "A real example"]
-    - ["1:26", "How to use it"]
+    - ["1:26", "How to direct it"]
+    - ["1:51", "How to use it"]
 - agent: teacher
   title: The teacher
   tagline: "Three modes: debrief, explain, course. It answers to Feynman"
@@ -307,13 +355,14 @@ movies:
   agent_sha256: 45b32ffc161a50718b4ef96323fd79a4d11d98a5319067131302973e3dea6d24
   file: training/agents/blacksmith/blacksmith_narrated.mp4
   make: python3 training/agents/blacksmith/make.py
-  seconds: 104
+  seconds: 133
   chapters:
     - ["0:00", "Welcome"]
     - ["0:12", "What it does"]
     - ["0:32", "What it will not do"]
     - ["0:52", "A real example"]
-    - ["1:16", "How to use it"]
+    - ["1:16", "How to direct it"]
+    - ["1:45", "How to use it"]
 - agent: conscience
   title: The conscience
   tagline: "Equity, diversity, inclusion and bias review, with a citation for every flag"
@@ -439,13 +488,13 @@ movies:
   tagline: "Ask it anything about your institution; it reads the answer off the institution's own pages"
   version: 2026.11.0
   date: 2026-11-07
-  agent_sha256: 68bf3b6460c623533edf9e25fcc8234bb58ed9bd6d3be9af3583667ad5b4a30c
+  agent_sha256: 00092333c9b3d35afac85fd8705b464d329ca15682ed571c8de94496d98b0100
   file: training/agents/clerk/clerk_narrated.mp4
   make: python3 training/agents/clerk/make.py
-  seconds: 159
+  seconds: 162
   chapters:
     - ["0:00", "Welcome"]
     - ["0:16", "What it does"]
-    - ["0:55", "What it will not do"]
-    - ["1:28", "A real example"]
-    - ["2:06", "How to use it"]
+    - ["0:57", "What it will not do"]
+    - ["1:30", "A real example"]
+    - ["2:08", "How to use it"]

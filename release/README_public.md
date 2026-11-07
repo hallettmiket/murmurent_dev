@@ -113,6 +113,8 @@ when a video and the written documentation disagree, the documentation is right.
 | [A status update with /murmurent-update-me](https://mikehallett.science/assets/videos/murmurent_update_me.html) | 1:43 | The status-update skill: facts from a read-only script, a plain-English summary for the project's channel, the refusals, and the dry run that shows the text without posting. (checked against 2026.11.0) |
 | [Learning a subject with teacher course](https://mikehallett.science/assets/videos/murmurent_course.html) | 1:51 | The course mode of the teacher: an interview for the mission, a plan, self-contained lessons with a drawn figure and a quiz, and learning records so it never re-teaches what you have shown. (checked against 2026.11.0) |
 | [The mayor's and PI's tools](https://mikehallett.science/assets/videos/murmurent_mayor_tools.html) | 1:57 | The three administrative skills: priming context before admin work, processing an encrypted join request with an explicit decision, and resetting a machine after a backup and a dry run. (checked against 2026.11.0) |
+| [Your lab notebook](https://mikehallett.science/assets/videos/murmurent_notebook.html) | 2:39 | The lab notebook in your Obsidian vault: how to add text, photos, voice notes and files from Claude Code, where large files go, how prompts are kept out of your notes, and how to build a report for your supervisor or the lab from entries you chose to share. (checked against 2026.11.0) |
+| [The data root: where big files live](https://mikehallett.science/assets/videos/murmurent_data_root.html) | 2:54 | Murmurent's third tier of memory: the lab's data root on its server, what immutable, append_only, modifiable, mothballed, release, cottage, tools and db are for, how a project's folders mirror its repository, what the hooks refuse, and the layout check. (checked against 2026.11.0) |
 
 One two-minute movie per agent: what it does, what it will not do, one real run, and how to
 use it through Claude Code.
@@ -120,13 +122,13 @@ use it through Claude Code.
 | Agent | Movie | Length |
 |---|---|---|
 | [`oracle`](https://github.com/hallettmiket/murmurent/blob/main/agents/oracle.md) | [The oracle](https://mikehallett.science/assets/videos/murmurent_agent_oracle.html) | 2:08 |
-| [`bookworm`](https://github.com/hallettmiket/murmurent/blob/main/agents/bookworm.md) | [The bookworm](https://mikehallett.science/assets/videos/murmurent_agent_bookworm.html) | 1:47 |
-| [`adversary`](https://github.com/hallettmiket/murmurent/blob/main/agents/adversary.md) | [The adversary](https://mikehallett.science/assets/videos/murmurent_agent_adversary.html) | 1:44 |
-| [`artist`](https://github.com/hallettmiket/murmurent/blob/main/agents/artist.md) | [The artist](https://mikehallett.science/assets/videos/murmurent_agent_artist.html) | 1:46 |
-| [`scribe`](https://github.com/hallettmiket/murmurent/blob/main/agents/scribe.md) | [The scribe](https://mikehallett.science/assets/videos/murmurent_agent_scribe.html) | 1:52 |
+| [`bookworm`](https://github.com/hallettmiket/murmurent/blob/main/agents/bookworm.md) | [The bookworm](https://mikehallett.science/assets/videos/murmurent_agent_bookworm.html) | 2:16 |
+| [`adversary`](https://github.com/hallettmiket/murmurent/blob/main/agents/adversary.md) | [The adversary](https://mikehallett.science/assets/videos/murmurent_agent_adversary.html) | 2:11 |
+| [`artist`](https://github.com/hallettmiket/murmurent/blob/main/agents/artist.md) | [The artist](https://mikehallett.science/assets/videos/murmurent_agent_artist.html) | 2:15 |
+| [`scribe`](https://github.com/hallettmiket/murmurent/blob/main/agents/scribe.md) | [The scribe](https://mikehallett.science/assets/videos/murmurent_agent_scribe.html) | 2:17 |
 | [`teacher`](https://github.com/hallettmiket/murmurent/blob/main/agents/teacher.md) | [The teacher](https://mikehallett.science/assets/videos/murmurent_agent_teacher.html) | 1:52 |
 | [`lab_oracle`](https://github.com/hallettmiket/murmurent/blob/main/agents/lab_oracle.md) | [The lab oracle](https://mikehallett.science/assets/videos/murmurent_agent_lab_oracle.html) | 1:48 |
-| [`blacksmith`](https://github.com/hallettmiket/murmurent/blob/main/agents/blacksmith.md) | [The blacksmith](https://mikehallett.science/assets/videos/murmurent_agent_blacksmith.html) | 1:44 |
+| [`blacksmith`](https://github.com/hallettmiket/murmurent/blob/main/agents/blacksmith.md) | [The blacksmith](https://mikehallett.science/assets/videos/murmurent_agent_blacksmith.html) | 2:13 |
 | [`conscience`](https://github.com/hallettmiket/murmurent/blob/main/agents/conscience.md) | [The conscience](https://mikehallett.science/assets/videos/murmurent_agent_conscience.html) | 1:48 |
 | [`lawyer`](https://github.com/hallettmiket/murmurent/blob/main/agents/lawyer.md) | [The lawyer](https://mikehallett.science/assets/videos/murmurent_agent_lawyer.html) | 1:52 |
 | [`millwright`](https://github.com/hallettmiket/murmurent/blob/main/agents/millwright.md) | [The millwright](https://mikehallett.science/assets/videos/murmurent_agent_millwright.html) | 1:48 |
@@ -134,7 +136,7 @@ use it through Claude Code.
 | [`judge`](https://github.com/hallettmiket/murmurent/blob/main/agents/judge.md) | [The judge](https://mikehallett.science/assets/videos/murmurent_agent_judge.html) | 1:45 |
 | [`registrar`](https://github.com/hallettmiket/murmurent/blob/main/agents/registrar.md) | [The registrar](https://mikehallett.science/assets/videos/murmurent_agent_registrar.html) | 1:52 |
 | [`security_guard`](https://github.com/hallettmiket/murmurent/blob/main/agents/security_guard.md) | [The security guard](https://mikehallett.science/assets/videos/murmurent_agent_security_guard.html) | 1:52 |
-| [`clerk`](https://github.com/hallettmiket/murmurent/blob/main/agents/clerk.md) | [The clerk](https://mikehallett.science/assets/videos/murmurent_agent_clerk.html) | 2:39 |
+| [`clerk`](https://github.com/hallettmiket/murmurent/blob/main/agents/clerk.md) | [The clerk](https://mikehallett.science/assets/videos/murmurent_agent_clerk.html) | 2:42 |
 | [`docent`](https://github.com/hallettmiket/murmurent/blob/main/agents/docent.md) | [The docent](https://mikehallett.science/assets/videos/murmurent_agent_docent.html) | 1:51 |
 
 **News**, newest first (releases and new capabilities; the full record is the

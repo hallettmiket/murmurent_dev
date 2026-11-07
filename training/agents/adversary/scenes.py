@@ -50,5 +50,18 @@ SPEC = AgentSpec(
         "Give it the folder with the code and the data, not a summary.",
         "The first line is the verdict: Pass, Questions or Reject. Every finding says whether it was observed or "
         "speculated, and the audit ends with the counsel line. Run it before someone else does."],
+    directions=[
+        ("ask the adversary to audit exp/3_classifier for leakage between training and test, re-running the split code rather than reading it",
+         "Findings labelled OBSERVED or SPECULATED, the re-run shown, and the verdict Pass, Questions or Reject."),
+        ("ask the adversary to check the write-up in draft_2.tex against TRIPOD+AI, item by item, and to verify the numbers behind the central claims",
+         "The checklist with each item met, missing or unclear, the sources checked, and the counsel line at the end."),
+        ("ask the adversary to review the judge's combination of the two labs' contributions for laundered evidence",
+         "Whether incommensurable metrics were merged, with the rows that show it."),
+    ],
+    directions_narration=[
+        "Say what to audit and what you fear. Leakage between training and test, with the split re-run rather "
+        "than read. A write-up checked against a reporting guideline, item by item, with the numbers traced.",
+        "Or the judge's combination of two labs' results. The adversary says what it observed and what it only "
+        "suspects, and ends with the counsel line."],
     docs=["docs/reporting_guidelines.md"],
 )

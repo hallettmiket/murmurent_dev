@@ -47,5 +47,19 @@ SPEC = AgentSpec(
         "Give it the data, what to predict and where outputs go.",
         "The first line is the verdict: Done, Failed or Partial. Then the numbers, the files it wrote and the "
         "code, so the adversary can re-run it. Send the result to the adversary before the PI."],
+    directions=[
+        ("ask the blacksmith to build a Streamlit app over append_only/dcis/3_qc so I can filter cells by mitochondrial fraction and see the counts update",
+         "A single-file app, how to run it in the experiment README, reading from the data root and never writing back to it."),
+        ("ask the blacksmith to train an XGBoost classifier with 5-fold cross-validation, stratified by site, and report the AUC per fold with its variance",
+         "The model, the folds, the metrics per fold, and clean commented code the adversary can re-run."),
+        ("ask the blacksmith to turn the counts matrix into features: log-normalised, the 2000 most variable genes, then a PCA, written as versioned files",
+         "Feature files under append_only with integer suffixes; nothing overwritten; the steps in the code."),
+    ],
+    directions_narration=[
+        "Say what you want built. A Streamlit app over an experiment's outputs, with the filter you need. "
+        "A classifier with the cross-validation you specify, stratified the way your data demand, with the "
+        "variance across folds.",
+        "Or a feature pipeline, step by step, written as versioned files. Name the tool, the method and where "
+        "the outputs go; the blacksmith leaves the code to re-run it."],
     docs=["rules/data-storage.md"],
 )

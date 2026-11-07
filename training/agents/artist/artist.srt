@@ -27,9 +27,17 @@ A real run, on simulated data. The member asks for one publication figure: colon
 The verdict is Rendered. The figure is labelled as simulated on the image itself, the caption says what to notice, and the artist says plainly that it ran no test.
 
 8
-00:01:18,100 --> 00:01:29,556
-To use it, type to Claude Code and name it: ask the artist to make a figure from a results file, and say what it is for. A figure for a talk is not a figure for a paper.
+00:01:18,100 --> 00:01:31,400
+Say what you want and what it is for. The package, the palette, the size and the resolution, for a paper figure. A slide deck for the lab meeting in Western's colours.
 
 9
-00:01:29,556 --> 00:01:45,695
+00:01:31,400 --> 00:01:47,300
+Or an animation of your pipeline as a video for a talk. The artist works from your real results, and says what each figure shows; it never invents a point to fill an axis.
+
+10
+00:01:47,700 --> 00:01:59,156
+To use it, type to Claude Code and name it: ask the artist to make a figure from a results file, and say what it is for. A figure for a talk is not a figure for a paper.
+
+11
+00:01:59,156 --> 00:02:15,295
 The first line is the verdict: Rendered, Skipped or Failed. Then the file it wrote and a caption that says what to notice. If an input is missing, it stops and says so rather than inventing one.

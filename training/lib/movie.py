@@ -68,6 +68,9 @@ class Part:
     cards: list[tuple[str, str]] = field(default_factory=list)   # howto: (title, body)
     docs: list[str] = field(default_factory=list)
     tail: float = 1.2
+    note_title: str = ""                                  # obsidian: the note's name in the sidebar
+    note_lines: list[str] = field(default_factory=list)   # obsidian: the note's text, as the file holds it
+    sidebar: list[str] = field(default_factory=list)      # obsidian: other files in the folder
 
 
 @dataclass
@@ -151,6 +154,55 @@ def s_bullets(img, t, sc, part: Part):
         if t > t0:
             icon(img, part.mark, 98, y + 24, 26, part.colour, part.colour, eback(P(t, t0 + 0.2, 0.4)))
         y += h + 12
+
+
+def s_obsidian(img, t, sc, part: Part):
+    """A note as Obsidian shows it: a file list on the left, the note on the right, its
+    frontmatter as a properties block. The text is the real file; only the frame is drawn."""
+    heading(img, t, part.heading, 28)
+    d = ImageDraw.Draw(img)
+    rrect(d, (40, 96, 1240, 600), (30, 30, 34), (70, 70, 78), 10, 2)
+    d.rectangle([40, 96, 300, 600], fill=(38, 38, 43))
+    d.text((60, 110), "lab-notebook", font=F_TINY, fill=(160, 160, 170))
+    y = 138
+    for name in part.sidebar:
+        sel = name == part.note_title
+        if sel:
+            d.rounded_rectangle([50, y - 4, 290, y + 22], radius=6, fill=(60, 60, 72))
+        d.text((64, y), name, font=F_SMALL, fill=(230, 230, 235) if sel else (170, 170, 180))
+        y += 30
+    d.text((330, 110), part.note_title, font=F_LABEL, fill=(235, 235, 240))
+    n = int(len(part.note_lines) * P(t, sc.lead, max((sc.seconds - sc.lead - sc.tail) * 0.45, 1.0)))
+    y = 146
+    in_fm = False
+    for i, line in enumerate(part.note_lines[:max(n, 1)]):
+        if y > 580:
+            break
+        if line.strip() == "---":
+            in_fm = (i == 0)
+            d.rounded_rectangle([322, y - 2, 1230, y + 2], radius=2, fill=(60, 60, 72))
+            y += 8
+            continue
+        if in_fm:
+            k, _, v = line.partition(":")
+            d.text((332, y), k.strip(), font=F_MONO_S, fill=(150, 150, 165))
+            d.text((520, y), v.strip(), font=F_MONO_S, fill=(210, 210, 220))
+            y += 22
+            continue
+        if line.startswith("## "):
+            d.text((330, y + 4), line[3:], font=F_LABEL, fill=(240, 200, 120))
+            y += 34
+        elif line.startswith("!["):
+            d.rounded_rectangle([330, y, 530, y + 70], radius=6, fill=(55, 60, 80), outline=(90, 100, 130))
+            d.text((344, y + 24), line[2:line.index("]")] if "]" in line else "image", font=F_TINY, fill=(200, 205, 220))
+            y += 80
+        else:
+            for ln in wrap(line, F_SMALL, 880):
+                col = (120, 170, 230) if ("[[" in ln or "http" in ln or "](" in ln) else (220, 220, 228)
+                d.text((330, y), ln, font=F_SMALL, fill=col)
+                y += 26
+    if n < len(part.note_lines):
+        d.text((330, 575), "...", font=F_SMALL, fill=(150, 150, 165))
 
 
 def s_howto(img, t, sc, part: Part, m: Movie, version: str):
@@ -242,6 +294,9 @@ def build_scenes(m: Movie, folder: Path, version: str) -> list[Scene]:
                                 lambda img, t, s, shim=shim, who=who, q=q, reply=reply, part=part:
                                 s_chat(img, t, s, shim, who, q, reply, part.chips),
                                 part.chapter, min_anim=chat_duration(q, part.chips, reply), tail=part.tail))
+        elif part.kind == "obsidian":
+            scenes.append(Scene(name, part.narration, lambda img, t, s, part=part: s_obsidian(img, t, s, part),
+                                part.chapter, tail=part.tail))
         elif part.kind == "bullets":
             scenes.append(Scene(name, part.narration, lambda img, t, s, part=part: s_bullets(img, t, s, part),
                                 part.chapter, tail=part.tail))

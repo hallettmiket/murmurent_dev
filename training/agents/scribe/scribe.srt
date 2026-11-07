@@ -27,9 +27,17 @@ A real run, on a passage written to be bad. The member asks for a revision in th
 The verdict is Revised. Every number survives. Each change is listed with the rule it follows, and the scribe asks a question it cannot answer: mean or median?
 
 8
-00:01:26,500 --> 00:01:38,188
-To use it, type to Claude Code and name it: ask the scribe to revise a passage, or to draft a section from results and notes. Say which section of the paper it is for.
+00:01:26,500 --> 00:01:43,000
+Say which text, which section of the paper, and what format. Revise a passage and list every change with its rule. Draft the Methods in LaTeX from your notes, with marked gaps where a citation or a number is missing.
 
 9
-00:01:38,188 --> 00:01:51,587
+00:01:43,000 --> 00:01:51,699
+Or a figure legend under a word limit. The scribe returns text; you paste it in.
+
+10
+00:01:52,099 --> 00:02:03,788
+To use it, type to Claude Code and name it: ask the scribe to revise a passage, or to draft a section from results and notes. Say which section of the paper it is for.
+
+11
+00:02:03,788 --> 00:02:17,187
 The first line is the verdict: Revised, Drafted or Gap. Then the text, and the list of what changed and why. You paste it in; the scribe does not.

@@ -48,5 +48,18 @@ SPEC = AgentSpec(
         "The first line is the verdict, Found and how many sources. Then each item carries its label: "
         "verified, mismatch, retracted, secondary only or unresolved. An unresolved number is not a number "
         "you can use yet."],
+    directions=[
+        ("ask the bookworm for a reading list on DCIS progression markers, as an HTML page with one paragraph per paper, and add each paper to Zotero tagged dcis",
+         "An annotated list under outputs/bookworm/, every identifier checked, each paper in your Zotero library when the key is configured."),
+        ("ask the bookworm to check every citation in main.tex and give me the findings as a table I can paste into the response to reviewers",
+         "One row per citation: VERIFIED, MISMATCH, RETRACTED, SECONDARY ONLY or UNRESOLVED, with what the source actually says."),
+        ("ask the bookworm to annotate the top 50 genes in results.tsv with what is published about them in breast cancer, PubMed IDs included",
+         "The table with a column of findings and identifiers, and the conflicts between databases shown rather than merged."),
+    ],
+    directions_narration=[
+        "Say what you want back. A reading list as an HTML page, one paragraph per paper, and each paper added to "
+        "Zotero with a tag. The citation check as a table you can paste into a response to reviewers.",
+        "Or a gene table annotated with what is published, PubMed identifiers included. The format and the "
+        "destination are yours to name; the checking is always done."],
     docs=["docs/reporting_guidelines.md"],
 )

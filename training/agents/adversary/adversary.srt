@@ -27,9 +27,17 @@ A real run, on the synthetic example that ships with Murmurent. The member asks 
 The verdict is Questions. The number reproduces exactly, but the adversary found that the two groups come from different countries, and that the Methods text describes a step the code does not take. The last line is the mandatory counsel note.
 
 8
-00:01:16,849 --> 00:01:27,331
-To use it, type to Claude Code and name it: ask the adversary to audit an experiment or a write-up. Give it the folder with the code and the data, not a summary.
+00:01:16,849 --> 00:01:30,949
+Say what to audit and what you fear. Leakage between training and test, with the split re-run rather than read. A write-up checked against a reporting guideline, item by item, with the numbers traced.
 
 9
-00:01:27,331 --> 00:01:44,445
+00:01:30,949 --> 00:01:43,249
+Or the judge's combination of two labs' results. The adversary says what it observed and what it only suspects, and ends with the counsel line.
+
+10
+00:01:43,649 --> 00:01:54,131
+To use it, type to Claude Code and name it: ask the adversary to audit an experiment or a write-up. Give it the folder with the code and the data, not a summary.
+
+11
+00:01:54,131 --> 00:02:11,245
 The first line is the verdict: Pass, Questions or Reject. Every finding says whether it was observed or speculated, and the audit ends with the counsel line. Run it before someone else does.

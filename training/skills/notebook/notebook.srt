@@ -1,0 +1,39 @@
+1
+00:00:00,400 --> 00:00:14,824
+This is your lab notebook in Murmurent: in your own Obsidian vault, read by the oracle. From Claude Code you drop in a line, a photo, a voice note or a file, and build a report from the entries you choose to share.
+
+2
+00:00:15,200 --> 00:00:34,404
+Two streams, because notes used to drown among pasted prompts. The day's entry holds your own notes, and only that. Every prompt you give Claude Code goes to a separate sessions stream, written by a hook with the time, project and commit. Nobody pastes a prompt again.
+
+3
+00:00:34,800 --> 00:00:45,327
+A real run on a throwaway vault: add this to today's notebook, a line of text, a figure and a voice note. Each becomes a block under a time heading.
+
+4
+00:00:45,327 --> 00:01:03,510
+The image goes to the project's folder on the data host, never overwritten; the vault keeps a thumbnail and the link. A machine-written description is marked as a reading, not the record. The voice note was not transcribed here, and the entry says why.
+
+5
+00:01:03,900 --> 00:01:22,175
+In Obsidian the entry is one page: the project, the sensitivity and the audience at the top; a link to the day's sessions; then each block with its time, the thumbnail, the link to the original on the server, and the small result file beside it.
+
+6
+00:01:22,600 --> 00:01:37,949
+For older entries, one command moves the prompt-shaped blocks into the sessions stream and leaves the notes. The original is kept under obsolete; nothing is deleted. A dry run first shows what would move.
+
+7
+00:01:38,350 --> 00:01:55,611
+Sharing is per entry. Each entry's audience is me by default, or supervisor, lab, or a project. Nothing without an explicit audience ever leaves the vault, and a report takes whole entries: to share one sentence, move it into its own entry.
+
+8
+00:01:55,611 --> 00:02:05,991
+Nothing lets a PI read a student's me entries. Restricted and protected entries are refused, as publishing to the lab oracle refuses them.
+
+9
+00:02:06,400 --> 00:02:21,471
+Say: make my weekly report for Mike. It takes only the entries marked for a supervisor, lists every entry and file it drew on, and writes a page with a place for the scribe's narrative. Nothing is sent until you say so.
+
+10
+00:02:21,849 --> 00:02:39,196
+Say it to Claude Code: add this to today's notebook, make my weekly report, split my old entries. Mark the audience when an entry is for someone else. And ask the oracle, which searches your notes first and the prompts after.

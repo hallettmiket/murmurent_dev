@@ -48,5 +48,18 @@ SPEC = AgentSpec(
         "from results and notes. Say which section of the paper it is for.",
         "The first line is the verdict: Revised, Drafted or Gap. Then the text, and the list of what changed and "
         "why. You paste it in; the scribe does not."],
+    directions=[
+        ("ask the scribe to revise the Discussion in main.tex, lines 200 to 260, in the house style, and list each change with its rule",
+         "The passage rewritten, every number and citation untouched, the changes listed with the rule they follow."),
+        ("ask the scribe to draft the Methods for exp/3_classifier from the README and results.tsv, in LaTeX, leaving [CITE] and [N=?] gaps",
+         "A section in LaTeX with marked gaps where a citation or a number is missing, never an invented one."),
+        ("ask the scribe for a figure legend for figure 2 from its caption notes, under 120 words",
+         "The legend in the house style, with the panel order and the statistics named."),
+    ],
+    directions_narration=[
+        "Say which text, which section of the paper, and what format. Revise a passage and list every change "
+        "with its rule. Draft the Methods in LaTeX from your notes, with marked gaps where a citation or a "
+        "number is missing.",
+        "Or a figure legend under a word limit. The scribe returns text; you paste it in."],
     docs=["docs/scientific_writing.md"],
 )

@@ -27,9 +27,17 @@ A real run. A draft cites a real paper for a number. The member asks the bookwor
 The citation checks out. The number does not: the paper never says it. Each item is labelled, verified, mismatch or unresolved, and the fix is to drop the figure.
 
 8
-00:01:14,900 --> 00:01:27,470
-To use it, type to Claude Code and name it: ask the bookworm to check the citations in a draft, or to find what is known about a gene. Give it the identifier and the sentence that leans on it.
+00:01:14,900 --> 00:01:31,000
+Say what you want back. A reading list as an HTML page, one paragraph per paper, and each paper added to Zotero with a tag. The citation check as a table you can paste into a response to reviewers.
 
 9
-00:01:27,470 --> 00:01:46,999
+00:01:31,000 --> 00:01:43,700
+Or a gene table annotated with what is published, PubMed identifiers included. The format and the destination are yours to name; the checking is always done.
+
+10
+00:01:44,100 --> 00:01:56,670
+To use it, type to Claude Code and name it: ask the bookworm to check the citations in a draft, or to find what is known about a gene. Give it the identifier and the sentence that leans on it.
+
+11
+00:01:56,670 --> 00:02:16,199
 The first line is the verdict, Found and how many sources. Then each item carries its label: verified, mismatch, retracted, secondary only or unresolved. An unresolved number is not a number you can use yet.

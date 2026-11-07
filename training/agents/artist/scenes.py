@@ -47,5 +47,18 @@ SPEC = AgentSpec(
         "and say what it is for. A figure for a talk is not a figure for a paper.",
         "The first line is the verdict: Rendered, Skipped or Failed. Then the file it wrote and a caption that "
         "says what to notice. If an input is missing, it stops and says so rather than inventing one."],
+    directions=[
+        ("ask the artist for the AUC-per-fold figure in matplotlib, viridis, 8 by 6 inches, 300 dpi, as PNG and PDF, for the paper",
+         "The figure in outputs/artist/figures, both formats, caption drafted, appended to the project's HTML report."),
+        ("ask the artist for a slide deck summarising exp/3_classifier for the lab meeting, Western's purple and the lab's palette throughout",
+         "A deck built from the figures with one take-home line per slide, the palette consistent across every figure."),
+        ("ask the artist for a 20-second animation of the cells moving through the three QC filters, as an mp4 for the talk",
+         "An animation drawn from the real counts, labelled as what it shows, rendered to a video file."),
+    ],
+    directions_narration=[
+        "Say what you want and what it is for. The package, the palette, the size and the resolution, for a "
+        "paper figure. A slide deck for the lab meeting in Western's colours.",
+        "Or an animation of your pipeline as a video for a talk. The artist works from your real results, "
+        "and says what each figure shows; it never invents a point to fill an axis."],
     docs=[],
 )

@@ -14,7 +14,7 @@ SPEC = AgentSpec(
     does=[
         Quote("You answer from the institution's own pages, and you say which page and when you read it.", "which page"),
         Quote("The pack (institution/<unique_name>/) is your memory, not your source of truth", "memory"),
-        Quote("A remembered fact older than the pack's verify_after_days is re-read from its page before you rely on it", "re-read"),
+        Quote("A remembered fact is re-read from its page before you rely on it, every time", "re-read"),
         Quote("Check when you are handed a document", "Check"),
         Quote("Compute when you are asked for a date", "Compute"),
     ],
@@ -22,8 +22,8 @@ SPEC = AgentSpec(
         "Its file has one rule above the others: it answers from the institution's own pages, and says which "
         "page and when it read it. What it finds goes into a folder called the pack, which is its memory: "
         "the question, the answer, the page, the date. Nobody fills it in beforehand.",
-        "People change. A remembered fact older than a month is re-read from its page before the clerk relies "
-        "on it, and a weekly refresh re-reads the rest. On top of that it checks a document against what it "
+        "People change. A remembered fact is re-read from its page every time before the clerk relies on "
+        "it: the memory says where to look, the page says what is true today. On top of that it checks a document against what it "
         "knows, and computes dates in working days."],
     refuses=[
         Quote("Never fill the gap from memory.", "from memory"),
@@ -54,7 +54,7 @@ SPEC = AgentSpec(
     howto_narration=[
         "To use it, type to Claude Code and name it: ask the clerk a question about the institution, to check a "
         "letter, or to count working days from a date. The first time, it looks the answer up; the next time, "
-        "it remembers, and re-reads the page if that memory is more than a month old.",
+        "it remembers where it read it, and reads that page again before answering.",
         "The first line is the verdict: Correct, Fix or Unknown. Every answer names the page and the date. "
         "Another university, or a company, is another pack, and the same clerk."],
     docs=["docs/institution_pack.md", "institution/README.md"],

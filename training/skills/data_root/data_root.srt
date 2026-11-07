@@ -1,0 +1,39 @@
+1
+00:00:00,400 --> 00:00:15,567
+Murmurent keeps memory in three tiers. The third is the data root: the lab's big files, on the lab's server, in folders with rules. This is what those folders are and how a project uses them.
+
+2
+00:00:15,950 --> 00:00:39,055
+Tier one is what an agent sees in one session; tier two is what the oracle remembers; tier three is bulk data: reads, images, big analyses. It all lives under the data root, a per-machine resource, not a synced one. Protected or very large data is server-resident, reached over the network, never copied to a laptop.
+
+3
+00:00:39,449 --> 00:00:57,686
+The top of the data root holds eight folders and nothing else; each has one subfolder per project, with the project's own name. A repository called project x has immutable slash project x for its original data and append only slash project x for its outputs.
+
+4
+00:00:57,686 --> 00:01:11,178
+Append only mirrors the repository's exp folder: exp slash three q c writes to append only slash project x slash three q c. Code and data share a name.
+
+5
+00:01:11,599 --> 00:01:27,282
+Immutable: original data, read-only once placed. Append only: analyses, where new files and new versions are added and nothing is overwritten or deleted. Modifiable: working data that may change.
+
+6
+00:01:27,282 --> 00:01:47,647
+Mothballed: files waiting for long-term storage; people move them there and no agent touches them. Release: the lab's copy of published work. Cottage: each person's large files, such as conda environments, named by login. Tools and db are shared.
+
+7
+00:01:48,049 --> 00:02:05,079
+Inside Claude Code, hooks uphold two folders. A write into immutable is refused. Overwriting under append only is refused, with the advice to version the name. A delete under the data root is refused. These are the hooks' real messages.
+
+8
+00:02:05,079 --> 00:02:12,534
+They are guardrails for agents, not a security perimeter: a plain shell does not go through them.
+
+9
+00:02:12,949 --> 00:02:32,618
+One command checks the data root against the protocol. Here it ran on a demo data root with three mistakes planted: a folder being phased out, a loose file, a subfolder named after no project. It reads names only; the PI decides; agents report and never tidy.
+
+10
+00:02:33,000 --> 00:02:54,247
+Name the folder when you ask an agent for work: original data to immutable, outputs to append only under the experiment's name, working files to modifiable. Version, never overwrite. Big or protected data stays on the server, reached, not copied.

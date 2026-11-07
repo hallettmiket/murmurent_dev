@@ -27,9 +27,17 @@ A real run, on simulated data. The adversary had found a confound, so the member
 The verdict is Done, with the numbers: the effect survives stratification, and the caveat that the countries do not agree. The results file and the code are named.
 
 8
-00:01:17,250 --> 00:01:27,777
-To use it, type to Claude Code and name it: ask the blacksmith to compute, train or build something. Give it the data, what to predict and where outputs go.
+00:01:17,250 --> 00:01:31,750
+Say what you want built. A Streamlit app over an experiment's outputs, with the filter you need. A classifier with the cross-validation you specify, stratified the way your data demand, with the variance across folds.
 
 9
-00:01:27,777 --> 00:01:44,287
+00:01:31,750 --> 00:01:45,649
+Or a feature pipeline, step by step, written as versioned files. Name the tool, the method and where the outputs go; the blacksmith leaves the code to re-run it.
+
+10
+00:01:46,049 --> 00:01:56,577
+To use it, type to Claude Code and name it: ask the blacksmith to compute, train or build something. Give it the data, what to predict and where outputs go.
+
+11
+00:01:56,577 --> 00:02:13,087
 The first line is the verdict: Done, Failed or Partial. Then the numbers, the files it wrote and the code, so the adversary can re-run it. Send the result to the adversary before the PI.

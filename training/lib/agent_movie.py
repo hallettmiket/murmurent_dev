@@ -32,7 +32,7 @@ from PIL import ImageDraw
 
 from .draw import (AMBER, BG, CHARS_PER_SECOND, DIM, F_BIG, F_BODY, F_H, F_LABEL, F_MONO_S, F_SMALL, F_SUB,
                    F_TINY, LAV, MUTED, PANEL, PANEL2, RED, TEAL, TERM_BG, TEXT, W, P, appear, eback,
-                   badge, font, glow, heading, icon, mono_block, paste_c, rrect, text_c, tw, wrap)
+                   badge, font, glow, heading, icon, mix, mono_block, paste_c, rrect, text_c, tw, wrap)
 from . import scene as scene_mod
 from .scene import EM_DASH, Scene, mmss, render
 
@@ -97,6 +97,8 @@ class AgentSpec:
     howto_narration: list[str]
     kind: str = "bot"                # sprite kind for the agent
     docs: list[str] = field(default_factory=list)   # extra files to name at the end
+    directions: list[tuple[str, str]] = field(default_factory=list)   # (what you type, what it produces)
+    directions_narration: list[str] = field(default_factory=list)
 
 
 # --------------------------------------------------------------------------- #
@@ -258,6 +260,38 @@ def s_chat(img, t, sc, spec: AgentSpec, who: str, question: str, reply: list[str
         glow(img, 190, 470, 14, col, 0.6)
 
 
+def s_directions(img, t, sc, spec: AgentSpec):
+    """How to direct it: example prompts typed one after another, each with one line on what
+    comes back. The examples stay within what agents/<agent>.md says the agent does."""
+    col = spec.colour
+    heading(img, t, "How to direct it: say what you want back")
+    d = ImageDraw.Draw(img)
+    n = max(len(spec.directions), 1)
+    span = max(sc.seconds - sc.lead - sc.tail - 1.5, 1.0)
+    y = 112
+    for i, (prompt, note) in enumerate(spec.directions):
+        t0 = sc.lead + i * span / n
+        p_lines = wrap("> " + prompt, F_SMALL, 1100)
+        n_lines = wrap(note, F_TINY, 1080)
+        h = 14 + len(p_lines) * 26 + len(n_lines) * 22 + 10
+        if t >= t0:
+            typed = int(len(prompt) * P(t, t0, len(prompt) / CHARS_PER_SECOND))
+            shown = wrap("> " + prompt[:typed] + ("▌" if typed < len(prompt) else ""), F_SMALL, 1100)
+            rrect(d, (70, y, 1210, y + h), TERM_BG, (58, 70, 104), 10, 2)
+            yy = y + 8
+            for ln in shown[:len(p_lines)]:
+                d.text((88, yy), ln, font=F_SMALL, fill=AMBER)
+                yy += 26
+            yy = y + 8 + len(p_lines) * 26 + 4
+            a = P(t, t0 + len(prompt) / CHARS_PER_SECOND + 0.2, 0.5)
+            if a > 0:
+                for ln in n_lines:
+                    d.text((88, yy), ln, font=F_TINY, fill=mix(TEXT, TERM_BG, 1 - a))
+                    yy += 22
+                icon(img, "tick", 1186, y + 20, 22, col, col, eback(a))
+        y += h + 10
+
+
 def s_howto(img, t, sc, spec: AgentSpec, version: str):
     col = spec.colour
     heading(img, t, "How to use it, through Claude Code")
@@ -321,6 +355,9 @@ def build_scenes(spec: AgentSpec, folder: Path, version: str) -> list[Scene]:
         sc.append(Scene(f"example{ex.key}", ex.narration,
                         lambda img, t, s, who=who, q=q, reply=reply, ex=ex: s_chat(img, t, s, spec, who, q, reply, ex.chips),
                         "A real example" if i == 0 else None, min_anim=chat_duration(q, ex.chips, reply), tail=1.2))
+    if spec.directions:
+        sc.append(Scene("directions", spec.directions_narration, lambda img, t, s: s_directions(img, t, s, spec),
+                        "How to direct it", tail=1.8))
     sc.append(Scene("howto", spec.howto_narration, lambda img, t, s: s_howto(img, t, s, spec, version),
                     "How to use it", tail=2.5))
     return sc
