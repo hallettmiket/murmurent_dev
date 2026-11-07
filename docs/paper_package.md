@@ -76,7 +76,9 @@ claims:
 A claim is one sentence the paper rests on. `code` is what makes the evidence;
 `data` is what it reads, either a file in the package or a path under the lab
 data root (`immutable/...`, `append_only/...`), which is reached on the machine
-that holds it and never copied in. A claim with no `code` is allowed and shows
+that holds it and never copied in. Write the current folder names; a server
+whose data root still says `raw/` and `refined/` is read under those names.
+A claim with no `code` is allowed and shows
 in the claim map as not re-runnable.
 
 ### `murmurent paper check`
