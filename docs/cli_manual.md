@@ -346,7 +346,25 @@ A paper as a queryable package, and a thesis composed of them; see
 | `murmurent thesis check [<dir>] [--strict]` | Check the thesis and every paper package in it: front matter and its word limits, chapter order, permissions, sensitivity. |
 | `murmurent thesis build [<dir>] [--pdf]` | Assemble `build/main.tex` in the SGPS order and `build/claim_map.md` for every chapter. |
 | `murmurent thesis talk [<dir>] [--minutes 20] [--pdf]` | Draft the defence talk: `build/talk_plan.md` (timed, one slide per claim) and `build/talk.tex` (Beamer). |
-| `murmurent thesis paperwork [<dir>]` | Write `build/paperwork.md`: the Western (SGPS) submission checklist, deadlines from the defence date, board, forms, Veritas and final-submission steps. |
+| `murmurent thesis paperwork [<dir>]` | Write `build/paperwork.md`: the submission checklist from the institution pack's `thesis_examination` procedure (the built-in SGPS seed when no pack is found), deadlines from the defence date, board, forms, Veritas and final-submission steps. |
+
+### The institution pack
+
+Dated, sourced facts about the institution that the clerk answers from; see
+[`institution_pack.md`](institution_pack.md). The pack is chosen by `--pack`,
+else `$MURMURENT_INSTITUTION_PACK`, else the centre's `unique_name` under
+`institution/`.
+
+| Command | What it does |
+|---|---|
+| `murmurent institution init <unique_name> --name ... --domain ... [--seed-thesis]` | Scaffold a pack; `--seed-thesis` writes `procedures/thesis_examination.yaml` from the seed built into murmurent. Never overwrites. |
+| `murmurent institution validate [--pack P]` | Every fact has `source` and `date_read`, every source is inside the pack's domains, dates parse; lists stale facts. Exits 1 on an error. |
+| `murmurent institution show <office\|procedure\|holiday\|term\|deadline\|course\|letterhead\|packs> [key]` | One thing from the pack with its source, date and age note; `Unknown` with the nearest facts when absent. |
+| `murmurent institution check <file> [--pack P]` | Office holders, emails, postal codes, colours and fonts in a document against the pack. `Correct / Fix / Unknown` per finding; exits 1 on a `Fix`. |
+| `murmurent institution date <YYYY-MM-DD> --days N [--pack P]` | N working days before (negative) or after the date, skipping weekends and the pack's holidays; says which holidays it skipped. `--days 0` moves a holiday to the next working day. |
+| `murmurent institution walk <procedure> [--anchor DATE] [--variant doctoral] [--done 1,2] [--next]` | The steps with their forms and deadlines counted from the anchor date. |
+| `murmurent institution fetch-course <SUBJECT> <number> [--apply]` | Run the pack's course fetch rule for one course; `--apply` caches it in `courses.yaml`. |
+| `murmurent institution refresh [--apply] [--kind office ...]` | Re-read every fact from its source, inside the pack's domains only, and report confirmed, changed and unreachable facts with their dates. Dry run; `--apply` stamps today's date on confirmed facts and refreshes the course cache. A changed fact is reported, not rewritten. |
 
 ### Space
 

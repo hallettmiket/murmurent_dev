@@ -43,6 +43,7 @@ vocabulary:
 | `registrar` | `Recorded / Conflict / Skipped — <one-line on what>` |
 | `judge` | `Presented / Split / Insufficient — <one-line on the combined result>` |
 | `docent` | `Located / Absent / Incomplete — <one-line: where in the work, what it lacks, or what the package is missing>` |
+| `clerk` | `Correct / Fix / Unknown — <one-line: what the pack confirms, what to change, or what it does not hold>` |
 | `teacher` | `Explained / Gap — <one-line on what was/wasn't understood>` |
 
 Then a blank line. Then the detail. Example:

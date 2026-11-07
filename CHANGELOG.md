@@ -18,6 +18,22 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 ## [Unreleased]
 
 ### Added
+- **The clerk and the institution pack** (#291). A new commons agent, the
+  `clerk`, answers questions about the institution and checks documents
+  against it, only from an **institution pack**: `institution/<unique_name>/`
+  with `directory.yaml` (office holders, public email, campus address),
+  `calendar.yaml` (holidays, term dates), `courses.yaml` (a fetch rule plus a
+  cache), `procedures/*.yaml` (ordered steps with form and deadline rule) and
+  `templates/letterhead.yaml` (colours, fonts), every fact with its source page
+  and the date it was read. Schema and the three jobs in
+  `src/murmurent/core/institution.py`; `murmurent institution
+  init|validate|show|check|date|walk|fetch-course|refresh`. The Western thesis
+  paperwork moved out of `paper_package.py` into the pack's
+  `thesis_examination` procedure, which `murmurent thesis paperwork` now reads
+  (the constants remain only as the seed `institution init --seed-thesis`
+  writes), and the docent asks the clerk for it. `institution/example/` ships
+  as a starting point; a deployment's own pack (`institution/western/`) does
+  not. Design and upkeep: `docs/institution_pack.md`.
 - **One short training movie per commons agent** (#288): sixteen movies under
   `training/agents/<agent>/`, each 90 seconds to 3 minutes, rendered from a
   scene file by the shared renderer in `training/lib/` (lifted from the
