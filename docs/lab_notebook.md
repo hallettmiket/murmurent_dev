@@ -19,18 +19,17 @@ project repository. This page is about the daily notebook in the vault.
 
 You write your prompts in Obsidian, because a long prompt is easier to
 write in a Markdown file than in a terminal, and you send them to Claude Code.
-Two things keep them out of the day's notes and keep them from being lost:
+There is nothing to create per day:
 
-- **A file of their own.** Write the day's prompts in `prompts/<date>.md`,
-  one prompt per block, blocks separated by a line `---`. The notes entry
-  stays short; the prompts file can get as long as the day.
-- **One keystroke to send.** `murmurent prompt send` puts the selected
-  prompt, or the latest block of today's prompts file, into Claude Code:
-  it copies the text to the clipboard, pastes it into the Claude Code window
-  (macOS) or a tmux pane, and records it under `sessions/<date>/sent.md`
-  with the time. Bound to a hotkey in Obsidian (below), writing a prompt and
-  sending it is one keystroke apart. A voice tool that fires a keystroke can
-  use the same route.
+- **From any note, with one key.** Write the prompt wherever you are, in the
+  day's entry if you like, select it, and press the hotkey (set up once,
+  below). It goes into Claude Code and is recorded under
+  `sessions/<date>/sent.md` with the time.
+- **A prompts file, only if you want prompts out of your notes.** Say "open
+  today's prompts" to Claude Code (`murmurent prompt new`): it creates
+  `prompts/<date>.md` with a heading and opens it. One prompt per block, a
+  line `---` between blocks; `murmurent prompt send` with no arguments sends
+  the latest block. You never type the path.
 
 The hook then records every prompt that reached Claude Code, however it got
 there (typed, pasted, or sent), in `sessions/<date>/<session>.md`. So prompts
@@ -47,8 +46,8 @@ search them (`kind=sessions`).
    block of the open file).
 3. Give it a hotkey (Settings, Hotkeys, search for the command).
 
-Select the prompt, press the key: it lands in Claude Code and in your
-sessions stream. `murmurent prompt send --to Terminal` or `--tmux <pane>`
+Select the prompt in any note, press the key: it lands in Claude Code and in
+your sessions stream. `murmurent prompt send --to Terminal` or `--tmux <pane>`
 chooses where it is pasted; `--no-paste` only copies and records.
 
 Three things about the sessions stream:

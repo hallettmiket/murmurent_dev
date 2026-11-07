@@ -76,12 +76,12 @@ MOVIE = Movie(
                         "original, the voice note. At the top, the project and the audience: who may read this entry."]),
         Part("story", chapter="Prompts: write, send, keep", heading="Afternoon: a prompt written in Obsidian, sent with one keystroke",
              picture="obsidian",
-             prompt="(written in prompts/2026-11-07.md, sent with the hotkey) ask the blacksmith to count the bands in gel_27.jpg per lane and compare lane 3, the control, with the others",
+             prompt="(written in Obsidian, selected, sent with the hotkey) ask the blacksmith to count the bands in gel_27.jpg per lane and compare lane 3, the control, with the others",
              reply=["The prompt lands in Claude Code and the blacksmith gets to work. It is also recorded in",
                     "sessions/2026-11-07/sent.md with the time, so it is never lost when the session closes."],
-             footnote="murmurent prompt send   (an Obsidian hotkey runs it on the selected text)",
+             footnote="murmurent prompt send --text {{selection}}   (the Obsidian hotkey runs it; no file to make)",
              narration=["Long prompts are easier to write in Obsidian than in a terminal. So you write them in a "
-                        "prompts file in the vault and press one key: the prompt is pasted into Claude Code and "
+                        "any note, select them, and press one key: the prompt is pasted into Claude Code and "
                         "recorded with the time. A hook records every prompt that reaches Claude Code the same way, "
                         "so none scrolls away and vanishes."]),
         Part("chat", chapter="End of day: ask", key="1", agent="oracle", colour=LAV, who="Member",
@@ -100,7 +100,7 @@ MOVIE = Movie(
         Part("howto", heading="How to use it, day to day",
              prompt="add this photo of gel 27 to today's notebook, lane 3 is the control",
              cards=[("Photos and voice notes", "AirDrop from the phone to the laptop, then drag the file into Claude Code and say what it is."),
-                    ("Prompts", "Write them in prompts/<date>.md in Obsidian; one hotkey sends the selection to Claude Code and keeps it."),
+                    ("Prompts", "Write them in any note in Obsidian; select and press one key to send to Claude Code and keep them. No file to make."),
                     ("Sharing", "Set the entry's audience: me, supervisor, lab or a project. Ask for the report; nothing leaves without it.")],
              docs=["docs/lab_notebook.md"],
              narration=["Day to day: photos and voice notes go from the phone to the laptop and into Claude Code with "

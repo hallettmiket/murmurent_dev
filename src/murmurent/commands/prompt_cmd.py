@@ -49,9 +49,9 @@ def prompt_send(text: str | None, file_: str | None, to: str, tmux_pane: str, no
             text = sys.stdin.read()
         if text is None:
             from pathlib import Path
-            path = Path(file_).expanduser() if file_ else _ps.prompts_file(paths)
+            path = Path(file_).expanduser() if file_ else _ps.ensure_prompts_file(paths)
             if not path.exists():
-                click.echo(f"no prompts file at {path}; `murmurent prompt new` creates today's", err=True)
+                click.echo(f"no prompts file at {path}", err=True)
                 sys.exit(1)
             text = _ps.latest_block(path)
         sent = _ps.send(text, paths=paths, to=to, tmux_pane=tmux_pane, paste=not no_paste, project=project)
