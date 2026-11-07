@@ -171,7 +171,7 @@ videos:
   tagline: "A day at the bench, and how it ends up in your notebook"
   date: 2026-11-07
   version: 2026.11.0
-  seconds: 149
+  seconds: 150
   summary: "A bench scientist's day with the lab notebook: the plan in the morning, a gel photo from the phone, a voice note with gloves on, a prompt written in Obsidian and sent to Claude Code with one keystroke, the day recalled, and a report for the supervisor. Natural language throughout; the commands as footnotes."
   page: https://mikehallett.science/assets/videos/murmurent_notebook.html
   file: https://mikehallett.science/assets/videos/murmurent_notebook_720p.mp4
@@ -185,9 +185,9 @@ videos:
     - ["0:49", "A voice note"]
     - ["1:07", "The entry"]
     - ["1:23", "Prompts: write, send, keep"]
-    - ["1:43", "End of day: ask"]
-    - ["1:58", "End of week: the report"]
-    - ["2:12", "How to use it"]
+    - ["1:44", "End of day: ask"]
+    - ["1:59", "End of week: the report"]
+    - ["2:14", "How to use it"]
 - key: data_root
   title: "The data root: where big files live"
   tagline: "Tier-3 memory: immutable, append_only, modifiable, and the rest of the lab folder"

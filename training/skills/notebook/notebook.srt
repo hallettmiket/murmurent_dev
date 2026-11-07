@@ -23,17 +23,17 @@ With gloves on you record a voice note: lane four has an extra band, re-run it t
 In Obsidian the day is one page: the plan, the gel with its thumbnail and the link to the original, the voice note. At the top, the project and the audience: who may read this entry.
 
 7
-00:01:23,750 --> 00:01:43,418
-Long prompts are easier to write in Obsidian than in a terminal. So you write them in a prompts file in the vault and press one key: the prompt is pasted into Claude Code and recorded with the time. A hook records every prompt that reaches Claude Code the same way, so none scrolls away and vanishes.
+00:01:23,750 --> 00:01:44,533
+Long prompts are easier to write in Obsidian than in a terminal. So you write them in a any note, select them, and press one key: the prompt is pasted into Claude Code and recorded with the time. A hook records every prompt that reaches Claude Code the same way, so none scrolls away and vanishes.
 
 8
-00:01:43,800 --> 00:01:58,128
+00:01:44,950 --> 00:01:59,278
 At the end of the day you ask the oracle what you noted about gel 27 and what is for tomorrow. It answers from the entry, block by block, with the times, and says what it could not read.
 
 9
-00:01:58,550 --> 00:02:12,924
+00:01:59,700 --> 00:02:14,074
 At the end of the week: make my report for my supervisor since Monday. It takes only the entries you marked for a supervisor, lists every entry and file it drew on, and writes a page, and sends nothing until you say so.
 
 10
-00:02:13,300 --> 00:02:29,206
+00:02:14,450 --> 00:02:30,356
 Day to day: photos and voice notes go from the phone to the laptop and into Claude Code with a sentence. Prompts are written in Obsidian and sent with a key. Sharing is per entry, by its audience.
