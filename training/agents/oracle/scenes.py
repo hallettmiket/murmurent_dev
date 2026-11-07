@@ -18,12 +18,15 @@ SPEC = AgentSpec(
         Quote("Every entry you write is browsable, searchable, and graphable in the member's personal Obsidian.",
               "Obsidian"),
         Quote("Promoting a finding to the Lab Oracle is an explicit user action", "lab oracle"),
+        Quote("Beside oracle/, the vault holds the member's lab notebook, and you read it through the oracle MCP", "lab notebook"),
     ],
     does_narration=[
         "Its own file says what it is for: to accumulate, organize and recall scientific knowledge across "
         "all of your projects. There is one oracle per person, not one per project.",
         "Every entry lands in your own Obsidian vault, where you can browse, search and graph it. "
-        "Sharing a finding with the lab oracle is a separate step that you take yourself."],
+        "Sharing a finding with the lab oracle is a separate step that you take yourself.",
+        "It also reads your lab notebook: your own notes for each day, and a separate stream of every "
+        "prompt you gave Claude Code, written by a hook so you never paste one again."],
     refuses=[
         Quote("You do not publish to the lab.", "publish"),
         Quote("You never publish protected or restricted entries", "protected"),

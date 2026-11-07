@@ -91,7 +91,7 @@ use it through Claude Code.
 
 | Agent | Movie | Length |
 |---|---|---|
-| [`oracle`](https://github.com/hallettmiket/murmurent/blob/main/agents/oracle.md) | [The oracle](https://mikehallett.science/assets/videos/murmurent_agent_oracle.html) | 1:58 |
+| [`oracle`](https://github.com/hallettmiket/murmurent/blob/main/agents/oracle.md) | [The oracle](https://mikehallett.science/assets/videos/murmurent_agent_oracle.html) | 2:08 |
 | [`bookworm`](https://github.com/hallettmiket/murmurent/blob/main/agents/bookworm.md) | [The bookworm](https://mikehallett.science/assets/videos/murmurent_agent_bookworm.html) | 1:47 |
 | [`adversary`](https://github.com/hallettmiket/murmurent/blob/main/agents/adversary.md) | [The adversary](https://mikehallett.science/assets/videos/murmurent_agent_adversary.html) | 1:44 |
 | [`artist`](https://github.com/hallettmiket/murmurent/blob/main/agents/artist.md) | [The artist](https://mikehallett.science/assets/videos/murmurent_agent_artist.html) | 1:46 |

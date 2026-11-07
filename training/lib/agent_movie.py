@@ -165,7 +165,7 @@ def s_title(img, t, sc, spec: AgentSpec, version: str):
 
 def _quote_cards(img, t, sc, spec, quotes, narration, colour, mark):
     d = ImageDraw.Draw(img)
-    f = F_BODY
+    f = F_BODY if len(quotes) <= 4 else F_SMALL
     x, w = 70, 1140
     y = 118
     n = max(len(quotes), 1)
