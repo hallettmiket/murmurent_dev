@@ -18,6 +18,15 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 ## [Unreleased]
 
 ### Added
+- **One short training movie per commons agent** (#288): sixteen movies under
+  `training/agents/<agent>/`, each 90 seconds to 3 minutes, rendered from a
+  scene file by the shared renderer in `training/lib/` (lifted from the
+  thesis-package video), quoting the agent's own `.md`, showing one real run,
+  and narrated with ElevenLabs. `training/index.yaml` stamps each movie with
+  the version and the hash of the agent file it was checked against. A new
+  `PostToolUse` hook, `murmurent.hooks.agent_movie`, prompts once per session
+  to re-render a movie when its `agents/<x>.md` is edited; the release
+  checklist in `docs/versioning.md` repeats the step.
 - **Paper packages, thesis packages and the `docent`.** A paper becomes a
   queryable package: `paper.yaml` maps each central claim to the code and
   data behind it; `murmurent paper init|check|build` scaffold, validate and

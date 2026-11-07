@@ -357,3 +357,11 @@ def main(spec: AgentSpec, folder: Path, argv: list[str] | None = None) -> None:
     if not args.no_voice:
         from .narrate import voice
         voice(folder, spec.agent, args.voice)
+
+
+def parse_index_titles() -> dict[str, dict[str, str]]:
+    """The entries of training/index.yaml by agent (the same small parser the hook uses)."""
+    if str(ROOT / "src") not in sys.path:
+        sys.path.insert(0, str(ROOT / "src"))
+    from murmurent.hooks.agent_movie import parse_index
+    return parse_index(INDEX.read_text()) if INDEX.exists() else {}
