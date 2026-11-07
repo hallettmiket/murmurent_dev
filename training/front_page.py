@@ -23,6 +23,9 @@ from pathlib import Path
 
 import yaml
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from lib.agent_movie import GLYPHS  # noqa: E402  (each agent's avatar, as its movie draws it)
+
 ROOT = Path(__file__).resolve().parents[1]
 INDEX = ROOT / "training" / "index.yaml"
 READMES = [ROOT / "README.md", ROOT / "release" / "README_public.md"]
@@ -113,6 +116,9 @@ PAGE = """<!doctype html>
   th {{ font-weight: 600; }}
   .date {{ white-space: nowrap; color: color-mix(in srgb, CanvasText 60%, transparent); }}
   .small {{ font-size: 0.9rem; color: color-mix(in srgb, CanvasText 65%, transparent); }}
+  .avatar {{ display: inline-block; width: 2.2rem; height: 2.2rem; line-height: 2.2rem; text-align: center;
+            font-size: 1.35rem; border-radius: 50%; background: color-mix(in srgb, CanvasText 10%, transparent);
+            margin-right: 0.6rem; vertical-align: middle; }}
 </style>
 </head>
 <body>
@@ -158,7 +164,8 @@ def site_page(d: dict) -> str:
         f'<td>{e(v.get("summary", ""))} <span class="small">(checked against {e(str(v.get("version", "?")))})</span></td></tr>'
         for v in d.get("videos", []))
     movies = "\n".join(
-        f'    <tr><td><a href="murmurent_agent_{e(m["agent"])}.html">{e(m.get("title", m["agent"]))}</a></td>'
+        f'    <tr><td><span class="avatar" aria-hidden="true">{GLYPHS.get(m["agent"], "")}</span>'
+        f'<a href="murmurent_agent_{e(m["agent"])}.html">{e(m.get("title", m["agent"]))}</a></td>'
         f'<td>{mmss(m.get("seconds"))}</td><td>{e(m.get("tagline", ""))}</td></tr>'
         for m in d["movies_in_order"])
     news = "\n".join(
