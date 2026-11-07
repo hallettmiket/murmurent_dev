@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Purpose: Copy the narrated agent movies to the website repository: for each
-         agent with a <agent>_narrated.mp4 here, write
+Purpose: Copy the agent movies to the website repository: for each agent
+         with a movie here (the narrated one when it exists, else the silent
+         captioned one), write
          assets/videos/murmurent_agent_<agent>_720p.mp4, a .vtt made from the
          .srt, and a player page murmurent_agent_<agent>.html (same shape as
          murmurent_thesis_package.html). Commits nothing: the website repo may
@@ -76,24 +77,27 @@ def main() -> None:
     dest = Path(args.site).expanduser() / "assets" / "videos"
     dest.mkdir(parents=True, exist_ok=True)
     info = parse_index_titles()
-    agents = args.agents or sorted(p.name for p in HERE.iterdir() if (p / f"{p.name}_narrated.mp4").exists())
+    agents = args.agents or sorted(p.name for p in HERE.iterdir() if (p / f"{p.name}.mp4").exists())
     for agent in agents:
         folder = HERE / agent
-        mp4 = folder / f"{agent}_narrated.mp4"
+        narrated = (folder / f"{agent}_narrated.mp4").exists()
+        mp4 = folder / (f"{agent}_narrated.mp4" if narrated else f"{agent}.mp4")
         srt = folder / f"{agent}.srt"
         if not mp4.exists() or not srt.exists():
-            print(f"skip {agent}: no narrated movie or srt", file=sys.stderr)
+            print(f"skip {agent}: no movie or srt", file=sys.stderr)
             continue
         entry = info.get(agent, {})
         secs = int(entry.get("seconds", 0))
         minutes = f"{secs // 60} min {secs % 60} s" if secs else "A few minutes"
+        if not narrated:
+            minutes += " (captions only for now; the narration is added when the movie is re-voiced)"
         spec_text = (folder / "scenes.py").read_text()
         tagline = re.search(r'tagline="([^"]+)"', spec_text).group(1).rstrip(".")
         shutil.copyfile(mp4, dest / f"murmurent_agent_{agent}_720p.mp4")
         (dest / f"murmurent_agent_{agent}_720p.vtt").write_text(srt_to_vtt(srt.read_text()))
         (dest / f"murmurent_agent_{agent}.html").write_text(PAGE.format(
             title=entry.get("title", agent), agent=agent, tagline=tagline, minutes=minutes))
-        print(f"{agent}: {mp4.stat().st_size / 1e6:.1f} MB, {minutes}")
+        print(f"{agent}: {mp4.stat().st_size / 1e6:.1f} MB, {minutes}{'' if narrated else ', SILENT'}")
 
 
 if __name__ == "__main__":

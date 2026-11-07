@@ -521,7 +521,7 @@ def mono_block(img, items, x, y, w, h, f=F_MONO, title=None, wrap_lines=True) ->
                 c = AMBER
             elif s.startswith(("OK", "Located", "wrote", "planned")):
                 c = TEAL
-        parts = wrap(s, f, w - 36) if (wrap_lines and s.strip()) else [s]
+        parts = wrap(s, f, w - 36) if (wrap_lines and s.strip() and tw(s, f) > w - 36) else [s]
         # wrap() collapses leading spaces, so keep indentation of the original
         indent = len(s) - len(s.lstrip(" "))
         for i, p in enumerate(parts):
