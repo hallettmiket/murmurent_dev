@@ -1270,16 +1270,119 @@ PAPERWORK_SOURCES = [
      "https://www.schulich.uwo.ca/biochem/about_us/forms/New%20Veritas%20Thesis%20Examination%20Portal%20-%20StudentInstructions.pdf"),
 ]
 PAPERWORK_READ_ON = "2026-11-06"
+THESIS_PROCEDURE = "thesis_examination"
+PROCEDURES_DIR_NAME = "procedures"
+
+# The steps below, as data. This is the SEED for an institution pack's
+# ``procedures/thesis_examination.yaml`` (``murmurent institution init
+# --seed-thesis``); once a pack exists, ``paperwork()`` reads the pack and
+# these constants are not consulted. A centre that is not Western replaces
+# the pack, not this code.
+_SEED_STEPS: list[dict[str, Any]] = [
+    {"title": "Supervisor confirms the thesis is ready for examination",
+     "owner": "supervisor"},
+    {"title": "Date, time and format of the defence agreed with the supervisor and examiners",
+     "owner": "candidate"},
+    {"title": "Proposed Examiner Form, to the Graduate Program Coordinator",
+     "form": "Proposed Examiner Form", "owner": "candidate",
+     "deadline": {"relative_to": "defence", "by": {"doctoral": -PHD_LEAD_WORKING_DAYS,
+                                                   "masters": -MASTERS_LEAD_WORKING_DAYS},
+                  "rule": "With the examination request, five working weeks before a doctoral "
+                          "defence and three before a master's."}},
+    {"title": "Thesis Examination Request Form, to the Graduate Program Coordinator "
+              "(no signatures needed since June 2026)",
+     "form": "Thesis Examination Request Form", "owner": "candidate",
+     "deadline": {"relative_to": "defence", "by": {"doctoral": -PHD_LEAD_WORKING_DAYS,
+                                                   "masters": -MASTERS_LEAD_WORKING_DAYS},
+                  "rule": "Latest day for the examination request and the preliminary "
+                          "submission in Veritas."}},
+    {"title": "Preliminary submission in Veritas: log in to the Graduate Student Web Services "
+              "Portal, open the Veritas Thesis Examination Portal, begin the submission "
+              "(title, format, the formatting, copyright and publication confirmations), "
+              "upload the thesis (.pdf or .docx) and the supplementary files, submit for "
+              "preliminary examination (files lock after this)",
+     "form": "Veritas Thesis Examination Portal", "owner": "candidate",
+     "deadline": {"relative_to": "defence", "by": {"doctoral": -PHD_LEAD_WORKING_DAYS,
+                                                   "masters": -MASTERS_LEAD_WORKING_DAYS},
+                  "rule": "Same day as the examination request."}},
+    {"title": "Complete the candidate approval request Veritas sends", "owner": "candidate"},
+    {"title": "Supervisor confirms readiness; Graduate Chair approves the request",
+     "owner": "supervisor, graduate chair"},
+    {"title": "Examiners' preliminary reports", "owner": "examiners",
+     "deadline": {"relative_to": "defence", "working_days": -5,
+                  "rule": "Due five working days before the defence."}},
+    {"title": "The defence: talk of 10 to 15 minutes when no public lecture is required, or "
+              "the length the program sets; examiners question in rounds (about 15 to 20 "
+              "minutes each, then 5 to 10); no personal devices", "owner": "candidate",
+     "deadline": {"relative_to": "defence", "working_days": 0, "rule": "The defence date."}},
+    {"title": "Revisions approved by the examiners who asked for them", "owner": "candidate"},
+    {"title": "Final submission (Open Repository): final thesis uploaded with its metadata, "
+              "embargo requested if needed, release for research purposes authorized, "
+              "non-exclusive licence granted (Library and Archives Canada; copyright stays "
+              "with the candidate), SGPS formatting review passed",
+     "form": "Open Repository (Scholarship@Western)", "owner": "candidate",
+     "deadline": {"relative_to": "defence", "working_days": 5,
+                  "rule": "Within about one week after the defence, and by the last day of the "
+                          "current term, or registration and fees continue into the next term."}},
+]
 
 
-def working_days_before(day: date, n: int) -> date:
-    """``n`` working days (Monday to Friday) before ``day``. Statutory holidays
-    are not counted, so the real deadline may be a day or two earlier."""
+def seed_thesis_procedure(read_on: str = PAPERWORK_READ_ON) -> dict[str, Any]:
+    """The thesis examination procedure as pack data, from the constants at
+    the top of this file. Written once into a new pack; edited there after."""
+    return {
+        "title": "Thesis examination (SGPS)",
+        "read_on": read_on,
+        "confirm_with": "the Graduate Program Coordinator, who is the only person who can "
+                        "open the examination in Veritas",
+        "constants": {
+            "lay_summary_max_words": LAY_SUMMARY_MAX_WORDS,
+            "abstract_max_words": dict(ABSTRACT_MAX_WORDS),
+            "supplement_max_mb": SUPPLEMENT_MAX_MB,
+            "lead_working_days": {"doctoral": PHD_LEAD_WORKING_DAYS, "masters": MASTERS_LEAD_WORKING_DAYS},
+            "board_roles": {k: dict(v) for k, v in BOARD_ROLES.items()},
+            "board_roles_optional": list(BOARD_ROLES_OPTIONAL),
+        },
+        "board_text": {
+            "doctoral": "Doctoral boards (SGPS regulation 8.4): one External Examiner from another "
+                        "university, one University Examiner from another Western department, and two "
+                        "Program Examiners; a Knowledge Keeper may be added. The supervisor attends but "
+                        "does not vote.",
+            "masters": "Master's boards (SGPS regulation 8.4): no external examiner; at least one "
+                       "examiner from outside the program, the rest set by the program. Confirm the "
+                       "composition with the Graduate Program Coordinator.",
+        },
+        "steps": [dict(s) for s in _SEED_STEPS],
+        "sources": [{"name": n, "source": u, "date_read": read_on} for n, u in PAPERWORK_SOURCES],
+    }
+
+
+def _thesis_procedure() -> tuple[dict[str, Any], Any | None]:
+    """The procedure to use: the institution pack's, when a pack is found and
+    holds one, else the seed. Returns ``(procedure, pack_or_None)``."""
+    from . import institution as _inst
+
+    root = _inst.find_pack()
+    if root is not None:
+        try:
+            pack = _inst.load_pack(root)
+        except _inst.PackError:
+            pack = None
+        if pack is not None and THESIS_PROCEDURE in pack.procedures:
+            return pack.procedures[THESIS_PROCEDURE], pack
+    return seed_thesis_procedure(), None
+
+
+def working_days_before(day: date, n: int, holidays: set[date] | None = None) -> date:
+    """``n`` working days (Monday to Friday) before ``day``, skipping
+    ``holidays`` when given. Without a pack no holidays are known, so the
+    real deadline may be a day or two earlier."""
+    holidays = holidays or set()
     d = day
     left = n
     while left > 0:
         d -= timedelta(days=1)
-        if d.weekday() < 5:
+        if d.weekday() < 5 and d not in holidays:
             left -= 1
     return d
 
@@ -1305,8 +1408,18 @@ def paperwork(package: Path, m: dict[str, Any] | None = None) -> str:
     degree = str(m.get("degree", "Doctor of Philosophy"))
     level = degree_level(degree)
     doctoral = level == "doctoral"
-    lead = PHD_LEAD_WORKING_DAYS if doctoral else MASTERS_LEAD_WORKING_DAYS
-    abstract_max = ABSTRACT_MAX_WORDS[level]
+    proc, pack = _thesis_procedure()
+    consts = proc.get("constants") or {}
+    lead_days = consts.get("lead_working_days") or {}
+    lead = int(lead_days.get(level, PHD_LEAD_WORKING_DAYS if doctoral else MASTERS_LEAD_WORKING_DAYS))
+    abstract_max = int((consts.get("abstract_max_words") or {}).get(level, ABSTRACT_MAX_WORDS[level]))
+    lay_max = int(consts.get("lay_summary_max_words") or LAY_SUMMARY_MAX_WORDS)
+    supplement_max = int(consts.get("supplement_max_mb") or SUPPLEMENT_MAX_MB)
+    board_roles = (consts.get("board_roles") or {}).get(level) or BOARD_ROLES[level]
+    read_on = str(proc.get("read_on") or PAPERWORK_READ_ON)
+    holidays = set(pack.holiday_dates()) if pack is not None else set()
+    where_from = (f"the `{pack.unique_name}` institution pack ({pack.root})" if pack is not None
+                  else "the seed built into murmurent; no institution pack found")
     front = m.get("front") or {}
     defence = m.get("defence") if isinstance(m.get("defence"), dict) else {}
     examiners = [e for e in (m.get("examiners") or []) if isinstance(e, dict)]
@@ -1319,9 +1432,10 @@ def paperwork(package: Path, m: dict[str, Any] | None = None) -> str:
         return f"- [{mark}] {text}"
 
     lines = [f"# Submission paperwork: {m.get('title', '')}", ""]
-    lines.append(f"Western University, School of Graduate and Postdoctoral Studies (SGPS). "
-                 f"Requirements as read on {PAPERWORK_READ_ON}; confirm anything dated with the "
-                 "Graduate Program Coordinator, who is the only person who can open the examination in Veritas.")
+    lines.append(f"{m.get('university', 'Western University')}, School of Graduate and Postdoctoral Studies (SGPS). "
+                 f"Requirements as read on {read_on}; confirm anything dated with "
+                 f"{proc.get('confirm_with', 'the Graduate Program Coordinator')}. "
+                 f"Procedure from {where_from}.")
     lines.append("")
     lines.append("## The thesis")
     lines.append("")
@@ -1342,14 +1456,16 @@ def paperwork(package: Path, m: dict[str, Any] | None = None) -> str:
     if ddate:
         try:
             d = datetime.strptime(str(ddate), "%Y-%m-%d").date()
-            prelim = working_days_before(d, lead)
+            prelim = working_days_before(d, lead, holidays)
             lines.append(f"Proposed defence: **{d.isoformat()}** ({defence.get('format', 'format not set')}).")
             lines.append("")
+            holiday_note = ("the pack's holidays are skipped" if pack is not None
+                            else "statutory holidays are not counted, so aim earlier")
             lines.append(f"- Latest day for the Thesis Examination Request Form and the preliminary "
                          f"submission in Veritas: **{prelim.isoformat()}** ({lead} working days before; "
-                         "statutory holidays are not counted, so aim earlier).")
+                         f"{holiday_note}).")
             lines.append("- Examiners' preliminary reports: due 5 working days before the defence "
-                         f"(**{working_days_before(d, 5).isoformat()}**).")
+                         f"(**{working_days_before(d, 5, holidays).isoformat()}**).")
             lines.append("- Final submission: within about one week after the defence, and by the last day "
                          "of the current term, or registration and fees continue into the next term.")
         except ValueError:
@@ -1362,14 +1478,7 @@ def paperwork(package: Path, m: dict[str, Any] | None = None) -> str:
     # Board
     lines.append("## Examination board")
     lines.append("")
-    if doctoral:
-        lines.append("Doctoral boards (SGPS regulation 8.4): one External Examiner from another university, "
-                     "one University Examiner from another Western department, and two Program Examiners; "
-                     "a Knowledge Keeper may be added. The supervisor attends but does not vote.")
-    else:
-        lines.append("Master's boards (SGPS regulation 8.4): no external examiner; at least one examiner "
-                     "from outside the program, the rest set by the program. Confirm the composition with "
-                     "the Graduate Program Coordinator.")
+    lines.append(str((proc.get("board_text") or {}).get(level) or seed_thesis_procedure()["board_text"][level]))
     lines.append("")
     counts: dict[str, int] = {}
     for e in examiners:
@@ -1380,7 +1489,7 @@ def paperwork(package: Path, m: dict[str, Any] | None = None) -> str:
         for e in examiners:
             lines.append(f"| {e.get('role', '')} | {val(e.get('name'))} | {val(e.get('affiliation'))} |")
         lines.append("")
-    for role, n in BOARD_ROLES[level].items():
+    for role, n in board_roles.items():
         have = counts.get(role, 0)
         lines.append(box(have >= n, f"{n} {role} examiner(s): {have} listed"))
     lines.append("")
@@ -1402,7 +1511,7 @@ def paperwork(package: Path, m: dict[str, Any] | None = None) -> str:
     lines.append(box(ok_front, "`murmurent thesis check` passes "
                      f"({len(rep.errors)} error(s), {len(rep.warnings)} warning(s))"))
     for key, label in (("abstract", f"Abstract (at most {abstract_max} words)"),
-                       ("lay_summary", f"Summary for Lay Audience (at most {LAY_SUMMARY_MAX_WORDS} words)"),
+                       ("lay_summary", f"Summary for Lay Audience (at most {lay_max} words)"),
                        ("genai_statement", "Statement on the use of generative AI (use or non-use, stated explicitly)"),
                        ("coauthorship", "Co-authorship statement (required when any article has co-authors)"),
                        ("acknowledgements", "Acknowledgements (optional)")):
@@ -1431,8 +1540,8 @@ def paperwork(package: Path, m: dict[str, Any] | None = None) -> str:
     lines.append(box(not leaks, "No email addresses, phone numbers or signatures in the text, appendices or CV"
                      + (f" (found in: {', '.join(leaks)})" if leaks else "")))
     size = _dir_size_mb(package)
-    lines.append(box(size <= SUPPLEMENT_MAX_MB,
-                     f"Each supplementary file at most {SUPPLEMENT_MAX_MB} MB (package without build/ and .git: {size:.0f} MB)"))
+    lines.append(box(size <= supplement_max,
+                     f"Each supplementary file at most {supplement_max} MB (package without build/ and .git: {size:.0f} MB)"))
     lines.append(box(None, "Supplementary files: the link to this package and how an examiner opens it"))
     lines.append("")
 
@@ -1469,8 +1578,14 @@ def paperwork(package: Path, m: dict[str, Any] | None = None) -> str:
     lines.append("")
     lines.append("## Sources")
     lines.append("")
-    for name, url in PAPERWORK_SOURCES:
-        lines.append(f"- [{name}]({url})")
+    for src in proc.get("sources") or []:
+        if isinstance(src, dict):
+            lines.append(f"- [{src.get('name', '')}]({src.get('source', '')}) (read {src.get('date_read', '?')})")
+    if pack is not None:
+        lines.append("")
+        lines.append(f"Institution-specific steps are kept in `{PROCEDURES_DIR_NAME}/{THESIS_PROCEDURE}.yaml` of the "
+                     f"pack; `murmurent institution walk {THESIS_PROCEDURE} --anchor <defence date>` lists them with dates, "
+                     "and `murmurent institution refresh` re-reads their sources.")
     return "\n".join(lines) + "\n"
 
 

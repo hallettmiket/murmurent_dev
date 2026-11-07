@@ -26,6 +26,7 @@ ship:
   - templates/              # scaffolding written into new repos
   - instruments/            # instrument descriptors
   - examples/               # synthetic paper and thesis packages the tests and docs use (#284)
+  - institution/            # the pack schema's README and the generic example pack (#291)
   - tests/                  # see DECIDE-1
   - .github/                # issue template + docs workflow
 
@@ -90,6 +91,8 @@ withhold:
   - CONTRIBUTING.md               # the dev repo's pull-request guide (#161); meaningless in a release
   - README.md                     # the DEV repo's landing page: repo map, PR flow, release
                                   # steps. The release gets `release_readme` instead.
+  - institution/western/          # a deployment's own institution pack: names, emails and
+                                  # addresses of its office holders. Each centre fills its own.
   - rules/local/                  # a centre's own rules: private repos, Slack IDs, local
                                   # conventions. setup.sh links these when present; a
                                   # public clone has no such directory and skips them.
