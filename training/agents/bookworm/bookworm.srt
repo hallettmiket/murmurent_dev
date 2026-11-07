@@ -1,0 +1,35 @@
+1
+00:00:00,400 --> 00:00:11,341
+This is the bookworm. It reads the published literature for you, and it is the main guard against a citation that does not exist or a statistic nobody measured.
+
+2
+00:00:11,750 --> 00:00:21,627
+Its file lists the jobs. Retrieve and summarize the literature. Query the scientific databases to annotate your data with what is already known.
+
+3
+00:00:21,627 --> 00:00:33,104
+Check every identifier with murmurent cite check before reporting it. Trace every outside number to the study that measured it, and say so when it cannot.
+
+4
+00:00:33,500 --> 00:00:43,145
+It summarizes and cites; it does not run the analysis. It does not decide methodological validity, which is the adversary's call.
+
+5
+00:00:43,145 --> 00:00:52,950
+It does not make figures, and it never silently collapses conflicting database records into one: it shows you the conflict.
+
+6
+00:00:53,350 --> 00:01:01,416
+A real run. A draft cites a real paper for a number. The member asks the bookworm to check the citation and the number.
+
+7
+00:01:01,416 --> 00:01:14,490
+The citation checks out. The number does not: the paper never says it. Each item is labelled, verified, mismatch or unresolved, and the fix is to drop the figure.
+
+8
+00:01:14,900 --> 00:01:27,470
+To use it, type to Claude Code and name it: ask the bookworm to check the citations in a draft, or to find what is known about a gene. Give it the identifier and the sentence that leans on it.
+
+9
+00:01:27,470 --> 00:01:46,999
+The first line is the verdict, Found and how many sources. Then each item carries its label: verified, mismatch, retracted, secondary only or unresolved. An unresolved number is not a number you can use yet.

@@ -1,0 +1,39 @@
+1
+00:00:00,400 --> 00:00:11,852
+This is the docent, the guide to a paper package or a thesis package. An examiner asks it questions; it answers with locations, and it logs every question.
+
+2
+00:00:12,250 --> 00:00:23,845
+Its file sets the rules. Every answer carries a location: a section, a figure, a file. Absent is a full answer when the work does not address what was asked.
+
+3
+00:00:23,845 --> 00:00:34,626
+It re-runs the code before it reports a number. And the PDF is the thesis of record: where the package disagrees, that is a finding.
+
+4
+00:00:35,049 --> 00:00:44,044
+It never speaks for the work, the author or the examiner. It never searches the web, because a thesis under examination is not public.
+
+5
+00:00:44,044 --> 00:00:54,036
+It never grades: the adversary audits, the examiner decides. And it changes nothing outside the build and the query log.
+
+6
+00:00:54,449 --> 00:01:02,051
+A real exchange, on the synthetic thesis example. The examiner asks where a result is shown and whether it holds.
+
+7
+00:01:02,051 --> 00:01:13,407
+Located, with the chapter, the figure and the claim. The docent re-ran the script and reports what it printed, and names what the text does not say.
+
+8
+00:01:13,800 --> 00:01:23,716
+Asked about something the thesis never addresses, it answers Absent, says what it searched, and names the nearest thing the thesis does cover.
+
+9
+00:01:24,100 --> 00:01:35,184
+To use it, open the package in Claude Code and ask the docent in plain words. It works out from the question whether you are an examiner or the author, and never asks.
+
+10
+00:01:35,184 --> 00:01:50,627
+The first line is the verdict: Located, Absent or Ready. Every question and answer is appended to the query log. The six-minute movie on thesis packages shows the whole workflow.

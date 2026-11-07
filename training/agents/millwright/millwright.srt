@@ -1,0 +1,35 @@
+1
+00:00:00,400 --> 00:00:11,202
+This is the millwright, the lab's infrastructure provisioner. It onboards members, scaffolds projects and health-checks the environment, one lab at a time.
+
+2
+00:00:11,599 --> 00:00:23,659
+Its file says what it does: onboard members onto machines, scaffold new projects with their repo, channel and data folders, keep the machines registry, and health-check an environment.
+
+3
+00:00:23,659 --> 00:00:35,833
+Every write starts as a dry run that shows the full list of commands and waits for the PI. And it never pushes to main: it opens a branch and a pull request.
+
+4
+00:00:36,249 --> 00:00:46,638
+It never generates, stores or transmits a private key; only public keys leave your machine. It never writes into immutable data and never deletes data.
+
+5
+00:00:46,638 --> 00:01:00,994
+It never touches the mothballed folder and never tidies the lab folder on its own: it reports, and the PI decides. And it does not act on shared infrastructure without PI sign-off.
+
+6
+00:01:01,399 --> 00:01:06,865
+A real run, read-only. The member asks for a health check of their murmurent install.
+
+7
+00:01:06,865 --> 00:01:20,775
+The verdict is Concerns: the install runs, but the shared agents are not linked and the hooks use another Python. Each problem comes with the command that fixes it, and nothing was changed.
+
+8
+00:01:21,200 --> 00:01:33,677
+To use it, type to Claude Code and name it: ask the millwright to scaffold a project, onboard a member, or check the install. It shows the plan first and asks the PI to confirm.
+
+9
+00:01:33,677 --> 00:01:47,494
+The first line is the verdict: Provisioned, Skipped or Failed. Then what it did, and what it left for you to run on your own machine, such as adding your own key.

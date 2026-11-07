@@ -1,0 +1,35 @@
+1
+00:00:00,400 --> 00:00:12,595
+This is the centre millwright. Where the millwright serves one lab, this one serves the whole centre: cross-lab projects, permissions on shared servers, and the loop that finds drift.
+
+2
+00:00:13,000 --> 00:00:24,549
+Its file says the job is centre-wide reconciliation: per-project permissions on shared servers, cross-lab project provisioning with guest invites, and membership-drift detection.
+
+3
+00:00:24,549 --> 00:00:39,602
+Reconciling drift is its primary job: compare what the project records say with what Slack, GitHub and the filesystem actually hold. One project at a time, so a bad step cannot cascade.
+
+4
+00:00:40,000 --> 00:00:49,877
+It does not onboard individual members; that is the lab millwright's. It never modifies a lab's records repository; it only reads them.
+
+5
+00:00:49,877 --> 00:01:01,679
+It does not act on shared infrastructure without registrar sign-off. And it never deletes a Slack channel: it archives, so the registrar can restore.
+
+6
+00:01:02,100 --> 00:01:08,958
+A real run, dry-run only, on a laptop with no centre record. The mayor asks for the drift loop.
+
+7
+00:01:08,958 --> 00:01:20,593
+The verdict is Drift. It says plainly which comparison it could not make here, lists each item of local drift with what it would do, and applied nothing.
+
+8
+00:01:21,000 --> 00:01:33,710
+To use it, type to Claude Code and name it: ask the centre millwright to reconcile a project, or to run the drift loop. It runs on the registrar's machine and shows the diff before anything is applied.
+
+9
+00:01:33,710 --> 00:01:46,458
+The first line is the verdict: Reconciled, Drift or Blocked. Then each delta, what it would change, and the confirmation it is waiting for.

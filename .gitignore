@@ -47,3 +47,5 @@ outputs/
 # Rendered training videos and their narration clips are not committed
 training/thesis_package/*.mp4
 training/thesis_package/audio/
+training/agents/*/*.mp4
+training/agents/*/audio/

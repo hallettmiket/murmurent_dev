@@ -66,6 +66,11 @@ for the `repo upgrade` signal:
 3. Commit, then annotate + push a tag: `git tag -a v2026.7.0 -m "…"` &&
    `git push --tags`.
 4. Cut a GitHub Release from the tag (its notes can be the CHANGELOG section).
+5. Re-render every training movie whose agent changed since it was made:
+   `training/index.yaml` stamps each movie with the hash of its `agents/<x>.md`;
+   `python3 training/agents/<x>/make.py` re-renders and re-voices one, and
+   `training/README.md` says how to publish it. A movie that shows an older
+   agent is worse than no movie.
 
 ## Schema versions are NOT the release version
 
