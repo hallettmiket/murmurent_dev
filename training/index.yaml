@@ -15,7 +15,7 @@ videos:
   title: Getting started with Murmurent
   date: 2026-10-14
   version: 2026.11.0   # made against 2026.9.9; every command it shows re-checked on 2026-11-07 and still present
-  seconds: 410
+  seconds: 430
   summary: What Murmurent is, installing it, saying who you are, setting up a folder, the agents, and joining a lab or a centre.
   page: https://mikehallett.science/assets/videos/murmurent_getting_started.html
   file: https://mikehallett.science/assets/videos/murmurent_getting_started_1080p.mp4
@@ -36,6 +36,7 @@ videos:
     - ["5:26", "Choreographies"]
     - ["6:03", "Getting help"]
     - ["6:30", "Recap"]
+    - ["6:50", "Coda: watch the Claude Code movie next"]
 - key: thesis_package
   title: A thesis an examiner can question
   date: 2026-11-07

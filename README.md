@@ -78,7 +78,7 @@ when a video and the written documentation disagree, the documentation is right.
 
 | Video | Length | Covers |
 |---|---|---|
-| [Getting started with Murmurent](https://mikehallett.science/assets/videos/murmurent_getting_started.html) | 6:50 | What Murmurent is, installing it, saying who you are, setting up a folder, the agents, and joining a lab or a centre. (checked against 2026.11.0) |
+| [Getting started with Murmurent](https://mikehallett.science/assets/videos/murmurent_getting_started.html) | 7:10 | What Murmurent is, installing it, saying who you are, setting up a folder, the agents, and joining a lab or a centre. (checked against 2026.11.0) |
 | [A thesis an examiner can question](https://mikehallett.science/assets/videos/murmurent_thesis_package.html) | 6:20 | Paper packages, thesis packages and the docent. Who is in the room at a defence, how every claim is mapped to its evidence, what the candidate runs, how an examiner questions the package. (checked against 2026.11.0) |
 | [Working through Claude Code](https://mikehallett.science/assets/videos/murmurent_claude_code.html) | 2:18 | Open a project, how Murmurent's agents and rules reach the session, how to address an agent by name, what a verdict line is, the agent log pane, and what the hooks refuse and why. (checked against 2026.11.0) |
 | [Backing up with /murmurent-push](https://mikehallett.science/assets/videos/murmurent_push.html) | 2:04 | The two push skills: what the pre-flight refuses (secrets, secret-shaped names, large files, governed data), how a whole project is backed up, and where the Slack note goes. (checked against 2026.11.0) |

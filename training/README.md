@@ -8,7 +8,7 @@ That page, and the "Videos and news" section of the README, are written by
 video or a news line there and run the script; never edit the generated section
 by hand (a test checks it).
 
-1. [Getting started with Murmurent](#getting-started-with-murmurent-video-6-min-50-s), a 7-minute video
+1. [Getting started with Murmurent](#getting-started-with-murmurent-video-7-min-10-s), a 7-minute video
 2. [Using ElevenLabs from Claude Code](#using-elevenlabs-from-claude-code), from signing up to making audio, including the free student offer
 3. [A thesis an examiner can question](thesis_package/README.md), a 6-minute animated walkthrough of paper packages, thesis packages and the docent, rendered from a script in that folder
 4. [One short movie per agent](#one-short-movie-per-agent), sixteen movies of about two minutes each: what the agent does, what it will not do, one real run, and how to use it through Claude Code
@@ -72,7 +72,7 @@ Code movie.
 | [`training/skills/course`](skills/course/scenes.py) | [Learning a subject with teacher course](https://mikehallett.science/assets/videos/murmurent_course.html) | 1:51 | 0:00 Welcome, 0:11 The interview, 0:33 A real first session, 0:58 The folder is the memory, 1:14 Later sessions, 1:30 How to use it |
 | [`training/skills/mayor_tools`](skills/mayor_tools/scenes.py) | [The mayor's and PI's tools](https://mikehallett.science/assets/videos/murmurent_mayor_tools.html) | 1:57 | 0:00 Welcome, 0:11 /murmurent-admin, 0:36 /murmurent-onboard, 1:03 What onboard refuses, 1:17 /murmurent-reset, 1:40 How to use it |
 
-## Getting started with Murmurent (video, 6 min 50 s)
+## Getting started with Murmurent (video, 7 min 10 s)
 
 A narrated walkthrough for someone who has never used Murmurent. It explains
 what Murmurent is, then goes through installing it, checking the install,
@@ -85,7 +85,7 @@ appears on screen as the commands you would type.
 | **Where it is** | [mikehallett.science](https://mikehallett.science/assets/videos/murmurent_getting_started.html), to watch in the browser with captions. The [video file itself](https://mikehallett.science/assets/videos/murmurent_getting_started_1080p.mp4) (33 MB, 1080p) can be downloaded. |
 | **Transcript** | [murmurent_getting_started.srt](murmurent_getting_started.srt), in this folder: the full narration with timings, which also works as a subtitle file |
 | **Made with** | [ElevenLabs](https://elevenlabs.io): the narration (voice "Matilda") and the music |
-| **Checked against** | Murmurent 2026.9.9 |
+| **Checked against** | Murmurent 2026.9.9; every command re-checked against 2026.11.0 on 2026-11-07 |
 
 ### Chapters
 
@@ -106,6 +106,7 @@ appears on screen as the commands you would type.
 | 5:26 | Choreographies | `choreography list`, `install`, `init`, publishing one to the hub |
 | 6:03 | Getting help | asking Claude Code, `murmurent doctor`, where to report bugs |
 | 6:30 | Recap | |
+| 6:50 | Coda | watch the Claude Code movie next (added 2026-11-07) |
 
 ### How it was made
 
