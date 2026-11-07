@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import re
 import sys
 from dataclasses import dataclass, field
@@ -330,6 +331,7 @@ def update_index(spec: AgentSpec, folder: Path, version: str, sha: str, seconds:
     at render time (the hook reads it with the murmurent package's yaml)."""
     entry = [f"- agent: {spec.agent}",
              f"  title: {spec.title}",
+             f"  tagline: {json.dumps(spec.tagline.rstrip('.'))}",
              f"  version: {version}",
              f"  date: {date.today().isoformat()}",
              f"  agent_sha256: {sha}",

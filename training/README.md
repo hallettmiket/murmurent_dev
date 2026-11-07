@@ -3,6 +3,10 @@
 Material for learning Murmurent, and for the tools used to make it.
 
 **All the videos, in one place: <https://mikehallett.science/assets/videos/>.**
+That page, and the "Videos and news" section of the README, are written by
+`training/front_page.py` from [`index.yaml`](index.yaml) in this folder: add a
+video or a news line there and run the script; never edit the generated section
+by hand (a test checks it).
 
 1. [Getting started with Murmurent](#getting-started-with-murmurent-video-6-min-50-s), a 7-minute video
 2. [Using ElevenLabs from Claude Code](#using-elevenlabs-from-claude-code), from signing up to making audio, including the free student offer

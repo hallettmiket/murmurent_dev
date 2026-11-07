@@ -18,6 +18,12 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 ## [Unreleased]
 
 ### Added
+- **One place for the videos and the news** (#289). `training/index.yaml`
+  lists every training video (the standalone ones, the agent movies) and one
+  line per release or new capability; `training/front_page.py` writes from it
+  the "Videos and news" section of the README and the page at
+  mikehallett.science/assets/videos/, so the two cannot drift apart. The
+  agent movies carry their own emoji badge, as the seminar slides mark them.
 - **One short training movie per commons agent** (#288): sixteen movies under
   `training/agents/<agent>/`, each 90 seconds to 3 minutes, rendered from a
   scene file by the shared renderer in `training/lib/` (lifted from the

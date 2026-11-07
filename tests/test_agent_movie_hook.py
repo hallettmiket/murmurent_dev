@@ -19,6 +19,14 @@ from murmurent.commands import install_cmd
 from murmurent.hooks import agent_movie as hook
 
 INDEX = """# header
+videos:
+- key: getting_started
+  title: Getting started
+  version: 2026.9.9
+  agent_sha256: not-a-movie
+news:
+- date: 2026-11-07
+  title: A news item
 movies:
 - agent: oracle
   title: The oracle
@@ -98,6 +106,13 @@ def test_main_is_quiet_on_garbage():
     out = io.StringIO()
     assert hook.main(stdin=io.StringIO("not json"), stdout=out) == 0
     assert out.getvalue() == ""
+
+
+def test_parse_index_ignores_videos_and_news(tmp_path, monkeypatch):
+    movies = hook.parse_index(INDEX.format(sha="a" * 64))
+    assert set(movies) == {"oracle", "bookworm"}
+    assert movies["oracle"]["agent_sha256"] == "a" * 64
+    assert movies["bookworm"]["agent_sha256"] == "deadbeef"
 
 
 def test_parse_index_reads_the_real_file():
