@@ -12,7 +12,8 @@ Author: Mike Hallett (with Claude Code)
 Date: 2026-11-07
 Input: training/agents/<agent>/{<agent>_narrated.mp4, <agent>.srt, scenes.py};
        training/index.yaml for the durations.
-Output: the three files per agent under <site>/assets/videos/; prints the list.
+Output: the three files per agent under <site>/assets/videos/, and index.html
+        there listing every training video; prints the list.
 Usage: python3 training/agents/publish.py [--site ~/repos/hallettmiket.github.io] [agent ...]
 """
 
@@ -53,11 +54,79 @@ PAGE = """<!doctype html>
   <p>{tagline}: one of the commons agents of Murmurent. What it does, what it will not do, one real
   run, and how to use it through Claude Code. {minutes}; captions are in the picture. The agent's own
   definition: <a href="https://github.com/hallettmiket/murmurent/blob/main/agents/{agent}.md">agents/{agent}.md</a>.
-  All the agent movies: <a href="https://github.com/hallettmiket/murmurent/blob/main/training/README.md">training/README.md</a>.</p>
+  All the training videos: <a href="index.html">mikehallett.science/assets/videos</a>.</p>
 </main>
 </body>
 </html>
 """
+
+
+INDEX_PAGE = """<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Murmurent training videos</title>
+<style>
+  :root {{ color-scheme: light dark; }}
+  body {{ margin: 0; padding: 24px 16px; font-family: system-ui, sans-serif; background: Canvas; color: CanvasText; }}
+  main {{ max-width: 960px; margin: 0 auto; }}
+  h1 {{ font-size: 1.5rem; margin: 0 0 8px; }}
+  h2 {{ font-size: 1.15rem; margin: 28px 0 8px; }}
+  p, li {{ line-height: 1.5; }}
+  table {{ border-collapse: collapse; width: 100%; }}
+  td, th {{ text-align: left; padding: 6px 10px 6px 0; vertical-align: top; border-bottom: 1px solid color-mix(in srgb, CanvasText 15%, transparent); }}
+  th {{ font-weight: 600; }}
+</style>
+</head>
+<body>
+<main>
+  <h1>Murmurent training videos</h1>
+  <p>Short videos for learning <a href="https://github.com/hallettmiket/murmurent">Murmurent</a>. Captions are in the
+  picture; every terminal and chat scene is a real run. The written documentation is the reference when the two
+  disagree: <a href="https://mikehallett.science/murmurent/">mikehallett.science/murmurent</a>.</p>
+
+  <h2>Start here</h2>
+  <table>
+    <tr><th>Video</th><th>Length</th><th>What it covers</th></tr>
+    <tr><td><a href="murmurent_getting_started.html">Getting started with Murmurent</a></td><td>6:50</td>
+        <td>what Murmurent is, installing it, saying who you are, the agents, joining a lab or a centre</td></tr>
+    <tr><td><a href="murmurent_thesis_package.html">A thesis an examiner can question</a></td><td>6:20</td>
+        <td>paper packages, thesis packages and the docent: a thesis whose every claim carries its evidence</td></tr>
+  </table>
+
+  <h2>One short video per agent</h2>
+  <p>Each one: what the agent does, what it will not do, one real run, and how to use it through Claude Code.
+  In the order a new member meets them.</p>
+  <table>
+    <tr><th>Agent</th><th>Length</th><th>In one line</th></tr>
+{rows}
+  </table>
+  <p>How these are made and kept current:
+  <a href="https://github.com/hallettmiket/murmurent/blob/main/training/README.md">training/README.md</a>.</p>
+</main>
+</body>
+</html>
+"""
+
+AGENT_ORDER = ["oracle", "bookworm", "adversary", "artist", "scribe", "teacher", "lab_oracle", "blacksmith",
+               "conscience", "lawyer", "millwright", "centre_millwright", "judge", "registrar", "security_guard",
+               "docent"]
+
+
+def write_index(dest: Path, info: dict) -> None:
+    rows = []
+    for agent in AGENT_ORDER:
+        e = info.get(agent)
+        page = dest / f"murmurent_agent_{agent}.html"
+        if not e or not page.exists():
+            continue
+        secs = int(e.get("seconds", 0))
+        tagline = re.search(r'tagline="([^"]+)"', (HERE / agent / "scenes.py").read_text()).group(1).rstrip(".")
+        rows.append(f'    <tr><td><a href="murmurent_agent_{agent}.html">{e.get("title", agent)}</a></td>'
+                    f'<td>{secs // 60}:{secs % 60:02d}</td><td>{tagline}</td></tr>')
+    (dest / "index.html").write_text(INDEX_PAGE.format(rows="\n".join(rows)))
+    print(f"index: {len(rows)} agent videos listed at {dest / 'index.html'}")
 
 
 def srt_to_vtt(srt: str) -> str:
@@ -98,6 +167,7 @@ def main() -> None:
         (dest / f"murmurent_agent_{agent}.html").write_text(PAGE.format(
             title=entry.get("title", agent), agent=agent, tagline=tagline, minutes=minutes))
         print(f"{agent}: {mp4.stat().st_size / 1e6:.1f} MB, {minutes}{'' if narrated else ', SILENT'}")
+    write_index(dest, info)
 
 
 if __name__ == "__main__":

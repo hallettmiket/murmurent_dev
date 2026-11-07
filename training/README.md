@@ -2,6 +2,8 @@
 
 Material for learning Murmurent, and for the tools used to make it.
 
+**All the videos, in one place: <https://mikehallett.science/assets/videos/>.**
+
 1. [Getting started with Murmurent](#getting-started-with-murmurent-video-6-min-50-s), a 7-minute video
 2. [Using ElevenLabs from Claude Code](#using-elevenlabs-from-claude-code), from signing up to making audio, including the free student offer
 3. [A thesis an examiner can question](thesis_package/README.md), a 6-minute animated walkthrough of paper packages, thesis packages and the docent, rendered from a script in that folder

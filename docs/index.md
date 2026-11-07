@@ -1,6 +1,7 @@
 # Murmurent
 
 **▶ [Watch the 7-minute getting-started video](https://mikehallett.science/assets/videos/murmurent_getting_started.html)**
+**▶ [All the training videos](https://mikehallett.science/assets/videos/)**: one short video per agent, and the thesis-package walkthrough.
 (install, the agents, and joining a lab or a centre).
 
 Murmurent is an agentic AI operating system that provides:
