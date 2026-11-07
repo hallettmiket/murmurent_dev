@@ -43,3 +43,7 @@ outputs/
 
 # Working copies Claude Code makes for helper agents (never commit)
 .claude/worktrees/
+
+# Rendered training videos and their narration clips are not committed
+training/thesis_package/*.mp4
+training/thesis_package/audio/
