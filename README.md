@@ -12,6 +12,7 @@ This is where Murmurent is written. **To install and use Murmurent, go to
 [hallettmiket/murmurent](https://github.com/hallettmiket/murmurent) instead.**
 
 **▶ [Watch the 7-minute getting-started video](https://mikehallett.science/assets/videos/murmurent_getting_started.html)**
+**▶ [All the training videos](https://mikehallett.science/assets/videos/)**: one short video per agent, and the thesis-package walkthrough.
 
 **📖 Documentation: <https://mikehallett.science/murmurent/>** (updated at each
 release). The documentation as it stands in this repository, before release, is
