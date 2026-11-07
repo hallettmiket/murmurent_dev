@@ -12,6 +12,7 @@ by hand (a test checks it).
 2. [Using ElevenLabs from Claude Code](#using-elevenlabs-from-claude-code), from signing up to making audio, including the free student offer
 3. [A thesis an examiner can question](thesis_package/README.md), a 6-minute animated walkthrough of paper packages, thesis packages and the docent, rendered from a script in that folder
 4. [One short movie per agent](#one-short-movie-per-agent), sixteen movies of about two minutes each: what the agent does, what it will not do, one real run, and how to use it through Claude Code
+5. [Working through Claude Code, and the skills](#working-through-claude-code-and-the-skills), five movies of about two minutes: the one every other movie assumes, the two push skills, the status update, a course across sessions, and the mayor's tools
 
 ## One short movie per agent
 
@@ -47,6 +48,29 @@ re-voicing a changed sentence re-times the picture with it.
 | [`security_guard`](../agents/security_guard.md) | [The security guard](https://mikehallett.science/assets/videos/murmurent_agent_security_guard.html) | 1:52 | 0:00 Welcome, 0:12 What it does, 0:37 What it will not do, 1:00 A real example, 1:23 How to use it |
 | [`docent`](../agents/docent.md) | [The docent](https://mikehallett.science/assets/videos/murmurent_agent_docent.html) | 1:51 | 0:00 Welcome, 0:11 What it does, 0:34 What it will not do, 0:54 A real example, 1:23 How to use it |
 
+
+## Working through Claude Code, and the skills
+
+Five movies (issue #290) in the same style as the agent movies, from
+[`training/skills/`](skills/): one scene file each on the shared renderer
+(`training/lib/movie.py`), quotes checked against the skill's own `SKILL.md`,
+every terminal and chat scene a real run (dry runs where a real one would post
+or change something; a throwaway repository with invented secrets for the push
+skills), captions burned in, narration with ElevenLabs. **Working through
+Claude Code** is the one to watch first: every other movie assumes it.
+
+**Checked against** Murmurent 2026.11.0, 7 November 2026. The getting-started
+video (made against 2026.9.9) was re-checked the same day: every command it
+shows still exists, and it now ends with a short coda pointing at the Claude
+Code movie.
+
+| Movie | Watch | Length | Chapters |
+|---|---|---|---|
+| [`training/skills/claude_code`](skills/claude_code/scenes.py) | [Working through Claude Code](https://mikehallett.science/assets/videos/murmurent_claude_code.html) | 2:18 | 0:00 Welcome, 0:09 Opening a project, 0:31 Addressing an agent, 0:51 A real exchange, 1:13 The agent log pane, 1:31 What the hooks refuse, 1:58 How to use it |
+| [`training/skills/push`](skills/push/scenes.py) | [Backing up with /murmurent-push](https://mikehallett.science/assets/videos/murmurent_push.html) | 2:04 | 0:00 Welcome, 0:09 What it refuses, 0:37 A real run, 1:01 Where the note goes, 1:22 The whole project, 1:43 How to use it |
+| [`training/skills/update_me`](skills/update_me/scenes.py) | [A status update with /murmurent-update-me](https://mikehallett.science/assets/videos/murmurent_update_me.html) | 1:43 | 0:00 Welcome, 0:12 Where the facts come from, 0:34 The script, 0:53 A real dry run, 1:13 What it refuses, 1:27 How to use it |
+| [`training/skills/course`](skills/course/scenes.py) | [Learning a subject with teacher course](https://mikehallett.science/assets/videos/murmurent_course.html) | 1:51 | 0:00 Welcome, 0:11 The interview, 0:33 A real first session, 0:58 The folder is the memory, 1:14 Later sessions, 1:30 How to use it |
+| [`training/skills/mayor_tools`](skills/mayor_tools/scenes.py) | [The mayor's and PI's tools](https://mikehallett.science/assets/videos/murmurent_mayor_tools.html) | 1:57 | 0:00 Welcome, 0:11 /murmurent-admin, 0:36 /murmurent-onboard, 1:03 What onboard refuses, 1:17 /murmurent-reset, 1:40 How to use it |
 
 ## Getting started with Murmurent (video, 6 min 50 s)
 

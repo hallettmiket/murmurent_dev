@@ -14,7 +14,7 @@ videos:
 - key: getting_started
   title: Getting started with Murmurent
   date: 2026-10-14
-  version: 2026.9.9
+  version: 2026.11.0   # made against 2026.9.9; every command it shows re-checked on 2026-11-07 and still present
   seconds: 410
   summary: What Murmurent is, installing it, saying who you are, setting up a folder, the agents, and joining a lab or a centre.
   page: https://mikehallett.science/assets/videos/murmurent_getting_started.html
@@ -62,6 +62,109 @@ videos:
     - ["5:22", "From package to defence"]
     - ["5:44", "What it does not do"]
     - ["5:59", "Recap"]
+- key: claude_code
+  title: "Working through Claude Code"
+  tagline: "How a member reaches Murmurent: no command line needed"
+  date: 2026-11-07
+  version: 2026.11.0
+  seconds: 138
+  summary: "Open a project, how Murmurent's agents and rules reach the session, how to address an agent by name, what a verdict line is, the agent log pane, and what the hooks refuse and why."
+  page: https://mikehallett.science/assets/videos/murmurent_claude_code.html
+  file: https://mikehallett.science/assets/videos/murmurent_claude_code_720p.mp4
+  transcript: training/skills/claude_code/claude_code.srt
+  make: python3 training/skills/claude_code/make.py
+  sources:
+    docs/agents.md: 86609311d26c91d6c11d276fa61809c9dea99327c0f70d8e3dc7fe40e736e589
+  chapters:
+    - ["0:00", "Welcome"]
+    - ["0:09", "Opening a project"]
+    - ["0:31", "Addressing an agent"]
+    - ["0:51", "A real exchange"]
+    - ["1:13", "The agent log pane"]
+    - ["1:31", "What the hooks refuse"]
+    - ["1:58", "How to use it"]
+- key: push
+  title: "Backing up with /murmurent-push"
+  tagline: "Commit and push with the lab's safety checks, and a note where the project reads it"
+  date: 2026-11-07
+  version: 2026.11.0
+  seconds: 124
+  summary: "The two push skills: what the pre-flight refuses (secrets, secret-shaped names, large files, governed data), how a whole project is backed up, and where the Slack note goes."
+  page: https://mikehallett.science/assets/videos/murmurent_push.html
+  file: https://mikehallett.science/assets/videos/murmurent_push_720p.mp4
+  transcript: training/skills/push/push.srt
+  make: python3 training/skills/push/make.py
+  sources:
+    skills/murmurent-push/SKILL.md: ea9acd75140a768ccc748051601d4fa3deed61a09e33e493d37b789c950a798c
+    skills/murmurent-project-push/SKILL.md: 35eba62f7053bbe8416a15a0ed971f9efa29bf82a2395dd6a378801a7065f7f1
+  chapters:
+    - ["0:00", "Welcome"]
+    - ["0:09", "What it refuses"]
+    - ["0:37", "A real run"]
+    - ["1:01", "Where the note goes"]
+    - ["1:22", "The whole project"]
+    - ["1:43", "How to use it"]
+- key: update_me
+  title: "A status update with /murmurent-update-me"
+  tagline: "What is running, what finished, what is blocked, and on whom"
+  date: 2026-11-07
+  version: 2026.11.0
+  seconds: 103
+  summary: "The status-update skill: facts from a read-only script, a plain-English summary for the project's channel, the refusals, and the dry run that shows the text without posting."
+  page: https://mikehallett.science/assets/videos/murmurent_update_me.html
+  file: https://mikehallett.science/assets/videos/murmurent_update_me_720p.mp4
+  transcript: training/skills/update_me/update_me.srt
+  make: python3 training/skills/update_me/make.py
+  sources:
+    skills/murmurent-update-me/SKILL.md: 64d915bf42e98e86ab047f7788cc77f7f2fc679bd13aa692590a0009cd3e06ad
+  chapters:
+    - ["0:00", "Welcome"]
+    - ["0:12", "Where the facts come from"]
+    - ["0:34", "The script"]
+    - ["0:53", "A real dry run"]
+    - ["1:13", "What it refuses"]
+    - ["1:27", "How to use it"]
+- key: course
+  title: "Learning a subject with teacher course"
+  tagline: "A course across sessions, with a folder as its memory"
+  date: 2026-11-07
+  version: 2026.11.0
+  seconds: 111
+  summary: "The course mode of the teacher: an interview for the mission, a plan, self-contained lessons with a drawn figure and a quiz, and learning records so it never re-teaches what you have shown."
+  page: https://mikehallett.science/assets/videos/murmurent_course.html
+  file: https://mikehallett.science/assets/videos/murmurent_course_720p.mp4
+  transcript: training/skills/course/course.srt
+  make: python3 training/skills/course/make.py
+  sources:
+    skills/murmurent-course/SKILL.md: 8c611015791e0082ba627280ea041a7c1955ce6ce52dbe9f34f9a0139a54d537
+  chapters:
+    - ["0:00", "Welcome"]
+    - ["0:11", "The interview"]
+    - ["0:33", "A real first session"]
+    - ["0:58", "The folder is the memory"]
+    - ["1:14", "Later sessions"]
+    - ["1:30", "How to use it"]
+- key: mayor_tools
+  title: "The mayor's and PI's tools"
+  tagline: "/murmurent-admin, /murmurent-onboard and /murmurent-reset: three skills, three users"
+  date: 2026-11-07
+  version: 2026.11.0
+  seconds: 117
+  summary: "The three administrative skills: priming context before admin work, processing an encrypted join request with an explicit decision, and resetting a machine after a backup and a dry run."
+  page: https://mikehallett.science/assets/videos/murmurent_mayor_tools.html
+  file: https://mikehallett.science/assets/videos/murmurent_mayor_tools_720p.mp4
+  transcript: training/skills/mayor_tools/mayor_tools.srt
+  make: python3 training/skills/mayor_tools/make.py
+  sources:
+    skills/murmurent-admin/SKILL.md: 061f6936994beb6e3f863d676e360fa3ccf8be8358a0a1f53a14fe215fa32108
+    skills/murmurent-onboard/SKILL.md: 68e55484cdb573157f717e98b94001556afd565b01357c5c338fa699f056cbbc
+  chapters:
+    - ["0:00", "Welcome"]
+    - ["0:11", "/murmurent-admin"]
+    - ["0:36", "/murmurent-onboard"]
+    - ["1:03", "What onboard refuses"]
+    - ["1:17", "/murmurent-reset"]
+    - ["1:40", "How to use it"]
 
 news:
 - date: 2026-11-07

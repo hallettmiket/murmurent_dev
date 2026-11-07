@@ -106,8 +106,13 @@ when a video and the written documentation disagree, the documentation is right.
 
 | Video | Length | Covers |
 |---|---|---|
-| [Getting started with Murmurent](https://mikehallett.science/assets/videos/murmurent_getting_started.html) | 6:50 | What Murmurent is, installing it, saying who you are, setting up a folder, the agents, and joining a lab or a centre. (checked against 2026.9.9) |
+| [Getting started with Murmurent](https://mikehallett.science/assets/videos/murmurent_getting_started.html) | 6:50 | What Murmurent is, installing it, saying who you are, setting up a folder, the agents, and joining a lab or a centre. (checked against 2026.11.0) |
 | [A thesis an examiner can question](https://mikehallett.science/assets/videos/murmurent_thesis_package.html) | 6:20 | Paper packages, thesis packages and the docent. Who is in the room at a defence, how every claim is mapped to its evidence, what the candidate runs, how an examiner questions the package. (checked against 2026.11.0) |
+| [Working through Claude Code](https://mikehallett.science/assets/videos/murmurent_claude_code.html) | 2:18 | Open a project, how Murmurent's agents and rules reach the session, how to address an agent by name, what a verdict line is, the agent log pane, and what the hooks refuse and why. (checked against 2026.11.0) |
+| [Backing up with /murmurent-push](https://mikehallett.science/assets/videos/murmurent_push.html) | 2:04 | The two push skills: what the pre-flight refuses (secrets, secret-shaped names, large files, governed data), how a whole project is backed up, and where the Slack note goes. (checked against 2026.11.0) |
+| [A status update with /murmurent-update-me](https://mikehallett.science/assets/videos/murmurent_update_me.html) | 1:43 | The status-update skill: facts from a read-only script, a plain-English summary for the project's channel, the refusals, and the dry run that shows the text without posting. (checked against 2026.11.0) |
+| [Learning a subject with teacher course](https://mikehallett.science/assets/videos/murmurent_course.html) | 1:51 | The course mode of the teacher: an interview for the mission, a plan, self-contained lessons with a drawn figure and a quiz, and learning records so it never re-teaches what you have shown. (checked against 2026.11.0) |
+| [The mayor's and PI's tools](https://mikehallett.science/assets/videos/murmurent_mayor_tools.html) | 1:57 | The three administrative skills: priming context before admin work, processing an encrypted join request with an explicit decision, and resetting a machine after a backup and a dry run. (checked against 2026.11.0) |
 
 One two-minute movie per agent: what it does, what it will not do, one real run, and how to
 use it through Claude Code.

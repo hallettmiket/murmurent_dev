@@ -213,7 +213,8 @@ def chat_duration(question: str, chips, reply) -> float:
 
 def s_chat(img, t, sc, spec: AgentSpec, who: str, question: str, reply: list[str], chips):
     col = spec.colour
-    heading(img, t, f"In Claude Code, with the {spec.title.split(' ', 1)[-1]}", 28)
+    label = spec.title[4:] if spec.title.startswith("The ") else spec.title
+    heading(img, t, f"In Claude Code, with {'the ' + label if spec.title.startswith('The ') else label}", 28)
     _who(img, t, 0.3, 100, 200, AMBER, MEMBER_GLYPH, who)
     _who(img, t, 0.5, 100, 420, col, glyph_of(spec.agent), spec.agent)
     q0 = 0.8

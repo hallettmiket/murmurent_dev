@@ -1,0 +1,43 @@
+1
+00:00:00,400 --> 00:00:09,762
+This is how a member works with Murmurent: through Claude Code, by typing in plain words. Every other movie assumes these two minutes.
+
+2
+00:00:10,150 --> 00:00:25,692
+You open a project folder that is murmurent-ready: it carries a small marker file and its own CLAUDE.md. The sixteen agents and the rules are linked into your Claude Code folder once, by the install, so every session sees them.
+
+3
+00:00:25,692 --> 00:00:31,661
+Then you start Claude Code in that folder, and that is the last command you type.
+
+4
+00:00:32,049 --> 00:00:51,114
+The documentation calls the agents the commons: a shared set of reference agents, rules and workflows every member draws on. They are linked into your Claude Code folder, so you reach one by naming it: ask the adversary, ask the oracle, ask the security guard.
+
+5
+00:00:51,499 --> 00:01:00,541
+Here is a real exchange. The member names the security guard and says what to audit. Claude Code reads that agent's file and hands it the task.
+
+6
+00:01:00,541 --> 00:01:13,708
+The first line of every reply is the verdict, two hundred characters at most. Here it is Blocked. Read that line first; the detail below it says where and why.
+
+7
+00:01:14,099 --> 00:01:31,168
+Every agent's verdict line is also appended to a log, one line each, as it finishes. Keep that log open in a corner of the screen and you can see the agents working without reading their full replies. The VS Code layout does this for you.
+
+8
+00:01:31,549 --> 00:01:45,978
+Some things a session is refused, by hooks that run before a tool call. A write into immutable data. Overwriting a file under append only, where a new version gets a new number. A command that deletes under the data root.
+
+9
+00:01:45,978 --> 00:01:58,123
+The messages above are what the hooks really say. They are guardrails for the agents, not a security perimeter: a plain shell does not go through them, and that is on purpose.
+
+10
+00:01:58,500 --> 00:02:11,070
+The habits that matter: name the agent and give it files, not summaries. Read the verdict line first. And when a movie and the written documentation disagree, the documentation is right.
+
+11
+00:02:11,070 --> 00:02:18,432
+The sixteen agent movies each show one agent this way, in two minutes.

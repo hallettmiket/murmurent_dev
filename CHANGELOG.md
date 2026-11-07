@@ -18,6 +18,13 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 ## [Unreleased]
 
 ### Added
+- **Five more training movies** (#290): working through Claude Code (the one
+  every other movie assumes), the two push skills, the status update, a
+  course across sessions, and the mayor's and PI's tools, under
+  `training/skills/`, on a generic scene module (`training/lib/movie.py`)
+  that quotes a skill's own `SKILL.md`. The getting-started video was
+  re-checked against this release and ends with a coda pointing at the
+  Claude Code movie.
 - **One place for the videos and the news** (#289). `training/index.yaml`
   lists every training video (the standalone ones, the agent movies) and one
   line per release or new capability; `training/front_page.py` writes from it

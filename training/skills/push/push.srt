@@ -1,0 +1,39 @@
+1
+00:00:00,400 --> 00:00:09,809
+This is how you back up your work with Murmurent: two skills that commit and push with the lab's safety checks, and post a note where the project reads it.
+
+2
+00:00:10,200 --> 00:00:25,464
+The skill's own file lists what it refuses before anything is staged. Secret-shaped file names, such as a key or a credentials file. Secrets inside staged content, found by a scanner that never prints the secret itself.
+
+3
+00:00:25,464 --> 00:00:37,006
+Large files in tracked folders, which belong under append only on the data host. And it never amends history: the lab's history is the audit trail.
+
+4
+00:00:37,399 --> 00:00:50,017
+A real run, on a throwaway repository made for this movie. The member types the skill name. The scanner finds two token-shaped strings in the staged file and reports them redacted.
+
+5
+00:00:50,017 --> 00:01:01,048
+A credentials file was never staged, and a three-megabyte data file is named with where it should go instead. Nothing was committed or pushed.
+
+6
+00:01:01,449 --> 00:01:12,813
+After a push, one command decides where the note goes: a channel set in the repository's marker, else the channel of the project that lists the repository, else the lab's channel.
+
+7
+00:01:12,813 --> 00:01:22,218
+A repository with no route posts nowhere and says why. The skill runs this itself; nobody picks a channel by hand.
+
+8
+00:01:22,599 --> 00:01:36,331
+The second skill backs up every repository a project owns, running the same pre-flight on each. A repository that fails is blocked while its siblings still push, and one summary goes to the project's channel.
+
+9
+00:01:36,331 --> 00:01:43,136
+It does not run tests, bump versions or open pull requests. That is still yours.
+
+10
+00:01:43,549 --> 00:02:04,472
+To use them, type the skill name in Claude Code: murmurent push in a repository, or murmurent project push for the whole project. A blocked push names the file and the rule; fix the cause rather than overriding it. The note appears in the project's channel.
