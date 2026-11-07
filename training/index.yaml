@@ -193,7 +193,7 @@ videos:
   tagline: "Tier-3 memory: immutable, append_only, modifiable, and the rest of the lab folder"
   date: 2026-11-07
   version: 2026.11.0
-  seconds: 174
+  seconds: 170
   summary: "Murmurent's third tier of memory: the lab's data root on its server, what immutable, append_only, modifiable, mothballed, release, cottage, tools and db are for, how a project's folders mirror its repository, what the hooks refuse, and the layout check."
   page: https://mikehallett.science/assets/videos/murmurent_data_root.html
   file: https://mikehallett.science/assets/videos/murmurent_data_root_720p.mp4
@@ -201,14 +201,13 @@ videos:
   make: python3 training/skills/data_root/make.py
   sources:
     rules/data-storage.md: c620aa6c358fc65717a5c80892db38a54386d27ef71157c3345cca2d385d5c0a
-    docs/lab_folders.md: d72762141d08db51fe2e29ea0bb2c7c09e4fe11c4fb5fb19c9a2dbbf39cb9a47
   chapters:
     - ["0:00", "Welcome"]
-    - ["0:15", "Three tiers"]
-    - ["0:39", "The folders"]
-    - ["1:11", "What each folder is for"]
-    - ["1:47", "What the hooks refuse"]
-    - ["2:12", "Keeping it tidy"]
+    - ["0:09", "Three tiers"]
+    - ["0:29", "The folders"]
+    - ["0:54", "What each folder is for"]
+    - ["1:59", "What the hooks refuse"]
+    - ["2:18", "Keeping it tidy"]
     - ["2:32", "How to use it"]
 
 news:

@@ -68,6 +68,7 @@ class Part:
     cards: list[tuple[str, str]] = field(default_factory=list)   # howto: (title, body)
     docs: list[str] = field(default_factory=list)
     tail: float = 1.2
+    folders: list[tuple[str, str, str]] = field(default_factory=list)   # folders: (name, one line, cue)
     picture: str = ""                                     # story: gel | phone | bench | laptop | obsidian | clock
     reply: list[str] = field(default_factory=list)       # story: what Claude Code answered, a few lines
     footnote: str = ""                                    # story: the Murmurent command behind it
@@ -226,6 +227,32 @@ def _pic_clock(d, x, y, w, h, p):
 
 
 PICS = {"gel": _pic_gel, "phone": _pic_phone, "bench": _pic_bench, "obsidian": _pic_obsidian, "clock": _pic_clock}
+
+
+def s_folders(img, t, sc, part: Part):
+    """The data root drawn as a folder list. Each folder lights up, with its name large and
+    one short line, when the narration reaches it, so the screen always says which folder
+    is being talked about."""
+    heading(img, t, part.heading, 28)
+    d = ImageDraw.Draw(img)
+    d.text((70, 100), "$MURMURENT_DATA_ROOT  (/data/lab_vm on the server)", font=F_MONO_S, fill=MUTED)
+    n = len(part.folders)
+    y0, dy = 124, min(52, int(430 / max(n, 1)))
+    lit = -1
+    for i, (name, line, cue) in enumerate(part.folders):
+        if t >= sc.when(cue):
+            lit = i
+    for i, (name, line, cue) in enumerate(part.folders):
+        y = y0 + i * dy
+        on = i == lit
+        seen = i <= lit
+        col = part.colour if on else (TEXT if seen else DIM)
+        icon(img, "folder", 100, y + 20, 34, col, col)
+        d.text((130, y + 2), name + "/", font=F_LABEL if on else F_SMALL, fill=col)
+        if seen:
+            d.text((330, y + 6), line, font=F_SMALL if on else F_TINY, fill=TEXT if on else MUTED)
+        if on:
+            d.rounded_rectangle([80, y - 6, 1210, y + dy - 10], radius=10, outline=part.colour, width=2)
 
 
 def s_story(img, t, sc, part: Part):
@@ -402,6 +429,9 @@ def build_scenes(m: Movie, folder: Path, version: str) -> list[Scene]:
                                 lambda img, t, s, shim=shim, who=who, q=q, reply=reply, part=part:
                                 s_chat(img, t, s, shim, who, q, reply, part.chips),
                                 part.chapter, min_anim=chat_duration(q, part.chips, reply), tail=part.tail))
+        elif part.kind == "folders":
+            scenes.append(Scene(name, part.narration, lambda img, t, s, part=part: s_folders(img, t, s, part),
+                                part.chapter, tail=part.tail))
         elif part.kind == "story":
             scenes.append(Scene(name, part.narration, lambda img, t, s, part=part: s_story(img, t, s, part),
                                 part.chapter, min_anim=sc_story_len(part), tail=part.tail))
