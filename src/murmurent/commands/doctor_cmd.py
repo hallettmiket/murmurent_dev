@@ -303,10 +303,10 @@ def _project_settings_with_agent_hook(start: Path | None = None) -> str:
     """A project-level ``.claude/settings.json`` (here or in a parent folder) that still
     registers the agent-event hook, which the user-level settings also register."""
     here = (start or Path.cwd()).resolve()
-    user_settings = (_cc_dir() / "settings.json").resolve()
+    user_settings = {(_cc_dir() / "settings.json").resolve(), (Path.home() / ".claude" / "settings.json").resolve()}
     for folder in [here, *here.parents]:
         f = folder / ".claude" / "settings.json"
-        if not f.is_file() or f.resolve() == user_settings:
+        if not f.is_file() or f.resolve() in user_settings:
             continue        # the user's own settings are where the hook belongs
         try:
             doc = json.loads(f.read_text(encoding="utf-8") or "{}")
