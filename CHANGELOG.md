@@ -17,6 +17,8 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 
 ## [Unreleased]
 
+## [2026.11.1] - 2026-11-09
+
 ### Fixed
 - **Spoken verdicts no longer talk over each other or repeat.** The lock
   that makes verdicts wait their turn recorded the hook's pid instead of the
@@ -28,7 +30,13 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
   spoken once; `murmurent doctor` warns about the stale project registration.
 
 ### Changed (training movies, #302, #303)
-- Every agent and skill movie rewritten through the scribe in plain language: cards are short statements rather than quotations from the agent files, scope is stated positively, no file paths or commands on screen, and each movie says what a lab can tailor. The oracle movie tells the cross-project story the PI asked for (MMP11 in DCIS, recalled months later from a gene list). The adversary checked each movie against its agent's file and the artist reviewed the frames.
+- Every agent and skill movie rewritten through the scribe in plain language: cards are short statements rather than quotations from the agent files, scope is stated positively, no file paths or commands on screen, and each movie says what a lab can tailor. The oracle movie tells the cross-project story the PI asked for: a marker of early liver cancer (GPC3, separating early hepatocellular carcinoma from a dysplastic nodule), recalled eight months later from a screening gene list. The adversary checked each movie against its agent's file and the artist reviewed the frames.
+
+### Added (documentation)
+- A figure of which agent hands work to which, drawn from the hand-off lines in the agents' own files, on the reference-agents page (`docs/diagrams/agent_handoffs.dot`).
+
+### Fixed (agent files)
+- The millwright and registrar open with their own verdict words rather than a paragraph copied from the security guard; the registrar's file no longer calls itself read-only, since the code creates, archives and updates labs and cores; the security guard no longer claims the conscience is told automatically when it blocks on patient data (nothing tells one agent about another's verdict; it names the hand-off in its reply).
 
 ### Added (course review, the scribe)
 - `murmurent institution review`: the clerk reviews a whole course outline, every rule for its level (`applies_to` on a policy), each dated lecture, lab and assessment against the holidays and non-instructional days, the grade weights, and what the outline leaves unclear, as an HTML report. The conscience reviews the same outline separately; the scribe redoes it on request (#300).

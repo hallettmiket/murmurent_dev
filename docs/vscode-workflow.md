@@ -131,7 +131,7 @@ and `--download-dir ~/.murmurent/voices` fetches one.
 
 **What is read.** Each agent writes a second line beginning `Aloud:` under
 its headline: a plain-English summary of at most 100 words, written to be
-heard (see [`rules/headline_first.md`](../rules/headline_first.md)). The hook
+heard (see [`rules/headline_first.md`](https://github.com/hallettmiket/murmurent/blob/main/rules/headline_first.md)). The hook
 speaks that line. When an agent has not written one, it falls back to the
 headline: the first sentence of the agent's first line. Either way,
 web addresses, file paths, DOIs and markdown are stripped out, since

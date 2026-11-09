@@ -7,7 +7,7 @@ answers "where does the paper show this", "what is behind figure 2", "re-run
 it", and "what does it not address", each answer with a location. A **thesis
 package** is a thesis composed of paper packages, or of chapters that carry
 their own claims, plus the candidate's introduction, bridging text, conclusion
-and front matter, in `thesis.yaml`. The [`docent`](../agents/docent.md) is the
+and front matter, in `thesis.yaml`. The [`docent`](https://github.com/hallettmiket/murmurent/blob/main/agents/docent.md) is the
 agent that walks a reader or an examiner through either, and walks the author
 or candidate through getting it ready. Issue #284 holds the discussion that led
 here.
@@ -224,8 +224,8 @@ claims. `build/talk.tex` is the Beamer file, each slide titled with its claim,
 a comment naming its figure label and evidence, and a `\note` with its time
 budget. When the claims outnumber the minutes, the plan says how many result
 slides fall under 45 seconds and that the rest belong in backup slides. The
-sentences on the slides are the [`scribe`](../agents/scribe.md)'s job and a
-figure made for a page is the [`artist`](../agents/artist.md)'s; the command
+sentences on the slides are the [`scribe`](https://github.com/hallettmiket/murmurent/blob/main/agents/scribe.md)'s job and a
+figure made for a page is the [`artist`](https://github.com/hallettmiket/murmurent/blob/main/agents/artist.md)'s; the command
 gives the order and the time.
 
 ### `murmurent thesis paperwork`
@@ -252,7 +252,7 @@ examination in Veritas. The docent asks the clerk for this part.
 
 ## The docent
 
-The [`docent`](../agents/docent.md) is the one new agent. It reads the claim
+The [`docent`](https://github.com/hallettmiket/murmurent/blob/main/agents/docent.md) is the one new agent. It reads the claim
 map first, runs the check, and answers every question with a location or says
 `Absent` when the work does not address it. It re-runs a claim's code before
 reporting a number, logs each question and answer to

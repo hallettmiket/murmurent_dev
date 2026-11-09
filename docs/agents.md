@@ -109,6 +109,41 @@ and with which it must open its reply.
 | Registrar | Registry of groups, cores and collaborations; the centre-level administrative view | centre | Recorded / Conflict / Skipped |
 | Clerk | Ask it anything about the institution: it reads the answer off the institution's own pages, names the page and the date, and remembers it in the institution pack; checks documents, computes working-day dates, walks procedures | `Correct / Fix / Unknown` |
 
+
+## Who hands work to whom
+
+Every agent is started by the member's Claude Code session, and each one
+replies once. So when an agent needs another, it does not call it: it names
+the other agent in a hand-off line of its reply, and the session dispatches
+that agent next. The figure draws every such hand-off as it is written in
+the agents' own files. A solid arrow is a piece of work handed on; a dashed
+arrow is a review or a check. The one agent that dispatches another itself
+is the adversary, which refers IP-bearing work to the lawyer automatically
+mid-audit and folds the verdict into its own.
+
+![Which agent hands work to which, grouped as research and production, memory, review and adjudication, and infrastructure and administration](diagrams/agent_handoffs.svg)
+
+Some patterns worth noticing:
+
+- **The bookworm is the sink for citations.** The teacher, scribe, docent,
+  adversary and security guard all send it a reference to verify or find,
+  and the conscience sends it a resource to add. Nothing else may add to
+  the literature.
+- **The artist is the sink for figures.** The blacksmith hands it numbers,
+  the judge a combined presentation, the teacher and docent a figure that
+  needs real data. It asks the blacksmith for a metric it does not have.
+- **Review agents are siblings, not a chain.** The adversary audits the
+  science, the security guard audits what leaves the project, the
+  conscience reviews language and design. Each hands the others what is
+  theirs and does not repeat it.
+- **Infrastructure flows up and sign-off flows down.** A lab's millwright
+  hands cross-lab work to the centre millwright, which asks the registrar to
+  sign off before it writes. Both record what they did in the oracle and
+  ask the security guard to audit permissions.
+
+The source is `docs/diagrams/agent_handoffs.dot`; re-render it with
+`bash scripts/render_diagrams.sh` after changing a hand-off in an agent file.
+
 ---
 
 ## Oracle
