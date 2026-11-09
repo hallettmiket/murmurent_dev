@@ -169,10 +169,10 @@ videos:
 - key: notebook
   title: "Your lab notebook"
   tagline: "A day at the bench, and how it reaches your notebook"
-  date: 2026-11-08
-  version: 2026.11.0
-  seconds: 152
-  summary: "A bench scientist's day with the lab notebook: the plan in the morning, a gel photo from the phone, a voice note with gloves on, a prompt written in Obsidian and sent to Claude Code with one keystroke, the day recalled, and a report for the supervisor. Natural language throughout; the commands as footnotes."
+  date: 2026-11-09
+  version: 2026.11.1
+  seconds: 172
+  summary: "A bench scientist's day with the lab notebook: the experimental design if you like, a gel photo from the phone, a voice note with gloves on, a prompt written in Obsidian and sent to Claude Code with one keystroke, the day recalled, and a report for the supervisor. Natural language throughout; the commands as footnotes."
   page: https://mikehallett.science/assets/videos/murmurent_notebook.html
   file: https://mikehallett.science/assets/videos/murmurent_notebook_720p.mp4
   transcript: training/skills/notebook/notebook.srt
@@ -180,14 +180,14 @@ videos:
   sources:
   chapters:
     - ["0:00", "Welcome"]
-    - ["0:13", "The plan"]
-    - ["0:23", "The gel photo"]
-    - ["0:50", "A voice note"]
-    - ["1:08", "The entry"]
-    - ["1:23", "Prompts: write, send, keep"]
-    - ["1:40", "End of day: ask"]
-    - ["1:55", "End of week: the report"]
-    - ["2:13", "How to use it"]
+    - ["0:13", "The design"]
+    - ["0:30", "The gel photo"]
+    - ["0:57", "A voice note"]
+    - ["1:15", "The entry"]
+    - ["1:33", "Prompts: write, send, keep"]
+    - ["2:01", "End of day: ask"]
+    - ["2:16", "End of week: the report"]
+    - ["2:35", "How to use it"]
 - key: data_root
   title: "The data root: where big files live"
   tagline: "Where the lab's big files live, and what each folder is for"
