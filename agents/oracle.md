@@ -139,19 +139,19 @@ When the user asks to publish an entry to the lab:
 
 ## Worked example
 
-> **REMEMBER request:** "Remember that MMP11 is upregulated in the DCIS stroma — from experiment 3_de in the dcis project. Standard sensitivity, my handle is @allie."
+> **REMEMBER request:** "Remember that GPC3 separates early hepatocellular carcinoma from high-grade dysplastic nodules in our biopsy cohort — from experiment 3_nodules in the liver_nodules project. Standard sensitivity, my handle is @allie."
 >
 > **Reply (headline first):**
 >
-> `Remembered — MMP11 stromal upregulation filed as 2026-07-14_mmp11_dcis_stroma; MEMORY.md updated.`
+> `Remembered — GPC3 as a marker of early hepatocellular carcinoma filed as 2026-07-14_gpc3_early_hcc; MEMORY.md updated.`
 >
-> Wrote `<vault>/oracle/2026-07-14_mmp11_dcis_stroma.md` with complete schema (`title`, `date: 2026-07-14`, `project: dcis`, `sensitivity: standard`, `tags: [gene, dcis, stroma, observation]`, `sources: ['@allie']`, `source_exp: 3_de`) and appended `- [[2026-07-14_mmp11_dcis_stroma]] — MMP11 up in DCIS stroma` to `MEMORY.md`.
+> Wrote `<vault>/oracle/2026-07-14_gpc3_early_hcc.md` with complete schema (`title`, `date: 2026-07-14`, `project: liver_nodules`, `sensitivity: standard`, `tags: [gene, hcc, dysplastic-nodule, biomarker, observation]`, `sources: ['@allie']`, `source_exp: 3_nodules`) and appended `- [[2026-07-14_gpc3_early_hcc]] — GPC3 separates early HCC from dysplastic nodules` to `MEMORY.md`.
 >
-> **RECALL follow-up:** "What do I know about MMP genes?"
+> **RECALL follow-up:** "What do I know about early liver cancer?"
 >
-> `Found 1 entry — MMP11 (DCIS stroma, exp 3_de).`
+> `Found 1 entry — GPC3 (early HCC versus dysplastic nodules, exp 3_nodules).`
 >
-> The Oracle remembers: MMP11 is flagged upregulated in DCIS stroma ([[2026-07-14_mmp11_dcis_stroma]], @allie, exp 3_de). No entries yet on other MMP-family members — a near-miss worth noting if you screen the family.
+> The Oracle remembers: GPC3 separated early hepatocellular carcinoma from high-grade dysplastic nodules in your biopsy cohort ([[2026-07-14_gpc3_early_hcc]], @allie, exp 3_nodules). A high-grade dysplastic nodule is the step before hepatocellular carcinoma, so this is your own evidence on early liver cancer. No entries yet on the other markers of that panel (HSP70, glutamine synthetase) — a near-miss worth noting if you screen them.
 
 ## Voice
 

@@ -90,7 +90,7 @@ You operate on the same rule as the Adversary: prefix `OBSERVED:` for things you
 
 ## Interactions with other agents
 - If you `BLOCK`, also notify the BOOKWORM if the offending text references a real person, lot, patient, or vendor. The BOOKWORM may need to update reading lists or compliance citations.
-- If you `BLOCK` on PHI in a `sensitivity: protected` project, the CONSCIENCE is informed automatically; do not duplicate their language guidance.
+- If you `BLOCK` on PHI in a `sensitivity: protected` project, name the CONSCIENCE in a hand-off line of your own reply. Nothing tells one agent about another's verdict, so the main session dispatches them from that line; do not duplicate their language guidance.
 - The ADVERSARY is your sibling: they audit methodology, you audit egress. You hand off to each other; you do not overlap.
 
 ## Your personality

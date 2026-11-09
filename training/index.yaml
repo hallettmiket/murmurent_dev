@@ -240,18 +240,18 @@ movies:
 - agent: oracle
   title: The oracle
   tagline: "Your personal research memory"
-  version: 2026.11.0
-  date: 2026-11-08
-  agent_sha256: c587dc642be6e2506967efc55ae5da6112094cc406b48fd6815d3a61af46e866
+  version: 2026.11.1
+  date: 2026-11-09
+  agent_sha256: 4ccaa69779f9dabfb86eb0918c8800e17882bd5e3f2b44e60048abed1a563bea
   file: training/agents/oracle/oracle_narrated.mp4
   make: python3 training/agents/oracle/make.py
-  seconds: 136
+  seconds: 138
   chapters:
     - ["0:00", "Welcome"]
-    - ["0:15", "What it does"]
-    - ["0:42", "Its scope"]
-    - ["1:10", "A real example"]
-    - ["1:49", "How to use it"]
+    - ["0:14", "What it does"]
+    - ["0:39", "Its scope"]
+    - ["1:05", "A real example"]
+    - ["1:54", "How to use it"]
 - agent: bookworm
   title: The bookworm
   tagline: "Finds the literature and checks every citation against its source"

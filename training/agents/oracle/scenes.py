@@ -37,17 +37,19 @@ SPEC = AgentSpec(
         "The bookworm finds papers and the blacksmith runs analyses; the oracle keeps what you found. "
         "It remains factual: if it holds nothing on a topic, it says so."],
     examples=[
-        Exchange("1", ["A real run. In March, in a project on DCIS, an early form of breast cancer, "
-                       "the member asks the oracle to remember that MMP11 is a marker of recurrence.",
+        Exchange("1", ["A real run. In March, in a project on liver nodules, the small growths in a "
+                       "scarred liver that can turn into cancer, the member asks the oracle to remember "
+                       "that the gene GPC3 marks early hepatocellular carcinoma, the first stage of liver "
+                       "cancer, and tells it apart from a nodule that has not turned.",
                        "It files the finding with its project and experiment."],
                  [("read its index", True), ("write the entry", True), ("update its index", True)]),
-        Exchange("2", ["Eight months later, in a breast screening project, the member passes six genes "
-                       "and asks what they know about early breast cancer.",
-                       "The oracle recalls MMP11, because DCIS is early breast cancer. For the other "
-                       "five, it says plainly that it holds nothing of theirs."],
+        Exchange("2", ["Eight months later, in a liver screening project, the member passes six genes "
+                       "and asks what they know about early liver cancer.",
+                       "The oracle recalls GPC3, because early hepatocellular carcinoma is early liver "
+                       "cancer. For the other five, it says plainly that it holds nothing of theirs."],
                  [("read its index", True), ("read the entry", True)]),
     ],
-    prompt="ask the oracle to remember that MMP11 marks recurrence in DCIS, from the recurrence experiment",
+    prompt="ask the oracle to remember that GPC3 marks early hepatocellular carcinoma, from the nodule experiment",
     give="The finding and where it came from.",
     verdicts="Remembered when it files something; Found, Not found or Unsure when you ask.",
     howto_narration=[
