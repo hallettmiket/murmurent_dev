@@ -521,3 +521,68 @@ def test_cli_check_with_policy(pack_dir, tmp_path):
     syl = tmp_path / "syllabus.md"; syl.write_text(SYLLABUS)
     out = r.invoke(cli, ["institution", "check", str(syl), "--policy", "course_outlines", "--pack", str(pack_dir)])
     assert out.exit_code == 1 and "Fix: Quiz 2" in out.output and "Correct: Quiz 1" in out.output
+
+
+# --------------------------------------------------------------------------- #
+# Public pages only: the deny list and the behind-a-login refusal (lawyer's ruling, 2026-11-07)
+# --------------------------------------------------------------------------- #
+
+
+def test_deny_list_refuses_intranet_hosts_inside_the_domains(pack):
+    pack.meta["deny_hosts"] = ["learn.example.edu", "login.example.edu"]
+    assert inst.host_allowed("https://www.example.edu/x", pack.domains, deny=pack.deny_hosts)
+    assert not inst.host_allowed("https://learn.example.edu/course/1", pack.domains, deny=pack.deny_hosts)
+    assert not inst.host_allowed("https://sub.login.example.edu/", pack.domains, deny=pack.deny_hosts)
+    with pytest.raises(inst.PackError, match="deny list"):
+        inst.fetch_text("https://learn.example.edu/course/1", domains=pack.domains, deny=pack.deny_hosts)
+    with pytest.raises(inst.PackError, match="deny list"):
+        inst.learn_fact(pack, question="q", answer="a", source="https://learn.example.edu/p", fetcher=lambda u, d: "a")
+    pack.meta["deny_hosts"] = []
+
+
+def test_shipped_packs_carry_a_deny_list():
+    for name in ("example", "western"):
+        root = Path(__file__).resolve().parents[1] / "institution" / name
+        if root.is_dir():
+            p = inst.load_pack(root)
+            assert p.deny_hosts, name
+            assert all(inst.host_denied(f"https://{h}/", p.deny_hosts) for h in p.deny_hosts)
+
+
+def test_behind_a_login_is_refused_and_never_recorded(pack, monkeypatch):
+    import io
+    import urllib.error
+    src = "https://www.example.edu/internal.html"
+
+    class _Resp:
+        def __init__(self, body): self.body = body; self.headers = type("H", (), {"get_content_charset": lambda s: "utf-8"})()
+        def read(self): return self.body
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+
+    def opener_for(kind):
+        class _O:
+            def open(self, req, timeout=0):
+                if kind == "401":
+                    raise urllib.error.HTTPError(src, 401, "Unauthorized", {}, io.BytesIO(b""))
+                if kind == "403":
+                    raise urllib.error.HTTPError(src, 403, "Forbidden", {}, io.BytesIO(b""))
+                return _Resp(b'<html><title>Sign in to Example</title><form><input type="password"></form></html>')
+        return _O()
+
+    for kind in ("401", "403", "form"):
+        monkeypatch.setattr(inst.urllib.request, "build_opener", lambda *a, kind=kind: opener_for(kind))
+        with pytest.raises(inst.PackError, match="behind a login"):
+            inst.fetch_text(src, domains=pack.domains)
+        with pytest.raises(inst.PackError, match="behind a login"):
+            inst.learn_fact(pack, question="internal q", answer="x", source=src)
+    assert not any(f.get("question") == "internal q" for f in inst.load_pack(pack.root).learned)
+
+
+def test_redirect_to_a_sign_in_page_is_refused():
+    h = inst.urllib.request.HTTPRedirectHandler  # the handler class is built inside fetch_text; test its rule directly
+    assert inst._LOGIN_PATH.search("/sso/login")
+    assert inst._LOGIN_PATH.search("/cas/")
+    assert not inst._LOGIN_PATH.search("/academics/thesis/index.html")
+    assert inst._LOGIN_PAGE.search('<title>Login - Example</title>')
+    assert not inst._LOGIN_PAGE.search('<title>Examinations</title><p>Log in to the portal for your schedule.</p>')

@@ -109,6 +109,11 @@ class Pack:
         return [str(d).lower().lstrip(".") for d in (self.meta.get("domains") or [])]
 
     @property
+    def deny_hosts(self) -> list[str]:
+        """Hosts inside the domains that are never read: intranets behind a login."""
+        return [str(d).lower().lstrip(".") for d in (self.meta.get("deny_hosts") or [])]
+
+    @property
     def max_fact_age_days(self) -> int:
         try:
             return int(self.meta.get("max_fact_age_days") or DEFAULT_MAX_FACT_AGE_DAYS)
@@ -354,11 +359,29 @@ def _norm(s: str) -> str:
     return re.sub(r"[^a-z0-9]+", " ", s.lower()).strip()
 
 
-def host_allowed(url: str, domains: list[str], *, require_https: bool = True) -> bool:
+LOGIN_REFUSED = "behind a login; the clerk reads public pages only"
+_LOGIN_PATH = re.compile(r"/(login|signin|sign-in|sso|saml|cas|auth|idp|oauth2?)(/|\?|$)", re.I)
+_LOGIN_PAGE = re.compile(r'<input[^>]+type=["\']?password|<title[^>]*>[^<]*(sign in|log in|login|sign-in)[^<]*</title>', re.I)
+
+
+def host_denied(url: str, deny: list[str] | tuple[str, ...]) -> bool:
+    """True when the host is one of the pack's ``deny_hosts`` or a subdomain of one:
+    the intranets (the learning system, HR self-service, the student information
+    system, the sign-on hosts) that a wide domain rule would otherwise admit."""
+    try:
+        host = (urllib.parse.urlsplit(url).hostname or "").lower()
+    except ValueError:
+        return True
+    return any(host == d or host.endswith("." + d) for d in (x.lower().lstrip(".") for x in deny) if d)
+
+
+def host_allowed(url: str, domains: list[str], *, require_https: bool = True,
+                 deny: list[str] | tuple[str, ...] = ()) -> bool:
     """True when ``url`` is https (or http too, with ``require_https=False``,
-    for a redirect the institution's own site issues) and its host is one of
-    ``domains`` or a subdomain of one. ``uwo.ca`` admits ``grad.uwo.ca``; it
-    does not admit ``uwo.ca.example.com``."""
+    for a redirect the institution's own site issues), its host is one of
+    ``domains`` or a subdomain of one, and it is not on the ``deny`` list.
+    ``uwo.ca`` admits ``grad.uwo.ca``; it does not admit ``uwo.ca.example.com``;
+    and a denied intranet host is refused however the domain rule reads."""
     try:
         parts = urllib.parse.urlsplit(url)
     except ValueError:
@@ -366,6 +389,8 @@ def host_allowed(url: str, domains: list[str], *, require_https: bool = True) ->
     if parts.scheme not in (("https",) if require_https else ("https", "http")) or not parts.hostname:
         return False
     host = parts.hostname.lower()
+    if host_denied(url, deny):
+        return False
     return any(host == d or host.endswith("." + d) for d in domains if d)
 
 
@@ -385,7 +410,7 @@ def validate_pack(pack: Pack) -> list[str]:
                 problems.append(f"{where}: `{key}:` is required on every fact")
         if f.data.get("date_read") and f.date_read is None:
             problems.append(f"{where}: `date_read:` must be YYYY-MM-DD")
-        if f.source and domains and not host_allowed(f.source, domains):
+        if f.source and domains and not host_allowed(f.source, domains, deny=pack.deny_hosts):
             problems.append(f"{where}: source {f.source} is outside the pack's domains {domains}")
         if f.kind == "holiday" and _parse_date(f.data.get("date")) is None:
             problems.append(f"{where}: holiday `date:` must be YYYY-MM-DD")
@@ -419,7 +444,7 @@ def validate_pack(pack: Pack) -> list[str]:
     if fetch is not None:
         if not isinstance(fetch, dict) or not fetch.get("url"):
             problems.append(f"{COURSES_FILE}: `fetch:` needs a `url:`")
-        elif domains and not host_allowed(str(fetch["url"]), domains):
+        elif domains and not host_allowed(str(fetch["url"]), domains, deny=pack.deny_hosts):
             problems.append(f"{COURSES_FILE}: fetch url {fetch['url']} is outside the pack's domains")
     return problems
 
@@ -746,11 +771,17 @@ Fetcher = Callable[[str, dict[str, str] | None], str]
 
 
 def fetch_text(url: str, data: dict[str, str] | None = None, *, domains: list[str],
-               timeout: int = FETCH_TIMEOUT_SECONDS) -> str:
+               deny: list[str] | tuple[str, ...] = (), timeout: int = FETCH_TIMEOUT_SECONDS) -> str:
     """GET (or POST ``data``) ``url`` and return the page as plain text. The
-    host must be inside ``domains`` or the call refuses before any network
-    activity. Redirects to another host are refused too."""
-    if not host_allowed(url, domains):
+    host must be inside ``domains`` and off the ``deny`` list, or the call
+    refuses before any network activity. Redirects to another host, or to a
+    sign-in page, are refused; so is a 401 or 403, and a page that is itself a
+    login form. None of these is retried with credentials: the clerk reads
+    public pages only (the institution lists the tool as public-data-only and
+    classes its intranet pages as sensitive)."""
+    if host_denied(url, deny):
+        raise PackError(f"refused: {url} is on the pack's deny list ({LOGIN_REFUSED})")
+    if not host_allowed(url, domains, deny=deny):
         raise PackError(f"refused: {url} is outside the pack's domains {domains}")
     body = urllib.parse.urlencode(data).encode() if data else None
     req = urllib.request.Request(url, data=body, headers={"User-Agent": USER_AGENT})
@@ -758,8 +789,11 @@ def fetch_text(url: str, data: dict[str, str] | None = None, *, domains: list[st
     class _NoCrossHost(urllib.request.HTTPRedirectHandler):
         def redirect_request(self, req, fp, code, msg, headers, newurl):  # noqa: N802
             # A site that sends its own page to plain http stays inside its
-            # domain; one that sends it to another host does not.
-            if not host_allowed(newurl, domains, require_https=False):
+            # domain; one that sends it to another host does not; and one that
+            # sends it to a sign-in page is behind a login.
+            if host_denied(newurl, deny) or _LOGIN_PATH.search(urllib.parse.urlsplit(newurl).path or ""):
+                raise PackError(f"refused: {url} redirects to a sign-in page ({LOGIN_REFUSED})")
+            if not host_allowed(newurl, domains, require_https=False, deny=deny):
                 raise PackError(f"refused: {url} redirects to {newurl}, outside the pack's domains")
             return super().redirect_request(req, fp, code, msg, headers, newurl)
 
@@ -768,9 +802,16 @@ def fetch_text(url: str, data: dict[str, str] | None = None, *, domains: list[st
         with opener.open(req, timeout=timeout) as resp:
             raw = resp.read()
             charset = resp.headers.get_content_charset() or "utf-8"
+    except urllib.error.HTTPError as exc:
+        if exc.code in (401, 403):
+            raise PackError(f"refused: {url} answered {exc.code} ({LOGIN_REFUSED})") from exc
+        raise PackError(f"could not read {url}: {exc}") from exc
     except urllib.error.URLError as exc:
         raise PackError(f"could not read {url}: {exc}") from exc
-    return raw.decode(charset, errors="replace")
+    text = raw.decode(charset, errors="replace")
+    if _LOGIN_PAGE.search(text[:20000]):
+        raise PackError(f"refused: {url} is a sign-in page ({LOGIN_REFUSED})")
+    return text
 
 
 def _ssl_context():
@@ -833,8 +874,8 @@ def fetch_course(pack: Pack, subject: str, number: str, fetcher: Fetcher | None 
         raise PackError(f"{pack.root / COURSES_FILE} has no `fetch:` rule")
     url = str(rule["url"])
     fields = {k: str(v).format(subject=subject, number=number) for k, v in (rule.get("fields") or {}).items()}
-    fetcher = fetcher or (lambda u, d: fetch_text(u, d, domains=pack.domains))
-    if not host_allowed(url, pack.domains):
+    fetcher = fetcher or (lambda u, d: fetch_text(u, d, domains=pack.domains, deny=pack.deny_hosts))
+    if not host_allowed(url, pack.domains, deny=pack.deny_hosts):
         raise PackError(f"refused: {url} is outside the pack's domains {pack.domains}")
     markup = fetcher(url, fields if str(rule.get("method", "GET")).upper() == "POST" else None)
     courses = parse_timetable_tables(markup)
@@ -895,7 +936,7 @@ def refresh(pack: Pack, *, fetcher: Fetcher | None = None, today: date | None = 
     replaced it is a person's call, not a parser's."""
     today = today or date.today()
     domains = pack.domains
-    fetcher = fetcher or (lambda u, d: fetch_text(u, d, domains=domains))
+    fetcher = fetcher or (lambda u, d: fetch_text(u, d, domains=domains, deny=pack.deny_hosts))
     pages: dict[str, str | None] = {}
     changes: list[Change] = []
 
@@ -914,7 +955,7 @@ def refresh(pack: Pack, *, fetcher: Fetcher | None = None, today: date | None = 
         if not f.source:
             changes.append(Change(f, "no_source"))
             continue
-        if not host_allowed(f.source, domains):
+        if not host_allowed(f.source, domains, deny=pack.deny_hosts):
             changes.append(Change(f, "off_domain", f"{f.source} is outside {domains}"))
             continue
         if f.kind == "course":
@@ -1103,7 +1144,7 @@ def lookup(pack: Pack, query: str, *, fetcher: Fetcher | None = None,
     written: the clerk reads the best page and records the fact with
     ``learn_office`` so the next session has it."""
     domains = pack.domains
-    fetcher = fetcher or (lambda u, d: fetch_text(u, d, domains=domains))
+    fetcher = fetcher or (lambda u, d: fetch_text(u, d, domains=domains, deny=pack.deny_hosts))
     words = _query_words(query)
     if not words:
         return []
@@ -1118,7 +1159,7 @@ def lookup(pack: Pack, query: str, *, fetcher: Fetcher | None = None,
 
     while queue and len(seen) < max_pages:
         url, hop, _ = queue.pop(0)
-        if url in seen or not host_allowed(url, domains, require_https=False):
+        if url in seen or not host_allowed(url, domains, require_https=False, deny=pack.deny_hosts):
             continue
         seen.add(url)
         try:
@@ -1138,13 +1179,21 @@ def lookup(pack: Pack, query: str, *, fetcher: Fetcher | None = None,
             cands = []
             for link, label in _links(markup, url):
                 s = matches(label) * 2 + matches(link)
-                if s and host_allowed(link, domains, require_https=False) and link not in seen:
+                if s and host_allowed(link, domains, require_https=False, deny=pack.deny_hosts) and link not in seen:
                     cands.append((s, link))
             cands.sort(key=lambda c: -c[0])
             for s, link in cands[:6]:
                 queue.append((link, hop + 1, s))
     hits.sort(key=lambda h: -h.score)
     return hits
+
+
+def _check_source(pack: Pack, source: str) -> None:
+    """A learned fact's page must be inside the domains and off the deny list."""
+    if host_denied(source, pack.deny_hosts):
+        raise PackError(f"refused: {source} is on the pack's deny list ({LOGIN_REFUSED})")
+    if not host_allowed(source, pack.domains, deny=pack.deny_hosts):
+        raise PackError(f"refused: {source} is outside the pack's domains {pack.domains}")
 
 
 def learn_office(pack: Pack, *, office: str, person: str, title: str = "", email: str = "",
@@ -1156,10 +1205,9 @@ def learn_office(pack: Pack, *, office: str, person: str, title: str = "", email
     address. Replaces an entry for the same office; keeps everything else.
     Only what an institution publishes about an office holder is accepted."""
     today = today or date.today()
-    if not host_allowed(source, pack.domains):
-        raise PackError(f"refused: {source} is outside the pack's domains {pack.domains}")
+    _check_source(pack, source)
     if confirm:
-        fetcher = fetcher or (lambda u, d: fetch_text(u, d, domains=pack.domains))
+        fetcher = fetcher or (lambda u, d: fetch_text(u, d, domains=pack.domains, deny=pack.deny_hosts))
         text = html_to_text(fetcher(source, None)).lower()
         missing = [v for v in (person, email) if v and v.lower() not in text]
         if missing:
@@ -1197,10 +1245,10 @@ def verify_fact(pack: Pack, fact: Fact, *, fetcher: Fetcher | None = None, today
     holder current between scheduled refreshes: the clerk verifies on read
     once a fact is older than ``verify_after_days``."""
     today = today or date.today()
-    fetcher = fetcher or (lambda u, d: fetch_text(u, d, domains=pack.domains))
+    fetcher = fetcher or (lambda u, d: fetch_text(u, d, domains=pack.domains, deny=pack.deny_hosts))
     if not fact.source:
         return Change(fact, "no_source")
-    if not host_allowed(fact.source, pack.domains):
+    if not host_allowed(fact.source, pack.domains, deny=pack.deny_hosts):
         return Change(fact, "off_domain", f"{fact.source} is outside {pack.domains}")
     try:
         text = html_to_text(fetcher(fact.source, None)).lower()
@@ -1234,11 +1282,10 @@ def learn_fact(pack: Pack, *, question: str, answer: str, source: str, evidence:
     evidence, so nothing enters the memory from the model's own recollection.
     A fact for the same question replaces the older one."""
     today = today or date.today()
-    if not host_allowed(source, pack.domains):
-        raise PackError(f"refused: {source} is outside the pack's domains {pack.domains}")
+    _check_source(pack, source)
     evidence = evidence or answer
     if confirm:
-        fetcher = fetcher or (lambda u, d: fetch_text(u, d, domains=pack.domains))
+        fetcher = fetcher or (lambda u, d: fetch_text(u, d, domains=pack.domains, deny=pack.deny_hosts))
         text = re.sub(r"\s+", " ", html_to_text(fetcher(source, None))).lower()
         if re.sub(r"\s+", " ", evidence).lower() not in text:
             raise PackError(f"refused: {source} does not show {evidence!r}; a fact is learned only from a page "
@@ -1427,12 +1474,11 @@ def learn_rule(pack: Pack, *, policy: str, rule_id: str, says: str, source: str,
     enters the pack from recollection. ``check`` makes it machine-checkable
     (kind in RULE_KINDS, with weeks or percent); without it the rule is applied by reading."""
     today = today or date.today()
-    if not host_allowed(source, pack.domains):
-        raise PackError(f"refused: {source} is outside the pack's domains {pack.domains}")
+    _check_source(pack, source)
     if check and check.get("kind") not in RULE_KINDS:
         raise PackError(f"check.kind must be one of {RULE_KINDS}")
     if confirm:
-        fetcher = fetcher or (lambda u, d: fetch_text(u, d, domains=pack.domains))
+        fetcher = fetcher or (lambda u, d: fetch_text(u, d, domains=pack.domains, deny=pack.deny_hosts))
         text = re.sub(r"\s+", " ", html_to_text(fetcher(source, None))).lower()
         if re.sub(r"\s+", " ", says).lower() not in text:
             raise PackError(f"refused: {source} does not state {says!r}; a rule is learned only as the page words it")
