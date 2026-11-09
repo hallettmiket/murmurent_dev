@@ -73,3 +73,8 @@ def test_cli_new_and_send_latest_block(tmp_path, monkeypatch):
     assert "sent (10 characters" in out.output and "sessions/" in out.output
     out = r.invoke(cli, ["prompt", "send", "--text", "hello there"])
     assert out.exit_code == 0 and "pasted into Claude" in out.output
+    # --quiet prints nothing on success, so an Obsidian hotkey set to replace the selection
+    # clears the prompt from the note; the record is still written.
+    out = r.invoke(cli, ["prompt", "send", "--quiet", "--text", "clear me after sending"])
+    assert out.exit_code == 0 and out.output == ""
+    assert any("clear me after sending" in f.read_text() for f in (paths.vault / "sessions").rglob("*.md"))
