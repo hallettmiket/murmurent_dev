@@ -1,43 +1,43 @@
 1
-00:00:00,400 --> 00:00:09,762
-This is how a member works with Murmurent: through Claude Code, by typing in plain words. Every other movie assumes these two minutes.
+00:00:00,400 --> 00:00:10,300
+This is how you work with Murmurent: you type to Claude Code in plain English. Every other movie assumes these two minutes.
 
 2
-00:00:10,150 --> 00:00:25,692
-You open a project folder that is murmurent-ready: it carries a small marker file and its own CLAUDE.md. The sixteen agents and the rules are linked into your Claude Code folder once, by the install, so every session sees them.
+00:00:10,700 --> 00:00:22,399
+You open your project folder, which is already set up for Murmurent. The agents and the shared rules arrive once, with the install, so every session has them.
 
 3
-00:00:25,692 --> 00:00:31,661
-Then you start Claude Code in that folder, and that is the last command you type.
+00:00:22,399 --> 00:00:29,699
+Then you start Claude Code in that folder. From then on, you type English.
 
 4
-00:00:32,049 --> 00:00:51,114
-The documentation calls the agents the commons: a shared set of reference agents, rules and workflows every member draws on. They are linked into your Claude Code folder, so you reach one by naming it: ask the adversary, ask the oracle, ask the security guard.
+00:00:30,099 --> 00:00:49,799
+Ask for what you want in plain English, and Claude Code does the work. When you want a specialist, name it: ask the bookworm for papers, ask the adversary to check an analysis, ask the oracle to remember a finding. Each agent has one job.
 
 5
-00:00:51,499 --> 00:01:00,541
-Here is a real exchange. The member names the security guard and says what to audit. Claude Code reads that agent's file and hands it the task.
+00:00:50,199 --> 00:00:57,099
+Here is a real exchange. The member names the security guard and says what to check.
 
 6
-00:01:00,541 --> 00:01:13,708
-The first line of every reply is the verdict, two hundred characters at most. Here it is Blocked. Read that line first; the detail below it says where and why.
+00:00:57,099 --> 00:01:08,399
+The first line of every reply is the answer. Here it is Blocked. Read that line first; the detail below says where and why.
 
 7
-00:01:14,099 --> 00:01:31,168
-Every agent's verdict line is also appended to a log, one line each, as it finishes. Keep that log open in a corner of the screen and you can see the agents working without reading their full replies. The VS Code layout does this for you.
+00:01:08,800 --> 00:01:23,700
+Each agent's first line also appears in a small window as it finishes. Keep that window in a corner of the screen, and you can follow the agents without reading their full replies.
 
 8
-00:01:31,549 --> 00:01:45,978
-Some things a session is refused, by hooks that run before a tool call. A write into immutable data. Overwriting a file under append only, where a new version gets a new number. A command that deletes under the data root.
+00:01:24,100 --> 00:01:41,799
+Your work is kept. Every request you type is kept in your notebook's record of sessions, except one that looks like patient details or a password. Ask the oracle to remember a finding, and it keeps it for the next time you ask.
 
 9
-00:01:45,978 --> 00:01:58,123
-The messages above are what the hooks really say. They are guardrails for the agents, not a security perimeter: a plain shell does not go through them, and that is on purpose.
+00:01:41,799 --> 00:01:48,700
+And inside Claude Code, agents are stopped from changing your lab's original data.
 
 10
-00:01:58,500 --> 00:02:11,070
-The habits that matter: name the agent and give it files, not summaries. Read the verdict line first. And when a movie and the written documentation disagree, the documentation is right.
+00:01:49,100 --> 00:02:00,799
+Three habits matter. Name the agent and give it the files themselves. Read the first line of the reply. And ask the oracle to remember what you find.
 
 11
-00:02:11,070 --> 00:02:18,432
-The sixteen agent movies each show one agent this way, in two minutes.
+00:02:00,799 --> 00:02:08,599
+Each agent has its own short movie that shows it this way.

@@ -15,56 +15,56 @@ $ murmurent join-request approve <id> --actor @mayor
 MOVIE = Movie(
     key="mayor_tools",
     title="The mayor's and PI's tools",
-    tagline="/murmurent-admin, /murmurent-onboard and /murmurent-reset: three skills, three users",
+    tagline="For the centre's administrator and lab heads: three tools, typed by name",
     glyph="🏛️",
     colour=LAV,
     summary="The three administrative skills: priming context before admin work, processing an encrypted join request with an explicit decision, and resetting a machine after a backup and a dry run.",
     parts=[
-        Part("title", ["These are the three skills for the people who run a centre or a lab: priming context before "
-                       "administrative work, processing a join request, and resetting a machine safely."]),
-        Part("cards", chapter="/murmurent-admin", heading="/murmurent-admin: load the design first",
+        Part("title", ["Three tools for the people who run a centre or a lab: the centre's administrator, called "
+                       "the mayor, and each lab's head. Each is typed by its slash name in Claude Code."]),
+        Part("cards", chapter="/murmurent-admin", heading="/murmurent-admin: read the design first",
              source="skills/murmurent-admin/SKILL.md", colour=TEAL,
-             quotes=[Quote("Before doing admin-level work", "Before"),
-                     Quote("reload that context so you act from murmurent's actual design, not a half-remembered version of it.", "half-remembered"),
-                     Quote("there is no \"mayor\" agent", "no mayor agent")],
-             narration=["The admin skill does no work of its own. Before any centre, registrar or provisioning "
-                        "change, it reloads the design from the documents and the code, so the session acts from "
-                        "murmurent's actual design and not a half-remembered version.",
-                        "It also settles a confusion: there is no mayor agent. The mayor is a person who bootstraps "
-                        "a centre once."]),
+             quotes=[Quote("Before any change to the centre, it rereads the design.", "Before"),
+                     Quote("The session then works from the documents and the code.", "documents"),
+                     Quote("The mayor is a person who sets up the centre.", "mayor is a person")],
+             narration=["Before anyone changes how the centre runs, how people join or how labs are set up, they "
+                        "type slash murmurent admin. Claude Code first reads the centre's design documents and "
+                        "code, so it works from the real design.",
+                        "It also settles one question: the mayor is a person who sets up the centre once, and the "
+                        "registrar is the agent that keeps the centre's list of labs and projects."]),
         Part("terminal", chapter="/murmurent-onboard", heading="/murmurent-onboard: a join request, end to end",
-             transcript=T_ONBOARD, title="Terminal: what the skill runs", colour=LAV,
-             notes=[("It checks a centre exists first; on this laptop there is none, and it stops there.", "stops"),
-                    ("Decrypt and file, show who is asking, then an explicit decision.", "explicit"),
-                    ("Approval creates a channel, a repository and permissions, so it waits for a clear yes.", "clear yes")],
-             narration=["The onboard skill processes an encrypted join request. It checks that a centre exists first; "
-                        "on this laptop there is none, so a real run stops there, and the rest is what it runs on the "
-                        "mayor's machine.",
-                        "Decrypt and file the request, show who is asking, then an explicit decision. Approval "
-                        "creates a channel, a repository and permissions, so it waits for a clear yes."]),
-        Part("cards", chapter="What onboard refuses", heading="What it never does", source="skills/murmurent-onboard/SKILL.md",
-             colour=RED, mark="cross",
-             quotes=[Quote("Never approve without the mayor's explicit yes", "explicit yes"),
-                     Quote("Never invent the requester's details", "invent"),
-                     Quote("The decrypted plaintext contains a person's contact info: handle it like the private data it is", "private data")],
-             narration=["It never approves without the mayor's explicit yes, never invents the requester's details, "
-                        "and treats the decrypted request as the private data it is: it never goes into Slack or "
-                        "GitHub."]),
+             transcript=T_ONBOARD, title="Terminal: what the skill would run on the mayor's machine", colour=LAV,
+             notes=[("On this laptop there is no centre yet, so it stops.", "stops"),
+                    ("It opens the request and shows who is asking.", "shows who"),
+                    ("Approving a lab creates its Slack channel, GitHub space and folder access.", "approving")],
+             narration=["Someone who wants to join emails the mayor a locked request, and the mayor types slash "
+                        "murmurent onboard. It first checks that a centre exists; on this laptop there is none, so "
+                        "it stops there, and the rest is what it runs on the mayor's machine.",
+                        "It unlocks the request, shows who is asking and why, and asks: approve or decline? "
+                        "Approving a new lab creates its Slack channel, a shared code space on GitHub, and access "
+                        "to its folders, so it waits for a clear yes. A person joining an existing lab is approved by that lab's head."]),
+        Part("cards", chapter="How onboard handles a request", heading="How it handles a request", source="skills/murmurent-onboard/SKILL.md",
+             colour=RED, mark="tick",
+             quotes=[Quote("It approves only after the mayor's clear yes.", "only after"),
+                     Quote("It reads every detail from the request itself.", "request itself"),
+                     Quote("It keeps the requester's contact details private.", "private")],
+             narration=["It approves only after the mayor's clear yes. It reads every detail from the request "
+                        "itself, and it keeps the requester's contact details private, out of Slack and GitHub."]),
         Part("chat", chapter="/murmurent-reset", key="1", agent="murmurent-reset", agent_title="/murmurent-reset", colour=RED, who="PI",
-             chips=[("pick the level", True), ("--dry-run", True), ("backup", True), ("run for real", False)],
-             narration=["The reset skill returns a machine to a clean start, in levels. A real dry run on this "
-                        "laptop: it shows every step it would take, the backup it would write first, and what it "
-                        "keeps.",
-                        "Credentials and other projects' installs are never removed without an explicit flag. The "
-                        "real run happens only after you have read this and said yes."]),
+             chips=[("pick the level", True), ("a dry run", True), ("backup", True), ("run for real", False)],
+             narration=["Slash murmurent reset returns a machine to a fresh start, for example before setting up a "
+                        "centre again. It works in levels. Here is a real preview on this laptop: every step it "
+                        "would take, the backup it writes first, and what it keeps.",
+                        "Your access keys and other projects' settings stay unless you name them. It runs for real "
+                        "only after you read the preview and say yes."]),
         Part("howto", heading="How to use them",
              prompt="/murmurent-reset",
-             cards=[("Admin first", "/murmurent-admin before any change to the centre, the registrar, the join flow or provisioning."),
-                    ("Onboard with a yes", "/murmurent-onboard when a join request arrives; it asks approve or decline and records who answered."),
-                    ("Reset after a preview", "/murmurent-reset shows the dry run, takes a backup, then asks. Credentials need their own flag.")],
+             cards=[("Admin first", "Type /murmurent-admin before changing how the centre runs."),
+                    ("Onboard with a yes", "/murmurent-onboard when a join request arrives; you approve or decline."),
+                    ("Reset after a preview", "/murmurent-reset shows a preview, asks, then backs up before it changes anything.")],
              docs=["skills/murmurent-admin/SKILL.md", "skills/murmurent-onboard/SKILL.md", "skills/murmurent-reset/SKILL.md"],
-             narration=["To use them: admin before any change to the administrative layer. Onboard when a join "
-                        "request arrives, and answer its question yourself. Reset only after reading the preview; "
-                        "the backup is taken for you."]),
+             narration=["To use them: admin before changing how the centre runs. Onboard when a join request "
+                        "arrives, and give the answer yourself. Reset after reading the preview; the backup is "
+                        "taken for you."]),
     ],
 )

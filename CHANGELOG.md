@@ -24,9 +24,15 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
   was still talking; it now records the right pid. A verdict queued for more
   than two minutes is dropped rather than read as a backlog. The same event
   delivered twice (the hook registered in a project's `.claude/settings.json`
-  as well as the user's, a leftover from before 2026-05-17; that file is now
-  gone from this repository) is logged and spoken once; `murmurent doctor`
-  warns about a stale project registration.
+  as well as the user's, a leftover from before 2026-05-17) is logged and
+  spoken once; `murmurent doctor` warns about the stale project registration.
+
+### Changed (training movies, #302, #303)
+- Every agent and skill movie rewritten through the scribe in plain language: cards are short statements rather than quotations from the agent files, scope is stated positively, no file paths or commands on screen, and each movie says what a lab can tailor. The oracle movie tells the cross-project story the PI asked for (MMP11 in DCIS, recalled months later from a gene list). The adversary checked each movie against its agent's file and the artist reviewed the frames.
+
+### Added (course review, the scribe)
+- `murmurent institution review`: the clerk reviews a whole course outline, every rule for its level (`applies_to` on a policy), each dated lecture, lab and assessment against the holidays and non-instructional days, the grade weights, and what the outline leaves unclear, as an HTML report. The conscience reviews the same outline separately; the scribe redoes it on request (#300).
+- The scribe may edit a manuscript in place when asked, writes in whatever format the manuscript uses, uses the house style by default, and a lab tailors it with its own papers in `docs/scientific_writing_examples.md` (#301).
 
 ### Added
 - **The clerk reviews a syllabus against the institution's rules.** Rules live

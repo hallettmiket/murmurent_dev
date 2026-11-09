@@ -1,53 +1,51 @@
-"""The centre millwright movie: narration, quotes from agents/centre_millwright.md, and the real exchange in transcript.md."""
+"""The centre millwright movie: narration, cards checked against agents/centre_millwright.md, and the real exchange in transcript.md."""
 from lib.agent_movie import AgentSpec, Exchange, Quote
 from lib.draw import TEAL
 
 SPEC = AgentSpec(
     agent="centre_millwright",
     title="The centre millwright",
-    tagline="Centre-wide infrastructure: cross-lab projects, ACLs and the drift loop",
+    tagline="Keeps every project's access consistent across the centre",
     colour=TEAL,
     icon="cloud",
-    intro=["This is the centre millwright. Where the millwright serves one lab, this one serves the whole "
-           "centre: cross-lab projects, permissions on shared servers, and the loop that finds drift."],
+    intro=["This is the centre millwright. It works for the centre's administrator, the registrar, and keeps "
+           "each project's access the same everywhere: its Slack channel, its code and its data folders."],
     does=[
-        Quote("centre-wide reconciliation", "reconciliation"),
-        Quote("Per-project filesystem ACLs on shared servers, cross-lab project provisioning (Slack ownership + guest invites), centre-level membership-drift detection",
-              "permissions on shared servers"),
-        Quote("Reconciles drift", "drift"),
-        Quote("One project at a time.", "One project"),
+        Quote("Compares each project's member list with who actually has access", "compares"),
+        Quote("Reports drift: every difference, with what it would change", "drift"),
+        Quote("Sets up projects whose members come from several labs", "several labs"),
+        Quote("One project at a time, after the registrar approves", "approves"),
     ],
     does_narration=[
-        "Its file says the job is centre-wide reconciliation: per-project permissions on shared servers, "
-        "cross-lab project provisioning with guest invites, and membership-drift detection.",
-        "Reconciling drift is its primary job: compare what the project records say with what Slack, GitHub "
-        "and the filesystem actually hold. One project at a time, so a bad step cannot cascade."],
+        "Each project has a list of its members. The centre millwright compares that list with who is actually "
+        "in the project's channel, on its code, and on its folders on the shared servers. Any difference is "
+        "drift, and it reports each one with what it would change.",
+        "It also sets up projects whose members come from several labs, inviting the others as guests. "
+        "It works one project at a time, and changes nothing until the registrar approves."],
     refuses=[
-        Quote("Onboarding individual members is the per-lab millwright's.", "onboard"),
-        Quote("You never modify any per-lab lab_mgmt repo.", "modifies"),
-        Quote("You do not act without registrar sign-off", "sign-off"),
-        Quote("Slack channel deletion is one-way.", "deletes"),
+        Quote("Each lab's millwright sets up that lab's members", "lab's own millwright"),
+        Quote("Reads each lab's records; the lab's PI keeps them", "reads"),
+        Quote("Archives an unused channel, so the registrar can restore it", "archives"),
     ],
     refuses_narration=[
-        "It does not onboard individual members; that is the lab millwright's. It never modifies a lab's "
-        "records repository; it only reads them.",
-        "It does not act on shared infrastructure without registrar sign-off. And it never deletes a Slack "
-        "channel: it archives, so the registrar can restore."],
+        "Each lab's own millwright sets up that lab's members; the centre millwright takes over once a project "
+        "crosses labs. It reads each lab's records, which the lab's PI keeps.",
+        "When a channel is no longer needed, it archives it, so the registrar can bring it back."],
     examples=[
-        Exchange("1", ["A real run, dry-run only, on a laptop with no centre record. The mayor asks for the "
-                       "drift loop.",
-                       "The verdict is Drift. It says plainly which comparison it could not make here, lists each "
-                       "item of local drift with what it would do, and applied nothing."],
-                 [("read centre.md", False), ("murmurent reconcile", True), ("apply", False)],
-                 who="Mayor"),
+        Exchange("1", ["A real run that changes nothing. The registrar asks it to check the centre's records on "
+                       "this machine.",
+                       "The comparison of members with their access could not run here, and it says so. It then "
+                       "lists eight local items, each with what it would do."],
+                 [("read the centre's record", False), ("check local records", True), ("change anything", False)],
+                 who="Registrar"),
     ],
-    prompt="ask the centre millwright to reconcile project dcis_imaging across the two labs",
-    give="The project, or nothing for the full loop. It reads the records and the live state, and shows the diff first.",
-    verdicts="Reconciled / Drift / BLOCKED, with the diff it would apply and the sign-off it needs.",
+    prompt="ask the centre millwright whether the DCIS imaging project's access matches its members in both labs",
+    give="The project, or nothing to check every project. It shows each difference before changing anything.",
+    verdicts="Reconciled / Drift / BLOCKED, with each difference and the approval it needs.",
     howto_narration=[
-        "To use it, type to Claude Code and name it: ask the centre millwright to reconcile a project, or to run "
-        "the drift loop. It runs on the registrar's machine and shows the diff before anything is applied.",
-        "The first line is the verdict: Reconciled, Drift or Blocked. Then each delta, what it would change, and "
-        "the confirmation it is waiting for."],
+        "To use it, ask the centre millwright, on the registrar's computer, to check one project or every "
+        "project. It shows each difference before anything changes.",
+        "The first line is the verdict: Reconciled, Drift, or Blocked while it waits for approval. A centre "
+        "sets its own name, Slack workspace and GitHub organisation, and every project's names follow from them."],
     docs=["docs/reconcile.md"],
 )

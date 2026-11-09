@@ -1,43 +1,47 @@
 1
-00:00:00,400 --> 00:00:16,914
-This is the clerk. Ask it anything about your institution: who runs an office, when an exam must be printed, whether a syllabus follows the rules. It reads the answer off the institution's own pages, and says which page and when.
+00:00:00,400 --> 00:00:17,100
+This is the clerk. Ask it anything about your institution: who runs an office, when an exam must be printed, whether a course outline follows the rules. It reads the answer on the institution's own pages, then and there.
 
 2
-00:00:17,299 --> 00:00:37,208
-Its file has one rule above the others: it answers from the institution's own pages, and says which page and when it read it. What it finds goes into a folder called the pack, which is its memory: the question, the answer, the page, the date. Nobody fills it in beforehand.
+00:00:17,500 --> 00:00:31,200
+It reads the institution's public pages when you ask, and names the page and the date. It remembers what it found, and re-reads the page before relying on it, because people change offices.
 
 3
-00:00:37,208 --> 00:00:49,893
-People change, so a remembered fact is re-read from its page every time before the clerk relies on it: the memory says where to look, the page says what is true today.
+00:00:31,200 --> 00:00:46,900
+It also reviews a whole course outline: every rule it has on file for the course's level, and the others by reading; every date against holidays; and whether the grades add to one hundred.
 
 4
-00:00:50,299 --> 00:01:03,846
-It never fills a gap from memory or from a page outside the institution's own sites, and anything behind a login is refused: public pages only. When the pages do not say, the answer is Unknown.
+00:00:47,300 --> 00:01:00,600
+When the pages do not say, the answer is Unknown, with the nearest thing they do say. A page behind a login it leaves to you, and says where to read it.
 
 5
-00:01:03,846 --> 00:01:23,682
-It says nothing about a person beyond the office, title, public email and campus address the institution publishes. It never offers a date that falls on a holiday. And it never edits a document or the pack by hand: the scribe writes, and the commands record what it read.
+00:01:00,600 --> 00:01:11,900
+After a course review, the conscience reviews the outline for equity and inclusion, and the scribe redoes it with the fixes on request.
 
 6
-00:01:24,099 --> 00:01:37,831
-A real run. A course instructor asks when the final exam for their course must be printed, for the fall of twenty twenty-six. The clerk recalls, searches the institution's own site, and reads the pages.
+00:01:12,300 --> 00:01:18,800
+A real run. An instructor asks when their final exam must be printed this fall.
 
 7
-00:01:37,831 --> 00:01:49,605
-The answer names the rule, the page it came from, and the date it was read, and says which part was read and which was computed. What it found is now remembered.
+00:01:18,800 --> 00:01:33,300
+The clerk quotes the rule and the exam period, each with its page, and works out the date. The course's own exam date sits behind a login, so that part is Unknown.
 
 8
-00:01:50,000 --> 00:02:01,355
-Asked who runs the equity, diversity and inclusion office, it finds the office's own page, reads it, records the office holder with the page and the date, and answers.
+00:01:33,700 --> 00:01:45,000
+Asked who runs the equity, diversity and inclusion office, it answers with the name, title and public email, each from a page it opened.
 
 9
-00:02:01,750 --> 00:02:17,650
-Say what to check and against what: a syllabus against the university's rules on evaluation, with each rule quoted as the page words it; who holds an office; or a count of working days.
+00:01:45,400 --> 00:02:02,300
+Then a whole course outline. Two things must change: a quiz in the last three weeks of classes, and a lab report announced too late. Each comes with the rule quoted and the page it was read from.
 
 10
-00:02:18,050 --> 00:02:36,425
-To use it, type to Claude Code and name it: ask the clerk a question about the institution, to check a letter, or to count working days from a date. The first time, it looks the answer up; the next time, it remembers where it read it, and reads that page again before answering.
+00:02:02,700 --> 00:02:14,600
+Say what to look at: a course outline and its level, who holds an office, or a count of working days that skips holidays.
 
 11
-00:02:36,425 --> 00:02:51,496
-The first line is the verdict: Correct, Fix or Unknown, and every answer names the page and the date. Another university, or a company, is another pack and the same clerk.
+00:02:15,000 --> 00:02:24,700
+To use it, type your question to Claude Code and name the clerk. The first line is the verdict: Correct, Fix or Unknown.
+
+12
+00:02:24,700 --> 00:02:36,900
+Its memory holds short facts from your university's pages, each with its page and date; another university gets a memory of its own.

@@ -586,3 +586,69 @@ def test_redirect_to_a_sign_in_page_is_refused():
     assert not inst._LOGIN_PATH.search("/academics/thesis/index.html")
     assert inst._LOGIN_PAGE.search('<title>Login - Example</title>')
     assert not inst._LOGIN_PAGE.search('<title>Examinations</title><p>Log in to the portal for your schedule.</p>')
+
+
+# --------------------------------------------------------------------------- #
+# The whole-course review
+# --------------------------------------------------------------------------- #
+
+SYLLABUS_2027 = """# EXAM 2001: Winter 2027
+Term: 4 January to 9 April 2027.
+Lecture 1 | 4 January 2027
+Lecture 2 | 15 February 2027
+Lab 3 | 26 March 2027
+| Quiz 1 | 20 January 2027 | 10% |
+| Midterm | 15 February 2027 | 30% |
+| Essay (new, announced 1 March) | 5 April 2027 | 20% |
+| Quiz 2 | 1 April 2027 | 10% |
+| Final examination | TBA | 30% |
+Late work loses 5% per day.
+Office hours: Tuesdays. Academic integrity: see the policy.
+"""
+
+
+def _review_pack(pack):
+    from murmurent.core import institution as inst
+    pol = {"name": "course_outlines", "applies_to": ["undergraduate"], "rules": [
+        {"id": "tests_last_3_weeks", "says": "Tests may not be scheduled during the last 3 weeks of classes.",
+         "source": "https://www.example.edu/calendar/policies.html", "date_read": "2026-11-07",
+         "check": {"kind": "no_tests_in_last_weeks", "weeks": 3}},
+        {"id": "no_new_6_weeks", "says": "no new assignments are introduced in the last six weeks",
+         "source": "https://www.example.edu/calendar/policies.html", "date_read": "2026-11-07",
+         "check": {"kind": "no_new_assignments_in_last_weeks", "weeks": 6}}]}
+    pack.policies["course_outlines"] = pol
+    return pack
+
+
+def test_review_course_applies_rules_calendar_weights_and_clarity(pack):
+    from murmurent.core import course_review as cr
+    pack = _review_pack(pack)
+    rv = cr.review_course(pack, SYLLABUS_2027, level="undergraduate")
+    whats = {(f.verdict, f.what.split(" [")[0]) for f in rv.all()}
+    # rules: Quiz 2 in the last 3 weeks, the essay announced in the last 6
+    assert ("Fix", "Quiz 2") in whats and ("Fix", "Essay") in whats
+    # calendar: a lecture on Family Day (2027-02-15) and a lab on Good Friday (2027-03-26)
+    sched = {f.what: f for f in rv.schedule}
+    assert sched["Lecture 2"].verdict == "Fix" and "Family Day" in sched["Lecture 2"].detail
+    assert sched["Lab 3"].verdict == "Fix" and "Good Friday" in sched["Lab 3"].detail
+    assert sched["Lecture 1"].verdict == "Correct"
+    # weights: the penalty line is not an assessment; 100% adds up
+    assert [f for f in rv.grading if f.what == "grade weights"][0].verdict == "Correct"
+    # clarity: the final has no date; the outline says nothing about accommodation
+    assert any(f.what == "Final examination" and f.verdict == "Unknown" for f in rv.clarity)
+    assert any("accommodation" in f.what for f in rv.clarity)
+    assert not any("integrity" in f.what for f in rv.clarity)
+    assert rv.verdict() == "Fix"
+
+
+def test_review_course_level_selects_policies_and_reports_render(pack):
+    from murmurent.core import course_review as cr
+    pack = _review_pack(pack)
+    rv = cr.review_course(pack, SYLLABUS_2027, level="graduate")
+    assert rv.policies == [] and any(f.what == "rules" and f.verdict == "Unknown" for f in rv.rules)
+    html = cr.render_html(rv, "T")
+    md = cr.render_markdown(rv, "T")
+    assert "<title>T</title>" in html and "Family Day" in html and "conscience" in html
+    assert md.startswith("# T") and "## Grading" in md
+    with pytest.raises(inst.PackError):
+        cr.review_course(pack, SYLLABUS_2027, level="postdoc")

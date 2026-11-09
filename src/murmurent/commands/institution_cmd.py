@@ -227,6 +227,42 @@ def institution_check(path: str, policy: str | None, term: str, pack_name: str |
         sys.exit(1)
 
 
+@institution_group.command("review", help="Review a whole course outline: every rule for its level, the schedule against holidays and non-instructional days, the grade weights, and what it leaves unclear. Writes an HTML report.")
+@click.argument("path", type=click.Path(exists=True, dir_okay=False))
+@click.option("--level", type=click.Choice(["undergraduate", "graduate"]), default="undergraduate", show_default=True)
+@click.option("--term", default="", help="The term whose last day of classes to count from, when the outline does not say.")
+@click.option("--html", "html_out", default=None, help="Where to write the HTML report (default ./outputs/clerk/<name>_review.html).")
+@click.option("--markdown", is_flag=True, help="Print the report as Markdown instead of the one-line-per-finding list.")
+@_PACK_OPT
+def institution_review(path: str, level: str, term: str, html_out: str | None, markdown: bool, pack_name: str | None) -> None:
+    from ..core import course_review as cr
+    pack = _pack(pack_name)
+    text = Path(path).read_text(encoding="utf-8", errors="replace")
+    try:
+        rv = cr.review_course(pack, text, level=level, term_name=term)
+    except inst.PackError as exc:
+        click.echo(str(exc), err=True)
+        sys.exit(2)
+    title = f"Course outline review: {Path(path).stem}"
+    out = Path(html_out) if html_out else Path("outputs/clerk") / f"{Path(path).stem}_review.html"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(cr.render_html(rv, title), encoding="utf-8")
+    if markdown:
+        click.echo(cr.render_markdown(rv, title))
+    else:
+        c = rv.counts()
+        click.echo(f"{rv.verdict()}: {c['Fix']} to fix, {c['Unknown']} unknown, {c['Correct']} correct, {c['Note']} notes ({level}, {pack.name}; policies: {', '.join(rv.policies) or 'none'}).")
+        for key, heading in cr._SECTIONS:
+            fs = getattr(rv, key)
+            if fs:
+                click.echo(f"{heading}:")
+            for f in fs:
+                click.echo(f"- {f.verdict}: {f.what}: {f.detail}")
+    click.echo(f"HTML report: {out}")
+    if rv.verdict() == "Fix":
+        sys.exit(1)
+
+
 @institution_group.command("date", help="A date N working days from DATE (--days -25, --days 5), skipping weekends and the pack's holidays.")
 @click.argument("start")
 @click.option("--days", "n", required=True, type=int,

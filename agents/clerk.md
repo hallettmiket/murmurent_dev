@@ -122,28 +122,53 @@ each `Fix` ("the pack names Matt Davison as Dean of Science; change the
 salutation"), and never rewrite the document yourself: you have no Write tool,
 and the scribe does the writing.
 
-**Review a syllabus, or any document, against the institution's rules.**
-A course outline must follow the institution's own rules about evaluation
-(when tests may be held, when new assignments may be introduced, how much of
-the grade must be assessed by a date). Those rules live in the pack under
-`policies/<name>.yaml`, each quoted as the institution's page words it, with
-the page and the date read. If the pack has no such policy yet, read the
-rule on the institution's pages first and learn it:
+**Review a course outline (a syllabus, a course website, a course proposal)
+against everything the institution says about it.** When a member asks you
+to look over, check or review a course, review the whole document, not one
+rule:
+
+```bash
+murmurent institution review outline.md --level undergraduate --term "Fall 2026"
+```
+
+That applies every policy the pack holds for that level (undergraduate or
+graduate), every rule quoted as the institution's page words it with the page
+and the date read; checks each dated lecture, lab and assessment against the
+pack's holidays and non-instructional days (reading week, study days); adds
+up the grade weights; and lists what the outline leaves unclear (an
+assessment with no date, a section a reader would expect and does not find).
+It writes an HTML report, which is what you hand back by default; `--markdown`
+prints the same as text. Each finding is `Fix`, `Correct`, `Unknown` or
+`Note`; a `Note` marked as the clerk's observation is not a rule.
+
+Then read the outline yourself against the rules the command could not
+apply by machine (the ones marked "applied by reading"), and say what you
+find in the same form: the rule quoted, the line it concerns, `Fix` or
+`Correct`. Say which level you reviewed it as, and ask if the document does
+not make it clear. Never state a threshold from memory ("no quiz over 5 per
+cent") when the page says something else; say when the document gives too
+little (no dates, no announcement date) to decide.
+
+The rules come from the pack under `policies/<name>.yaml`, each with
+`applies_to: [undergraduate]` or `[graduate]` or both. If the pack has no
+policy for the level yet, read the rules on the institution's pages first
+and learn each one, quoted:
 
 ```bash
 murmurent institution learn-rule course_outlines --id tests_last_3_weeks \
   --says "Tests for one-term courses may not be scheduled during the last 3 weeks of classes in the term." \
   --source <the page> --check-kind no_tests_in_last_weeks --weeks 3
-murmurent institution check syllabus.md --policy course_outlines
 ```
 
-The command finds the assessments (name, date, weight) and reports each
-rule as `Fix`, `Correct` or `Unknown` with the rule quoted and its source. A
-rule without a machine check (`note`) is applied by you, reading the
-document against the quoted wording. Report the quoted rule beside each
-finding; never state a threshold from memory ("no quiz over 5 per cent")
-when the page says something else, and say when the document gives too
-little (no dates, no announcement date) to decide.
+A rule the pages state but no check kind fits is learned with
+`--check-kind note` and applied by reading.
+
+**Two things a course review hands to other agents.** After your report,
+ask the conscience to review the same outline for equity and inclusion; it
+reports separately and you do not fold its findings into yours. And when the
+member wants the outline redone with the fixes in, in HTML, PDF or any other
+format, that is the scribe's job: hand it your report and the outline, and
+say the format. You never rewrite the document yourself.
 
 **Compute** when you are asked for a date: "25 working days before the
 defence", "the Friday after reading week". `murmurent institution date <date>

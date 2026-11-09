@@ -1,53 +1,50 @@
-"""The registrar movie: narration, quotes from agents/registrar.md, and the real exchange in transcript.md."""
+"""The registrar movie: narration, cards checked against agents/registrar.md, and the real exchange in transcript.md."""
 from lib.agent_movie import AgentSpec, Exchange, Quote
 from lib.draw import SKY
 
 SPEC = AgentSpec(
     agent="registrar",
     title="The registrar",
-    tagline="The centre's roster of labs, cores and collaborations, and its certificate authority",
+    tagline="The centre's one list of labs, cores and collaborations",
     colour=SKY,
     icon="stamp",
-    intro=["This is the registrar, the agent above the lab level. It keeps the centre's roster of labs, "
-           "cores and collaborations, and it signs the cards that say who leads what."],
+    intro=["This is the registrar. It works for the centre's administrator, such as a research director, "
+           "and keeps one list of every lab, core facility and collaboration, and who leads each."],
     does=[
-        Quote("the centre-level roster. Lab / core / collaboration lifecycle, the authoritative _registry.yaml",
-              "roster"),
-        Quote("Every PI leads at most one lab or core.", "at most one"),
-        Quote("Read-only oversight", "read-only view"),
-        Quote("you are the centre's certificate authority", "certificate"),
+        Quote("Keeps one list of the centre's labs, cores and collaborations", "one list"),
+        Quote("Each PI leads at most one lab or core", "at most one"),
+        Quote("Shows whose required training has expired, centre-wide", "expired"),
+        Quote("Signs each PI's identity card", "identity card"),
     ],
     does_narration=[
-        "Its file says the scope: the centre-level roster, the lifecycle of labs, cores and collaborations, and "
-        "the one registry file that is authoritative. It enforces that every PI leads at most one lab or core.",
-        "It gives the administrative head a read-only view of the centre. And it is the certificate authority: "
-        "it signs PI cards and holds the revocation list."],
+        "It keeps one list of the centre's labs, cores and collaborations, each with its lead and its status, "
+        "and it holds to one rule: each PI leads at most one lab or core.",
+        "It shows the administrator which members, in any lab, have expired or missing training, such as "
+        "research ethics. And it signs each PI's identity card, the signed record that says who they are."],
     refuses=[
-        Quote("Read a lab's notebook entries, SEAs, deliberations, inventory, project source code, or personal Oracle memory.",
-              "notebook"),
-        Quote("Edit a lab's CHARTER, MEMBERS, or per-member members/<handle>.md profiles.", "CHARTER"),
-        Quote("Delete a lab's data.", "Delete"),
+        Quote("Each lab keeps its own notebooks, code and member list", "own notebooks"),
+        Quote("Archiving a lab changes its status; its files stay", "archiving"),
+        Quote("The centre millwright sets up what the registrar approves", "approves"),
     ],
     refuses_narration=[
-        "What it must never do: read inside a lab, its notebooks, deliberations, source code or personal oracles. "
-        "Labs are opaque units to it.",
-        "It never edits a lab's charter, members or profiles; those belong to the lab. And it never deletes a "
-        "lab's data: archiving flips a status flag and the repository stays."],
+        "The registrar sees each lab from the outside. Each lab keeps its own notebooks, code, memory and "
+        "member list, and edits them itself. Archiving a lab changes its status in the list, and its files stay.",
+        "When a collaboration needs channels and folders, the registrar approves and the centre millwright "
+        "sets them up."],
     examples=[
-        Exchange("1", ["A real run, read-only, on this machine's registry. The administrative head asks for the "
-                       "institution-level view.",
-                       "The verdict is Clear: one lab, its PI, no cores yet, and one gap named plainly: nobody is "
-                       "recorded as registrar. Nothing was changed."],
-                 [("read _registry.yaml", True), ("check the pointer", True), ("read inside the lab", False)],
-                 who="Administrative head"),
+        Exchange("1", ["A real run that only reads. The administrator asks for the centre-wide view.",
+                       "It finds one lab and its PI, no cores or collaborations yet, and one gap named plainly: "
+                       "nobody is recorded as registrar. Nothing was changed."],
+                 [("read the registry", True), ("find each lab's records", True), ("read inside the lab", False)],
+                 who="Director"),
     ],
     prompt="ask the registrar which labs and cores are registered and whether any entry is incomplete",
-    give="For a view, nothing. For a new lab or core, its name and its PI. For a card, the PI's enrolment request.",
-    verdicts="Recorded / Conflict / Skipped, then the roster or what it refused and why.",
+    give="For the view, nothing. For a new lab or core, its name and its PI.",
+    verdicts="Recorded / Conflict / Skipped, then the list or what stopped it.",
     howto_narration=[
-        "To use it, type to Claude Code and name it: ask the registrar for the roster, to record a new lab, or to "
-        "issue a PI card. It refuses a PI who already leads another group.",
-        "The first line is the verdict: Recorded, Conflict or Skipped. Then the roster, with every pointer "
-        "checked, or the conflict that stopped it."],
+        "To use it, the administrator types to Claude Code and names it: ask the registrar which labs and cores "
+        "are registered, or whether an entry is incomplete. It refuses a PI who already leads another group.",
+        "When it records, finds a conflict or skips, the first line says so: Recorded, Conflict or Skipped. A centre chooses its own registrar and "
+        "records its own labs, cores and collaborations."],
     docs=["docs/identity.md"],
 )

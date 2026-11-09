@@ -1,31 +1,31 @@
 1
-00:00:00,400 --> 00:00:11,155
-This is the course mode of the teacher. When a subject takes weeks rather than one sitting, you type teacher course and the subject, and a course folder becomes its memory.
+00:00:00,400 --> 00:00:18,699
+This is the teacher's course mode. When a subject takes weeks rather than one sitting, you type teacher course and the subject. It teaches you over several sessions, with lessons you mark up and a record of what you have shown you know.
 
 2
-00:00:11,550 --> 00:00:23,424
-The skill's own file sets the first rule: no lesson in an empty folder. It interviews you first, one question at a time, for the concrete reason you need the subject.
+00:00:19,099 --> 00:00:30,799
+It starts by interviewing you, one question at a time: what you will do with the subject, by when, what you already have, and where you get stuck.
 
 3
-00:00:23,424 --> 00:00:33,804
-Where you currently get stuck is the most useful answer, because it tells the course what to cut. The mission is written down and re-read every session.
+00:00:30,799 --> 00:00:43,299
+That last answer matters most, and the goal as a whole tells the course what to leave out. Your goal is written down and re-read every session.
 
 4
-00:00:34,199 --> 00:00:45,331
-A real first session, with a learner whose answers were fixed for the movie. The mission names the deadline and what done looks like. The plan is three lessons, one an hour.
+00:00:43,699 --> 00:00:59,799
+Here is a real first session, with a practice learner whose answers were set in advance. The goal: choose a permutation test, which shuffles the group labels, for colony sizes, and defend it at lab meeting in three weeks.
 
 5
-00:00:45,331 --> 00:00:58,033
-The first lesson is a page with a figure you can play with: shuffle the labels and watch the gaps pile up. The sources are pending, because the bookworm finds them, not memory.
+00:00:59,799 --> 00:01:18,299
+The first lesson has a figure you play with: shuffle the labels and watch the gaps pile up. In this practice run the reading had not come back yet; a real course finds its sources through the bookworm before writing a lesson.
 
 6
-00:00:58,449 --> 00:01:14,682
-Everything lives in the course folder: the mission, the plan, the resources, the lessons and the learning records. A record says what you demonstrated and what you fumbled, so a later session never teaches twice what you have shown.
+00:01:18,700 --> 00:01:42,799
+Everything lives in one course folder: your goal, the sources, the lessons and the learning records. After each lesson, a record notes what you showed you know and what you fumbled, so nothing you have mastered is taught twice. Each session picks the next smallest step toward your goal, from what the records show you know.
 
 7
-00:01:15,099 --> 00:01:31,007
-Later sessions open with retrieval, not content: two or three questions from earlier lessons, weighted to what you fumbled. Struggling to recall is where the retention comes from, and the skill does not rescue you from a pause.
+00:01:43,200 --> 00:01:58,099
+Later sessions start with two or three questions from earlier lessons, weighted to what you fumbled. Struggling to recall is where lasting memory comes from, so the teacher gives you time to think.
 
 8
-00:01:31,399 --> 00:01:51,300
-To use it, type teacher course and the subject in your main session. Answer the interview. Open each lesson, mark the sentence that lost you, take the quiz, and the next session starts from your record. For one method or one paper, teacher explain is enough.
+00:01:58,500 --> 00:02:17,899
+To use it, type teacher course and the subject. Answer the interview. Open each lesson, mark the sentence that lost you, and take the quiz; the next session starts from there. For one method or one paper, teacher explain is enough.

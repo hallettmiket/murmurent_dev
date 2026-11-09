@@ -1326,6 +1326,7 @@ def recall(pack: Pack, query: str) -> list[dict[str, Any]]:
 RULE_KINDS = ("no_tests_in_last_weeks", "no_new_assignments_in_last_weeks", "no_final_exam_in_last_weeks",
               "min_weight_before_date", "note")
 _TEST_WORDS = re.compile(r"\b(test|quiz|quizzes|midterm|exam|examination)\b", re.I)
+_PENALTY_WORDS = re.compile(r"\b(late|penalt\w*|per (day|week)|deduct\w*|bonus)\b", re.I)
 _FINAL_WORDS = re.compile(r"\bfinal (exam|examination)\b", re.I)
 _PCT = re.compile(r"(\d{1,3}(?:\.\d+)?)\s*%")
 _MONTHS = "January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec"
@@ -1367,6 +1368,8 @@ def parse_assessments(text: str) -> list[Assessment]:
         line = raw.strip().strip("|").strip()
         if not line or "%" not in line or set(line) <= set("|-: "):
             continue
+        if _PENALTY_WORDS.search(line):
+            continue  # "late work loses 5% per day" is a penalty, not an assessment
         m = _PCT.search(line)
         if not m:
             continue

@@ -42,6 +42,7 @@ from .scene import EM_DASH, Scene, mmss, render
 class Quote:
     text: str
     cue: str | None = None
+    verbatim: bool = False
 
 
 @dataclass
@@ -128,7 +129,7 @@ def s_terminal(img, t, sc, part: Part, term: Term):
     y = 110
     for text, cue in part.notes:
         t0 = sc.when(cue) if cue else sc.lead
-        lines = wrap(text, F_SMALL, 360)
+        lines = wrap(text, F_SMALL, 336)
         h = 22 + len(lines) * 26
         def f(d, y=y, lines=lines, h=h):
             rrect(d, (870, y, 1240, y + h), PANEL, part.colour, 12, 2)
@@ -170,7 +171,7 @@ def _pic_gel(d, x, y, w, h, p):
     lanes = 4
     for i in range(lanes):
         lx = x + 40 + i * (w - 80) / (lanes - 1)
-        bands = [0.25, 0.5] + ([0.72] if i in (0, 2) else [])
+        bands = [0.25, 0.5] + ([0.72] if i == 3 else [])
         for b in bands:
             if p > b * 0.8:
                 a = int(200 * min(1.0, (p - b * 0.8) * 4))
@@ -235,9 +236,9 @@ def s_folders(img, t, sc, part: Part):
     is being talked about."""
     heading(img, t, part.heading, 28)
     d = ImageDraw.Draw(img)
-    d.text((70, 100), "$MURMURENT_DATA_ROOT  (/data/lab_vm on the server)", font=F_MONO_S, fill=MUTED)
+    d.text((70, 100), "The lab's data folders, on the lab server", font=F_SMALL, fill=MUTED)
     n = len(part.folders)
-    y0, dy = 124, min(52, int(430 / max(n, 1)))
+    y0, dy = 140, min(52, int(420 / max(n, 1)))
     lit = -1
     for i, (name, line, cue) in enumerate(part.folders):
         if t >= sc.when(cue):
@@ -347,7 +348,7 @@ def s_howto(img, t, sc, part: Part, m: Movie, version: str):
     prompt = part.prompt
     n = int(len(prompt) * P(t, t_p, len(prompt) / CHARS_PER_SECOND))
     if t >= t_p:
-        for i, l in enumerate(wrap("> " + prompt[:n] + ("▌" if n < len(prompt) else ""), F_BODY, 1100)[:2]):
+        for i, l in enumerate(wrap("> " + prompt[:n] + ("|" if n < len(prompt) else ""), F_BODY, 1100)[:2]):
             d.text((88, 158 + i * 32), l, font=F_BODY, fill=AMBER)
     t_done = t_p + len(prompt) / CHARS_PER_SECOND + 0.3
     a = P(t, t_done, 0.6)
@@ -363,12 +364,11 @@ def s_howto(img, t, sc, part: Part, m: Movie, version: str):
             rrect(d, (x, 340, x + w, 540), PANEL, col, 14, 3)
             d.text((x + 16, 352), title, font=F_LABEL, fill=col)
             yy = 384
-            for ln in wrap(body, F_TINY, w - 32):
-                d.text((x + 16, yy), ln, font=F_TINY, fill=TEXT)
-                yy += F_TINY.size + 5
+            for ln in wrap(body, F_SMALL, w - 32):
+                d.text((x + 16, yy), ln, font=F_SMALL, fill=TEXT)
+                yy += F_SMALL.size + 5
         appear(img, t, t0, f, 0.5, 12)
     def foot(d):
-        d.text((70, 565), "   ".join(part.docs), font=F_MONO_S, fill=AMBER)
         d.text((70, 592), f"Checked against Murmurent {version}, {date.today().isoformat()}.", font=F_TINY, fill=MUTED)
     appear(img, t, sc.seconds - sc.tail - 2.5, foot, 0.6, 8)
 
@@ -385,14 +385,14 @@ def check_sources(m: Movie) -> dict[str, str]:
         if part.kind != "cards":
             continue
         if not part.source:
-            raise ValueError(f"{m.key}: a cards part needs a source file")
+            continue
         path = ROOT / part.source
         raw = path.read_bytes()
         text = _norm(raw.decode())
         for q in part.quotes:
             if EM_DASH in q.text:
-                raise ValueError(f"{m.key}: a quote carries an em dash; pick a fragment without one: {q.text!r}")
-            if _norm(q.text) not in text:
+                raise ValueError(f"{m.key}: a card carries an em dash: {q.text!r}")
+            if q.verbatim and _norm(q.text) not in text:
                 raise ValueError(f"{m.key}: not in {part.source} any more: {q.text!r}")
         out[part.source] = hashlib.sha256(raw).hexdigest()
     for part in m.parts:

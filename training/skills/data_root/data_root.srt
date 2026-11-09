@@ -1,39 +1,39 @@
 1
-00:00:00,400 --> 00:00:09,530
-The data root is where a lab's big files live, on the lab's server, in folders with rules. This is what those folders are for.
+00:00:00,400 --> 00:00:11,900
+The data root is where a lab's big files live, on the lab's server, in folders with clear rules. Here is what each folder is for.
 
 2
-00:00:09,950 --> 00:00:29,107
-Murmurent keeps memory in three tiers: what an agent sees in one session, what the oracle remembers, and the big files. Those live under one folder on the server, the data root, and protected or very large data stays there, never copied to a laptop.
+00:00:12,300 --> 00:00:34,399
+Murmurent remembers at three levels: what an agent sees in one session, what the oracle keeps, and the big files. The big files live in one folder on the lab's server, the data root. Protected or very large data stays there, and you reach it from your laptop over the network.
 
 3
-00:00:29,500 --> 00:00:54,695
-Eight folders at the top and nothing else; inside each, one subfolder per project with the project's own name. So a repository called project x has immutable slash project x for its original data and append only slash project x for its outputs, and append only mirrors the repository's exp folder: code and data share a name.
+00:00:34,799 --> 00:00:53,699
+Eight folders sit at the top. Inside most, every project has a folder with its own name. So a project called project x keeps its original data in immutable and its results in append only, under the same experiment names as its code.
 
 4
-00:00:55,100 --> 00:01:06,695
-Immutable is the data as it arrived: from the instrument, a collaborator or a public source. Once placed, nobody changes it, so every analysis traces back to it.
+00:00:54,100 --> 00:01:05,799
+Immutable is the data as it arrived: from the instrument, a collaborator or a public source. It stays exactly as placed, so every analysis traces back to it.
 
 5
-00:01:06,695 --> 00:01:24,003
-Append only is where analyses write. New files and new versions are added, nothing is ever overwritten or deleted, so a result you reported last year is still there. Modifiable is the one place a project's data may change: working files, scratch.
+00:01:05,799 --> 00:01:21,099
+Append only is where analyses write. Each new result or version is added beside the last, so a result you reported last year is still there. Modifiable holds a project's working files, the data that may change.
 
 6
-00:01:24,003 --> 00:01:43,493
-Mothballed is how the server makes room. You move files there that you no longer need on the server; they are sent to backup, then removed from mothballed. After that they live on the backup server only, not on the storage server. Release holds the lab's own copy of what it published: the papers and the software.
+00:01:21,099 --> 00:01:38,400
+Mothballed is how the server makes room. Move there what you no longer need on the server; it goes to long-term storage and then leaves the server. Release holds the lab's own copy of what it published: the papers and the software.
 
 7
-00:01:43,493 --> 00:01:59,725
-Cottage exists because home folders are small: large files that belong to a person, not a project, such as conda environments. One per login. Tools are programs the whole lab uses, db the databases several people share.
+00:01:38,400 --> 00:01:51,700
+Cottage holds each person's large files, such as software environments, because home folders are small. Tools holds programs the whole lab uses, and db the databases several people share.
 
 8
-00:02:00,150 --> 00:02:18,797
-Inside Claude Code, hooks uphold the rules: a write into immutable, an overwrite under append only, a delete under the data root, all refused in these words. Guardrails for agents, not a security perimeter: a plain shell does not go through them.
+00:01:52,100 --> 00:02:17,800
+Once installed, guards inside Claude Code keep these rules for every agent. Overwriting anything in immutable or append only is refused, in these words: a change to immutable data, a result that writes over an older one, an edit to a result. The guards catch an agent's mistake; what you do yourself in a terminal is yours to keep careful.
 
 9
-00:02:19,200 --> 00:02:32,459
-One command checks the data root against the protocol; here on a demo with three mistakes planted. It reads names only. The PI decides; agents report and never tidy.
+00:02:18,200 --> 00:02:33,100
+One check compares the data root with these rules, here on a demo with three planted mistakes. It reads names only. The PI decides; agents report and leave every file where it is.
 
 10
-00:02:32,850 --> 00:02:49,964
-Name the folder when you ask an agent for work: original data to immutable, outputs to append only, working files to modifiable. Version, never overwrite. Big data stays on the server.
+00:02:33,500 --> 00:02:52,100
+When you ask an agent for work, name the folder: original data to immutable, results to append only, working files to modifiable. A new result is a new version beside the old one. Big data stays on the server.

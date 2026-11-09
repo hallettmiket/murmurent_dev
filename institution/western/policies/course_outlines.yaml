@@ -1,4 +1,5 @@
 name: course_outlines
+applies_to: [undergraduate]
 rules:
 - id: no_new_assignments_6_weeks
   says: no new (i.e., previously unannounced) assignments are introduced in the last six weeks

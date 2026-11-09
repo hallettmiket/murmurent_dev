@@ -1,43 +1,43 @@
 1
-00:00:00,400 --> 00:00:12,084
-This is the blacksmith, the computational workhorse. It loads the data, engineers the features, trains and evaluates the models, and builds the apps you explore results in.
+00:00:00,400 --> 00:00:13,099
+This is the blacksmith. It runs the analysis: it loads your data, computes what you ask for, trains and tests models, and builds small apps to explore the results.
 
 2
-00:00:12,500 --> 00:00:22,005
-Its file lists the work. Load and preprocess data in any common format. Engineer features, handle class imbalance, make the splits.
+00:00:13,500 --> 00:00:27,600
+It loads your data tables, such as CSV and Excel files, computes the features and statistics you ask for, and trains and evaluates classifiers. It builds interactive apps so you can explore a dataset.
 
 3
-00:00:22,005 --> 00:00:32,275
-Train and tune classifiers, evaluate them with the right metrics, and leave clean, commented code behind so the run can be repeated.
+00:00:27,600 --> 00:00:39,700
+What makes it different: it runs the computation itself on your data, and leaves the commented code beside the result, so anyone can repeat it.
 
 4
-00:00:32,699 --> 00:00:44,434
-Publication figures are the artist's; its own plots are quick diagnostics. Methodological validation is the adversary's: it does not mark its own homework as sound.
+00:00:40,100 --> 00:00:51,000
+The blacksmith covers the computing. The artist turns its numbers into publication figures, the bookworm compares them with the literature, and the adversary checks the method.
 
 5
-00:00:44,434 --> 00:00:52,800
-And it does not write to the immutable data root. Outputs go under append only, versioned, never overwriting.
+00:00:51,000 --> 00:01:00,300
+It reads your original data and leaves it untouched. Each new result goes in a new, numbered file.
 
 6
-00:00:53,199 --> 00:01:04,424
-A real run, on simulated data. The adversary had found a confound, so the member asks the blacksmith for the within-country differences and a stratified permutation test.
+00:01:00,700 --> 00:01:13,600
+A real run, on simulated data. Growth medium turned out to be mixed up with country, so the member asks for the serum effect within each country, with a matching test.
 
 7
-00:01:04,424 --> 00:01:16,848
-The verdict is Done, with the numbers: the effect survives stratification, and the caveat that the countries do not agree. The results file and the code are named.
+00:01:13,600 --> 00:01:25,700
+The answer is Done. The effect holds, but the countries disagree, and the blacksmith says so. It saves the results and the code that made them.
 
 8
-00:01:17,250 --> 00:01:31,750
-Say what you want built. A Streamlit app over an experiment's outputs, with the filter you need. A classifier with the cross-validation you specify, stratified the way your data demand, with the variance across folds.
+00:01:26,100 --> 00:01:38,200
+Say what you want built: an app to explore your quality control, a classifier tested the way your data demand, or a series of steps on a counts table.
 
 9
-00:01:31,750 --> 00:01:45,649
-Or a feature pipeline, step by step, written as versioned files. Name the tool, the method and where the outputs go; the blacksmith leaves the code to re-run it.
+00:01:38,200 --> 00:01:47,300
+It works in Python by default; name a template script in your request and it follows it.
 
 10
-00:01:46,049 --> 00:01:56,577
-To use it, type to Claude Code and name it: ask the blacksmith to compute, train or build something. Give it the data, what to predict and where outputs go.
+00:01:47,700 --> 00:01:59,400
+To use it, type to Claude Code and name it: ask the blacksmith to compute, train or build something. Tell it which data, and what you want out.
 
 11
-00:01:56,577 --> 00:02:13,087
-The first line is the verdict: Done, Failed or Partial. Then the numbers, the files it wrote and the code, so the adversary can re-run it. Send the result to the adversary before the PI.
+00:01:59,400 --> 00:02:12,000
+The reply starts with Done, Failed or Partial. Then come the numbers, the files and the code, so the adversary can run it again.

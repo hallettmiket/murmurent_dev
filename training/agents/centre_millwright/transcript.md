@@ -1,19 +1,16 @@
 # The exchange shown in the movie
 
-Real reply, run on 2026-11-07 (Murmurent 2026.11.0). The verdict line is verbatim; the detail is shortened to fit a frame. `make.py` reads this file: each `## <key>` section starts with `<who>: <question>`, then the reply lines. A dry run on this machine; nothing was applied.
+Real reply, run on 2026-11-07 (Murmurent 2026.11.0). The verdict line is verbatim; the
+detail is shortened and put in plain words to fit a frame. A check that only reads; nothing
+was changed.
 
 ## 1
-Mayor: Run the drift loop in dry-run mode: does the actual membership state on this machine match what the project records say, and what would you change?
-Drift: no centre record on this machine, so no membership check ran; the local drift loop found 8 items (6 orphan registry, 1 unadopted clone, 1 uncommitted lab records), dry-run only.
+Registrar: Without changing anything, does who has access match what the project records say, and what would you change?
+Drift: no centre record on this machine, so the membership check could not run; the local check found 8 items (6 projects listed but not cloned here, 1 clone not adopted, 1 records folder with unsaved changes), nothing changed.
 
-- Centre record: ~/.murmurent/centre.md absent; lab_info holds only
-  _registry.yaml and an empty labs folder; no projects folder.
-- So Slack, GitHub and ACL membership comparison: not possible here.
-- Ran murmurent reconcile (dry-run is its default). Actionable drift.
-- 6 x orphan_registry [WARN]: repos recorded under their projects but
-  gone from disk. Would: re-clone, or drop from the project record.
-- 1 x unadopted_clone [info]: a clone not yet made murmurent-ready.
-  Would: leave for the owner to click Make ready.
-- 1 x lab_mgmt_uncommitted [WARN]: local edits in the lab records repo
-  not committed. Would: have the PI review, commit and push.
-- Applied: nothing.
+The centre's record is not on this machine, so members could not be compared with their access.
+It ran the local check instead.
+Six projects' code folders are in the records but missing here. Would: fetch them again, or drop them from the record.
+One copied project is not yet set up for Murmurent. Would: leave it to its owner.
+The lab's records folder has unsaved changes. Would: ask the PI to review and save them.
+Changed: nothing.

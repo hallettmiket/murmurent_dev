@@ -19,68 +19,64 @@ $ claude
 T_LOG = """
 $ tail -F ~/.murmurent/agents.log
 [2026-11-07 09:31] blacksmith: Done: serum effect survives stratifying by country. Weighted within-country difference is +0.85 mm
-[2026-11-07 09:32] centre_millwright: Drift: no centre record on this machine, so no membership check ran; the local drift loop found 8 items
+[2026-11-07 09:32] bookworm: Found 3 sources: two cohort studies and one meta-analysis on serum and wound healing
 [2026-11-07 09:32] conscience: Flagged: the draft calls an English-only cohort from one clinic "representative of the Canadian population"
-[2026-11-07 12:14] general-purpose: starting: Lab notebook issues 292-294
+[2026-11-07 12:14] adversary: Pass: folds are clean and the result holds when each site is left out
 """
 
 MOVIE = Movie(
     key="claude_code",
     title="Working through Claude Code",
-    tagline="How a member reaches Murmurent: no command line needed",
+    tagline="Type plain English; name an agent when you want one",
     glyph="💬",
     colour=AMBER,
-    summary="Open a project, how Murmurent's agents and rules reach the session, how to address an agent by name, what a verdict line is, the agent log pane, and what the hooks refuse and why.",
+    summary="You type plain English to Claude Code, name an agent when you want one, read the first line of every reply for the answer, and keep what you find in your own notebook and oracle.",
     parts=[
-        Part("title", ["This is how a member works with Murmurent: through Claude Code, by typing in plain words. "
+        Part("title", ["This is how you work with Murmurent: you type to Claude Code in plain English. "
                        "Every other movie assumes these two minutes."]),
-        Part("terminal", chapter="Opening a project", heading="A murmurent-ready folder",
+        Part("terminal", chapter="Opening a project", heading="Opening your project",
              transcript=T_OPEN, title="Terminal",
-             notes=[("A project folder carries a small marker file and its own CLAUDE.md.", "marker"),
-                    ("The agents and the rules are linked into your Claude Code folder once, by the install.", "linked"),
-                    ("Then you start Claude Code in the folder, and that is the last command you type.", "last command")],
-             narration=["You open a project folder that is murmurent-ready: it carries a small marker file and its own "
-                        "CLAUDE.md. The sixteen agents and the rules are linked into your Claude Code folder once, by "
-                        "the install, so every session sees them.",
-                        "Then you start Claude Code in that folder, and that is the last command you type."]),
-        Part("cards", chapter="Addressing an agent", heading="Addressing an agent by name",
+             notes=[("Your project folder is already set up for Murmurent.", "set up"),
+                    ("The agents and the shared rules arrive once, with the install.", "install"),
+                    ("Start Claude Code in the folder; from then on, you type English.", "English")],
+             narration=["You open your project folder, which is already set up for Murmurent. The agents and the "
+                        "shared rules arrive once, with the install, so every session has them.",
+                        "Then you start Claude Code in that folder. From then on, you type English."]),
+        Part("cards", chapter="Asking an agent", heading="Asking an agent by name",
              source="docs/agents.md", colour=TEAL,
-             quotes=[Quote("The commons is a shared set of reference agents, hard rules, and baseline workflows every member of the centre draws on", "shared set"),
-                     Quote("are symlinked into ~/.claude/agents/ by scripts/setup.sh", "linked into")],
-             narration=["The documentation calls the agents the commons: a shared set of reference agents, rules and "
-                        "workflows every member draws on. They are linked into your Claude Code folder, so you reach one "
-                        "by naming it: ask the adversary, ask the oracle, ask the security guard."]),
+             quotes=[Quote("Ask in plain English; Claude Code does the work.", "plain English"),
+                     Quote("Name an agent when you want one.", "name"),
+                     Quote("Each agent has one job, such as remembering or checking.", "one job")],
+             narration=["Ask for what you want in plain English, and Claude Code does the work. When you want a "
+                        "specialist, name it: ask the bookworm for papers, ask the adversary to check an analysis, "
+                        "ask the oracle to remember a finding. Each agent has one job."]),
         Part("chat", chapter="A real exchange", key="1", agent="security_guard", colour=RED, who="Member",
-             chips=[("git diff", True), ("secret patterns", True), ("PHI patterns", True)],
-             narration=["Here is a real exchange. The member names the security guard and says what to audit. Claude "
-                        "Code reads that agent's file and hands it the task.",
-                        "The first line of every reply is the verdict, two hundred characters at most. Here it is "
-                        "Blocked. Read that line first; the detail below it says where and why."]),
-        Part("terminal", chapter="The agent log pane", heading="The agent log pane", transcript=T_LOG,
+             chips=[("read the changes", True), ("secret patterns", True), ("patient details", True)],
+             narration=["Here is a real exchange. The member names the security guard and says what to check.",
+                        "The first line of every reply is the answer. Here it is Blocked. Read that line first; the "
+                        "detail below says where and why."]),
+        Part("terminal", chapter="Watching the agents", heading="Watching the agents work", transcript=T_LOG,
              title="Terminal, bottom right", colour=TEAL,
-             notes=[("Every agent's verdict line is appended here as it finishes.", "appended"),
-                    ("Keep it open in a corner; the VS Code layout does this for you.", "corner")],
-             narration=["Every agent's verdict line is also appended to a log, one line each, as it finishes. Keep "
-                        "that log open in a corner of the screen and you can see the agents working without reading "
-                        "their full replies. The VS Code layout does this for you."]),
-        Part("bullets", chapter="What the hooks refuse", heading="What the hooks refuse, and why", colour=RED, mark="cross",
-             notes=[("A write into immutable data: \"immutable data is read-only by lab policy; refusing Write\"", "immutable"),
-                    ("Overwriting a file under append only: \"protected path is write-once by lab policy; use an integer-versioned name instead\"", "append only"),
-                    ("A command that deletes under the data root: \"Cannot delete files/folders from the protected directory\"", "deletes"),
-                    ("These are guardrails for the agents, not a security perimeter: a plain shell does not go through them.", "guardrails")],
-             narration=["Some things a session is refused, by hooks that run before a tool call. A write into "
-                        "immutable data. Overwriting a file under append only, where a new version gets a new number. "
-                        "A command that deletes under the data root.",
-                        "The messages above are what the hooks really say. They are guardrails for the agents, not a "
-                        "security perimeter: a plain shell does not go through them, and that is on purpose."]),
+             notes=[("Each agent's first line appears here when it finishes.", "finishes"),
+                    ("Keep this window in a corner of the screen.", "corner")],
+             narration=["Each agent's first line also appears in a small window as it finishes. Keep that window "
+                        "in a corner of the screen, and you can follow the agents without reading their full replies."]),
+        Part("bullets", chapter="Where your work goes", heading="Where your work goes", colour=TEAL, mark="tick",
+             notes=[("Every request is kept in your notebook, except patient details or passwords.", "notebook"),
+                    ("Ask the oracle to remember a finding, and it keeps it.", "oracle"),
+                    ("Agents are stopped from changing your lab's original data.", "original data")],
+             narration=["Your work is kept. Every request you type is kept in your notebook's record of sessions, "
+                        "except one that looks like patient details or a password. Ask the oracle to remember a finding, and it keeps it for "
+                        "the next time you ask.",
+                        "And inside Claude Code, agents are stopped from changing your lab's original data."]),
         Part("howto", heading="The habits that matter",
-             prompt="ask the adversary to audit exp/3_classifier before I send the results to my PI",
-             cards=[("Name the agent", "Say which agent and what to give it: a folder, a file, a question. Files, not summaries."),
-                    ("Read the verdict line", "The first line is the answer. The agent log pane shows only that line."),
-                    ("Trust the documentation", "When a movie and the written documentation disagree, the documentation is right.")],
+             prompt="ask the adversary to check my classifier results before I send them to my PI",
+             cards=[("Name the agent", "Say which agent, and give it the files themselves, not a summary."),
+                    ("Read the first line", "The first line of every reply is the answer."),
+                    ("Keep what you find", "Ask the oracle to remember it; your notebook keeps the rest.")],
              docs=["docs/agents.md", "docs/vscode-workflow.md", "rules/headline_first.md"],
-             narration=["The habits that matter: name the agent and give it files, not summaries. Read the verdict line "
-                        "first. And when a movie and the written documentation disagree, the documentation is right.",
-                        "The sixteen agent movies each show one agent this way, in two minutes."]),
+             narration=["Three habits matter. Name the agent and give it the files themselves. Read the first line "
+                        "of the reply. And ask the oracle to remember what you find.",
+                        "Each agent has its own short movie that shows it this way."]),
     ],
 )

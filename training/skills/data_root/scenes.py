@@ -25,8 +25,9 @@ $ # Claude Code asks to overwrite a result under append_only
 protected path is write-once by lab policy; refusing Write that would overwrite
 /data/lab_vm/append_only/project_x/3_qc/qc_table_1.csv.
 Use an integer-versioned name (e.g. file_2.csv) instead.
-$ # Claude Code asks to delete under the data root
-PreToolUse:Bash hook error: Cannot delete files/folders from /data/lab_vm - protected directory
+$ # Claude Code asks to edit a result under append_only
+protected path is write-once by lab policy; refusing Edit on
+/data/lab_vm/append_only/project_x/3_qc/qc_table_1.csv. Write a new version-suffixed file instead.
 """
 
 T_LAYOUT = """
@@ -44,71 +45,73 @@ Named after no project:
 MOVIE = Movie(
     key="data_root",
     title="The data root: where big files live",
-    tagline="Tier-3 memory: immutable, append_only, modifiable, and the rest of the lab folder",
+    tagline="Where the lab's big files live, and what each folder is for",
     glyph="🗄️",
     colour=TEAL,
     summary="Murmurent's third tier of memory: the lab's data root on its server, what immutable, append_only, modifiable, mothballed, release, cottage, tools and db are for, how a project's folders mirror its repository, what the hooks refuse, and the layout check.",
     parts=[
-        Part("title", ["The data root is where a lab's big files live, on the lab's server, in folders with rules. "
-                       "This is what those folders are for."]),
-        Part("cards", chapter="Three tiers", heading="Tier three: the big files, on the server", source="rules/data-storage.md",
+        Part("title", ["The data root is where a lab's big files live, on the lab's server, in folders with clear "
+                       "rules. Here is what each folder is for."]),
+        Part("cards", chapter="Three tiers", heading="The big files, on the lab's server", source="rules/data-storage.md",
              colour=TEAL,
-             quotes=[Quote("All data except very small files in-repo lives under $MURMURENT_DATA_ROOT", "live under"),
-                     Quote("Tier-3 (protected, and very large genomic) data is server-resident.", "stays there")],
-             narration=["Murmurent keeps memory in three tiers: what an agent sees in one session, what the oracle "
-                        "remembers, and the big files. Those live under one folder on the server, the data root, "
-                        "and protected or very large data stays there, never copied to a laptop."]),
+             quotes=[Quote("A lab's big files live in one folder on its server.", "one folder"),
+                     Quote("Protected and very large data stays on the server.", "stays there")],
+             narration=["Murmurent remembers at three levels: what an agent sees in one session, what the oracle "
+                        "keeps, and the big files. The big files live in one folder on the lab's server, the data "
+                        "root. Protected or very large data stays there, and you reach it from your laptop over "
+                        "the network."]),
         Part("terminal", chapter="The folders", heading="One data root, one folder per purpose", transcript=T_TREE,
-             title="Terminal, on the lab server", colour=TEAL,
-             notes=[("Eight folders at the top, nothing else. Each has subfolders named after projects.", "nothing else"),
-                    ("A repository called project_x has immutable/project_x and append_only/project_x.", "project x has"),
-                    ("append_only mirrors the repository's exp folder: exp/3_qc writes to append_only/project_x/3_qc.", "mirrors")],
-             narration=["Eight folders at the top and nothing else; inside each, one subfolder per project with the "
-                        "project's own name. So a repository called project x has immutable slash project x for its "
-                        "original data and append only slash project x for its outputs, and append only mirrors the "
-                        "repository's exp folder: code and data share a name."]),
+             title="Terminal, a demo data root", colour=TEAL,
+             notes=[("Eight folders at the top; inside most, one folder per project.", "eight folders"),
+                    ("Project x has a folder in immutable and one in append_only.", "project x keeps"),
+                    ("Results carry the same experiment names as the code.", "same experiment names")],
+             narration=["Eight folders sit at the top. Inside most, every project has a folder with its own name. "
+                        "So a project called project x keeps its original data in immutable and its results in "
+                        "append only, under the same experiment names as its code."]),
         Part("folders", chapter="What each folder is for", heading="What each folder is for", colour=AMBER,
-             folders=[("immutable", "original data; read-only once placed", "immutable"),
-                      ("append_only", "analyses; new files and new versions only, never overwritten", "append only"),
+             folders=[("immutable", "original data, kept exactly as it arrived", "immutable"),
+                      ("append_only", "analyses; each new file or version is added", "append only"),
                       ("modifiable", "working data that may change", "modifiable"),
-                      ("mothballed", "waiting for backup; removed from the server afterwards", "mothballed"),
+                      ("mothballed", "waiting for long-term storage, then off the server", "mothballed"),
                       ("release", "the lab's copy of what it published", "release"),
-                      ("cottage", "one person's large files, not a project's", "cottage"),
+                      ("cottage", "one person's large files, such as software environments", "cottage"),
                       ("tools", "programs the whole lab uses", "tools"),
                       ("db", "databases several people use", "db")],
              narration=["Immutable is the data as it arrived: from the instrument, a collaborator or a public "
-                        "source. Once placed, nobody changes it, so every analysis traces back to it.",
-                        "Append only is where analyses write. New files and new versions are added, nothing is ever "
-                        "overwritten or deleted, so a result you reported last year is still there. Modifiable is "
-                        "the one place a project's data may change: working files, scratch.",
-                        "Mothballed is how the server makes room. You move files there that you no longer need on "
-                        "the server; they are sent to backup, then removed from mothballed. After that they live on "
-                        "the backup server only, not on the storage server. Release holds the lab's own copy of what "
-                        "it published: the papers and the software.",
-                        "Cottage exists because home folders are small: large files that belong to a person, not a "
-                        "project, such as conda environments. One per login. Tools are programs the whole lab uses, "
-                        "db the databases several people share."]),
-        Part("terminal", chapter="What the hooks refuse", heading="What the hooks refuse, in their own words", transcript=T_HOOKS,
+                        "source. It stays exactly as placed, so every analysis traces back to it.",
+                        "Append only is where analyses write. Each new result or version is added beside the last, "
+                        "so a result you reported last year is still there. Modifiable holds a project's working "
+                        "files, the data that may change.",
+                        "Mothballed is how the server makes room. Move there what you no longer need on the "
+                        "server; it goes to long-term storage and then leaves the server. Release holds the lab's "
+                        "own copy of what it published: the papers and the software.",
+                        "Cottage holds each person's large files, such as software environments, because home "
+                        "folders are small. Tools holds programs the whole lab uses, and db the databases several "
+                        "people share."]),
+        Part("terminal", chapter="What Claude Code refuses", heading="What Claude Code refuses, in its own words", transcript=T_HOOKS,
              title="Inside a Claude Code session", colour=RED,
-             notes=[("Write into immutable: refused.", "immutable"),
-                    ("Overwrite under append only: refused.", "overwrite"),
-                    ("Delete under the data root: refused.", "delete")],
-             narration=["Inside Claude Code, hooks uphold the rules: a write into immutable, an overwrite under append "
-                        "only, a delete under the data root, all refused in these words. Guardrails for agents, not a "
-                        "security perimeter: a plain shell does not go through them."]),
-        Part("terminal", chapter="Keeping it tidy", heading="The layout check: report, never tidy", transcript=T_LAYOUT,
+             notes=[("A change to immutable data: refused.", "immutable"),
+                    ("Writing over a result in append_only: refused.", "writes over"),
+                    ("Overwriting anything in immutable or append_only: refused.", "overwriting")],
+             narration=["Once installed, guards inside Claude Code keep these rules for every agent. Overwriting "
+                        "anything in immutable or append only is refused, in these words: a change to immutable "
+                        "data, a result that writes over an older one, an edit to a result. The guards catch an agent's mistake; what you do yourself in a terminal "
+                        "is yours to keep careful."]),
+        Part("terminal", chapter="Keeping it tidy", heading="The layout check: it reports, the PI decides", transcript=T_LAYOUT,
              title="Terminal: a demo data root with three mistakes", colour=AMBER,
-             notes=[("A folder being phased out, a loose file, a subfolder named after no project.", "three"),
-                    ("The PI decides. Agents report; they never move, rename or delete.", "decides")],
-             narration=["One command checks the data root against the protocol; here on a demo with three mistakes "
-                        "planted. It reads names only. The PI decides; agents report and never tidy."]),
+             notes=[("A folder being retired, a loose file, a folder named after no project.", "three"),
+                    ("The PI decides; agents report and leave every file in place.", "decides")],
+             narration=["One check compares the data root with these rules, here on a demo with three planted "
+                        "mistakes. It reads names only. The PI decides; agents report and leave every file where "
+                        "it is."]),
         Part("howto", heading="How to use it",
-             prompt="ask the blacksmith to run exp/3_qc and write the results under append_only/project_x/3_qc, versioned",
-             cards=[("Name the folder", "Original data to immutable, outputs to append_only under the experiment's name, working files to modifiable."),
-                    ("Version, never overwrite", "A new result is file_2.csv beside file_1.csv; list the old one in src/ready_to_delete.md."),
-                    ("Big and protected stays put", "Reach the server over SSH or a mount; never copy protected data to a laptop.")],
+             prompt="ask the blacksmith to run the 3_qc experiment for project_x and save the results in append_only, as a new version",
+             cards=[("Name the folder", "Original data to immutable, results to append_only, working files to modifiable."),
+                    ("Add a version", "A new result gets the next number, beside the old one; both stay."),
+                    ("Big files: the server", "Reach it from your laptop over the network.")],
              docs=["rules/data-storage.md", "docs/lab_folders.md", "rules/project-structure.md"],
-             narration=["Name the folder when you ask an agent for work: original data to immutable, outputs to append "
-                        "only, working files to modifiable. Version, never overwrite. Big data stays on the server."]),
+             narration=["When you ask an agent for work, name the folder: original data to immutable, results to "
+                        "append only, working files to modifiable. A new result is a new version beside the old "
+                        "one. Big data stays on the server."]),
     ],
 )

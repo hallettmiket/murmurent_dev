@@ -1,52 +1,50 @@
-"""The security guard movie: narration, quotes from agents/security_guard.md, and the real exchange in transcript.md."""
+"""The security guard movie: narration, plain cards checked against agents/security_guard.md, and the real exchange in transcript.md."""
 from lib.agent_movie import AgentSpec, Exchange, Quote
 from lib.draw import RED
 
 SPEC = AgentSpec(
     agent="security_guard",
     title="The security guard",
-    tagline="Secrets, patient data and world-readable files, caught before they leave",
+    tagline="Checks what leaves your lab for passwords and patient data",
     colour=RED,
     icon="lock",
-    intro=["This is the security guard. It audits what is about to leave a project: a diff, a pull request, "
-           "an artefact, for secrets, patient data and restricted paths."],
+    intro=["This is the security guard. Before something leaves your lab, a change you are about to share or a "
+           "file you are sending, it checks it for passwords and patient information."],
     does=[
-        Quote("Scan diffs (git diff, PR patches, pre-commit input) for credentials, API tokens, SSH keys, age keys",
-              "Scan"),
-        Quote("scan added text for PHI-shaped patterns", "Patient-shaped"),
-        Quote("Refuse to approve a PR that adds, modifies, or deletes files under", "Refuse"),
-        Quote("Identity-key hygiene.", "Identity"),
+        Quote("Finds passwords, access keys and tokens in what you share.", "passwords"),
+        Quote("Finds patient details: health numbers, record numbers, birth dates near names.", "record numbers"),
+        Quote("Fails any change to your lab's original data.", "original data"),
+        Quote("It also looks for social insurance numbers.", "social insurance"),
     ],
     does_narration=[
-        "Its file lists what it scans for. Credentials, tokens and keys in a diff. Patient-shaped patterns in a "
-        "protected project: health numbers, record numbers, a birth date near a name.",
-        "It refuses to approve a change that touches the immutable data root. And it treats a private identity "
-        "key in any diff, log or message as an immediate block."],
+        "It reads what you are about to share and looks for passwords, access keys and tokens. In a project that "
+        "holds patient data, it also looks for health card numbers, record numbers, social insurance numbers, and a birth date beside a name.",
+        "It fails any change to your lab's original data, which stays as it was collected."],
     refuses=[
-        Quote("You render a verdict; you do not \"fix\" the offending code.", "fix"),
-        Quote("You do not comment on cross-validation, leakage, or model choice.", "cross-validation"),
-        Quote("You flag a bad permission; you never chmod/chown to fix it.", "permission"),
-        Quote("You never mutate the repo to remediate.", "remediate"),
+        Quote("It checks what leaves; the adversary checks the science.", "adversary"),
+        Quote("It reports each problem and its fix; you make the change.", "fix"),
+        Quote("It works offline, so the check itself sends nothing out.", "offline"),
     ],
     refuses_narration=[
-        "It renders a verdict; it does not fix the code. It does not comment on cross-validation or model "
-        "choice; that is the adversary's.",
-        "It flags a bad permission but never changes it; the millwrights own permissions. And it never changes "
-        "the repository to remediate: it writes the suggested fix, and a person applies it."],
+        "Its scope is what leaves the lab. The adversary checks the science, and the conscience checks how people "
+        "are described.",
+        "The guard reports each problem, where it is, and how to fix it; you make the change. It works offline, "
+        "so the check itself sends nothing anywhere."],
     examples=[
-        Exchange("1", ["A real run, on a throwaway repository with a fake token and an invented patient line. "
-                       "The member is about to push.",
-                       "The verdict is Blocked. Each finding has a rule name, a file and line, what was observed, and "
-                       "a fix. It notes that both problems are already in history, so a new commit is not enough."],
-                 [("git diff", True), ("secret patterns", True), ("PHI patterns", True), ("file modes", True)]),
+        Exchange("1", ["A real run, on a practice folder with a fake password and an invented patient line. "
+                       "The member is about to share it.",
+                       "The first line says Blocked. Below it, each problem and its fix: a Slack "
+                       "access key in a settings file, and a record number with a birth date in the notes. Both are "
+                       "already in the project's saved history, so deleting them now is not enough."],
+                 [("read the changes", True), ("passwords and keys", True), ("patient details", True), ("who can edit each file", True)]),
     ],
-    prompt="ask the security guard to audit this branch before I open the pull request",
-    give="The diff, the branch or the folder. Say if the project is protected, so the patient-data scan runs.",
-    verdicts="Clear / Concerns / Blocked, then each finding with its rule, location, evidence and suggested fix.",
+    prompt="ask the security guard to check my project before I share it",
+    give="The folder or the change you are about to share. Say if it holds patient data.",
+    verdicts="Clear, Concerns or Blocked, then each problem with where it is and its fix.",
     howto_narration=[
-        "To use it, type to Claude Code and name it: ask the security guard to audit a branch, a diff or a folder "
-        "before it leaves. Say if the project is protected.",
-        "The first line is the verdict: Clear, Concerns or Blocked. Then each finding with a rule, a location, "
-        "what was observed and the fix. Blocked means do not push until the history is clean."],
+        "To use it, type to Claude Code: ask the security guard to check my project before I share it. Say if "
+        "the project holds patient data.",
+        "The first line is the answer: Clear, Concerns or Blocked. Blocked means fix what it lists before "
+        "anything leaves."],
     docs=["rules/data-storage.md"],
 )

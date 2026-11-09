@@ -123,6 +123,8 @@ def world_with_notebook(world, monkeypatch, tmp_path):
     and the schema-optional (notebook) path side by side."""
     notebook_dir = tmp_path / "vault" / "lab-notebook"
     notebook_dir.mkdir(parents=True)
+    # The sessions tier must not read this machine's real vault.
+    monkeypatch.setenv("MURMURENT_SESSIONS_DIR", str(tmp_path / "vault" / "sessions"))
     # Flat daily entry — no project subdir, no frontmatter.
     (notebook_dir / "2026-05-15.md").write_text(
         "# Friday lab notes\n\n"
