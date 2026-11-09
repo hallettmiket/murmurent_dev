@@ -652,3 +652,38 @@ def test_review_course_level_selects_policies_and_reports_render(pack):
     assert md.startswith("# T") and "## Grading" in md
     with pytest.raises(inst.PackError):
         cr.review_course(pack, SYLLABUS_2027, level="postdoc")
+
+
+
+def test_review_course_calendar_lists_every_day_with_events_and_cutoffs(pack):
+    from murmurent.core import course_review as cr
+    pack = _review_pack(pack)
+    pack.calendar.setdefault("deadlines", []).append(
+        {"name": "Last day to drop without academic penalty", "date": "2027-03-05",
+         "source": "https://www.example.edu/calendar/dates.html", "date_read": "2026-11-07"})
+    rv = cr.review_course(pack, SYLLABUS_2027, level="undergraduate")
+    days = {d.when: d for d in rv.calendar}
+    first, last = rv.calendar[0].when, rv.calendar[-1].when
+    assert first == date(2027, 1, 4) and last >= date(2027, 4, 9)
+    assert len(rv.calendar) == (last - first).days + 1          # every day, none skipped
+    labels = lambda d: [e.label for e in days[d].entries]
+    first_day = [e for e in days[date(2027, 1, 4)].entries if e.label == "First day of classes"]
+    assert first_day and first_day[0].source == "the outline's own term dates"   # "4 January to 9 April 2027"
+    assert any(l.startswith("Midterm (30%)") for l in labels(date(2027, 2, 15)))
+    assert days[date(2027, 2, 15)].off and "Family Day" in " ".join(labels(date(2027, 2, 15)))
+    assert any("drop" in l for l in labels(date(2027, 3, 5)))
+    # the rules' cutoffs, counted back from 9 April: tests 3 weeks (19 March), new assignments 6 weeks (26 February)
+    assert any("test may be scheduled" in l for l in labels(date(2027, 3, 19)))
+    assert any("new assignment may be announced" in l for l in labels(date(2027, 2, 26)))
+    assert "Final examination" in rv.calendar_note
+    md = cr.render_markdown(rv, "T")
+    html = cr.render_html(rv, "T")
+    assert "## The term, day by day" in md and "### March 2027" in md and "| Fri 19 |" in md
+    assert "<table class='cal'>" in html and "cutoff" in html and "Family Day" in html
+
+
+def test_review_course_calendar_needs_term_dates(pack):
+    from murmurent.core import course_review as cr
+    pack = _review_pack(pack)
+    rv = cr.review_course(pack, "Lecture 1 | 4 January 2027\nQuiz 1 | 20 January 2027 | 100%\n", level="undergraduate")
+    assert rv.calendar == [] and "first and last day of classes" in rv.calendar_note
