@@ -486,15 +486,15 @@ movies:
   title: The clerk
   tagline: "Ask it anything about your institution; it reads the answer off the institution's own pages"
   version: 2026.11.0
-  date: 2026-11-07
-  agent_sha256: 7d627b12ee336586cdc1415b029ba99d271a647ea2de939841c589c4e51df50e
+  date: 2026-11-08
+  agent_sha256: d51f1149ee09e19388df813bdbee9f0be5ebb013b7ee800993862feb5f34415a
   file: training/agents/clerk/clerk_narrated.mp4
   make: python3 training/agents/clerk/make.py
-  seconds: 169
+  seconds: 172
   chapters:
     - ["0:00", "Welcome"]
     - ["0:16", "What it does"]
     - ["0:49", "What it will not do"]
-    - ["1:21", "A real example"]
-    - ["1:58", "How to direct it"]
-    - ["2:15", "How to use it"]
+    - ["1:23", "A real example"]
+    - ["2:01", "How to direct it"]
+    - ["2:17", "How to use it"]
