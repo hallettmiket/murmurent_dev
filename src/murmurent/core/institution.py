@@ -45,6 +45,7 @@ CALENDAR_FILE = "calendar.yaml"
 COURSES_FILE = "courses.yaml"
 FACTS_FILE = "facts.yaml"       # what the clerk looked up: question, answer, source, date_read
 PROCEDURES_DIR = "procedures"
+POLICIES_DIR = "policies"      # rules read from the institution's pages, applied to documents (a syllabus)
 TEMPLATES_DIR = "templates"
 LETTERHEAD_FILE = "letterhead.yaml"
 
@@ -93,6 +94,7 @@ class Pack:
     procedures: dict[str, dict[str, Any]]
     templates: dict[str, dict[str, Any]]
     learned: list[dict[str, Any]] = field(default_factory=list)   # facts.yaml: the clerk's memory of lookups
+    policies: dict[str, dict[str, Any]] = field(default_factory=dict)   # policies/<name>.yaml: rules with source and date
 
     @property
     def name(self) -> str:
@@ -105,6 +107,11 @@ class Pack:
     @property
     def domains(self) -> list[str]:
         return [str(d).lower().lstrip(".") for d in (self.meta.get("domains") or [])]
+
+    @property
+    def deny_hosts(self) -> list[str]:
+        """Hosts inside the domains that are never read: intranets behind a login."""
+        return [str(d).lower().lstrip(".") for d in (self.meta.get("deny_hosts") or [])]
 
     @property
     def max_fact_age_days(self) -> int:
@@ -173,6 +180,11 @@ class Pack:
         for i, f in enumerate(self.learned):
             if isinstance(f, dict):
                 out.append(Fact("fact", str(f.get("question", f"#{i}")), f, self.root / FACTS_FILE, f"facts[{i}]"))
+        for pname, pol in self.policies.items():
+            for i, r in enumerate(pol.get("rules") or []):
+                if isinstance(r, dict):
+                    out.append(Fact("rule", f"{pname}: {r.get('id', f'#{i}')}", r,
+                                    self.root / POLICIES_DIR / f"{pname}.yaml", f"rules[{i}]"))
         return out
 
 
@@ -296,6 +308,13 @@ def load_pack(root: Path) -> Pack:
             doc = _read_yaml(p)
             if isinstance(doc, dict):
                 procedures[p.stem] = doc
+    policies: dict[str, dict[str, Any]] = {}
+    poldir = root / POLICIES_DIR
+    if poldir.is_dir():
+        for p in sorted(poldir.glob("*.yaml")):
+            doc = _read_yaml(p)
+            if isinstance(doc, dict):
+                policies[p.stem] = doc
     templates: dict[str, dict[str, Any]] = {}
     tdir = root / TEMPLATES_DIR
     if tdir.is_dir():
@@ -314,6 +333,7 @@ def load_pack(root: Path) -> Pack:
         templates=templates,
         learned=[f for f in ((facts_doc.get("facts") if isinstance(facts_doc, dict) else None) or [])
                  if isinstance(f, dict)],
+        policies=policies,
     )
 
 
@@ -339,11 +359,29 @@ def _norm(s: str) -> str:
     return re.sub(r"[^a-z0-9]+", " ", s.lower()).strip()
 
 
-def host_allowed(url: str, domains: list[str], *, require_https: bool = True) -> bool:
+LOGIN_REFUSED = "behind a login; the clerk reads public pages only"
+_LOGIN_PATH = re.compile(r"/(login|signin|sign-in|sso|saml|cas|auth|idp|oauth2?)(/|\?|$)", re.I)
+_LOGIN_PAGE = re.compile(r'<input[^>]+type=["\']?password|<title[^>]*>[^<]*(sign in|log in|login|sign-in)[^<]*</title>', re.I)
+
+
+def host_denied(url: str, deny: list[str] | tuple[str, ...]) -> bool:
+    """True when the host is one of the pack's ``deny_hosts`` or a subdomain of one:
+    the intranets (the learning system, HR self-service, the student information
+    system, the sign-on hosts) that a wide domain rule would otherwise admit."""
+    try:
+        host = (urllib.parse.urlsplit(url).hostname or "").lower()
+    except ValueError:
+        return True
+    return any(host == d or host.endswith("." + d) for d in (x.lower().lstrip(".") for x in deny) if d)
+
+
+def host_allowed(url: str, domains: list[str], *, require_https: bool = True,
+                 deny: list[str] | tuple[str, ...] = ()) -> bool:
     """True when ``url`` is https (or http too, with ``require_https=False``,
-    for a redirect the institution's own site issues) and its host is one of
-    ``domains`` or a subdomain of one. ``uwo.ca`` admits ``grad.uwo.ca``; it
-    does not admit ``uwo.ca.example.com``."""
+    for a redirect the institution's own site issues), its host is one of
+    ``domains`` or a subdomain of one, and it is not on the ``deny`` list.
+    ``uwo.ca`` admits ``grad.uwo.ca``; it does not admit ``uwo.ca.example.com``;
+    and a denied intranet host is refused however the domain rule reads."""
     try:
         parts = urllib.parse.urlsplit(url)
     except ValueError:
@@ -351,6 +389,8 @@ def host_allowed(url: str, domains: list[str], *, require_https: bool = True) ->
     if parts.scheme not in (("https",) if require_https else ("https", "http")) or not parts.hostname:
         return False
     host = parts.hostname.lower()
+    if host_denied(url, deny):
+        return False
     return any(host == d or host.endswith("." + d) for d in domains if d)
 
 
@@ -370,7 +410,7 @@ def validate_pack(pack: Pack) -> list[str]:
                 problems.append(f"{where}: `{key}:` is required on every fact")
         if f.data.get("date_read") and f.date_read is None:
             problems.append(f"{where}: `date_read:` must be YYYY-MM-DD")
-        if f.source and domains and not host_allowed(f.source, domains):
+        if f.source and domains and not host_allowed(f.source, domains, deny=pack.deny_hosts):
             problems.append(f"{where}: source {f.source} is outside the pack's domains {domains}")
         if f.kind == "holiday" and _parse_date(f.data.get("date")) is None:
             problems.append(f"{where}: holiday `date:` must be YYYY-MM-DD")
@@ -404,7 +444,7 @@ def validate_pack(pack: Pack) -> list[str]:
     if fetch is not None:
         if not isinstance(fetch, dict) or not fetch.get("url"):
             problems.append(f"{COURSES_FILE}: `fetch:` needs a `url:`")
-        elif domains and not host_allowed(str(fetch["url"]), domains):
+        elif domains and not host_allowed(str(fetch["url"]), domains, deny=pack.deny_hosts):
             problems.append(f"{COURSES_FILE}: fetch url {fetch['url']} is outside the pack's domains")
     return problems
 
@@ -731,11 +771,17 @@ Fetcher = Callable[[str, dict[str, str] | None], str]
 
 
 def fetch_text(url: str, data: dict[str, str] | None = None, *, domains: list[str],
-               timeout: int = FETCH_TIMEOUT_SECONDS) -> str:
+               deny: list[str] | tuple[str, ...] = (), timeout: int = FETCH_TIMEOUT_SECONDS) -> str:
     """GET (or POST ``data``) ``url`` and return the page as plain text. The
-    host must be inside ``domains`` or the call refuses before any network
-    activity. Redirects to another host are refused too."""
-    if not host_allowed(url, domains):
+    host must be inside ``domains`` and off the ``deny`` list, or the call
+    refuses before any network activity. Redirects to another host, or to a
+    sign-in page, are refused; so is a 401 or 403, and a page that is itself a
+    login form. None of these is retried with credentials: the clerk reads
+    public pages only (the institution lists the tool as public-data-only and
+    classes its intranet pages as sensitive)."""
+    if host_denied(url, deny):
+        raise PackError(f"refused: {url} is on the pack's deny list ({LOGIN_REFUSED})")
+    if not host_allowed(url, domains, deny=deny):
         raise PackError(f"refused: {url} is outside the pack's domains {domains}")
     body = urllib.parse.urlencode(data).encode() if data else None
     req = urllib.request.Request(url, data=body, headers={"User-Agent": USER_AGENT})
@@ -743,8 +789,11 @@ def fetch_text(url: str, data: dict[str, str] | None = None, *, domains: list[st
     class _NoCrossHost(urllib.request.HTTPRedirectHandler):
         def redirect_request(self, req, fp, code, msg, headers, newurl):  # noqa: N802
             # A site that sends its own page to plain http stays inside its
-            # domain; one that sends it to another host does not.
-            if not host_allowed(newurl, domains, require_https=False):
+            # domain; one that sends it to another host does not; and one that
+            # sends it to a sign-in page is behind a login.
+            if host_denied(newurl, deny) or _LOGIN_PATH.search(urllib.parse.urlsplit(newurl).path or ""):
+                raise PackError(f"refused: {url} redirects to a sign-in page ({LOGIN_REFUSED})")
+            if not host_allowed(newurl, domains, require_https=False, deny=deny):
                 raise PackError(f"refused: {url} redirects to {newurl}, outside the pack's domains")
             return super().redirect_request(req, fp, code, msg, headers, newurl)
 
@@ -753,9 +802,16 @@ def fetch_text(url: str, data: dict[str, str] | None = None, *, domains: list[st
         with opener.open(req, timeout=timeout) as resp:
             raw = resp.read()
             charset = resp.headers.get_content_charset() or "utf-8"
+    except urllib.error.HTTPError as exc:
+        if exc.code in (401, 403):
+            raise PackError(f"refused: {url} answered {exc.code} ({LOGIN_REFUSED})") from exc
+        raise PackError(f"could not read {url}: {exc}") from exc
     except urllib.error.URLError as exc:
         raise PackError(f"could not read {url}: {exc}") from exc
-    return raw.decode(charset, errors="replace")
+    text = raw.decode(charset, errors="replace")
+    if _LOGIN_PAGE.search(text[:20000]):
+        raise PackError(f"refused: {url} is a sign-in page ({LOGIN_REFUSED})")
+    return text
 
 
 def _ssl_context():
@@ -818,8 +874,8 @@ def fetch_course(pack: Pack, subject: str, number: str, fetcher: Fetcher | None 
         raise PackError(f"{pack.root / COURSES_FILE} has no `fetch:` rule")
     url = str(rule["url"])
     fields = {k: str(v).format(subject=subject, number=number) for k, v in (rule.get("fields") or {}).items()}
-    fetcher = fetcher or (lambda u, d: fetch_text(u, d, domains=pack.domains))
-    if not host_allowed(url, pack.domains):
+    fetcher = fetcher or (lambda u, d: fetch_text(u, d, domains=pack.domains, deny=pack.deny_hosts))
+    if not host_allowed(url, pack.domains, deny=pack.deny_hosts):
         raise PackError(f"refused: {url} is outside the pack's domains {pack.domains}")
     markup = fetcher(url, fields if str(rule.get("method", "GET")).upper() == "POST" else None)
     courses = parse_timetable_tables(markup)
@@ -866,6 +922,8 @@ def _fact_evidence(fact: Fact) -> list[str]:
         return [str(c.get("hex", "")) for c in (d.get("colours") or []) if isinstance(c, dict) and c.get("hex")]
     if fact.kind == "fact":
         return [str(d.get("evidence") or d.get("answer") or "")]
+    if fact.kind == "rule":
+        return [str(d.get("evidence") or d.get("says") or "")]
     return [str(d.get("evidence") or "")]
 
 
@@ -878,7 +936,7 @@ def refresh(pack: Pack, *, fetcher: Fetcher | None = None, today: date | None = 
     replaced it is a person's call, not a parser's."""
     today = today or date.today()
     domains = pack.domains
-    fetcher = fetcher or (lambda u, d: fetch_text(u, d, domains=domains))
+    fetcher = fetcher or (lambda u, d: fetch_text(u, d, domains=domains, deny=pack.deny_hosts))
     pages: dict[str, str | None] = {}
     changes: list[Change] = []
 
@@ -897,7 +955,7 @@ def refresh(pack: Pack, *, fetcher: Fetcher | None = None, today: date | None = 
         if not f.source:
             changes.append(Change(f, "no_source"))
             continue
-        if not host_allowed(f.source, domains):
+        if not host_allowed(f.source, domains, deny=pack.deny_hosts):
             changes.append(Change(f, "off_domain", f"{f.source} is outside {domains}"))
             continue
         if f.kind == "course":
@@ -981,6 +1039,8 @@ def write_pack(pack: Pack) -> None:
         dump(pack.root / PROCEDURES_DIR / f"{name}.yaml", proc)
     for name, tpl in pack.templates.items():
         dump(pack.root / TEMPLATES_DIR / f"{name}.yaml", tpl)
+    for name, pol in pack.policies.items():
+        dump(pack.root / POLICIES_DIR / f"{name}.yaml", pol)
 
 
 # --------------------------------------------------------------------------- #
@@ -1039,7 +1099,7 @@ __all__ = [
 # Looking a fact up when the pack lacks it, learning it, and verifying one on read
 # --------------------------------------------------------------------------- #
 
-DEFAULT_VERIFY_AFTER_DAYS = 30
+DEFAULT_VERIFY_AFTER_DAYS = 0   # re-read a remembered fact every time; raise it only for an offline or slow machine
 LOOKUP_MAX_PAGES = 12
 _ROLE_WORDS = re.compile(r"(?i)\b(president|vice-president|vice president|provost|dean|chair|director|head|"
                          r"coordinator|co-ordinator|manager|lead|officer|registrar|secretary)\b")
@@ -1084,7 +1144,7 @@ def lookup(pack: Pack, query: str, *, fetcher: Fetcher | None = None,
     written: the clerk reads the best page and records the fact with
     ``learn_office`` so the next session has it."""
     domains = pack.domains
-    fetcher = fetcher or (lambda u, d: fetch_text(u, d, domains=domains))
+    fetcher = fetcher or (lambda u, d: fetch_text(u, d, domains=domains, deny=pack.deny_hosts))
     words = _query_words(query)
     if not words:
         return []
@@ -1099,7 +1159,7 @@ def lookup(pack: Pack, query: str, *, fetcher: Fetcher | None = None,
 
     while queue and len(seen) < max_pages:
         url, hop, _ = queue.pop(0)
-        if url in seen or not host_allowed(url, domains, require_https=False):
+        if url in seen or not host_allowed(url, domains, require_https=False, deny=pack.deny_hosts):
             continue
         seen.add(url)
         try:
@@ -1119,13 +1179,21 @@ def lookup(pack: Pack, query: str, *, fetcher: Fetcher | None = None,
             cands = []
             for link, label in _links(markup, url):
                 s = matches(label) * 2 + matches(link)
-                if s and host_allowed(link, domains, require_https=False) and link not in seen:
+                if s and host_allowed(link, domains, require_https=False, deny=pack.deny_hosts) and link not in seen:
                     cands.append((s, link))
             cands.sort(key=lambda c: -c[0])
             for s, link in cands[:6]:
                 queue.append((link, hop + 1, s))
     hits.sort(key=lambda h: -h.score)
     return hits
+
+
+def _check_source(pack: Pack, source: str) -> None:
+    """A learned fact's page must be inside the domains and off the deny list."""
+    if host_denied(source, pack.deny_hosts):
+        raise PackError(f"refused: {source} is on the pack's deny list ({LOGIN_REFUSED})")
+    if not host_allowed(source, pack.domains, deny=pack.deny_hosts):
+        raise PackError(f"refused: {source} is outside the pack's domains {pack.domains}")
 
 
 def learn_office(pack: Pack, *, office: str, person: str, title: str = "", email: str = "",
@@ -1137,10 +1205,9 @@ def learn_office(pack: Pack, *, office: str, person: str, title: str = "", email
     address. Replaces an entry for the same office; keeps everything else.
     Only what an institution publishes about an office holder is accepted."""
     today = today or date.today()
-    if not host_allowed(source, pack.domains):
-        raise PackError(f"refused: {source} is outside the pack's domains {pack.domains}")
+    _check_source(pack, source)
     if confirm:
-        fetcher = fetcher or (lambda u, d: fetch_text(u, d, domains=pack.domains))
+        fetcher = fetcher or (lambda u, d: fetch_text(u, d, domains=pack.domains, deny=pack.deny_hosts))
         text = html_to_text(fetcher(source, None)).lower()
         missing = [v for v in (person, email) if v and v.lower() not in text]
         if missing:
@@ -1178,10 +1245,10 @@ def verify_fact(pack: Pack, fact: Fact, *, fetcher: Fetcher | None = None, today
     holder current between scheduled refreshes: the clerk verifies on read
     once a fact is older than ``verify_after_days``."""
     today = today or date.today()
-    fetcher = fetcher or (lambda u, d: fetch_text(u, d, domains=pack.domains))
+    fetcher = fetcher or (lambda u, d: fetch_text(u, d, domains=pack.domains, deny=pack.deny_hosts))
     if not fact.source:
         return Change(fact, "no_source")
-    if not host_allowed(fact.source, pack.domains):
+    if not host_allowed(fact.source, pack.domains, deny=pack.deny_hosts):
         return Change(fact, "off_domain", f"{fact.source} is outside {pack.domains}")
     try:
         text = html_to_text(fetcher(fact.source, None)).lower()
@@ -1198,8 +1265,11 @@ def verify_fact(pack: Pack, fact: Fact, *, fetcher: Fetcher | None = None, today
 
 
 def needs_verify(pack: Pack, fact: Fact | dict[str, Any], today: date | None = None) -> bool:
+    """Whether a remembered fact must be re-read from its page before it is relied on.
+    With the default ``verify_after_days: 0`` that is every time: the memory says where
+    to look, and the answer comes from the page as it reads today."""
     age = fact_age_days(fact, today)
-    return age is None or age > verify_after_days(pack)
+    return age is None or age >= verify_after_days(pack) if verify_after_days(pack) > 0 else True
 
 
 def learn_fact(pack: Pack, *, question: str, answer: str, source: str, evidence: str = "",
@@ -1212,11 +1282,10 @@ def learn_fact(pack: Pack, *, question: str, answer: str, source: str, evidence:
     evidence, so nothing enters the memory from the model's own recollection.
     A fact for the same question replaces the older one."""
     today = today or date.today()
-    if not host_allowed(source, pack.domains):
-        raise PackError(f"refused: {source} is outside the pack's domains {pack.domains}")
+    _check_source(pack, source)
     evidence = evidence or answer
     if confirm:
-        fetcher = fetcher or (lambda u, d: fetch_text(u, d, domains=pack.domains))
+        fetcher = fetcher or (lambda u, d: fetch_text(u, d, domains=pack.domains, deny=pack.deny_hosts))
         text = re.sub(r"\s+", " ", html_to_text(fetcher(source, None))).lower()
         if re.sub(r"\s+", " ", evidence).lower() not in text:
             raise PackError(f"refused: {source} does not show {evidence!r}; a fact is learned only from a page "
@@ -1248,3 +1317,179 @@ def recall(pack: Pack, query: str) -> list[dict[str, Any]]:
             scored.append((n, {"kind": "office", **o}))
     scored.sort(key=lambda t: -t[0])
     return [d for _, d in scored]
+
+
+# --------------------------------------------------------------------------- #
+# Policies: rules read from the institution's pages, applied to a document such as a syllabus
+# --------------------------------------------------------------------------- #
+
+RULE_KINDS = ("no_tests_in_last_weeks", "no_new_assignments_in_last_weeks", "no_final_exam_in_last_weeks",
+              "min_weight_before_date", "note")
+_TEST_WORDS = re.compile(r"\b(test|quiz|quizzes|midterm|exam|examination)\b", re.I)
+_PENALTY_WORDS = re.compile(r"\b(late|penalt\w*|per (day|week)|deduct\w*|bonus)\b", re.I)
+_FINAL_WORDS = re.compile(r"\bfinal (exam|examination)\b", re.I)
+_PCT = re.compile(r"(\d{1,3}(?:\.\d+)?)\s*%")
+_MONTHS = "January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec"
+_DATE_WORDS = re.compile(rf"\b(\d{{1,2}})\s+({_MONTHS})\.?\s+(\d{{4}})\b|\b({_MONTHS})\.?\s+(\d{{1,2}}),?\s+(\d{{4}})\b|\b(\d{{4}}-\d{{2}}-\d{{2}})\b", re.I)
+
+
+def _parse_date_words(text: str) -> list[date]:
+    out = []
+    for m in _DATE_WORDS.finditer(text):
+        try:
+            if m.group(7):
+                out.append(date.fromisoformat(m.group(7)))
+            elif m.group(1):
+                out.append(datetime.strptime(f"{m.group(1)} {m.group(2)[:3]} {m.group(3)}", "%d %b %Y").date())
+            else:
+                out.append(datetime.strptime(f"{m.group(5)} {m.group(4)[:3]} {m.group(6)}", "%d %b %Y").date())
+        except ValueError:
+            continue
+    return out
+
+
+@dataclass
+class Assessment:
+    name: str
+    when: date | None
+    weight: float | None
+    line: str
+    announced: date | None = None
+    is_test: bool = False
+    is_final: bool = False
+
+
+def parse_assessments(text: str) -> list[Assessment]:
+    """Lines of a syllabus that carry a percentage: the assessment's name, its date (the
+    first date on the line), its weight, and whether it is a test or a final examination.
+    A date after the word 'announced' or 'new' is the announcement date."""
+    out: list[Assessment] = []
+    for raw in text.splitlines():
+        line = raw.strip().strip("|").strip()
+        if not line or "%" not in line or set(line) <= set("|-: "):
+            continue
+        if _PENALTY_WORDS.search(line):
+            continue  # "late work loses 5% per day" is a penalty, not an assessment
+        m = _PCT.search(line)
+        if not m:
+            continue
+        weight = float(m.group(1))
+        dates = _parse_date_words(line)
+        ann = None
+        am = re.search(r"(announced|new)[^|]*?(" + _DATE_WORDS.pattern + ")", line, re.I)
+        if am:
+            got = _parse_date_words(am.group(0))
+            ann = got[0] if got else None
+        when = next((d for d in dates if d != ann), dates[0] if dates else None)
+        if ann is None and when is not None:
+            # "announced 20 November" with no year: the year is the assessment's
+            am2 = re.search(rf"(?i)(announced|new)\D{{0,20}}?(\d{{1,2}})\s+({_MONTHS})\b|(announced|new)\D{{0,20}}?({_MONTHS})\.?\s+(\d{{1,2}})\b", line)
+            if am2:
+                try:
+                    dd, mm = (am2.group(2), am2.group(3)) if am2.group(2) else (am2.group(6), am2.group(5))
+                    ann = datetime.strptime(f"{dd} {mm[:3]} {when.year}", "%d %b %Y").date()
+                except ValueError:
+                    ann = None
+        name = re.split(r"\s*\|\s*", line)[0]
+        name = re.sub(r"\s*\(.*?\)\s*", " ", name).strip() or line[:40]
+        out.append(Assessment(name, when, weight, line, ann, bool(_TEST_WORDS.search(name)), bool(_FINAL_WORDS.search(name))))
+    return out
+
+
+def term_end_of(text: str, pack: Pack | None = None, term_name: str = "") -> tuple[date | None, str]:
+    """The last day of classes: from a 'Term: ... to <date>' line in the document, else the
+    pack's term of that name (calendar.yaml terms with `classes_end`), else None."""
+    m = re.search(r"(?i)(term|classes)[^\n]*?\bto\s+(" + _DATE_WORDS.pattern + ")", text)
+    if m:
+        got = _parse_date_words(m.group(2))
+        if got:
+            return got[0], "the document's own term dates"
+    if pack is not None and term_name:
+        for t in pack.terms():
+            if term_name.lower() in str(t.get("name", "")).lower():
+                for key in ("classes_end", "end", "last_day_of_classes"):
+                    d = _parse_date(t.get(key))
+                    if d:
+                        return d, f"the pack's term {t.get('name')} [{t.get('source')}, read {t.get('date_read')}]"
+    return None, ""
+
+
+def check_syllabus(pack: Pack, text: str, policy: str, *, term_name: str = "",
+                   today: date | None = None) -> list[Finding]:
+    """Apply a policy's rules to a syllabus. Each finding quotes the rule as the institution's
+    page states it, with the source and the date read; what the parser could not establish
+    (no term end, no date on a line) is reported as Unknown rather than passed."""
+    pol = pack.policies.get(policy)
+    if pol is None:
+        raise PackError(f"no policy `{policy}` in the pack; the clerk learns one with `murmurent institution learn-rule`"
+                        + (f" (have: {', '.join(pack.policies)})" if pack.policies else ""))
+    items = parse_assessments(text)
+    end, end_src = term_end_of(text, pack, term_name)
+    out: list[Finding] = []
+    for r in pol.get("rules") or []:
+        chk = r.get("check") or {}
+        kind = chk.get("kind", "note")
+        cite = f"[{r.get('source')}, read {r.get('date_read')}]"
+        says = f"The {pack.name} rule says: \"{r.get('says')}\" {cite}"
+        if kind == "note":
+            out.append(Finding("Note", str(r.get("id")), f"{says} (applied by reading, not by the parser)"))
+            continue
+        if end is None:
+            out.append(Finding("Unknown", str(r.get("id")), f"cannot place the last weeks of term: no 'Term: ... to <date>' line and no term given; {says}"))
+            continue
+        weeks = int(chk.get("weeks", 0))
+        start = end - timedelta(weeks=weeks)
+        for a in items:
+            if kind == "no_tests_in_last_weeks" and a.is_test and not a.is_final:
+                if a.when is None:
+                    out.append(Finding("Unknown", a.name, f"no date on this line, so its place in the last {weeks} weeks is unknown; {says}"))
+                elif start < a.when <= end:
+                    out.append(Finding("Fix", a.name, f"a test on {a.when.isoformat()}, inside the last {weeks} weeks of classes (from {start.isoformat()} to {end.isoformat()}, {end_src}); {says}"))
+                else:
+                    out.append(Finding("Correct", a.name, f"on {a.when.isoformat()}, outside the last {weeks} weeks; {cite}"))
+            elif kind == "no_final_exam_in_last_weeks" and a.is_final and a.when is not None:
+                if start < a.when <= end:
+                    out.append(Finding("Fix", a.name, f"a final examination on {a.when.isoformat()}, inside the last {weeks} weeks of classes; {says}"))
+            elif kind == "no_new_assignments_in_last_weeks" and not a.is_test:
+                if a.announced is not None and start < a.announced <= end:
+                    out.append(Finding("Fix", a.name, f"announced {a.announced.isoformat()}, inside the last {weeks} weeks of classes (from {start.isoformat()}); {says}"))
+                elif a.announced is None and a.when is not None and start < a.when <= end:
+                    out.append(Finding("Unknown", a.name, f"due {a.when.isoformat()}, inside the last {weeks} weeks: allowed if it was announced before {start.isoformat()}; the document does not say when; {says}"))
+            elif kind == "min_weight_before_date":
+                pass
+        if kind == "min_weight_before_date":
+            by = _parse_date(chk.get("by")) or (pack.deadline_date(chk.get("deadline", "")) if hasattr(pack, "deadline_date") else None)
+            need = float(chk.get("percent", 0))
+            if by is None:
+                out.append(Finding("Unknown", str(r.get("id")), f"the date to count to is not in the pack; {says}"))
+            else:
+                total = sum(a.weight or 0 for a in items if a.when and a.when <= by)
+                out.append(Finding("Correct" if total >= need else "Fix", str(r.get("id")),
+                                   f"{total:g}% of the grade is assessed by {by.isoformat()} (the rule asks {need:g}%); {says}"))
+    return out
+
+
+def learn_rule(pack: Pack, *, policy: str, rule_id: str, says: str, source: str, heading: str = "",
+               check: dict[str, Any] | None = None, today: date | None = None, fetcher: Fetcher | None = None,
+               confirm: bool = True) -> dict[str, Any]:
+    """Record a rule the clerk read on one of the institution's pages, quoted as the page
+    states it. With ``confirm`` the page is fetched and must contain the quote, so no rule
+    enters the pack from recollection. ``check`` makes it machine-checkable
+    (kind in RULE_KINDS, with weeks or percent); without it the rule is applied by reading."""
+    today = today or date.today()
+    _check_source(pack, source)
+    if check and check.get("kind") not in RULE_KINDS:
+        raise PackError(f"check.kind must be one of {RULE_KINDS}")
+    if confirm:
+        fetcher = fetcher or (lambda u, d: fetch_text(u, d, domains=pack.domains, deny=pack.deny_hosts))
+        text = re.sub(r"\s+", " ", html_to_text(fetcher(source, None))).lower()
+        if re.sub(r"\s+", " ", says).lower() not in text:
+            raise PackError(f"refused: {source} does not state {says!r}; a rule is learned only as the page words it")
+    entry: dict[str, Any] = {"id": rule_id, "says": says, "source": source, "date_read": today.isoformat()}
+    if heading:
+        entry["heading"] = heading
+    entry["check"] = check or {"kind": "note"}
+    pol = pack.policies.setdefault(policy, {"name": policy, "rules": []})
+    pol["rules"] = [r for r in (pol.get("rules") or []) if str(r.get("id")) != rule_id] + [entry]
+    write_pack(pack)
+    return entry

@@ -5,47 +5,59 @@ from lib.draw import SKY
 SPEC = AgentSpec(
     agent="artist",
     title="The artist",
-    tagline="Figures, reports and slides that communicate the science",
+    tagline="Figures, reports and slides made from your real results",
     colour=SKY,
     icon="chart",
-    intro=["This is the artist. It turns finished results into figures, reports and slides, on the "
-           "principle that a result that cannot be communicated does not exist."],
+    intro=["This is the artist. It turns your results into figures, reports and slides that make the "
+           "science clear."],
     does=[
-        Quote("Generate publication-quality figures using matplotlib and seaborn", "publication"),
-        Quote("Produce ROC curves, precision-recall curves, confusion matrices, heatmaps, volcano plots", "ROC"),
-        Quote("Build slide decks summarising analysis pipelines and findings", "slide decks"),
-        Quote("Ensure all figures are legible, labelled, and have proper axes, titles, and legends", "legible"),
+        Quote("Draws publication figures from your real results", "publication"),
+        Quote("Model-accuracy curves, heatmaps, volcano plots and more", "heatmaps"),
+        Quote("Builds slide decks and a running project report", "slide"),
+        Quote("Draws each figure from your real data, at print resolution", "print resolution"),
     ],
     does_narration=[
-        "Its file lists the work. Publication-quality figures with matplotlib and seaborn. ROC curves, "
-        "heatmaps, volcano plots, the standard set.",
-        "Slide decks that summarise a pipeline and its findings. And every figure legible, labelled, "
-        "with proper axes, titles and legends."],
+        "It draws publication figures, from model-accuracy curves to heatmaps and volcano plots, each one labelled, with "
+        "proper axes and legends. It builds slide decks, and keeps a project report of the figures so far.",
+        "What makes it different: it draws each figure from your real data and saves it at print resolution."],
     refuses=[
-        Quote("You do not train models or run statistics.", "statistics"),
-        Quote("You do not decide scientific validity.", "validity"),
-        Quote("Never present placeholder or synthetic data as real.", "synthetic"),
-        Quote("You do not fabricate data to fill a plot.", "fabricate"),
+        Quote("Covers figures, reports and slides", "covers"),
+        Quote("The blacksmith computes the numbers and statistics", "blacksmith"),
+        Quote("The bookworm supplies references; the adversary checks the figure", "adversary"),
+        Quote("It never invents a data point", "invents"),
     ],
     refuses_narration=[
-        "It does not train models or run statistics; the numbers come from the blacksmith. It does not decide "
-        "scientific validity; the adversary checks the figure.",
-        "It never presents synthetic data as real, and it does not fabricate data to fill a plot. "
-        "An empty axis is better than an invented one."],
+        "The artist covers figures, reports and slides. The blacksmith computes the numbers, the bookworm "
+        "supplies the references for captions, and the adversary checks that a figure is honest.",
+        "It never invents a data point to fill a plot; when an input is missing, it says so."],
     examples=[
-        Exchange("1", ["A real run, on simulated data. The member asks for one publication figure: colony "
-                       "diameter by medium, every point shown, the means marked.",
-                       "The verdict is Rendered. The figure is labelled as simulated on the image itself, "
-                       "the caption says what to notice, and the artist says plainly that it ran no test."],
-                 [("read signal.csv", True), ("draw with matplotlib", True), ("write the caption", True)]),
+        Exchange("1", ["A real run, on simulated data. The member asks for one figure: colony size by growth "
+                       "medium, every point shown, the means marked.",
+                       "The answer is Rendered. The image itself says the data are simulated, the caption "
+                       "says what to notice, and the artist states that it ran no test."],
+                 [("read the data", True), ("draw the figure", True), ("write the caption", True)],
+                 figure="colony_by_medium.png"),
     ],
-    prompt="ask the artist to make a figure of the AUC per fold from exp/3_classifier/outputs, for the paper",
-    give="The results file and what the figure is for: a paper, a talk, a report. Say which comparison matters.",
-    verdicts="Rendered / Skipped / Failed, then the file it wrote and the caption.",
+    prompt="ask the artist to make a figure for the paper from the classifier results the blacksmith produced",
+    give="The results, what the figure is for, and which comparison matters.",
+    verdicts="Rendered, Skipped or Failed, then the figure and its caption.",
     howto_narration=[
-        "To use it, type to Claude Code and name it: ask the artist to make a figure from a results file, "
-        "and say what it is for. A figure for a talk is not a figure for a paper.",
-        "The first line is the verdict: Rendered, Skipped or Failed. Then the file it wrote and a caption that "
-        "says what to notice. If an input is missing, it stops and says so rather than inventing one."],
+        "To use it, type to Claude Code and name it: ask the artist for a figure from your results, and say "
+        "what it is for. A figure for a talk differs from one for a paper.",
+        "The reply starts with Rendered, Skipped or Failed. Then the figure, and a caption that says what to "
+        "notice."],
+    directions=[
+        ("ask the artist for the colony size figure at single-column width for Nature, in our lab colours, as PNG and PDF",
+         "The figure in both formats at print resolution, with a draft caption."),
+        ("ask the artist for a slide deck of this month's classifier results for lab meeting, in our university's colours",
+         "A deck built from the real figures, one take-home line per slide."),
+        ("ask the artist to add the new heatmap to our project report, with a caption a first-year student could follow",
+         "The report updated, and a caption that says what to notice."),
+    ],
+    directions_narration=[
+        "Say what you want and where it is going: a figure sized for a journal, a deck for lab meeting, or a "
+        "new page in the project report.",
+        "Name your colours and figure size in the request; within a project it keeps one palette for every "
+        "figure."],
     docs=[],
 )

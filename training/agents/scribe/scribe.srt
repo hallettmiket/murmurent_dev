@@ -1,35 +1,43 @@
 1
-00:00:00,400 --> 00:00:11,573
-This is the scribe. It writes and revises scientific text in the house style, a style built from the PI's own hand edits, and it never changes a fact.
+00:00:00,400 --> 00:00:14,300
+This is the scribe. It writes and revises scientific text in a house style built from one PI's own edits, which your lab can replace with its own. It keeps every fact.
 
 2
-00:00:11,950 --> 00:00:25,170
-Two jobs, inferred from what you hand it. Revise, when you give it text: it rewrites to the guide. Draft, when you give it results, figures and notes and ask for a section.
+00:00:14,700 --> 00:00:26,000
+It revises text you give it, mostly by cutting, and lists every change with its reason. And it drafts a section from your results, figures and notes.
 
 3
-00:00:25,170 --> 00:00:36,555
-Cutting is the main move, because most of the PI's own edits are deletions. And it touches only what needs changing, so the diff shows real edits.
+00:00:26,000 --> 00:00:42,500
+It writes in your lab's voice by default; nobody has to ask for the house style. It uses whatever format the manuscript is in, LaTeX, Word or Markdown, and edits the manuscript itself when you ask.
 
 4
-00:00:36,949 --> 00:00:47,802
-It never changes a fact, a number, a citation key or a label; something that looks wrong is flagged, not corrected. It never rewraps a paragraph.
+00:00:42,899 --> 00:01:04,599
+Every fact, number and citation stays as you wrote it; one that looks wrong is flagged for you to check. Where a citation or a number is missing, it marks the place. If the material has a hole, say a number nobody has measured, it answers Gap and says what would fill it.
 
 5
-00:00:47,802 --> 00:01:00,347
-Where a claim needs a reference it does not have, it writes a marked gap rather than inventing one. And it returns text; it never edits the manuscript itself.
+00:01:04,599 --> 00:01:13,099
+A lab tailors it by adding its own published papers and its PI's edits as examples.
 
 6
-00:01:00,749 --> 00:01:07,469
-A real run, on a passage written to be bad. The member asks for a revision in the house style.
+00:01:13,500 --> 00:01:20,399
+A real run, on a passage written to be bad. The member asks for a revision.
 
 7
-00:01:07,469 --> 00:01:26,079
-The verdict is Revised. Every number survives. Each change is listed with the rule it follows, and the scribe asks a question it cannot answer: mean or median?
+00:01:20,399 --> 00:01:34,500
+The verdict is Revised. Every number survives, each change is listed with its reason, and the one change to the claim itself is shown for the author to accept or refuse.
 
 8
-00:01:26,500 --> 00:01:38,188
-To use it, type to Claude Code and name it: ask the scribe to revise a passage, or to draft a section from results and notes. Say which section of the paper it is for.
+00:01:34,900 --> 00:01:45,799
+Say what you want in one plain sentence. Tighten the Discussion and list the changes. Draft the Methods from your notes, with the missing pieces marked.
 
 9
-00:01:38,188 --> 00:01:51,587
-The first line is the verdict: Revised, Drafted or Gap. Then the text, and the list of what changed and why. You paste it in; the scribe does not.
+00:01:45,799 --> 00:01:53,700
+Or write a figure legend for a grant, in Word, under a word limit.
+
+10
+00:01:54,100 --> 00:02:09,400
+To use it, just ask Claude Code: ask the scribe to tighten a section, or to draft one from your results and notes. Give it the text and say which part of the paper it is for.
+
+11
+00:02:09,400 --> 00:02:20,800
+The first line of the reply is the verdict: Revised, Drafted or Gap. Then the text, and what changed and why.

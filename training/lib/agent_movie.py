@@ -28,11 +28,11 @@ from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
 
-from PIL import ImageDraw
+from PIL import Image, ImageDraw
 
 from .draw import (AMBER, BG, CHARS_PER_SECOND, DIM, F_BIG, F_BODY, F_H, F_LABEL, F_MONO_S, F_SMALL, F_SUB,
                    F_TINY, LAV, MUTED, PANEL, PANEL2, RED, TEAL, TERM_BG, TEXT, W, P, appear, eback,
-                   badge, font, glow, heading, icon, mono_block, paste_c, rrect, text_c, tw, wrap)
+                   badge, font, glow, heading, icon, mix, mono_block, paste_c, rrect, text_c, tw, wrap)
 from . import scene as scene_mod
 from .scene import EM_DASH, Scene, mmss, render
 
@@ -41,17 +41,7 @@ AGENTS = ROOT / "agents"
 INDEX = ROOT / "training" / "index.yaml"
 MAX_SECONDS = 180
 
-# Each agent's glyph, as the seminar slides mark them (blacksmith ⚒, bookworm 📚, artist 🎨,
-# adversary ⚔), extended to the rest of the commons. The member is a scientist.
-GLYPHS = {"oracle": "🔮", "lab_oracle": "📜", "bookworm": "📚", "blacksmith": "⚒️", "adversary": "⚔️",
-          "artist": "🎨", "teacher": "🎓", "conscience": "🧭", "scribe": "✒️", "docent": "🗺️",
-          "lawyer": "⚖️", "millwright": "🔧", "centre_millwright": "🏗️", "judge": "🧮",
-          "registrar": "🗂️", "security_guard": "🛡️", "clerk": "📋"}
-MEMBER_GLYPH = "🧑‍🔬"
-
-
-def glyph_of(agent: str) -> str:
-    return GLYPHS.get(agent, "🤖")
+from .glyphs import GLYPHS, MEMBER_GLYPH, glyph_of  # noqa: E402,F401
 MIN_SECONDS = 90
 
 
@@ -63,9 +53,12 @@ def murmurent_version() -> str:
 
 @dataclass
 class Quote:
-    """A phrase taken verbatim from agents/<agent>.md, and the narration words it appears on."""
+    """A card's text and the narration words it appears on. With ``verbatim`` the text is
+    checked against agents/<agent>.md at render time; otherwise it is a plain statement the
+    scribe wrote and the adversary checked against the file."""
     text: str
     cue: str | None = None
+    verbatim: bool = False
 
 
 @dataclass
@@ -76,6 +69,7 @@ class Exchange:
     narration: list[str]
     chips: list[tuple[str, bool]] = field(default_factory=list)
     who: str = "Member"
+    figure: str = ""                 # a PNG beside scenes.py that the run produced, shown with the reply
 
 
 @dataclass
@@ -97,6 +91,9 @@ class AgentSpec:
     howto_narration: list[str]
     kind: str = "bot"                # sprite kind for the agent
     docs: list[str] = field(default_factory=list)   # extra files to name at the end
+    refuses_heading: str = "Its scope"                                   # the second scene's title
+    directions: list[tuple[str, str]] = field(default_factory=list)   # (what you type, what it produces)
+    directions_narration: list[str] = field(default_factory=list)
 
 
 # --------------------------------------------------------------------------- #
@@ -118,8 +115,8 @@ def check_quotes(spec: AgentSpec) -> str:
     text = _norm(raw.decode())
     for q in spec.does + spec.refuses:
         if EM_DASH in q.text:
-            raise ValueError(f"{spec.agent}: a quote carries an em dash; pick a fragment without one: {q.text!r}")
-        if _norm(q.text) not in text:
+            raise ValueError(f"{spec.agent}: a card carries an em dash: {q.text!r}")
+        if q.verbatim and _norm(q.text) not in text:
             raise ValueError(f"{spec.agent}: not in agents/{spec.agent}.md any more: {q.text!r}")
     return hashlib.sha256(raw).hexdigest()
 
@@ -153,8 +150,7 @@ def s_title(img, t, sc, spec: AgentSpec, version: str):
         for line in wrap(spec.tagline, F_SUB, 640):
             d.text((72, y), line, font=F_SUB, fill=col)
             y += 38
-        d.text((72, y + 24), "One of the commons agents of Murmurent", font=F_SMALL, fill=MUTED)
-        d.text((72, y + 54), f"Murmurent {version}", font=F_SMALL, fill=MUTED)
+        d.text((72, y + 24), "An agent of Murmurent", font=F_SMALL, fill=MUTED)
     appear(img, t, 0.3, head, 0.9, 24)
     cx, cy = 980, 330
     p = P(t, 0.6, 0.7)
@@ -173,7 +169,7 @@ def _quote_cards(img, t, sc, spec, quotes, narration, colour, mark):
     for i, q in enumerate(quotes):
         t0 = sc.when(q.cue) if q.cue else sc.lead + i * span / n
         lines = wrap(q.text, f, w - 100)
-        h = 22 + len(lines) * (f.size + 7) + F_MONO_S.size + 10
+        h = 22 + len(lines) * (f.size + 7)
         def card(d, y=y, lines=lines, h=h):
             rrect(d, (x, y, x + w, y + h), PANEL, None, 12, 0)
             d.rectangle([x, y + 4, x + 6, y + h - 4], fill=colour)
@@ -181,8 +177,7 @@ def _quote_cards(img, t, sc, spec, quotes, narration, colour, mark):
             for ln in lines:
                 d.text((x + 66, yy), ln, font=f, fill=TEXT)
                 yy += f.size + 7
-            d.text((x + w - 16 - tw(f"agents/{spec.agent}.md", F_MONO_S), y + h - 10 - F_MONO_S.size),
-                   f"agents/{spec.agent}.md", font=F_MONO_S, fill=DIM)
+            pass
         appear(img, t, t0, card, 0.5, 14)
         if t > t0:
             icon(img, mark, x + 36, y + 24, 30, colour, colour, eback(P(t, t0 + 0.2, 0.4)))
@@ -195,8 +190,8 @@ def s_does(img, t, sc, spec):
 
 
 def s_refuses(img, t, sc, spec):
-    heading(img, t, "What it will not do")
-    _quote_cards(img, t, sc, spec, spec.refuses, spec.refuses_narration, RED, "cross")
+    heading(img, t, spec.refuses_heading)
+    _quote_cards(img, t, sc, spec, spec.refuses, spec.refuses_narration, spec.colour, "tick")
 
 
 def _who(img, t, t0, cx, cy, colour, glyph, label):
@@ -204,14 +199,16 @@ def _who(img, t, t0, cx, cy, colour, glyph, label):
     if p <= 0:
         return
     badge(img, glyph, colour, cx, cy, 110, eback(p), min(1.0, p * 3))
-    appear(img, t, t0 + 0.25, lambda d: text_c(d, cx, cy + 64, label, F_LABEL, colour), 0.4, 8)
+    label = label.replace("_", " ")
+    f = F_LABEL if len(label) <= 12 else F_TINY
+    appear(img, t, t0 + 0.25, lambda d: text_c(d, cx, cy + 64, label, f, colour), 0.4, 8)
 
 
 def chat_duration(question: str, chips, reply) -> float:
     return 0.8 + len(question) / CHARS_PER_SECOND + 0.5 + len(chips) * 0.55 + 0.7 + len(reply) * 0.28 + 1.5
 
 
-def s_chat(img, t, sc, spec: AgentSpec, who: str, question: str, reply: list[str], chips):
+def s_chat(img, t, sc, spec: AgentSpec, who: str, question: str, reply: list[str], chips, figure: str = ""):
     col = spec.colour
     label = spec.title[4:] if spec.title.startswith("The ") else spec.title
     heading(img, t, f"In Claude Code, with {'the ' + label if spec.title.startswith('The ') else label}", 28)
@@ -247,15 +244,86 @@ def s_chat(img, t, sc, spec: AgentSpec, who: str, question: str, reply: list[str
             ang = (t - tt) * 10
             d.arc([x + 8, cy + 8, x + 28, cy + 28], ang * 57, ang * 57 + 250, fill=col, width=3)
     t_r = t_c + len(chips) * 0.55 + 0.7
-    k = int(max(t - t_r, 0) / 0.28)
-    items = []
-    first_blank = next((i for i, l in enumerate(reply) if not l.strip()), len(reply))
-    for i, l in enumerate(reply[:k]):
-        items.append((l, col if i < first_blank else TEXT))
     top = cy + (50 if chips else 0)
-    mono_block(img, items, 200, top, 1025, 600 - top, f=font(17, mono=True), title=spec.agent)
+    _reply_card(img, t, t_r, spec, reply, top, figure)
     if 0 < t - t_r < 0.6:
         glow(img, 190, 470, 14, col, 0.6)
+
+
+def _reply_card(img, t, t_r, spec, reply: list[str], top: int, figure: str = ""):
+    """The agent's reply as a plain card: its name, the verdict line large in its colour
+    (an em dash shown as a colon), then the detail in a readable proportional face, and
+    the figure the run produced beside it when there is one. Lines appear one by one;
+    what does not fit the card is not drawn, so a transcript is kept short."""
+    col = spec.colour
+    d = ImageDraw.Draw(img)
+    x, w, bottom = 200, 1025, 606
+    rrect(d, (x, top, x + w, bottom), PANEL, (58, 70, 104), 14, 2)
+    d.text((x + 18, top + 8), spec.agent.replace("_", " "), font=F_TINY, fill=col)
+    if t < t_r:
+        return
+    k = int((t - t_r) / 0.28) + 1
+    lines = [l for l in reply if l.strip()]
+    text_w = w - 36
+    fig = None
+    if figure:
+        path = Path(figure)
+        if path.exists():
+            fig = Image.open(path).convert("RGB")
+            fh = bottom - top - 40
+            fw = int(fig.width * fh / fig.height)
+            if fw > 480:
+                fw, fh = 480, int(fig.height * 480 / fig.width)
+            fig = fig.resize((fw, fh))
+            text_w = w - 36 - fw - 20
+    y = top + 34
+    shown = 0
+    for i, l in enumerate(lines):
+        if shown >= k:
+            break
+        f = F_BODY if i == 0 else F_SMALL
+        txt = l.strip().replace(" — ", ": ").replace("—", ":") if i == 0 else l.strip()
+        for ln in wrap(txt, f, text_w):
+            if y + f.size + 6 > bottom - 12:
+                break
+            d.text((x + 18, y), ln, font=f, fill=col if i == 0 else TEXT)
+            y += f.size + 7
+        y += 4
+        shown += 1
+    if fig is not None and t > t_r + 0.5:
+        img.paste(fig, (x + w - fig.width - 18, top + 32))
+
+
+def s_directions(img, t, sc, spec: AgentSpec):
+    """How to direct it: example prompts typed one after another, each with one line on what
+    comes back. The examples stay within what agents/<agent>.md says the agent does."""
+    col = spec.colour
+    heading(img, t, "How to direct it: say what you want back")
+    d = ImageDraw.Draw(img)
+    n = max(len(spec.directions), 1)
+    span = max(sc.seconds - sc.lead - sc.tail - 1.5, 1.0)
+    y = 112
+    for i, (prompt, note) in enumerate(spec.directions):
+        t0 = sc.lead + i * span / n
+        p_lines = wrap("> " + prompt, F_SMALL, 1100)
+        n_lines = wrap(note, F_TINY, 1080)
+        h = 14 + len(p_lines) * 26 + len(n_lines) * 22 + 10
+        if t >= t0:
+            typed = int(len(prompt) * P(t, t0, len(prompt) / CHARS_PER_SECOND))
+            shown = wrap("> " + prompt[:typed] + ("|" if typed < len(prompt) else ""), F_SMALL, 1100)
+            rrect(d, (70, y, 1210, y + h), TERM_BG, (58, 70, 104), 10, 2)
+            yy = y + 8
+            for ln in shown[:len(p_lines)]:
+                d.text((88, yy), ln, font=F_SMALL, fill=AMBER)
+                yy += 26
+            yy = y + 8 + len(p_lines) * 26 + 4
+            a = P(t, t0 + len(prompt) / CHARS_PER_SECOND + 0.2, 0.5)
+            if a > 0:
+                for ln in n_lines:
+                    d.text((88, yy), ln, font=F_TINY, fill=mix(TEXT, TERM_BG, 1 - a))
+                    yy += 22
+                icon(img, "tick", 1186, y + 20, 22, col, col, eback(a))
+        y += h + 10
 
 
 def s_howto(img, t, sc, spec: AgentSpec, version: str):
@@ -270,7 +338,7 @@ def s_howto(img, t, sc, spec: AgentSpec, version: str):
     prompt = spec.prompt
     n = int(len(prompt) * P(t, t_p, len(prompt) / CHARS_PER_SECOND))
     if t >= t_p:
-        lines = wrap("> " + prompt[:n] + ("▌" if n < len(prompt) else ""), F_BODY, 1100)
+        lines = wrap("> " + prompt[:n] + ("|" if n < len(prompt) else ""), F_BODY, 1100)
         for i, l in enumerate(lines[:2]):
             d.text((88, 158 + i * 32), l, font=F_BODY, fill=AMBER)
     t_done = t_p + len(prompt) / CHARS_PER_SECOND + 0.3
@@ -279,10 +347,10 @@ def s_howto(img, t, sc, spec: AgentSpec, version: str):
     if a > 0:
         badge(img, glyph_of(spec.agent), col, 160, 320, 120, eback(a))
         appear(img, t, t_done + 0.3, lambda d: text_c(d, 160, 392, spec.agent, F_LABEL, col), 0.4, 6)
-        appear(img, t, t_done + 0.3, lambda d: d.text((240, 300), "Claude Code reads agents/" + spec.agent + ".md and hands it the task.",
+        appear(img, t, t_done + 0.3, lambda d: d.text((240, 300), "Claude Code hands the task to the " + spec.agent.replace("_", " ") + ".",
                                                       font=F_SMALL, fill=MUTED), 0.5, 6)
     cards = [("Give it", spec.give, "give it"), ("The first line is the verdict", spec.verdicts, "verdict"),
-             ("Then the detail", "Locations, numbers and what it could not do; read it before you act.", "detail")]
+             ("Then the detail", "What it found, where, and what it could not do.", "detail")]
     narr = " ".join(spec.howto_narration)
     for i, (title, body, cue) in enumerate(cards):
         t0 = sc.when(cue) if cue in narr else t_done + 1.0 + i * 1.2
@@ -291,15 +359,13 @@ def s_howto(img, t, sc, spec: AgentSpec, version: str):
             rrect(d, (x, 340, x + 310, 540), PANEL, col if i == 1 else TEAL, 14, 3)
             d.text((x + 16, 352), title, font=F_LABEL, fill=col if i == 1 else TEAL)
             yy = 384
-            for ln in wrap(body, F_TINY, 278):
-                d.text((x + 16, yy), ln, font=F_TINY, fill=TEXT)
-                yy += F_TINY.size + 5
+            for ln in wrap(body, F_SMALL, 278):
+                d.text((x + 16, yy), ln, font=F_SMALL, fill=TEXT)
+                yy += F_SMALL.size + 5
         appear(img, t, t0, f, 0.5, 12)
     t_e = sc.seconds - sc.tail - 2.5
     def foot(d):
-        names = [f"agents/{spec.agent}.md"] + spec.docs
-        d.text((70, 565), "   ".join(names), font=F_MONO_S, fill=AMBER)
-        d.text((70, 592), f"Checked against Murmurent {version}, {date.today().isoformat()}.", font=F_TINY, fill=MUTED)
+        d.text((70, 580), f"Checked against Murmurent {version}, {date.today().isoformat()}.", font=F_TINY, fill=MUTED)
     appear(img, t, t_e, foot, 0.6, 8)
 
 
@@ -314,13 +380,16 @@ def build_scenes(spec: AgentSpec, folder: Path, version: str) -> list[Scene]:
     sc.append(Scene("title", spec.intro, lambda img, t, s: s_title(img, t, s, spec, version), "Welcome"))
     sc.append(Scene("does", spec.does_narration, lambda img, t, s: s_does(img, t, s, spec), "What it does", tail=1.6))
     sc.append(Scene("refuses", spec.refuses_narration, lambda img, t, s: s_refuses(img, t, s, spec),
-                    "What it will not do", tail=1.6))
+                    spec.refuses_heading, tail=1.6))
     for i, ex in enumerate(spec.examples):
         who, q, reply = exchanges[ex.key]
         who = ex.who or who
         sc.append(Scene(f"example{ex.key}", ex.narration,
-                        lambda img, t, s, who=who, q=q, reply=reply, ex=ex: s_chat(img, t, s, spec, who, q, reply, ex.chips),
+                        lambda img, t, s, who=who, q=q, reply=reply, ex=ex: s_chat(img, t, s, spec, who, q, reply, ex.chips, str(folder / ex.figure) if ex.figure else ""),
                         "A real example" if i == 0 else None, min_anim=chat_duration(q, ex.chips, reply), tail=1.2))
+    if spec.directions:
+        sc.append(Scene("directions", spec.directions_narration, lambda img, t, s: s_directions(img, t, s, spec),
+                        "How to direct it", tail=1.8))
     sc.append(Scene("howto", spec.howto_narration, lambda img, t, s: s_howto(img, t, s, spec, version),
                     "How to use it", tail=2.5))
     return sc

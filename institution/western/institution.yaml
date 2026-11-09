@@ -8,9 +8,25 @@ max_fact_age_days: 180
 note: 'The pack is the clerk''s memory: what it looked up on the institution''s own pages, each with the
   page and the date read, plus what the centre keeps on purpose (procedures, holidays). A fact that cannot
   be read is left out.'
-verify_after_days: 30
+verify_after_days: 0
 lookup:
   pages:
   - https://www.uwo.ca/a-z.html
   note: Hub pages the crawl starts from when no web search is available. The clerk's first route is a
     web search limited to the domains above.
+deny_hosts:
+- owl.uwo.ca
+- westernu.brightspace.com
+- myhr.uwo.ca
+- student.uwo.ca
+- studentservices.uwo.ca
+- myexams.uwo.ca
+- login.uwo.ca
+- sso.uwo.ca
+- idp.uwo.ca
+- mail.uwo.ca
+- office.uwo.ca
+- wts.uwo.ca
+deny_note: 'Hosts inside the domains that are never read, whatever the domain rule admits: the learning
+  system, HR self-service, the student information system, the sign-on and mail hosts. Anything behind
+  a login is refused and never recorded; the clerk reads public pages only.'

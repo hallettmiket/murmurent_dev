@@ -13,56 +13,56 @@ C0A1B2C3D4E: the channel of project 'dcis_imaging'
 MOVIE = Movie(
     key="push",
     title="Backing up with /murmurent-push",
-    tagline="Commit and push with the lab's safety checks, and a note where the project reads it",
+    tagline="Back up your work safely, and tell the project's channel",
     glyph="📤",
     colour=TEAL,
-    summary="The two push skills: what the pre-flight refuses (secrets, secret-shaped names, large files, governed data), how a whole project is backed up, and where the Slack note goes.",
+    summary="The two backup skills: the checks that keep an access key or a large data file from leaving, backing up a whole project at once, and the note to the project's channel.",
     parts=[
-        Part("title", ["This is how you back up your work with Murmurent: two skills that commit and push with the "
-                       "lab's safety checks, and post a note where the project reads it."]),
-        Part("cards", chapter="What it refuses", heading="What the pre-flight refuses", source="skills/murmurent-push/SKILL.md",
+        Part("title", ["This skill backs up your work. You type its name, murmurent push, in Claude Code. It saves "
+                       "your changes to GitHub, the lab's online copy, and tells the project's channel what changed."]),
+        Part("cards", chapter="The checks", heading="The checks before anything leaves", source="skills/murmurent-push/SKILL.md",
              colour=RED, mark="cross",
-             quotes=[Quote("Refuse secret-shaped filenames.", "secret-shaped"),
-                     Quote("Scan staged content for secrets.", "staged content"),
-                     Quote("Refuse large files in tracked dirs.", "large files"),
-                     Quote("Never --amend", "amend")],
-             narration=["The skill's own file lists what it refuses before anything is staged. Secret-shaped file "
-                        "names, such as a key or a credentials file. Secrets inside staged content, found by a scanner "
-                        "that never prints the secret itself.",
-                        "Large files in tracked folders, which belong under append only on the data host. And it never "
-                        "amends history: the lab's history is the audit trail."]),
+             quotes=[Quote("A file named like a password or key stays behind.", "named like"),
+                     Quote("An access key or token written inside a file stops the backup.", "inside"),
+                     Quote("A data file over one megabyte stops the backup.", "megabyte"),
+                     Quote("Nothing from the lab's original data or results folders goes to GitHub.", "results")],
+             narration=["What makes it special are the checks it runs before anything leaves your computer. A file "
+                        "named like a password or a key stays behind. An access key or token written inside a file "
+                        "stops the backup, and the skill shows only a few letters from each end.",
+                        "A data file over one megabyte stops the backup, and the skill names where the file belongs. "
+                        "Nothing from the lab's data folders on the server, original data or results, is ever saved "
+                        "to GitHub."]),
         Part("chat", chapter="A real run", key="1", agent="murmurent-push", agent_title="/murmurent-push", colour=RED, who="Member",
-             chips=[("secret-shaped names", True), ("secrets-scan --staged", True), ("large files", True), ("push", False)],
-             narration=["A real run, on a throwaway repository made for this movie. The member types the skill name. "
-                        "The scanner finds two token-shaped strings in the staged file and reports them redacted.",
-                        "A credentials file was never staged, and a three-megabyte data file is named with where it "
-                        "should go instead. Nothing was committed or pushed."]),
-        Part("terminal", chapter="Where the note goes", heading="Where the Slack note goes", transcript=T_NOTE,
-             title="Terminal: the skill runs this for you", colour=TEAL,
-             notes=[("One command decides the channel: the repository's own setting, else its project, else the lab.", "decides"),
-                    ("A repository with no route posts nowhere and says why.", "nowhere"),
-                    ("The skill runs this itself after the push; you do not pick a channel.", "pick")],
-             narration=["After a push, one command decides where the note goes: a channel set in the repository's "
-                        "marker, else the channel of the project that lists the repository, else the lab's channel.",
-                        "A repository with no route posts nowhere and says why. The skill runs this itself; nobody "
-                        "picks a channel by hand."]),
-        Part("cards", chapter="The whole project", heading="/murmurent-project-push: the whole project",
+             chips=[("file names", True), ("keys in files", True), ("large files", True), ("save to GitHub", False)],
+             narration=["Here are the real checks the skill runs, on a practice folder made for this movie. The member typed only the "
+                        "skill's name. It found two access keys written into a settings file and showed them cut short.",
+                        "It left a credentials file behind, named a three-megabyte data file and where it should go, "
+                        "and saved nothing to GitHub."]),
+        Part("terminal", chapter="Where the note goes", heading="Where the note goes", transcript=T_NOTE,
+             title="What the skill runs for you", colour=TEAL,
+             notes=[("The note goes to the project's own channel.", "own channel"),
+                     ("With no channel on record, nothing is posted, and it says so.", "says so")],
+             narration=["After a backup, the skill decides where the note goes. These commands show where a note "
+                        "would go; after a real backup the skill posts it there.",
+                        "The note goes to the project's own channel, else the lab's. With no channel on record, "
+                        "nothing is posted, and it says so."]),
+        Part("cards", chapter="The whole project", heading="Backing up a whole project",
              source="skills/murmurent-project-push/SKILL.md", colour=TEAL,
-             quotes=[Quote("A repo has a governed-data path / secret / secret-shaped file / oversize file | that repo is blocked (exit 1); siblings still push", "blocked"),
-                     Quote("No Slack channel for the project | the push still succeeds; the Slack note is skipped silently", "summary goes"),
-                     Quote("Does not run tests, bump versions, or open PRs.", "tests")],
-             narration=["The second skill backs up every repository a project owns, running the same pre-flight on "
-                        "each. A repository that fails is blocked while its siblings still push, and one summary goes "
-                        "to the project's channel.",
-                        "It does not run tests, bump versions or open pull requests. That is still yours."]),
+             quotes=[Quote("Every part of the project on this computer is backed up at once.", "every part"),
+                     Quote("A part that fails a check waits; the rest are saved.", "waits"),
+                     Quote("One summary goes to the project's channel.", "summary")],
+             narration=["A second skill, murmurent project push, backs up every part of a project on this computer at once: the code, "
+                        "the manuscript and the rest. Each part gets the same checks.",
+                        "A part that fails waits for you while the others are saved, and one summary goes to the "
+                        "project's channel."]),
         Part("howto", heading="How to use them",
              prompt="/murmurent-push",
-             cards=[("Type the skill", "/murmurent-push in the repository; /murmurent-project-push for every repository of the project."),
-                    ("Read the refusal", "A blocked push names the file and the rule. Fix the cause; never override."),
-                    ("Find the note", "In the project's channel, with the commit and a line on what changed.")],
+             cards=[("Type the skill", "/murmurent-push for this folder; /murmurent-project-push for the whole project."),
+                    ("Read what stopped it", "It names the file and the reason. Remove the cause and run it again."),
+                    ("Find the note", "In the project's channel, with a line on what changed.")],
              docs=["skills/murmurent-push/SKILL.md", "docs/slack_routing.md"],
-             narration=["To use them, type the skill name in Claude Code: murmurent push in a repository, or murmurent "
-                        "project push for the whole project. A blocked push names the file and the rule; fix the cause "
-                        "rather than overriding it. The note appears in the project's channel."]),
+             narration=["To use it, type the skill's name in Claude Code. If something stops it, it names the file "
+                        "and the reason: remove the cause and run it again. The project-wide skill can also keep a "
+                        "second copy in a partner lab's GitHub account."]),
     ],
 )

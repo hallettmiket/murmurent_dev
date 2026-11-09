@@ -370,6 +370,27 @@ speak_with_piper() {
     rm -f "$wav"
 }
 
+# Has this exact event been seen in the last minute? Keeps one stamp file per
+# event under ~/.murmurent/.seen/<kind>/, and prunes stamps older than an
+# hour, so a hook that fires twice for one event (two settings files, or a
+# stop event delivered twice) logs and speaks it once.
+seen_before() {
+    local kind="$1" agent="$2" text="$3" dir key stamp
+    dir="$HOME/.murmurent/.seen/$kind"; mkdir -p "$dir" 2>/dev/null || return 1
+    key="$(printf '%s|%s' "$agent" "$text" | cksum | awk '{print $1}')"
+    stamp="$dir/$key"
+    # A stamp is a directory because mkdir is atomic: two copies of the same
+    # event arriving in the same instant cannot both create it, so exactly one
+    # goes through. A stamp older than a minute is a new event.
+    if [[ -d "$stamp" ]]; then
+        [[ -n "$(find "$stamp" -maxdepth 0 -mmin -1 2>/dev/null)" ]] && return 0
+        rmdir "$stamp" 2>/dev/null || true     # an old stamp: this is a new event
+    fi
+    mkdir "$stamp" 2>/dev/null || return 0
+    find "$dir" -mindepth 1 -maxdepth 1 -mmin +60 -exec rmdir {} + 2>/dev/null
+    return 1
+}
+
 # Read "<agent>. <verdict>" aloud, in the background, one voice at a time.
 # Returns at once so the hook never holds Claude Code up; a verdict that
 # arrives while another is being spoken waits its turn rather than talking
@@ -382,16 +403,10 @@ speak_verdict() {
     engine="$(speak_engine)"
     [[ -n "$engine" ]] || return 0
     command -v "$engine" >/dev/null 2>&1 || return 0
-    # The stop event can fire twice for one agent; say each verdict once.
-    local stamp="$HOME/.murmurent/.last_spoken" now key
-    now="$(date +%s)"; key="$(printf '%s|%s' "$agent" "$text" | cksum | awk '{print $1}')"
-    if [[ -f "$stamp" ]]; then
-        read -r prev_t prev_k < "$stamp" || true
-        if [[ "${prev_k:-}" == "$key" && $(( now - ${prev_t:-0} )) -lt 60 ]]; then
-            return 0
-        fi
-    fi
-    printf '%s %s\n' "$now" "$key" > "$stamp"
+    # The same verdict can arrive twice (the hook registered in two settings
+    # files, or a stop event fired twice); say it once. One stamp per verdict,
+    # so eight agents finishing together cannot overwrite each other's stamp.
+    seen_before "spoken" "$agent" "$text" && return 0
     voice="$(voice_for "$agent" "$engine")"
     name="${agent//_/ }"
     # What is read: the agent's "Aloud:" line when it wrote one (plain English,
@@ -423,7 +438,32 @@ print(t if os.environ.get("ALOUD") else t[:200])
 ')"
     [[ -z "$clean" ]] && clean="done"
     (
-        # One verdict at a time, whichever engine or player is talking.
+        # One verdict at a time, whichever engine or player is talking. Eight
+        # agents finishing in the same second must speak in turn, so the turn
+        # is a lock directory (mkdir is atomic) that each speaker holds while
+        # it talks; the others wait. A lock left by a speaker that died (its
+        # pid is in the directory and no longer runs) is taken over.
+        local lock="$HOME/.murmurent/.speak_lock" waited=0
+        until mkdir "$lock" 2>/dev/null; do
+            # The pid in the lock is the speaking subshell's own ($BASHPID): $$
+            # would be the hook's pid, long gone, and every waiter would take
+            # the lock while the previous voice was still talking.
+            # Take over a lock only when its speaker is dead AND the lock is
+            # older than any verdict can last: a waiter that read a pid just
+            # as that speaker finished must not delete the lock the next
+            # speaker has already taken.
+            if [[ -f "$lock/pid" ]] && ! kill -0 "$(cat "$lock/pid" 2>/dev/null)" 2>/dev/null \
+               && [[ -z "$(find "$lock" -maxdepth 0 -mmin -2 2>/dev/null)" ]]; then
+                rm -rf "$lock"; continue
+            fi
+            sleep 0.3; waited=$(( waited + 1 ))
+            # A verdict that has queued for two minutes is stale news; drop
+            # it rather than read a backlog nobody can follow.
+            [[ $waited -gt 400 ]] && exit 0
+        done
+        # The subshell's own pid (bash 3.2 on a Mac has no $BASHPID).
+        sh -c 'echo $PPID' > "$lock/pid"
+        trap 'rm -rf "$lock"' EXIT
         while pgrep -q -x 'say|spd-say|piper|afplay|paplay|aplay|pw-play|ffplay'; do sleep 0.3; done
         case "$engine" in
             piper)   speak_with_piper "$agent" "$voice" "$name. $clean" ;;
@@ -446,6 +486,7 @@ case "$EVENT" in
         # nameless line (see the AGENT-resolution note above).
         [[ -z "$AGENT" ]] && exit 0
         short="${DESC:0:100}"
+        seen_before "started" "$AGENT" "$short" && exit 0
         # Trailing blank line keeps the BR pane visually airy — easier
         # to scan one event at a time than a dense wall of text.
         printf '\033[%sm[%s] %s: starting — %s\033[0m\n\n' \
@@ -490,6 +531,7 @@ print(json.dumps({"hookSpecificOutput": {"hookEventName": "SubagentStart", "addi
         # in practice.
         msg="${msg:0:200}"
         [[ -z "$msg" ]] && msg="done"
+        seen_before "stopped" "$AGENT" "$msg" && exit 0
         printf '\033[%sm[%s] %s: %s\033[0m\n\n' \
             "$COLOR" "$ts" "$AGENT" "$msg" >> "$LOG"
         speak_verdict "$AGENT" "$msg" "$LAST_MSG"

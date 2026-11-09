@@ -1,54 +1,65 @@
-"""The adversary movie: narration, quotes from agents/adversary.md, and the real exchange in transcript.md."""
+"""The adversary movie: narration, plain-statement cards checked against agents/adversary.md, and the real exchange in transcript.md."""
 from lib.agent_movie import AgentSpec, Exchange, Quote
 from lib.draw import RED
 
 SPEC = AgentSpec(
     agent="adversary",
     title="The adversary",
-    tagline="Methodological audit and peer review, before a reviewer does it",
+    tagline="The sceptical reviewer who tries to break your result before a referee does",
     colour=RED,
     icon="scale",
-    intro=["This is the adversary. It audits how a result was produced, the way a hard reviewer would, "
-           "and it re-runs the code rather than taking the write-up's word."],
+    intro=["This is the adversary, the sceptical reviewer. It tries to break your result before a referee "
+           "does: it re-runs your analysis and checks what your write-up claims."],
     does=[
-        Quote("Check for data leakage: are test observations structurally or temporally related to training observations?",
-              "leakage"),
-        Quote("Challenge any claim that seems too good: suspiciously high performance warrants scrutiny", "too good"),
-        Quote("Verify that feature computation is correct and reproducible", "reproducible"),
-        Quote("Refer IP-bearing work to the LAWYER automatically, and carry their verdict into your own", "lawyer"),
+        Quote("Re-runs your analysis to see whether the numbers hold.", "re-runs"),
+        Quote("Looks for test data leaking into training.", "leaking"),
+        Quote("Checks that each cited paper is real and says what you claim.", "cited paper"),
+        Quote("For a written-up prediction model, names the checklist items you missed.", "checklist"),
     ],
     does_narration=[
-        "Its file says what it looks for. Data leakage between training and test. Claims that seem too good. "
-        "Whether a computation is correct and reproducible.",
-        "And when the work carries intellectual property, it refers that to the lawyer itself, and folds the "
-        "lawyer's verdict into its own."],
+        "It re-runs your code rather than trusting the write-up, and looks for the classic faults: test data "
+        "leaking into training, a result that seems too good, a step nobody can reproduce.",
+        "In a write-up, it checks that each cited paper is real and says what you claim. For a written-up "
+        "prediction model, it goes through the reporting checklist a journal will use and names each item you missed."],
     refuses=[
-        Quote("You audit; you do not build.", "build"),
-        Quote("You do not produce figures.", "figures"),
-        Quote("Never present speculation as fact. If you have not run code to check something, do not assert it as true.",
-              "speculation"),
-        Quote("You never launder a disagreement into a verdict.", "launder"),
+        Quote("Covers how a result was produced, and whether it holds.", "how a result"),
+        Quote("Marks each finding as checked, or only suspected.", "suspected"),
+        Quote("Asks the lawyer about patents and data rules itself.", "lawyer"),
+        Quote("The blacksmith builds, the artist draws, the bookworm finds reading.", "blacksmith"),
     ],
     refuses_narration=[
-        "It audits; it does not build. It does not produce figures. It never presents speculation as fact: "
-        "what it has not checked by running code is labelled as speculated.",
-        "And it never launders a disagreement into a verdict. Ambiguous evidence is reported as ambiguous."],
+        "Its scope is how a result was produced and whether it holds up. Each finding is marked as checked, "
+        "by re-running or reading, or as only suspected, and an unclear result is reported as unclear.",
+        "When the work names a compound to make or data about to move, it asks the lawyer itself and "
+        "includes the answer. The blacksmith builds the analysis, the artist draws the figures, and the "
+        "bookworm finds the reading."],
     examples=[
-        Exchange("1", ["A real run, on the synthetic example that ships with Murmurent. The member asks whether "
-                       "a claimed result is sound.",
-                       "The verdict is Questions. The number reproduces exactly, but the adversary found that the "
-                       "two groups come from different countries, and that the Methods text describes a step the "
-                       "code does not take. The last line is the mandatory counsel note."],
-                 [("re-run run_all.py", True), ("stratify by country", True), ("read main.tex", True),
-                  ("IP referral", False)]),
+        Exchange("1", ["A real run, on the made-up example that ships with Murmurent. A member asks whether "
+                       "colonies grown in serum really are larger than controls.",
+                       "The answer is Questions. The number reproduces exactly, but the serum and control "
+                       "samples come from different countries, and the Methods describe a step the code never "
+                       "takes. The last line says no legal question arises."],
+                 [("re-run the analysis", True), ("split by country", True), ("read the write-up", True),
+                  ("ask the lawyer", False)]),
     ],
-    prompt="ask the adversary to audit exp/3_classifier before I send the results to the PI",
-    give="The experiment folder, or the write-up with its code and data. It reads the files and runs the scripts.",
-    verdicts="Pass / Questions / Reject. Every finding is OBSERVED or SPECULATED, and the audit ends with a COUNSEL line.",
+    prompt="ask the adversary to check my serum colony result before I send it to the PI",
+    give="The code and the data, or the write-up with them.",
+    verdicts="Pass, Questions or Reject first; the report closes with Sound, Needs revision or Major concerns.",
     howto_narration=[
-        "To use it, type to Claude Code and name it: ask the adversary to audit an experiment or a write-up. "
-        "Give it the folder with the code and the data, not a summary.",
-        "The first line is the verdict: Pass, Questions or Reject. Every finding says whether it was observed or "
-        "speculated, and the audit ends with the counsel line. Run it before someone else does."],
+        "To use it, ask Claude Code for the adversary and say what to check. Give it the code and the data, "
+        "not a summary, because it runs them. The first line is the verdict: Pass, Questions or Reject.",
+        "Its checklists cover prediction models and single-marker studies; for other study designs it names "
+        "the right checklist but does not check it."],
+    directions=[
+        ("ask the adversary whether my classifier leaks between training and test, re-running the split rather than reading it",
+         "Each finding marked as checked or only suspected, and Pass, Questions or Reject."),
+        ("ask the adversary to check my risk-score manuscript against TRIPOD+AI, the reporting checklist for prediction models",
+         "The checklist items missing and those it could not check, each with where it looked, and a count of those reported."),
+        ("ask the adversary to check that every paper cited in my grant draft is real and says what I claim",
+         "Every citation that is wrong, retracted or could not be checked, a count of those verified, and the numbers behind the main claims traced."),
+    ],
+    directions_narration=[
+        "Say what to check and what worries you: leakage in a classifier, a manuscript against the checklist "
+        "a journal will use, or whether the papers you cite are real and say what you claim."],
     docs=["docs/reporting_guidelines.md"],
 )

@@ -373,6 +373,7 @@ else `$MURMURENT_INSTITUTION_PACK`, else the centre's `unique_name` under
 | `murmurent institution init <unique_name> --name ... --domain ... [--seed-thesis]` | Scaffold a pack; `--seed-thesis` writes `procedures/thesis_examination.yaml` from the seed built into murmurent. Never overwrites. |
 | `murmurent institution validate [--pack P]` | Every fact has `source` and `date_read`, every source is inside the pack's domains, dates parse; lists stale facts. Exits 1 on an error. |
 | `murmurent institution show <office\|procedure\|holiday\|term\|deadline\|course\|letterhead\|packs> [key]` | One thing from the pack with its source, date and age note; `Unknown` with the nearest facts when absent. |
+| `murmurent institution review <file> [--level undergraduate\|graduate] [--term T] [--html OUT] [--markdown]` | A whole course outline: every policy for the level, the schedule against the pack's holidays and non-instructional days, the grade weights, what is unclear. Writes an HTML report (default `outputs/clerk/<name>_review.html`); exits 1 on a `Fix`. |
 | `murmurent institution check <file> [--pack P]` | Office holders, emails, postal codes, colours and fonts in a document against the pack. `Correct / Fix / Unknown` per finding; exits 1 on a `Fix`. |
 | `murmurent institution date <YYYY-MM-DD> --days N [--pack P]` | N working days before (negative) or after the date, skipping weekends and the pack's holidays; says which holidays it skipped. `--days 0` moves a holiday to the next working day. |
 | `murmurent institution walk <procedure> [--anchor DATE] [--variant doctoral] [--done 1,2] [--next]` | The steps with their forms and deadlines counted from the anchor date. |
@@ -433,6 +434,16 @@ Note: `provision` is no longer a CLI command; it is a tool on the `inventory` MC
 | `murmurent review <PR-url>` | Open a review session |
 | `murmurent capture` | Open `inbox/YYYY-MM-DD_HHMM.md` for a quick note |
 | `murmurent triage` | Run `/process-inbox`-equivalent flow on `inbox/` |
+
+### `murmurent prompt`
+
+Prompts written in Obsidian, sent to Claude Code, and kept
+([`docs/lab_notebook.md`](lab_notebook.md)).
+
+| Command | What it does |
+|---|---|
+| `murmurent prompt new` | Open today's `prompts/<date>.md` in the vault, created with a heading when missing. |
+| `murmurent prompt send [--text T] [--file F] [--to APP] [--tmux PANE] [--no-paste] [--project P]` | Copy a prompt to the clipboard, paste it into Claude Code (an app on macOS, or a tmux pane) and record it under `sessions/<date>/sent.md`. With no `--text` or `--file`, the latest block of today's prompts file. |
 
 ## Examples
 

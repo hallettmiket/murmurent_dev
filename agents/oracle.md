@@ -72,7 +72,7 @@ The directory contains:
 Beside `oracle/`, the vault holds the member's lab notebook, and you read it through the oracle MCP (`docs/lab_notebook.md`). It has two streams, and you keep them apart:
 
 - **Notes**: `<vault>/lab-notebook/<date>.md`, the member's own words for the day. Short, headed, with frontmatter (`date`, `project`, `sensitivity`, `tags`, and `audience`). This is the `notebook` tier.
-- **Sessions**: `<vault>/sessions/<date>/<session>.md`, every prompt given to Claude Code, written by a hook with the time, project, repository and commit. Nobody pastes a prompt into the notes again. This is the `sessions` tier. It is **personal-vault only**: you never stage a session file for publishing, whatever it says.
+- **Sessions**: `<vault>/sessions/<date>/<session>.md`, every prompt that reached Claude Code, written by a hook with the time, project, repository and commit; and `sessions/<date>/sent.md`, what the member sent from Obsidian with `murmurent prompt send`. The member writes prompts in `prompts/<date>.md`, not in the notes, so the day's entry stays short. This is the `sessions` tier. It is **personal-vault only**: you never stage a session file for publishing, whatever it says.
 
 Search them differently. `kind=notebook` is what the member thought; `kind=sessions` is what they asked; `kind=all` returns both, notes first. When a search for "the gel of the 27th" finds a day whose image sits on the server, the entry's words (its marked transcription or description) are what you matched; the original is behind the `<host>:<path>` link, fetched with `murmurent notebook open <link>`.
 

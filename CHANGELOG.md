@@ -17,7 +17,50 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 
 ## [Unreleased]
 
+### Fixed
+- **Spoken verdicts no longer talk over each other or repeat.** The lock
+  that makes verdicts wait their turn recorded the hook's pid instead of the
+  speaking subshell's, so every waiter took the lock while the previous voice
+  was still talking; it now records the right pid. A verdict queued for more
+  than two minutes is dropped rather than read as a backlog. The same event
+  delivered twice (the hook registered in a project's `.claude/settings.json`
+  as well as the user's, a leftover from before 2026-05-17) is logged and
+  spoken once; `murmurent doctor` warns about the stale project registration.
+
+### Changed (training movies, #302, #303)
+- Every agent and skill movie rewritten through the scribe in plain language: cards are short statements rather than quotations from the agent files, scope is stated positively, no file paths or commands on screen, and each movie says what a lab can tailor. The oracle movie tells the cross-project story the PI asked for (MMP11 in DCIS, recalled months later from a gene list). The adversary checked each movie against its agent's file and the artist reviewed the frames.
+
+### Added (course review, the scribe)
+- `murmurent institution review`: the clerk reviews a whole course outline, every rule for its level (`applies_to` on a policy), each dated lecture, lab and assessment against the holidays and non-instructional days, the grade weights, and what the outline leaves unclear, as an HTML report. The conscience reviews the same outline separately; the scribe redoes it on request (#300).
+- The scribe may edit a manuscript in place when asked, writes in whatever format the manuscript uses, uses the house style by default, and a lab tailors it with its own papers in `docs/scientific_writing_examples.md` (#301).
+
 ### Added
+- **The clerk reviews a syllabus against the institution's rules.** Rules live
+  in the pack under `policies/<name>.yaml`, each quoted as the institution's
+  page words it with the page and the date read (`murmurent institution
+  learn-rule`, which fetches the page and refuses a quote it does not find);
+  `murmurent institution check <file> --policy course_outlines` finds the
+  assessments in a course outline and reports each rule as Fix, Correct or
+  Unknown: a test in the last weeks of classes, a new assignment introduced
+  too late, a final examination too early. The Western pack holds the
+  Academic Calendar's rules on scheduling tests, assignments and examinations.
+- **Prompts written in Obsidian, sent with one keystroke, and kept.**
+  `murmurent prompt new` opens today's `prompts/<date>.md` in the vault;
+  `murmurent prompt send` copies the selected prompt or the latest block,
+  pastes it into Claude Code (an app on macOS, or a tmux pane) and records it
+  under `sessions/<date>/sent.md`, so prompts no longer vanish with the
+  session. Bound to a hotkey through Obsidian's Shell commands plugin
+  (`docs/lab_notebook.md`). The notebook movie is re-made as a bench
+  scientist's day in natural language, with the commands as footnotes.
+- **Two more training movies**: the lab notebook (adding text, photos and
+  voice notes from Claude Code, the entry as Obsidian shows it, prompts moved
+  out of old notes, a report for a supervisor from entries marked for them)
+  and the data root (tier-3 memory: what immutable, append_only, modifiable,
+  mothballed, release, cottage, tools and db are for, how a project's folders
+  mirror its repository, what the hooks refuse, the layout check). The
+  bookworm, blacksmith, artist, scribe and adversary movies gain a "how to
+  direct it" scene: example requests that name the format, the destination
+  (Zotero, a Streamlit app, a slide deck in Western's colours) and the method.
 - **Five more training movies** (#290): working through Claude Code (the one
   every other movie assumes), the two push skills, the status update, a
   course across sessions, and the mayor's and PI's tools, under

@@ -169,3 +169,14 @@ def test_setup_prunes_dangling_commons_links_only(commons, cc_dir, tmp_path):
     assert (agents / "mine.md").is_symlink()
     assert (agents / "oracle.md").is_symlink()
     assert os.readlink(agents / "oracle.md") == str(commons / "agents" / "oracle.md")
+
+
+def test_hook_in_a_project_settings_file_is_a_warning(tmp_path):
+    from murmurent.commands import doctor_cmd as dc
+    proj = tmp_path / "proj" / "sub"
+    (tmp_path / "proj" / ".claude").mkdir(parents=True)
+    (tmp_path / "proj" / ".claude" / "settings.json").write_text(json.dumps({"hooks": {"SubagentStop": [
+        {"hooks": [{"type": "command", "command": "bash /x/scripts/murmurent_log_agent_event.sh"}]}]}}))
+    proj.mkdir()
+    assert dc._project_settings_with_agent_hook(proj).endswith("proj/.claude/settings.json")
+    assert dc._project_settings_with_agent_hook(tmp_path) == ""

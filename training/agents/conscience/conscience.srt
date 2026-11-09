@@ -1,35 +1,35 @@
 1
-00:00:00,400 --> 00:00:10,691
-This is the conscience. It reviews a document for equity, inclusion and bias, line by line, and every flag comes with where it came from.
+00:00:00,400 --> 00:00:09,500
+This is the conscience. It reviews your writing for equity, diversity, inclusion and decolonization, and hands back the fixed text.
 
 2
-00:00:11,099 --> 00:00:24,320
-Its file has four rules. Reviewing is the default: it is pointed at something and infers what is wanted. Say it, and say where it came from: a citation, or marked as its own knowledge.
+00:00:09,900 --> 00:00:22,800
+It quotes the exact line, says what a reader or a reviewer gets wrong because of it, and hands back a rewritten passage to paste in, with the version it recommends.
 
 3
-00:00:24,320 --> 00:00:37,609
-Decide the work, not for a community: it recommends one change. And it separates what it read from what it suspects; a suspicion is never a flag.
+00:00:22,800 --> 00:00:39,700
+Every finding cites the source it rests on, or is marked as its own knowledge to check. When nothing is built yet, it returns a design instead: who is included, who is asked, whose risk is named.
 
 4
-00:00:37,999 --> 00:00:48,759
-It never writes in a community's voice or on its behalf, and never presents its own knowledge as a community's account of itself. That is where a fluent model does harm.
+00:00:40,100 --> 00:00:51,800
+Its scope is equity: framing, language, and who a study includes. About a community, it uses what that community has published about itself, and says where that stops.
 
 5
-00:00:48,759 --> 00:00:58,658
-Applying a fix is something you ask for, never something it infers. And it never edits institutional boilerplate; it flags it.
+00:00:51,800 --> 00:01:03,100
+Statistics go to the adversary and lawfulness to the lawyer. It edits your file only when you ask it to apply the changes.
 
 6
-00:00:59,049 --> 00:01:04,887
-A real run, on a synthetic participants paragraph. The member asks for a review.
+00:01:03,500 --> 00:01:09,599
+A real run, on a made-up Participants paragraph. A member asks for a review.
 
 7
-00:01:04,887 --> 00:01:22,459
-The verdict is Flagged. Each finding quotes the line, names the source in the resources or says it is not there, and the gap register lists what the bookworm should go and find.
+00:01:09,599 --> 00:01:27,700
+The answer is Flagged: the draft calls an English-only cohort from one clinic representative of Canada. Each finding quotes the line and names its source, and a closing list says what it could not back up, for the bookworm to find.
 
 8
-00:01:22,849 --> 00:01:33,284
-To use it, type to Claude Code and name it: ask the conscience to review a section, a grant, a course. Point it at the file; you do not pick a mode.
+00:01:28,100 --> 00:01:45,799
+To use it, ask Claude Code for the conscience and point it at a section, a grant or a course outline. The first line is the verdict: OK or Flagged for a review, Designed for a plan, or Gap when it cannot deliver.
 
 9
-00:01:33,284 --> 00:01:48,494
-The first line is the verdict: OK or Flagged. Then each finding with its line and its source, a recommended change, and the register of what the resources could not back up.
+00:01:45,799 --> 00:02:02,400
+It draws on a curated list of resources chosen for the centre's region. The bookworm can propose additions to the centre's list, such as a funder's equity guidance, and a person approves each one.

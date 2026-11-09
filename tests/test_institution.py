@@ -414,7 +414,9 @@ def test_verify_on_read_restamps_or_reports_change(pack):
     assert inst.needs_verify(pack, fact, today=date(2026, 11, 7))
     ch = inst.verify_fact(pack, fact, fetcher=fetcher, today=date(2026, 11, 7))
     assert ch.status == "confirmed" and fact.data["date_read"] == "2026-11-07"
-    assert not inst.needs_verify(pack, fact, today=date(2026, 11, 7))
+    assert inst.needs_verify(pack, fact, today=date(2026, 11, 7))        # default: re-read every time
+    pack.meta["verify_after_days"] = 30
+    assert not inst.needs_verify(pack, fact, today=date(2026, 11, 7))    # unless the pack allows an age
     changed = _fetcher({src: "<html><body>Papers must reach the Registrar ten days before.</body></html>"})
     ch2 = inst.verify_fact(pack, fact, fetcher=changed, today=date(2026, 12, 1))
     assert ch2.status == "changed" and fact.data["date_read"] == "2026-11-07"
@@ -450,3 +452,203 @@ def test_cli_recall_learn_verify_and_show_fact(pack_dir, tmp_path, monkeypatch):
     assert out.exit_code == 0 and "CONFIRMED" in out.output
     out = r.invoke(cli, ["institution", "show", "fact", "registrar", "--pack", str(pack_dir)])
     assert out.exit_code == 0 and "exams.html" in out.output
+
+
+# --------------------------------------------------------------------------- #
+# Policies: a syllabus against the institution's rules (Mike's review, 2026-11-07)
+# --------------------------------------------------------------------------- #
+
+SYLLABUS = """# A course, Fall 2026
+Term: 10 September to 9 December 2026.
+| Assessment | Date | Weight |
+| Quiz 1 | 1 October 2026 | 5% |
+| Quiz 2 | 3 December 2026 | 15% |
+| Lab report 2 (new, announced 20 November 2026) | 8 December 2026 | 15% |
+| Final examination | December examination period | 30% |
+"""
+POLICY_PAGE = "<html><body><h3>Scheduling Tests</h3>Tests for one-term courses may not be scheduled during the last 3 weeks of classes in the term.</body></html>"
+
+
+def test_parse_assessments_reads_names_dates_weights_and_announcements():
+    items = inst.parse_assessments(SYLLABUS)
+    names = [a.name for a in items]
+    assert names[:2] == ["Quiz 1", "Quiz 2"]
+    q2 = items[1]
+    assert q2.when == date(2026, 12, 3) and q2.weight == 15 and q2.is_test
+    lab = items[2]
+    assert lab.announced == date(2026, 11, 20) and lab.when == date(2026, 12, 8) and not lab.is_test
+    assert items[3].is_final and items[3].when is None
+
+
+def test_announcement_date_without_a_year_takes_the_assessment_year():
+    items = inst.parse_assessments("| Lab report 2 (new, announced 20 November) | 8 December 2026 | 15% |")
+    assert items[0].announced == date(2026, 11, 20) and items[0].when == date(2026, 12, 8)
+
+
+def test_learn_rule_needs_the_page_and_check_syllabus_reports_fix_correct_unknown(pack):
+    src = "https://www.example.edu/calendar/exams.html"
+    fetcher = _fetcher({src: POLICY_PAGE})
+    with pytest.raises(inst.PackError):
+        inst.learn_rule(pack, policy="course_outlines", rule_id="x", says="no quiz over 5% in the last two weeks",
+                        source=src, fetcher=fetcher)
+    inst.learn_rule(pack, policy="course_outlines", rule_id="tests_last_3_weeks",
+                    says="Tests for one-term courses may not be scheduled during the last 3 weeks of classes in the term.",
+                    source=src, heading="Scheduling Tests", check={"kind": "no_tests_in_last_weeks", "weeks": 3},
+                    fetcher=fetcher, today=date(2026, 11, 7))
+    inst.learn_rule(pack, policy="course_outlines", rule_id="no_new_6_weeks", says="no new assignments in the last six weeks",
+                    source=src, check={"kind": "no_new_assignments_in_last_weeks", "weeks": 6}, confirm=False)
+    again = inst.load_pack(pack.root)
+    assert "course_outlines" in again.policies and (pack.root / "policies" / "course_outlines.yaml").exists()
+    assert any(f.kind == "rule" for f in again.facts())
+    findings = inst.check_syllabus(again, SYLLABUS, "course_outlines")
+    by = {(f.verdict, f.what): f.detail for f in findings}
+    assert ("Correct", "Quiz 1") in by
+    assert ("Fix", "Quiz 2") in by and "last 3 weeks" in by[("Fix", "Quiz 2")] and "read 2026-11-07" in by[("Fix", "Quiz 2")]
+    assert ("Fix", "Lab report 2") in by and "announced 2026-11-20" in by[("Fix", "Lab report 2")]
+    assert inst.check_verdict(findings) == "Fix"
+    no_term = inst.check_syllabus(again, SYLLABUS.replace("Term: 10 September to 9 December 2026.", ""), "course_outlines")
+    assert all(f.verdict == "Unknown" for f in no_term)
+
+
+def test_cli_check_with_policy(pack_dir, tmp_path):
+    from murmurent.cli import cli
+    r = CliRunner()
+    out = r.invoke(cli, ["institution", "learn-rule", "course_outlines", "--id", "t3", "--says",
+                         "Tests for one-term courses may not be scheduled during the last 3 weeks of classes in the term.",
+                         "--source", "https://www.example.edu/calendar/exams.html", "--check-kind", "no_tests_in_last_weeks",
+                         "--weeks", "3", "--no-confirm", "--pack", str(pack_dir)])
+    assert out.exit_code == 0, out.output
+    syl = tmp_path / "syllabus.md"; syl.write_text(SYLLABUS)
+    out = r.invoke(cli, ["institution", "check", str(syl), "--policy", "course_outlines", "--pack", str(pack_dir)])
+    assert out.exit_code == 1 and "Fix: Quiz 2" in out.output and "Correct: Quiz 1" in out.output
+
+
+# --------------------------------------------------------------------------- #
+# Public pages only: the deny list and the behind-a-login refusal (lawyer's ruling, 2026-11-07)
+# --------------------------------------------------------------------------- #
+
+
+def test_deny_list_refuses_intranet_hosts_inside_the_domains(pack):
+    pack.meta["deny_hosts"] = ["learn.example.edu", "login.example.edu"]
+    assert inst.host_allowed("https://www.example.edu/x", pack.domains, deny=pack.deny_hosts)
+    assert not inst.host_allowed("https://learn.example.edu/course/1", pack.domains, deny=pack.deny_hosts)
+    assert not inst.host_allowed("https://sub.login.example.edu/", pack.domains, deny=pack.deny_hosts)
+    with pytest.raises(inst.PackError, match="deny list"):
+        inst.fetch_text("https://learn.example.edu/course/1", domains=pack.domains, deny=pack.deny_hosts)
+    with pytest.raises(inst.PackError, match="deny list"):
+        inst.learn_fact(pack, question="q", answer="a", source="https://learn.example.edu/p", fetcher=lambda u, d: "a")
+    pack.meta["deny_hosts"] = []
+
+
+def test_shipped_packs_carry_a_deny_list():
+    for name in ("example", "western"):
+        root = Path(__file__).resolve().parents[1] / "institution" / name
+        if root.is_dir():
+            p = inst.load_pack(root)
+            assert p.deny_hosts, name
+            assert all(inst.host_denied(f"https://{h}/", p.deny_hosts) for h in p.deny_hosts)
+
+
+def test_behind_a_login_is_refused_and_never_recorded(pack, monkeypatch):
+    import io
+    import urllib.error
+    src = "https://www.example.edu/internal.html"
+
+    class _Resp:
+        def __init__(self, body): self.body = body; self.headers = type("H", (), {"get_content_charset": lambda s: "utf-8"})()
+        def read(self): return self.body
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+
+    def opener_for(kind):
+        class _O:
+            def open(self, req, timeout=0):
+                if kind == "401":
+                    raise urllib.error.HTTPError(src, 401, "Unauthorized", {}, io.BytesIO(b""))
+                if kind == "403":
+                    raise urllib.error.HTTPError(src, 403, "Forbidden", {}, io.BytesIO(b""))
+                return _Resp(b'<html><title>Sign in to Example</title><form><input type="password"></form></html>')
+        return _O()
+
+    for kind in ("401", "403", "form"):
+        monkeypatch.setattr(inst.urllib.request, "build_opener", lambda *a, kind=kind: opener_for(kind))
+        with pytest.raises(inst.PackError, match="behind a login"):
+            inst.fetch_text(src, domains=pack.domains)
+        with pytest.raises(inst.PackError, match="behind a login"):
+            inst.learn_fact(pack, question="internal q", answer="x", source=src)
+    assert not any(f.get("question") == "internal q" for f in inst.load_pack(pack.root).learned)
+
+
+def test_redirect_to_a_sign_in_page_is_refused():
+    h = inst.urllib.request.HTTPRedirectHandler  # the handler class is built inside fetch_text; test its rule directly
+    assert inst._LOGIN_PATH.search("/sso/login")
+    assert inst._LOGIN_PATH.search("/cas/")
+    assert not inst._LOGIN_PATH.search("/academics/thesis/index.html")
+    assert inst._LOGIN_PAGE.search('<title>Login - Example</title>')
+    assert not inst._LOGIN_PAGE.search('<title>Examinations</title><p>Log in to the portal for your schedule.</p>')
+
+
+# --------------------------------------------------------------------------- #
+# The whole-course review
+# --------------------------------------------------------------------------- #
+
+SYLLABUS_2027 = """# EXAM 2001: Winter 2027
+Term: 4 January to 9 April 2027.
+Lecture 1 | 4 January 2027
+Lecture 2 | 15 February 2027
+Lab 3 | 26 March 2027
+| Quiz 1 | 20 January 2027 | 10% |
+| Midterm | 15 February 2027 | 30% |
+| Essay (new, announced 1 March) | 5 April 2027 | 20% |
+| Quiz 2 | 1 April 2027 | 10% |
+| Final examination | TBA | 30% |
+Late work loses 5% per day.
+Office hours: Tuesdays. Academic integrity: see the policy.
+"""
+
+
+def _review_pack(pack):
+    from murmurent.core import institution as inst
+    pol = {"name": "course_outlines", "applies_to": ["undergraduate"], "rules": [
+        {"id": "tests_last_3_weeks", "says": "Tests may not be scheduled during the last 3 weeks of classes.",
+         "source": "https://www.example.edu/calendar/policies.html", "date_read": "2026-11-07",
+         "check": {"kind": "no_tests_in_last_weeks", "weeks": 3}},
+        {"id": "no_new_6_weeks", "says": "no new assignments are introduced in the last six weeks",
+         "source": "https://www.example.edu/calendar/policies.html", "date_read": "2026-11-07",
+         "check": {"kind": "no_new_assignments_in_last_weeks", "weeks": 6}}]}
+    pack.policies["course_outlines"] = pol
+    return pack
+
+
+def test_review_course_applies_rules_calendar_weights_and_clarity(pack):
+    from murmurent.core import course_review as cr
+    pack = _review_pack(pack)
+    rv = cr.review_course(pack, SYLLABUS_2027, level="undergraduate")
+    whats = {(f.verdict, f.what.split(" [")[0]) for f in rv.all()}
+    # rules: Quiz 2 in the last 3 weeks, the essay announced in the last 6
+    assert ("Fix", "Quiz 2") in whats and ("Fix", "Essay") in whats
+    # calendar: a lecture on Family Day (2027-02-15) and a lab on Good Friday (2027-03-26)
+    sched = {f.what: f for f in rv.schedule}
+    assert sched["Lecture 2"].verdict == "Fix" and "Family Day" in sched["Lecture 2"].detail
+    assert sched["Lab 3"].verdict == "Fix" and "Good Friday" in sched["Lab 3"].detail
+    assert sched["Lecture 1"].verdict == "Correct"
+    # weights: the penalty line is not an assessment; 100% adds up
+    assert [f for f in rv.grading if f.what == "grade weights"][0].verdict == "Correct"
+    # clarity: the final has no date; the outline says nothing about accommodation
+    assert any(f.what == "Final examination" and f.verdict == "Unknown" for f in rv.clarity)
+    assert any("accommodation" in f.what for f in rv.clarity)
+    assert not any("integrity" in f.what for f in rv.clarity)
+    assert rv.verdict() == "Fix"
+
+
+def test_review_course_level_selects_policies_and_reports_render(pack):
+    from murmurent.core import course_review as cr
+    pack = _review_pack(pack)
+    rv = cr.review_course(pack, SYLLABUS_2027, level="graduate")
+    assert rv.policies == [] and any(f.what == "rules" and f.verdict == "Unknown" for f in rv.rules)
+    html = cr.render_html(rv, "T")
+    md = cr.render_markdown(rv, "T")
+    assert "<title>T</title>" in html and "Family Day" in html and "conscience" in html
+    assert md.startswith("# T") and "## Grading" in md
+    with pytest.raises(inst.PackError):
+        cr.review_course(pack, SYLLABUS_2027, level="postdoc")

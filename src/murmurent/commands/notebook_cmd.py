@@ -96,7 +96,7 @@ def _today() -> str:
 @click.option("--host", "host_name", default="",
               help="Data host for large files (default: the project's host from its record).")
 @click.option("--handwritten", is_flag=True, help="The image is a handwritten page to transcribe.")
-@click.option("--kind", "kind", type=click.Choice(["text", *_capture_kinds()]), default="",
+@click.option("--kind", "kind", type=click.Choice(["text", *_capture_kinds()]), default=None,
               help="Force the kind instead of inferring it from the file's extension.")
 @click.option("--note", default="", help="A line of text to put beside the file.")
 @click.option("--sensitivity", default="",

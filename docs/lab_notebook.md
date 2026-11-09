@@ -17,11 +17,38 @@ project repository. This page is about the daily notebook in the vault.
 | Notes | `<vault>/lab-notebook/<date>.md` | you | the day's own notes: short, headed, with frontmatter |
 | Sessions | `<vault>/sessions/<date>/<session>.md` | a hook, automatically | every prompt you gave Claude Code, with the time, project, repository and commit |
 
-The sessions stream is why you never paste a prompt into the notebook again.
-A hook (a small program Claude Code runs on every prompt you submit, installed
-by `murmurent install --hooks`) records each prompt as you send it. The notes
-stand alone, and a day's context is one click away: a new entry carries the
-line `Sessions: [[sessions/<date>]]`.
+You write your prompts in Obsidian, because a long prompt is easier to
+write in a Markdown file than in a terminal, and you send them to Claude Code.
+There is nothing to create per day:
+
+- **From any note, with one key.** Write the prompt wherever you are, in the
+  day's entry if you like, select it, and press the hotkey (set up once,
+  below). It goes into Claude Code and is recorded under
+  `sessions/<date>/sent.md` with the time.
+- **A prompts file, only if you want prompts out of your notes.** Say "open
+  today's prompts" to Claude Code (`murmurent prompt new`): it creates
+  `prompts/<date>.md` with a heading and opens it. One prompt per block, a
+  line `---` between blocks; `murmurent prompt send` with no arguments sends
+  the latest block. You never type the path.
+
+The hook then records every prompt that reached Claude Code, however it got
+there (typed, pasted, or sent), in `sessions/<date>/<session>.md`. So prompts
+that used to scroll off the screen and vanish when the session closed are
+kept, with the time, project, repository and commit, and the oracle can
+search them (`kind=sessions`).
+
+### Sending a prompt from Obsidian with a hotkey
+
+1. Install the community plugin **Shell commands** in Obsidian (Settings,
+   Community plugins, Browse).
+2. Add a shell command: `murmurent prompt send --text {{selection}}` (or
+   `murmurent prompt send --file {{file_path:absolute}}` to send the latest
+   block of the open file).
+3. Give it a hotkey (Settings, Hotkeys, search for the command).
+
+Select the prompt in any note, press the key: it lands in Claude Code and in
+your sessions stream. `murmurent prompt send --to Terminal` or `--tmux <pane>`
+chooses where it is pasted; `--no-paste` only copies and records.
 
 Three things about the sessions stream:
 
@@ -216,9 +243,11 @@ the vault and on the server.
 |---|---|
 | `murmurent notebook add <text or file> [--project P] [--host H] [--handwritten] [--kind K] [--note T] [--sensitivity S] [--date D] [--dry-run]` | Put text or a file into today's entry; large files to the host's `append_only/<P>/notebook/<date>/` |
 | `murmurent notebook open <host>:<path> [--no-open]` | Fetch a copy of a linked file into `~/.murmurent/notebook_cache/` and open it |
+| `murmurent prompt new` | Open today's `prompts/<date>.md` (created with a heading if missing). |
+| `murmurent prompt send [--text ...] [--file ...] [--to <app>] [--tmux <pane>] [--no-paste]` | Send a prompt from Obsidian to Claude Code: clipboard, paste, and a record under `sessions/<date>/sent.md`. |
 | `murmurent notebook split [--dry-run]` | Move pasted prompts out of old entries into `sessions/<date>/pasted.md`; originals kept under `obsolete/` |
 | `murmurent notebook report --for <audience> --since <date> [--until <date>] [--out DIR] [--title T]` | Collect, write material and sources, render the page, list what was used; send nothing |
 
-Folders in the vault: `lab-notebook/` (notes), `sessions/` (prompts),
+Folders in the vault: `lab-notebook/` (notes), `prompts/` (what you write to send), `sessions/` (what reached Claude Code),
 `attachments/<date>/` (thumbnails, poster frames, small result files),
 `reports/` (built reports), `obsolete/` (originals kept by `split`).

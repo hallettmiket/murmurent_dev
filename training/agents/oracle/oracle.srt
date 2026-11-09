@@ -1,43 +1,43 @@
 1
-00:00:00,400 --> 00:00:09,902
-This is the oracle, your personal research memory in Murmurent. It remembers what you found, and gives it back months later with its source.
+00:00:00,400 --> 00:00:15,099
+This is the oracle, your personal research memory. Everybody in the lab has an oracle. A chat window forgets; the oracle keeps what you found, and you can search those memories whenever you like.
 
 2
-00:00:10,300 --> 00:00:21,895
-Its own file says what it is for: to accumulate, organize and recall scientific knowledge across all of your projects. There is one oracle per person, not one per project.
+00:00:15,500 --> 00:00:25,600
+It stores your key findings, each with the project and experiment it came from, and searches them across all your projects, over the years.
 
 3
-00:00:21,895 --> 00:00:32,933
-Every entry lands in your own Obsidian vault, where you can browse, search and graph it. Sharing a finding with the lab oracle is a separate step that you take yourself.
+00:00:25,600 --> 00:00:42,500
+It also searches your lab notebook: your notes for each day, and the prompts you gave Claude Code, which are recorded automatically. Everything lives in your own Obsidian notes, a folder you can open and browse yourself.
 
 4
-00:00:32,933 --> 00:00:45,107
-It also reads your lab notebook: your own notes for each day, and a separate stream of every prompt you gave Claude Code, written by a hook so you never paste one again.
+00:00:42,899 --> 00:00:57,399
+When you choose, it prepares a finding for the lab oracle, the lab's shared memory, and you publish it. Protected and restricted findings, such as patient data or unpublished results, stay in your own notes.
 
 5
-00:00:45,500 --> 00:00:55,702
-What it will not do is just as clear. It does not publish to the lab; it only stages a draft. It never publishes a protected or restricted entry.
+00:00:57,399 --> 00:01:10,700
+The bookworm finds papers and the blacksmith runs analyses; the oracle keeps what you found. It remains factual: if it holds nothing on a topic, it says so.
 
 6
-00:00:55,702 --> 00:01:08,062
-It does not fetch literature or run analyses; the bookworm and the blacksmith do that. And it never fabricates: if it holds nothing on a topic, it says so.
+00:01:11,100 --> 00:01:23,600
+A real run. In March, in a project on DCIS, an early form of breast cancer, the member asks the oracle to remember that MMP11 is a marker of recurrence.
 
 7
-00:01:08,450 --> 00:01:18,605
-A real run, on a demo vault. The member asks it to remember a finding from a synthetic colony study, with the project, the experiment and their handle.
+00:01:23,600 --> 00:01:28,900
+It files the finding with its project and experiment.
 
 8
-00:01:18,605 --> 00:01:28,382
-The oracle writes one entry with the full schema, and adds a line to the index. The first line of its reply is the verdict.
+00:01:29,300 --> 00:01:38,600
+Eight months later, in a breast screening project, the member passes six genes and asks what they know about early breast cancer.
 
 9
-00:01:28,800 --> 00:01:40,202
-Asked later what it knows about serum and colony size, it finds that one entry, cites the project and the experiment, and says plainly that it holds nothing else.
+00:01:38,600 --> 00:01:49,500
+The oracle recalls MMP11, because DCIS is early breast cancer. For the other five, it says plainly that it holds nothing of theirs.
 
 10
-00:01:40,600 --> 00:01:53,588
-To use it, type to Claude Code and name the agent: ask the oracle to remember something, or ask it what you know about a topic. Give it the finding, where it came from, and the sensitivity.
+00:01:49,900 --> 00:02:04,400
+To use it, just ask Claude Code: ask the oracle to remember a finding, or what you know about a topic. Give it the finding and where it came from; it asks for anything missing.
 
 11
-00:01:53,588 --> 00:02:08,195
-The first line of the reply is the verdict: Found, Not found or Unsure, or Remembered when it filed something. The detail names the entry, so you can open it in Obsidian.
+00:02:04,400 --> 00:02:16,199
+The first line of the reply is the verdict: Remembered, Found, Not found or Unsure. You can open every entry in Obsidian.

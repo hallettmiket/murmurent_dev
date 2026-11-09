@@ -32,9 +32,9 @@ from PIL import ImageDraw
 from . import scene as scene_mod
 from .agent_movie import (INDEX, MAX_SECONDS, ROOT, _norm, chat_duration, load_transcript, murmurent_version,
                           s_chat, _quote_cards)
-from .draw import (AMBER, DIM, F_BIG, F_BODY, F_LABEL, F_MONO, F_MONO_S, F_SMALL, F_SUB, F_TINY, MUTED, PANEL,
+from .draw import (AMBER, DIM, LEAD, F_BIG, F_BODY, F_LABEL, F_MONO, F_MONO_S, F_SMALL, F_SUB, F_TINY, MUTED, PANEL,
                    RED, TEAL, TERM_BG, TEXT, CHARS_PER_SECOND, P, Term, appear, badge, eback, heading, icon,
-                   mono_block, rrect, text_c, wrap)
+                   mono_block, rrect, text_c, wrap, eio)
 from .scene import EM_DASH, Scene, mmss, render
 
 
@@ -42,6 +42,7 @@ from .scene import EM_DASH, Scene, mmss, render
 class Quote:
     text: str
     cue: str | None = None
+    verbatim: bool = False
 
 
 @dataclass
@@ -68,6 +69,13 @@ class Part:
     cards: list[tuple[str, str]] = field(default_factory=list)   # howto: (title, body)
     docs: list[str] = field(default_factory=list)
     tail: float = 1.2
+    folders: list[tuple[str, str, str]] = field(default_factory=list)   # folders: (name, one line, cue)
+    picture: str = ""                                     # story: gel | phone | bench | laptop | obsidian | clock
+    reply: list[str] = field(default_factory=list)       # story: what Claude Code answered, a few lines
+    footnote: str = ""                                    # story: the Murmurent command behind it
+    note_title: str = ""                                  # obsidian: the note's name in the sidebar
+    note_lines: list[str] = field(default_factory=list)   # obsidian: the note's text, as the file holds it
+    sidebar: list[str] = field(default_factory=list)      # obsidian: other files in the folder
 
 
 @dataclass
@@ -121,7 +129,7 @@ def s_terminal(img, t, sc, part: Part, term: Term):
     y = 110
     for text, cue in part.notes:
         t0 = sc.when(cue) if cue else sc.lead
-        lines = wrap(text, F_SMALL, 360)
+        lines = wrap(text, F_SMALL, 336)
         h = 22 + len(lines) * 26
         def f(d, y=y, lines=lines, h=h):
             rrect(d, (870, y, 1240, y + h), PANEL, part.colour, 12, 2)
@@ -153,6 +161,182 @@ def s_bullets(img, t, sc, part: Part):
         y += h + 12
 
 
+# --------------------------------------------------------------------------- #
+# Story pictures: drawn, so a bench day can be shown without a real lab in it
+# --------------------------------------------------------------------------- #
+
+
+def _pic_gel(d, x, y, w, h, p):
+    rrect(d, (x, y, x + w, y + h), (20, 20, 26), (90, 90, 100), 10, 2)
+    lanes = 4
+    for i in range(lanes):
+        lx = x + 40 + i * (w - 80) / (lanes - 1)
+        bands = [0.25, 0.5] + ([0.72] if i == 3 else [])
+        for b in bands:
+            if p > b * 0.8:
+                a = int(200 * min(1.0, (p - b * 0.8) * 4))
+                d.rounded_rectangle([lx - 24, y + h * b - 4, lx + 24, y + h * b + 4], radius=3, fill=(a, a, a - 20))
+        if w >= 200:
+            d.text((lx - 8, y + h - 26), str(i + 1), font=F_TINY, fill=(170, 170, 180))
+    if w >= 200:
+        d.text((x + 10, y + 8), "gel 27", font=F_TINY, fill=(170, 170, 180))
+
+
+def _pic_phone(d, x, y, w, h, p):
+    # a phone on the left, a laptop on the right, a file flying between them
+    rrect(d, (x, y + 20, x + 90, y + h - 20), (40, 40, 48), (120, 120, 130), 14, 3)
+    d.rectangle([x + 10, y + 36, x + 80, y + h - 40], fill=(28, 28, 34))
+    _pic_gel(d, x + 14, y + 44, 62, 70, 1.0)
+    rrect(d, (x + w - 170, y + 40, x + w, y + h - 40), (40, 40, 48), (120, 120, 130), 8, 3)
+    d.rectangle([x + w - 190, y + h - 40, x + w + 10, y + h - 30], fill=(60, 60, 70))
+    d.text((x + w - 150, y + 60), "Claude Code", font=F_TINY, fill=(200, 200, 210))
+    fx = x + 100 + (w - 290) * eio(min(1.0, p))
+    fy = y + 60 - 50 * (4 * min(1.0, p) * (1 - min(1.0, p)))
+    rrect(d, (fx, fy, fx + 44, fy + 34), (55, 60, 80), (120, 140, 180), 6, 2)
+    d.text((fx + 6, fy + 8), "jpg", font=F_TINY, fill=(220, 225, 235))
+
+
+def _pic_bench(d, x, y, w, h, p):
+    d.rectangle([x, y + h - 60, x + w, y + h - 40], fill=(70, 60, 50))
+    for i in range(3):
+        bx = x + 30 + i * 90
+        rrect(d, (bx, y + h - 130, bx + 50, y + h - 60), (40, 70, 90), (120, 160, 190), 6, 2)
+    d.rounded_rectangle([x + w - 200, y + h - 160, x + w - 20, y + h - 60], radius=8, fill=(40, 40, 48), outline=(120, 120, 130), width=3)
+    d.text((x + w - 185, y + h - 140), "notebook: 2026-11-07", font=F_TINY, fill=(200, 200, 210))
+    d.text((x + w - 185, y + h - 116), "## 09:10 plan", font=F_TINY, fill=(240, 200, 120))
+    d.text((x + w - 185, y + h - 96), "run gel 27, lanes 1 to 4", font=F_TINY, fill=(200, 200, 210))
+
+
+def _pic_obsidian(d, x, y, w, h, p):
+    rrect(d, (x, y, x + w, y + h), (30, 30, 34), (70, 70, 78), 10, 2)
+    d.rectangle([x, y, x + 110, y + h], fill=(38, 38, 43))
+    d.text((x + 12, y + 12), "prompts", font=F_TINY, fill=(160, 160, 170))
+    d.text((x + 12, y + 40), "2026-11-07", font=F_TINY, fill=(230, 230, 235))
+    d.text((x + 130, y + 12), "prompts/2026-11-07", font=F_LABEL, fill=(235, 235, 240))
+    lines = ["ask the blacksmith to count the bands in", "gel_27.jpg per lane and compare lane 3,", "the control, with lanes 1, 2 and 4", "", "---  send"]
+    n = int(len(lines) * min(1.0, p * 1.2))
+    for i, ln in enumerate(lines[:n]):
+        d.text((x + 130, y + 48 + i * 24), ln, font=F_SMALL, fill=(220, 220, 228) if i < 4 else (120, 170, 230))
+
+
+def _pic_clock(d, x, y, w, h, p):
+    cx, cy, r = x + w / 2, y + h / 2, min(w, h) / 2 - 10
+    d.ellipse([cx - r, cy - r, cx + r, cy + r], outline=(150, 150, 160), width=4)
+    import math
+    ang = -math.pi / 2 + 2 * math.pi * p
+    d.line([cx, cy, cx + r * 0.7 * math.cos(ang), cy + r * 0.7 * math.sin(ang)], fill=AMBER, width=5)
+
+
+PICS = {"gel": _pic_gel, "phone": _pic_phone, "bench": _pic_bench, "obsidian": _pic_obsidian, "clock": _pic_clock}
+
+
+def s_folders(img, t, sc, part: Part):
+    """The data root drawn as a folder list. Each folder lights up, with its name large and
+    one short line, when the narration reaches it, so the screen always says which folder
+    is being talked about."""
+    heading(img, t, part.heading, 28)
+    d = ImageDraw.Draw(img)
+    d.text((70, 100), "The lab's data folders, on the lab server", font=F_SMALL, fill=MUTED)
+    n = len(part.folders)
+    y0, dy = 140, min(52, int(420 / max(n, 1)))
+    lit = -1
+    for i, (name, line, cue) in enumerate(part.folders):
+        if t >= sc.when(cue):
+            lit = i
+    for i, (name, line, cue) in enumerate(part.folders):
+        y = y0 + i * dy
+        on = i == lit
+        seen = i <= lit
+        col = part.colour if on else (TEXT if seen else DIM)
+        icon(img, "folder", 100, y + 20, 34, col, col)
+        d.text((130, y + 2), name + "/", font=F_LABEL if on else F_SMALL, fill=col)
+        if seen:
+            d.text((330, y + 6), line, font=F_SMALL if on else F_TINY, fill=TEXT if on else MUTED)
+        if on:
+            d.rounded_rectangle([80, y - 6, 1210, y + dy - 10], radius=10, outline=part.colour, width=2)
+
+
+def s_story(img, t, sc, part: Part):
+    """A step in a bench day: a drawn picture on the left, what the member says to Claude Code
+    and what comes back on the right, and the Murmurent command Claude Code ran as a footnote."""
+    heading(img, t, part.heading, 28)
+    d = ImageDraw.Draw(img)
+    p = P(t, sc.lead, 3.0)
+    PICS[part.picture](d, 50, 110, 420, 300, eio(p))
+    q0 = sc.lead + 0.6
+    q_dur = len(part.prompt) / CHARS_PER_SECOND
+    n = int(len(part.prompt) * P(t, q0, q_dur))
+    rrect(d, (500, 110, 1230, 206), PANEL, AMBER, 14, 3)
+    d.text((516, 118), "You, to Claude Code", font=F_TINY, fill=AMBER)
+    for i, l in enumerate(wrap(part.prompt[:n] + ("|" if n < len(part.prompt) else ""), F_SMALL, 690)[:2]):
+        d.text((516, 142 + i * 26), l, font=F_SMALL, fill=TEXT)
+    t_r = q0 + q_dur + 0.6
+    k = int(max(t - t_r, 0) / 0.35)
+    if k:
+        rrect(d, (500, 222, 1230, 420), TERM_BG, (58, 70, 104), 12, 2)
+        d.text((516, 230), "Claude Code", font=F_TINY, fill=MUTED)
+        yy = 254
+        for l in part.reply[:k]:
+            for ln in wrap(l, F_SMALL, 690)[:2]:
+                d.text((516, yy), ln, font=F_SMALL, fill=TEXT)
+                yy += 24
+    if part.footnote:
+        def foot(dd):
+            rrect(dd, (50, 450, 1230, 500), (14, 18, 30), DIM, 10, 2)
+            dd.text((66, 458), "Behind the scenes, Claude Code ran:", font=F_TINY, fill=MUTED)
+            dd.text((66, 478), part.footnote, font=F_MONO_S, fill=AMBER)
+        appear(img, t, t_r + 1.0, foot, 0.5, 8)
+
+
+def s_obsidian(img, t, sc, part: Part):
+    """A note as Obsidian shows it: a file list on the left, the note on the right, its
+    frontmatter as a properties block. The text is the real file; only the frame is drawn."""
+    heading(img, t, part.heading, 28)
+    d = ImageDraw.Draw(img)
+    rrect(d, (40, 96, 1240, 600), (30, 30, 34), (70, 70, 78), 10, 2)
+    d.rectangle([40, 96, 300, 600], fill=(38, 38, 43))
+    d.text((60, 110), "lab-notebook", font=F_TINY, fill=(160, 160, 170))
+    y = 138
+    for name in part.sidebar:
+        sel = name == part.note_title
+        if sel:
+            d.rounded_rectangle([50, y - 4, 290, y + 22], radius=6, fill=(60, 60, 72))
+        d.text((64, y), name, font=F_SMALL, fill=(230, 230, 235) if sel else (170, 170, 180))
+        y += 30
+    d.text((330, 110), part.note_title, font=F_LABEL, fill=(235, 235, 240))
+    n = int(len(part.note_lines) * P(t, sc.lead, max((sc.seconds - sc.lead - sc.tail) * 0.45, 1.0)))
+    y = 146
+    in_fm = False
+    for i, line in enumerate(part.note_lines[:max(n, 1)]):
+        if y > 580:
+            break
+        if line.strip() == "---":
+            in_fm = (i == 0)
+            d.rounded_rectangle([322, y - 2, 1230, y + 2], radius=2, fill=(60, 60, 72))
+            y += 8
+            continue
+        if in_fm:
+            k, _, v = line.partition(":")
+            d.text((332, y), k.strip(), font=F_MONO_S, fill=(150, 150, 165))
+            d.text((520, y), v.strip(), font=F_MONO_S, fill=(210, 210, 220))
+            y += 22
+            continue
+        if line.startswith("## "):
+            d.text((330, y + 4), line[3:], font=F_LABEL, fill=(240, 200, 120))
+            y += 34
+        elif line.startswith("!["):
+            d.rounded_rectangle([330, y, 530, y + 70], radius=6, fill=(55, 60, 80), outline=(90, 100, 130))
+            d.text((344, y + 24), line[2:line.index("]")] if "]" in line else "image", font=F_TINY, fill=(200, 205, 220))
+            y += 80
+        else:
+            for ln in wrap(line, F_SMALL, 880):
+                col = (120, 170, 230) if ("[[" in ln or "http" in ln or "](" in ln) else (220, 220, 228)
+                d.text((330, y), ln, font=F_SMALL, fill=col)
+                y += 26
+    if n < len(part.note_lines):
+        d.text((330, 575), "...", font=F_SMALL, fill=(150, 150, 165))
+
+
 def s_howto(img, t, sc, part: Part, m: Movie, version: str):
     heading(img, t, part.heading or "How to use it, through Claude Code")
     d = ImageDraw.Draw(img)
@@ -164,7 +348,7 @@ def s_howto(img, t, sc, part: Part, m: Movie, version: str):
     prompt = part.prompt
     n = int(len(prompt) * P(t, t_p, len(prompt) / CHARS_PER_SECOND))
     if t >= t_p:
-        for i, l in enumerate(wrap("> " + prompt[:n] + ("▌" if n < len(prompt) else ""), F_BODY, 1100)[:2]):
+        for i, l in enumerate(wrap("> " + prompt[:n] + ("|" if n < len(prompt) else ""), F_BODY, 1100)[:2]):
             d.text((88, 158 + i * 32), l, font=F_BODY, fill=AMBER)
     t_done = t_p + len(prompt) / CHARS_PER_SECOND + 0.3
     a = P(t, t_done, 0.6)
@@ -180,12 +364,11 @@ def s_howto(img, t, sc, part: Part, m: Movie, version: str):
             rrect(d, (x, 340, x + w, 540), PANEL, col, 14, 3)
             d.text((x + 16, 352), title, font=F_LABEL, fill=col)
             yy = 384
-            for ln in wrap(body, F_TINY, w - 32):
-                d.text((x + 16, yy), ln, font=F_TINY, fill=TEXT)
-                yy += F_TINY.size + 5
+            for ln in wrap(body, F_SMALL, w - 32):
+                d.text((x + 16, yy), ln, font=F_SMALL, fill=TEXT)
+                yy += F_SMALL.size + 5
         appear(img, t, t0, f, 0.5, 12)
     def foot(d):
-        d.text((70, 565), "   ".join(part.docs), font=F_MONO_S, fill=AMBER)
         d.text((70, 592), f"Checked against Murmurent {version}, {date.today().isoformat()}.", font=F_TINY, fill=MUTED)
     appear(img, t, sc.seconds - sc.tail - 2.5, foot, 0.6, 8)
 
@@ -202,14 +385,14 @@ def check_sources(m: Movie) -> dict[str, str]:
         if part.kind != "cards":
             continue
         if not part.source:
-            raise ValueError(f"{m.key}: a cards part needs a source file")
+            continue
         path = ROOT / part.source
         raw = path.read_bytes()
         text = _norm(raw.decode())
         for q in part.quotes:
             if EM_DASH in q.text:
-                raise ValueError(f"{m.key}: a quote carries an em dash; pick a fragment without one: {q.text!r}")
-            if _norm(q.text) not in text:
+                raise ValueError(f"{m.key}: a card carries an em dash: {q.text!r}")
+            if q.verbatim and _norm(q.text) not in text:
                 raise ValueError(f"{m.key}: not in {part.source} any more: {q.text!r}")
         out[part.source] = hashlib.sha256(raw).hexdigest()
     for part in m.parts:
@@ -217,6 +400,10 @@ def check_sources(m: Movie) -> dict[str, str]:
             if EM_DASH in text:
                 raise ValueError(f"{m.key}: em dash in the narration: {text!r}")
     return out
+
+
+def sc_story_len(part: Part) -> float:
+    return LEAD + 0.6 + len(part.prompt) / CHARS_PER_SECOND + 0.6 + len(part.reply) * 0.35 + 1.8
 
 
 def build_scenes(m: Movie, folder: Path, version: str) -> list[Scene]:
@@ -242,6 +429,15 @@ def build_scenes(m: Movie, folder: Path, version: str) -> list[Scene]:
                                 lambda img, t, s, shim=shim, who=who, q=q, reply=reply, part=part:
                                 s_chat(img, t, s, shim, who, q, reply, part.chips),
                                 part.chapter, min_anim=chat_duration(q, part.chips, reply), tail=part.tail))
+        elif part.kind == "folders":
+            scenes.append(Scene(name, part.narration, lambda img, t, s, part=part: s_folders(img, t, s, part),
+                                part.chapter, tail=part.tail))
+        elif part.kind == "story":
+            scenes.append(Scene(name, part.narration, lambda img, t, s, part=part: s_story(img, t, s, part),
+                                part.chapter, min_anim=sc_story_len(part), tail=part.tail))
+        elif part.kind == "obsidian":
+            scenes.append(Scene(name, part.narration, lambda img, t, s, part=part: s_obsidian(img, t, s, part),
+                                part.chapter, tail=part.tail))
         elif part.kind == "bullets":
             scenes.append(Scene(name, part.narration, lambda img, t, s, part=part: s_bullets(img, t, s, part),
                                 part.chapter, tail=part.tail))

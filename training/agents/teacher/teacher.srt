@@ -1,35 +1,39 @@
 1
-00:00:00,400 --> 00:00:10,180
-This is the teacher. It explains, in plain words, and it has three modes: debrief, explain and course. You type the verb.
+00:00:00,400 --> 00:00:13,900
+This is the teacher. It explains things in plain words: a sentence that lost you, in a minute; a method or a paper, in one sitting; a whole subject, over weeks.
 
 2
-00:00:10,599 --> 00:00:22,706
-Its file gives the three modes. Debrief is for the sentence Claude Code just wrote that did not land: it re-pitches that in plain words and says what follows, in under a minute.
+00:00:14,300 --> 00:00:22,800
+When a sentence Claude Code just wrote lost you, it says it again in plain words, in under a minute.
 
 3
-00:00:22,706 --> 00:00:37,062
-Explain is for a method or a paper: make the mechanism land, in one sitting. Course is a subject that takes weeks: the teacher recognises it, refuses it, and names the course skill.
+00:00:22,800 --> 00:00:43,299
+It explains a method or a paper in one sitting: in chat, or on request as a page where you mark what lost you. For a subject that takes weeks, it runs a course in your own session, with lessons that remember what you have learned.
 
 4
-00:00:37,449 --> 00:00:48,441
-In debrief it has no network, ever, because a search query is outbound text and your session is not public. It never emits a link or a title it has not actually loaded.
+00:00:43,699 --> 00:00:59,000
+Its scope is teaching. It shows a real image or a video it has checked before drawing anything, and it links only to what it has actually opened. A debrief stays offline, because your session is private.
 
 5
-00:00:48,441 --> 00:01:02,194
-It states next steps; it does not interrogate you about them. And it does not draw what it could show: a real image first, then a video, and a drawing only when nothing suitable exists.
+00:00:59,000 --> 00:01:08,299
+Figures made from your data go to the artist, and citations it cannot verify go to the bookworm.
 
 6
-00:01:02,599 --> 00:01:12,012
-A real run, in explain mode. A wet-lab biologist asks what a permutation test is and why the example uses five thousand of them.
+00:01:08,700 --> 00:01:17,599
+A real run. A wet-lab biologist asks what a permutation test is, and why the example uses five thousand of them.
 
 7
-00:01:12,012 --> 00:01:24,669
-The verdict is Explained. Bullets, three technical terms each defined, the real numbers from the script it read, and a takeaway the reader can carry to the next problem.
+00:01:17,599 --> 00:01:30,500
+The answer is Explained: short bullets, each technical term defined, the real numbers from the analysis, which it re-ran, and a takeaway to carry to the next problem.
 
 8
-00:01:25,049 --> 00:01:37,527
-To use it, type the verb to Claude Code. Teacher debrief, at the sentence that lost you. Teacher explain, followed by the thing. Teacher course, followed by the subject.
+00:01:30,900 --> 00:01:44,000
+There are three things to type, in this order: debrief, at the sentence that lost you; explain, with the method or paper; and course, with the subject.
 
 9
-00:01:37,527 --> 00:01:51,530
-The first line is the verdict: Explained, or Gap. Gap is the teacher being honest that it cannot deliver, which is the point of it. Ask for a page only when you will annotate it.
+00:01:44,400 --> 00:01:49,700
+The first line is Explained, or Gap when it cannot honestly deliver.
+
+10
+00:01:49,700 --> 00:02:01,900
+Say who it is for in your request, such as a wet-lab biologist; otherwise it writes for a colleague from a neighbouring field.
