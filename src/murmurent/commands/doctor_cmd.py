@@ -287,8 +287,37 @@ def check_hooks() -> Check:
             f"hooks run under {', '.join(stale)}, murmurent runs under {sys.executable}",
             "run: murmurent install --hooks   (re-pins the hooks to this interpreter)",
         )
+    twice = _project_settings_with_agent_hook()
+    if twice:
+        return Check(
+            "hooks", WARN,
+            f"the agent-event hook is also registered in {twice}; every verdict is logged and spoken twice",
+            "remove the murmurent_log_agent_event entries from that file (the hooks moved to "
+            "~/.claude/settings.json on 2026-05-17; the project file is per machine and not in git)",
+        )
     n_mcp = sum(1 for k in (settings.get("mcpServers") or {}) if str(k).startswith("murmurent"))
     return Check("hooks", OK, f"{len(interpreters)} interpreter, {n_mcp} murmurent MCP servers registered")
+
+
+def _project_settings_with_agent_hook(start: Path | None = None) -> str:
+    """A project-level ``.claude/settings.json`` (here or in a parent folder) that still
+    registers the agent-event hook, which the user-level settings also register."""
+    here = (start or Path.cwd()).resolve()
+    user_settings = (_cc_dir() / "settings.json").resolve()
+    for folder in [here, *here.parents]:
+        f = folder / ".claude" / "settings.json"
+        if not f.is_file() or f.resolve() == user_settings:
+            continue        # the user's own settings are where the hook belongs
+        try:
+            doc = json.loads(f.read_text(encoding="utf-8") or "{}")
+        except (OSError, json.JSONDecodeError):
+            continue
+        for groups in (doc.get("hooks") or {}).values():
+            for grp in groups or []:
+                for h in grp.get("hooks") or []:
+                    if "murmurent_log_agent_event" in str(h.get("command", "")):
+                        return str(f)
+    return ""
 
 
 def check_packaged_commons() -> Check:

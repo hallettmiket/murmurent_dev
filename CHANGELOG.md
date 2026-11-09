@@ -17,6 +17,17 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 
 ## [Unreleased]
 
+### Fixed
+- **Spoken verdicts no longer talk over each other or repeat.** The lock
+  that makes verdicts wait their turn recorded the hook's pid instead of the
+  speaking subshell's, so every waiter took the lock while the previous voice
+  was still talking; it now records the right pid. A verdict queued for more
+  than two minutes is dropped rather than read as a backlog. The same event
+  delivered twice (the hook registered in a project's `.claude/settings.json`
+  as well as the user's, a leftover from before 2026-05-17; that file is now
+  gone from this repository) is logged and spoken once; `murmurent doctor`
+  warns about a stale project registration.
+
 ### Added
 - **The clerk reviews a syllabus against the institution's rules.** Rules live
   in the pack under `policies/<name>.yaml`, each quoted as the institution's
