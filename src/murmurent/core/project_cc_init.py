@@ -167,7 +167,11 @@ def bootstrap_local(
                 required=False,
             ))
             continue
-        if dest.exists() and not dest.is_symlink():
+        # Ask "is it a link?" before "does it exist?": exists() follows the
+        # link, and a link left by another member's install can point into a
+        # home directory this account cannot read, which raised a permission
+        # error and aborted `murmurent install` for every repository after it.
+        if not dest.is_symlink() and dest.exists():
             # A real file is the group's own version of this agent (the toolkit
             # pattern). It used to be deleted and replaced by a link here,
             # despite the promise above that non-symlinks survive.

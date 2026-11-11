@@ -17,6 +17,9 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 
 ## [Unreleased]
 
+### Fixed
+- `murmurent install` and `murmurent repo upgrade --all` no longer stop with a permission error when a repository's agent link points into another member's home directory (a link left by their install, say). The link is replaced like any other; the repositories after it are upgraded as before.
+
 ### Changed
 - The agent movies: each agent now speaks for itself, in the first person and in a voice of its own (`AGENT_VOICES` in `training/lib/agent_movie.py`; the skill movies keep the narrator), and no movie restates what the other agents do, only how they hand work to each other. The bookworm says it covers the databases (UniProt, ChEMBL, trial registries) as well as the literature, and the forms it returns; the adversary reproduces ordinary statistics (t-tests, ANOVA, regression, survival curves), not only classifiers; the scribe writes in whatever form is asked for; the teacher draws the permutation test (a scene of the movie's own, through the new `Extra` scene type), writes a quiz with each page, and explains Feynman's rule against jargon; the conscience names SGBA+, decolonization and the kinds of document it reviews (a grant, a course outline, a paper); the lawyer names the Ontario IP Foundations course; the millwright is introduced in plain words; the security guard marks the social insurance number as Canada-specific; the clerk says its cases are examples and flags the quiz that breaks a university rule. The example projects are now Candida albicans studies.
 - `agents/lawyer.md`: a section on the IP Foundations course (University of Toronto Entrepreneurship, endorsed by the Ontario Ministry of Colleges and Universities): the lawyer uses its distinctions between the forms of intellectual property, names which one applies, and points a researcher to the course rather than replacing it.
