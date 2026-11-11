@@ -259,3 +259,34 @@ def test_missing_lab_mgmt_is_warn_not_fail(monkeypatch, tmp_path):
     # probe failed.
     failed = [pr for pr in res.probes if pr.status == "fail" and pr.required]
     assert failed == [], f"unexpected required failures: {failed}"
+
+
+@pytest.mark.skipif(__import__("os").geteuid() == 0, reason="root can read anything")
+def test_agent_link_into_an_unreadable_home_is_replaced(world):
+    """On a shared server a repository may carry an agent link left by another
+    member's install, pointing into their home directory, which this account
+    cannot read. ``exists()`` follows the link and raised PermissionError,
+    which aborted ``murmurent install`` for every repository after it. The
+    link is a link, whatever it points at: it is replaced."""
+    import os
+    from murmurent.core import project_cc_init as cci
+    clone = _make_clone(world["repos"], "shared_repo")
+    foreign = world["home"].parent / "other_member"
+    (foreign / "agents").mkdir(parents=True)
+    (foreign / "agents" / "adversary.md").write_text("# theirs\n")
+    dest_dir = clone / ".claude" / "agents"
+    dest_dir.mkdir(parents=True)
+    (dest_dir / "adversary.md").symlink_to(foreign / "agents" / "adversary.md")
+    os.chmod(foreign, 0o000)
+    try:
+        # The condition the fix handles. Python 3.12's Path.exists() raises
+        # on it (the server's Python); 3.13 and later return False, so the
+        # setup is checked with os.stat, which raises on every version.
+        with pytest.raises(PermissionError):
+            os.stat(dest_dir / "adversary.md")
+        probes = cci.bootstrap_local(clone, world["commons"], agents=["adversary"])
+    finally:
+        os.chmod(foreign, 0o755)
+    link = dest_dir / "adversary.md"
+    assert link.is_symlink() and link.resolve() == (world["commons"] / "agents" / "adversary.md").resolve()
+    assert all(p.status != "fail" for p in probes)
