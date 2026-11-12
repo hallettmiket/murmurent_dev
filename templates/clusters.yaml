@@ -1,0 +1,72 @@
+# The compute clusters this lab may send work to, read by `murmurent cluster`
+# and the millwright.
+#
+# Copy this file into your lab's management repository as
+#     policy/clusters.yaml
+# and change it to name your own cluster. Every line is optional: what you
+# leave out comes from the profile, so a lab on any Digital Research Alliance
+# of Canada cluster usually needs only the first six lines of a cluster.
+#
+# Each member's own login on the cluster is NOT recorded here, because this
+# file is shared. A member runs, once:
+#     murmurent cluster add <name> --ssh-host <login>@<address>
+#
+# The example below is one lab's contributed system at Western University,
+# recorded 2026-11-12. It is an example, not a recommendation.
+
+clusters:
+  dusky:
+    # Which family of cluster this is. Today the only profile is "alliance":
+    # the Alliance's five storage tiers, `diskusage_report` for quotas, and the
+    # login-node rule. The profile fills in everything you do not say.
+    profile: alliance
+    description: SHARCNET cluster Dusky, holding the lab's biosharc nodes
+
+    # The address members log in to. A member's `cluster add` may give a
+    # different alias; this is the default.
+    ssh_host: dusky.sharcnet.ca
+
+    # The scheduler account that gives the lab its access. On a contributed
+    # system this is the "ctb-" account the lab was given for the machines it
+    # bought: jobs charged to it get the lab's priority and its long time
+    # limit. The scheduler rewrites it to the _cpu or _gpu form by itself.
+    account: ctb-hallett
+
+    # The Unix group whose members may use the partition. Membership is managed
+    # on the Alliance's website (CCDB) by the PI; `murmurent cluster scan`
+    # lists who is in it.
+    group: ctb-hallett
+
+    # Where jobs go. A CPU job and a GPU job may go to different partitions;
+    # here both go to the lab's own.
+    partition_cpu: biosharc
+    partition_gpu: biosharc
+    gpu_type: l40s
+
+    # Time limits as the scheduler writes them: days-hours:minutes:seconds.
+    default_time: "01:00:00"
+    max_time: "7-00:00:00"
+
+    # How often the watcher asks the scheduler about a job. Never below 1.
+    poll_minutes: 2
+
+    # Where a job's files are staged. {scratch} is the scratch tier's path for
+    # the member; {user} and {account} also work.
+    work_root: "{scratch}/murmurent"
+
+    # Lines run at the top of every job script, after the scheduler header.
+    # modules: [python/3.11]
+    # setup:
+    #   - source ~/envs/lab/bin/activate
+
+    # Storage tiers. The alliance profile already defines home, scratch,
+    # project, nearline and local; name one here only to change a fact. Paths
+    # may use {user}, {account} and {group}.
+    tiers:
+      project:
+        path: /project/{account}
+        notes: Shared with def-hallett-ab under the same quota. Read-only during Graham maintenance windows.
+
+    notes: >-
+      The two biosharc nodes are also in the public gpu partition with a
+      12-hour limit; the lab's partition has no caps and a 7-day limit.

@@ -344,6 +344,28 @@ The full workflow is in [Assembling a choreography](assembling_choreographies.md
 
 The full guide is [Running long jobs](run_launcher.md).
 
+### Clusters
+
+Send work to a Slurm cluster and bring the results back. Guide:
+[`cluster.md`](cluster.md). Clusters are described in `policy/clusters.yaml`
+of the lab records repository (`templates/clusters.yaml` is an example).
+
+| Command | What it does |
+|---|---|
+| `murmurent cluster list` | The clusters the lab names, and whether you have recorded a login. |
+| `murmurent cluster add <cluster> --ssh-host <login>@<address>` | Record your own login for a cluster (in your `hosts.yaml`). |
+| `murmurent cluster test [--cluster c]` | Log in and check that you may charge the lab's account. |
+| `murmurent cluster policy [--cluster c]` | The cluster's settings: account, partitions, storage tiers, polling. |
+| `murmurent cluster submit [--name n] [--cores N] [--gpus N] [--memory 32G] [--time 2h] [--out dir] -- <command>` | Copy this folder to the cluster, run the command as a job, start a watcher. |
+| `murmurent cluster status [<id>]` | Where a job stands (asks the scheduler), or every cluster job. |
+| `murmurent cluster watch <id> [--once]` | Poll until the job ends; then copy results back and post to Slack. |
+| `murmurent cluster cancel <id>` | Ask the scheduler to stop a job. |
+| `murmurent cluster fetch <id> [--to dir]` | Copy a job's results and log back here (never overwrites). |
+| `murmurent cluster push <local> <remote>` | Copy a file or folder to the cluster; `{scratch}`, `{project}`, `{home}` work in the path. |
+| `murmurent cluster pull <remote> <local> [--overwrite]` | Copy from the cluster; `--overwrite` is refused under the governed data folders. |
+| `murmurent cluster usage [--cluster c]` | Your storage on each tier, with what each is for, and your jobs. |
+| `murmurent cluster scan [--days 30]` | For the PI: nodes, queue, use per member, idle members, fair share, group storage. Report only. |
+
 ### Papers and theses
 
 A paper as a queryable package, and a thesis composed of them; see

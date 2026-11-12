@@ -102,6 +102,7 @@ nav:
               - 7 · Recall across all your notes: vault_vignettes/7_recall_across_tiers.md
       - Creating a project (in your lab): project_intra.md
       - Running long jobs: run_launcher.md
+      - Running work on a compute cluster: cluster.md
       - Tidying a project's space: space_table.md
       - The lab folder protocol: lab_folders.md
   - Labs & cores:

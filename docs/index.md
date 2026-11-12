@@ -44,6 +44,7 @@ memory and infrastructure on top, when you want it.
 | Starting a project (in your lab, or across labs) | [Creating a project](project_intra.md) |
 | A PI setting up your lab | [Group Slack setup](group_slack_setup.md) · [The lab-mgmt repo](lab_mgmt.md) |
 | A PI moving the server's space scan and etiquette check to a service account | [Running the server timers under a lab service account](service_account.md) |
+| Anyone sending a job to a compute cluster (the Alliance's, say) and getting the results back; a PI watching the lab's partition | [Running work on a compute cluster](cluster.md) |
 | Deciding how repositories, projects and membership should work | [Repositories and projects: review and plan](repos_and_projects_plan.md) (issues 252 to 260) |
 | A mayor bootstrapping a centre | [Centre Slack setup](slack_setup.md) · [Public directory setup](hub_setup.md) |
 | Wondering how the trust model works | [Membership IDs & the trust chain](identity.md) |

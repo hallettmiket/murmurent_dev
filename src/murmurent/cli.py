@@ -3080,6 +3080,10 @@ cli.add_command(_space_group)
 from .commands.etiquette_cmd import etiquette_group as _etiquette_group
 cli.add_command(_etiquette_group)
 
+# Clusters: send work to a Slurm cluster, watch it, bring results back, report use.
+from .commands.cluster_cmd import cluster_group as _cluster_group
+cli.add_command(_cluster_group)
+
 
 if __name__ == "__main__":  # pragma: no cover
     cli()
