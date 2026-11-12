@@ -1,6 +1,6 @@
 # One short movie per commons agent
 
-Seventeen movies, one per agent in [`agents/`](../../agents/), each between
+Eighteen movies, one per agent in [`agents/`](../../agents/), each between
 90 seconds and 3 minutes (issue #288). Every movie answers four questions in
 the same order: **what it does**, **what it will not do**, **one real example
 end to end**, and **how to use it properly through Claude Code**. Members reach
