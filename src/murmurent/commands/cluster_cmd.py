@@ -402,16 +402,31 @@ def cluster_scan(name: str | None, days: int) -> None:
         click.echo(f"  {n['nodes']}: {n['state']}, {n['cpus_allocated']} of {n['cpus_total']} cores in use, "
                    f"{n['memory_mb'] // 1024} GB memory{gpus}")
     if report.queue:
-        click.echo(f"Queue ({len(report.queue)} jobs):")
-        by_user: dict[str, list[dict[str, str]]] = {}
-        for j in report.queue:
-            by_user.setdefault(j["user"], []).append(j)
-        for user, jobs in sorted(by_user.items()):
-            running = sum(1 for j in jobs if j["state"] == "RUNNING")
-            cores = sum(int(j["cpus"]) for j in jobs if j["cpus"].isdigit())
-            gpus = sum(_cl._slurm.gpu_count(j["gres"]) for j in jobs)
-            click.echo(f"  {user}: {running} running, {len(jobs) - running} waiting; "
-                       f"{cores} cores" + (f", {gpus} GPUs" if gpus else ""))
+        summary = _cl._slurm.queue_summary(report.queue)
+        running_jobs = [j for j in report.queue if j["state"] == "RUNNING"]
+        waiting = len(report.queue) - len(running_jobs)
+        click.echo(f"Queue: {len(running_jobs)} running, {waiting} waiting. By person "
+                   "(a waiting job's cores and GPUs are what it asked for, not what it holds):")
+        for r in summary:
+            parts = [f"{r['running']} running"]
+            if r["running"]:
+                parts[-1] += f" on {r['running_cores']} cores" + (
+                    f" and {r['running_gpus']} GPU{'s' if r['running_gpus'] != 1 else ''}"
+                    if r["running_gpus"] else "")
+            if r["waiting"]:
+                parts.append(f"{r['waiting']} waiting for {r['waiting_cores']} cores" + (
+                    f" and {r['waiting_gpus']} GPU{'s' if r['waiting_gpus'] != 1 else ''}"
+                    if r["waiting_gpus"] else ""))
+                if r["reasons"]:
+                    why = ", ".join(f"{k} x{v}" if v > 1 else k for k, v in sorted(r["reasons"].items()))
+                    parts[-1] += f" ({why})"
+            click.echo(f"  {r['user']}: " + "; ".join(parts))
+        if running_jobs:
+            click.echo("Running now (job, who, cores, GPUs, run time of limit, node):")
+            for j in sorted(running_jobs, key=lambda j: (j["user"], j["id"])):
+                gpus = _cl._slurm.gpu_count(j["gres"])
+                click.echo(f"  {j['id']:<10} {j['name'][:24]:<24} {j['user']:<12} {j['cpus']:>4} "
+                           f"{gpus:>3}  {j['elapsed']} of {j['time_limit']}  {j['reason']}")
     else:
         click.echo("Queue: empty.")
     if report.usage:

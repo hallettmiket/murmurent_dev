@@ -165,7 +165,10 @@ murmurent cluster scan --days 30
 ```
 
 Reports the lab's partition: each node's cores and GPUs in use, the queue by
-person, core-hours and GPU-hours per member in the period, the members of the
+person with running and waiting kept apart (a waiting job's cores and GPUs
+are what it asked for, not what it holds, so they are never added to the
+running ones), each running job with its run time against its limit and its
+node, core-hours and GPU-hours per member in the period, the members of the
 lab's account and those who ran nothing, the fair-share standing, and the
 group's project and nearline storage. It is a report; it changes nothing. The
 Alliance's usage website shows only the national clusters, so a contributed
