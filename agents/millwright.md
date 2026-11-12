@@ -410,6 +410,79 @@ project's folders?".
    each might belong. Do not move anything, and do not message the owners
    unless the PI asks you to.
 
+### 8. CLUSTER_RUN: run work on a compute cluster and bring the results back
+
+Trigger: "run this on the cluster", "send this job to the cluster", "is my cluster
+job done?", "get the results back". Guide: [`docs/cluster.md`](../docs/cluster.md).
+
+1. The lab's clusters are in `policy/clusters.yaml` of the lab records
+   repository; `murmurent cluster list` names them and says whether the person
+   has recorded a login. Without one, give them the line
+   `murmurent cluster add <cluster> --ssh-host <login>@<address>` and then
+   `murmurent cluster test`; a login refused because the person is not in the
+   lab's account is for the PI to fix on the Alliance's website, not for you.
+2. Submit from inside the experiment folder:
+   `murmurent cluster submit --name <short> --cores N [--gpus N] [--memory 32G]
+   --time 2h -- <command>`. It copies the folder to the cluster's scratch,
+   charges the lab's account on the lab's partition (what gives the lab its
+   priority there), and starts a watcher in tmux. Choose `--time` from earlier
+   runs with a margin; a job that runs out of time is lost work. Say
+   "estimate" for every estimate.
+3. The watcher asks the scheduler every few minutes, never faster than once a
+   minute. When the job ends it copies the `out` folder back into the
+   experiment's `append_only` folder (or `--out`), never overwriting a file
+   already there, and posts one line to the project's channel. Read the
+   outcome with `murmurent cluster status <id>`; a job that failed carries a
+   plain reason on its card (out of time, out of memory, an error in the
+   program) and its log.
+4. React, do not guess. Out of time: resubmit with a longer `--time`. Out of
+   memory: resubmit with more `--memory`. An error in the program: show the
+   person the last lines of the log; do not resubmit. A node failure:
+   resubmit as it was. Finished: say where the results are, and what the next
+   step in the experiment is.
+5. Files: `murmurent cluster push <local> <remote>` and
+   `murmurent cluster pull <remote> <local>`, where the remote path may use
+   `{scratch}`, `{project}` or `{home}`. Pull never overwrites; `--overwrite`
+   is refused under the governed data folders. Protected-tier data never goes
+   to a cluster unless the project's data agreement allows it; ask the lawyer
+   when unsure. You never read a data file yourself: the job processes it.
+
+### 9. CLUSTER_USAGE: explain a person's storage and jobs on a cluster
+
+Trigger: "how much space do I have on the cluster?", "where should I put this
+on the cluster?", "why did my job fail to write?".
+
+1. Run `murmurent cluster usage`. It lists every storage tier with its purpose
+   and the facts that matter: whether it is backed up, whether old files are
+   deleted automatically, the quota, and how much is used.
+2. Explain in plain words which tier is for what: home for code (small, backed
+   up), scratch for running jobs (large, not backed up, purged), project for
+   the group's data (backed up, counted against the group), nearline for the
+   archive (tape, slow, by the PI's decision), node-local for the duration of
+   a job. Warn when a tier is over nine tenths full, in bytes or in number of
+   files.
+3. You never delete on a cluster, and never write to the nearline tier. A
+   person who should clear scratch does it themselves; tell them what the
+   purge rule is.
+
+### 10. CLUSTER_SCAN: the lab's partition as a whole (report only)
+
+Trigger: "who is using the cluster?", "are our nodes busy?", "is the cluster
+being used properly?". For the PI.
+
+1. Run `murmurent cluster scan [--days 30]`. It reports the partition's
+   nodes (cores and GPUs in use), the queue by person, core-hours and
+   GPU-hours per member in the period, the members of the lab's account and
+   those who ran nothing, the fair-share standing, and the group's project
+   and nearline storage.
+2. Say what stands out: nodes idle while members run elsewhere, one person
+   holding every GPU, a member of the account who never uses it, the group's
+   project quota near full. The Alliance's usage website does not show a
+   contributed system's use; this report is where the PI sees it.
+3. Report only. Membership of the account is changed by the PI on the
+   Alliance's website; you do not cancel anyone's job and do not message
+   members unless the PI asks you to.
+
 ---
 
 ## Safety rules

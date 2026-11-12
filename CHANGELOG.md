@@ -17,6 +17,9 @@ The version lives in exactly one place: `src/murmurent/__init__.py`
 
 ## [Unreleased]
 
+### Added
+- `murmurent cluster`: send work to a Slurm cluster and bring the results back. `submit` copies the experiment folder to the cluster's scratch, charges the lab's own account on the lab's partition (on a contributed system, what gives the lab its priority and long time limit), and starts a watcher in tmux that asks the scheduler every few minutes, copies the `out` folder back into the experiment's `append_only` folder without overwriting anything, and posts one line to the project's channel; `status`, `watch`, `cancel` and `fetch` follow a job; `push` and `pull` move files; `usage` reports each storage tier (home, scratch, project, nearline, node-local) with its purpose, backup and purge facts and quota; `scan` gives the PI the partition as a whole: nodes, queue, core-hours and GPU-hours per member, who never uses it, fair share and the group's storage. Clusters are described in `policy/clusters.yaml` of the lab records repository on top of a built-in Alliance profile (`templates/clusters.yaml` is the commented example); a member's own login is recorded with `cluster add`. A member who is not in the lab's account is refused with the reason. The millwright gains three operations for it. Guide: `docs/cluster.md`.
+
 ### Fixed
 - `murmurent install` and `murmurent repo upgrade --all` no longer stop with a permission error when a repository's agent link points into another member's home directory (a link left by their install, say). The link is replaced like any other; the repositories after it are upgraded as before.
 
