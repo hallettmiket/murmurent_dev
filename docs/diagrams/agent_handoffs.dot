@@ -83,6 +83,7 @@ digraph agent_handoffs {
     centre_millwright [label="centre millwright\n(cross-lab infrastructure)"];
     registrar         [label="registrar\n(centre registry)"];
     clerk             [label="clerk\n(the institution's rules)"];
+    prospector        [label="prospector\n(funding opportunities)"];
   }
 
   // Research and production
@@ -103,6 +104,8 @@ digraph agent_handoffs {
   docent     -> teacher    [label="a method\nto explain"];
   docent     -> scribe     [label="the words on\ndefence slides"];
   docent     -> clerk      [label="paperwork,\ndates, offices"];
+  prospector -> clerk      [label="a sponsor deadline,\nfor the internal one"];
+  prospector -> bookworm   [label="a funder the\nregistry should hold"];
 
   // Review and adjudication
   adversary      -> lawyer         [label="IP-bearing work\n(dispatched automatically)", penwidth=1.8, color="#4F2683", fontcolor="#4F2683"];

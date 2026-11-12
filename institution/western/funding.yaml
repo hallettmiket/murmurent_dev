@@ -1,0 +1,92 @@
+# Western's tier of the funder registry (docs/funders.md), read by the
+# prospector before any other tier. Not in the public release. Filled
+# 2026-11-12 from public pages on schulich.uwo.ca and uwo.ca; nothing behind
+# a login was read. Every entry carries its page and the date read.
+internal_deadline:
+  rule: Standard applications must reach Western Research no fewer than five business days before the sponsor's deadline; large-volume Tri-Agency competitions a minimum of ten business days, and a Tri-Agency application newly received two business days before the external deadline is not forwarded.
+  working_days: -5          # standard; the page says "business days"
+  by:
+    tri_agency: -10
+    partner_contributions: -15    # "a minimum of three weeks before the anticipated submission date"
+    us_federal: -20               # "a minimum of four weeks is recommended"
+  relative_to: sponsor_deadline
+  note: Every application also needs a ROLA proposal, which the PI starts at least one week before the internal deadline (ROLA process page, read 2026-11-12). Some faculties publish their own, different numbers; read the faculty's page for a faculty-level rule.
+  source: http://www.uwo.ca/research/policies/institutional-signatures.html
+  date_read: 2026-11-12
+internal_competitions:
+- name: Schulich Infrastructure Support (SIS)
+  what: Schulich-sponsored infrastructure funding; application through the SIS portal
+  who: Schulich researchers
+  page: https://www.schulich.uwo.ca/research/funding/sis_application_portal.html
+  deadline_as_read: Wednesday, November 18th, 2026 (the page also shows October 28th, 2026 beside a second SIS link; inconsistent on 2026-11-12)
+  source: https://www.schulich.uwo.ca/research/funding/internal.html
+  date_read: 2026-11-12
+- name: Faculty Support for Research in Education (FSRE)
+  what: Schulich funding for research in education; guidelines PDF on the page, application in SharePoint (login)
+  who: Schulich faculty
+  page: https://www.schulich.uwo.ca/research/funding/FSRE_guidelines_2025.pdf
+  deadline_as_read: Wednesday, October 28th, 2026
+  source: https://www.schulich.uwo.ca/research/funding/internal.html
+  date_read: 2026-11-12
+- name: Collaborative Research Seed Grants (CRSG)
+  what: seed funding for new collaborations; terms of reference, form, FAQ and biosketch template on the page
+  who: Schulich researchers
+  page: https://www.schulich.uwo.ca/research/funding/CRSG_TOR_2023_Final.pdf
+  source: https://www.schulich.uwo.ca/research/funding/internal.html
+  date_read: 2026-11-12
+- name: AMOSO Opportunities Fund and AHSC AFP Provincial Innovation Fund
+  what: Academic Medical Organization of Southwestern Ontario funding competitions
+  who: AMOSO members
+  page: https://www.schulich.uwo.ca/research/docs/AMOSO%20Funding%20Competition%20Infographic.pdf
+  deadline_as_read: Opportunities Fund April 15th and September 30th; Innovation Fund local deadline October 31st (no year on the page)
+  source: https://www.schulich.uwo.ca/research/funding/internal.html
+  date_read: 2026-11-12
+- name: Petro-Canada Young Innovator Grant (Robarts Stream)
+  what: early-career award; guidelines and application form on the page, no date on the page on 2026-11-12
+  who: early-career Robarts researchers
+  page: https://www.schulich.uwo.ca/research/funding/Robarts_2024%20Pet-Can%20Guidelines.pdf
+  source: https://www.schulich.uwo.ca/research/funding/internal.html
+  date_read: 2026-11-12
+- name: Schulich Postdoctoral Fellowship Program
+  what: the annual Schulich postdoctoral fellowship competition; the 2026 cycle's dates were March 10 (call), May 23 (application and ROLA deadline), results late June
+  who: postdoctoral candidates with a Schulich supervisor
+  page: https://www.schulich.uwo.ca/research/funding/schulich_postdoctoral_fellowship_program.html
+  source: https://www.schulich.uwo.ca/research/funding/schulich_postdoctoral_fellowship_program.html
+  date_read: 2026-11-12
+- name: Western Research internal funding
+  what: the university's internal funding programs
+  who: Western faculty
+  page: http://www.uwo.ca/research/funding/internal/index.html
+  source: https://www.schulich.uwo.ca/research/funding/internal.html
+  date_read: 2026-11-12
+screened_lists:
+- name: Schulich Research Office, External funding
+  page: https://www.schulich.uwo.ca/research/funding/external.html
+  access: public
+  note: the agencies Schulich researchers apply to (CIHR, NSERC, SSHRC, CCS, Diabetes Canada, CDMRP, Heart and Stroke, JDRF, Ontario ERA and ORF, NIH, PSI Foundation); links only, no deadlines
+  source: https://www.schulich.uwo.ca/research/funding/index.html
+  date_read: 2026-11-12
+- name: Schulich Research Office, Student and trainee funding
+  page: https://www.schulich.uwo.ca/research/funding/student.html
+  access: public
+  note: by career stage (summer programs, NSERC USRA, graduate funding, resident programs, PSI, postdoctoral opportunities); links only, no deadlines
+  source: https://www.schulich.uwo.ca/research/funding/index.html
+  date_read: 2026-11-12
+- name: Schulich Research Office, International funding
+  page: https://www.schulich.uwo.ca/research/funding/international.html
+  access: public
+  note: international funders open to Canadians (HFSP, Horizon Europe, CDMRP, Grand Challenges Canada, Gates, IDRC, DAAD, Commonwealth universities); links only, no deadlines
+  source: https://www.schulich.uwo.ca/research/funding/index.html
+  date_read: 2026-11-12
+- name: ROLA Funding and Opportunities
+  page: https://uwo.ca/research/rds/ROLA/ROLAFrameset.html
+  access: public
+  note: the research office's listing with a "Western Research Internal Deadline" column; on 2026-11-12 the public page showed template placeholders, the live list sits behind the ROLA login
+  source: https://www.schulich.uwo.ca/research/funding/index.html
+  date_read: 2026-11-12
+- name: Pivot (ProQuest) funding database
+  page: https://pivot.proquest.com/funding_main
+  access: login
+  note: Western's Pivot information page (uwo.ca/research/funding/external/Pivot.html) redirected to a page that returned 404 on 2026-11-12; whether the subscription is current is Unknown
+  source: https://www.schulich.uwo.ca/research/funding/index.html
+  date_read: 2026-11-12

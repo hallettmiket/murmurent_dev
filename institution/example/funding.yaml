@@ -1,0 +1,24 @@
+# The institution's own tier of the funder registry (docs/funders.md), read
+# by the prospector before any other tier. Invented facts on example.edu, as
+# in the rest of this pack. Every entry carries the page and the date read;
+# an entry that cannot be read from a public page is left out.
+internal_deadline:
+  rule: Internal submission through the research office at least seven working days before the sponsor's deadline.
+  working_days: -7          # before the sponsor deadline; null when the page states no number
+  relative_to: sponsor_deadline
+  source: https://www.example.edu/research/funding/deadlines.html
+  date_read: 2026-11-12
+internal_competitions:
+- name: Example University Internal Research Grant
+  what: seed funding for new projects, up to one year
+  who: faculty members holding an appointment at the university
+  page: https://www.example.edu/research/funding/internal-grant.html
+  source: https://www.example.edu/research/funding/index.html
+  date_read: 2026-11-12
+screened_lists:
+- name: External opportunities screened by the research office
+  page: https://www.example.edu/research/funding/external.html
+  access: public            # public | login; a login page is never read, only named
+  note: the research office's own list of external competitions with their deadlines, updated through the year
+  source: https://www.example.edu/research/funding/index.html
+  date_read: 2026-11-12
