@@ -143,15 +143,18 @@ def cluster_test(name: str | None) -> None:
 @click.option("--gpus", default=0, show_default=True, type=int)
 @click.option("--memory", default="", help="Total memory, e.g. 32G. The cluster's default when unsaid.")
 @click.option("--time", "time_limit", default="", help="Time limit: 2h, 3d, or 1-12:00:00. The cluster's default when unsaid.")
-@click.option("--out", default="", help="Where results land here. Default: the experiment's append_only folder.")
+@click.option("--out", default="", help="Where results land here. Default: the experiment's output folder in its tier.")
+@click.option("--output-tier", default=None, type=click.Choice(["append_only", "modifiable"]),
+              help="Tier the results come back to: append_only (never overwritten) or modifiable. "
+                   "Default: the experiment's notebook.md, else the repository's .murmurent.yaml, else append_only.")
 @click.option("--stage", default="", help="The folder copied to the cluster. Default: the current folder.")
 @click.option("--script", default="", help="Submit this job script as it is, instead of building one.")
 @click.option("--watch/--no-watch", default=True, show_default=True, help="Start a watcher in tmux.")
 @click.option("--no-notify", is_flag=True, default=False, help="Do not post to the project's Slack channel.")
 @click.argument("command", nargs=-1, type=click.UNPROCESSED)
 def cluster_submit(name: str | None, job_name: str, cores: int, gpus: int, memory: str,
-                   time_limit: str, out: str, stage: str, script: str, watch: bool,
-                   no_notify: bool, command: tuple[str, ...]) -> None:
+                   time_limit: str, out: str, output_tier: str | None, stage: str, script: str,
+                   watch: bool, no_notify: bool, command: tuple[str, ...]) -> None:
     """Copy this folder to the cluster and run COMMAND there as a job.
 
     Put your command after two dashes: murmurent cluster submit --cores 8 -- python run_all.py
@@ -162,6 +165,7 @@ def cluster_submit(name: str | None, job_name: str, cores: int, gpus: int, memor
     options = _cl.SubmitOptions(
         command=list(command), folder=Path.cwd(), name=job_name, cores=cores, gpus=gpus,
         memory=memory, time=time_limit, out=out, stage=stage, script=script, notify=not no_notify,
+        output_tier=output_tier or "",
     )
     try:
         card = _cl.submit(client, options)
@@ -174,7 +178,7 @@ def cluster_submit(name: str | None, job_name: str, cores: int, gpus: int, memor
                + (f", {gpus} GPU{'s' if gpus != 1 else ''}" if gpus else "")
                + f", time limit {req['time']}).")
     click.echo(f"  Staged in: {req['remote_dir']}")
-    click.echo(f"  Results will come back to: {card.out}")
+    click.echo(f"  Results will come back to: {card.out} ({req.get('output_tier', 'append_only')} tier)")
     click.echo(f"  Check on it: murmurent cluster status {card.id}")
     if watch:
         _start_watcher(card)

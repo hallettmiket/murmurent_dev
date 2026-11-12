@@ -60,8 +60,13 @@ def render_notebook(
     equipment: list[str] | None = None,
     reagents: list[str] | None = None,
     tags: list[str] | None = None,
+    output_tier: str = "append_only",
 ) -> str:
     """Render a ``notebook.md`` entry with frontmatter pre-filled.
+
+    ``output_tier`` is where the experiment's code writes its output:
+    ``append_only`` (never overwritten; the default) or ``modifiable``
+    (working data that may change). See ``core/output_tier.py``.
 
     Required frontmatter is per the design (`group_level.md` § notebook.md). All
     list-type fields default to empty (`[]`); they're filled in by the experiment
@@ -92,6 +97,7 @@ def render_notebook(
         f"reagents: [{reagents_yaml}]\n"
         "immutable_data: []\n"
         "append_only_data: []\n"
+        f"output_tier: {output_tier}\n"
         "instrument_outputs: []\n"
         "checksums: {}\n"
         f"status: {status}\n"

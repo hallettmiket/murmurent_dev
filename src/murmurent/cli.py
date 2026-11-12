@@ -1515,8 +1515,19 @@ def experiment_group() -> None:
     default="not_started",
     type=click.Choice(["not_started", "examined", "concluded"]),
 )
-def experiment_new(project_name: str, exp_name: str, status: str, analysis_status: str) -> None:
-    experiment_cmd.cmd_new(project_name, exp_name, status=status, analysis_status=analysis_status)
+@click.option(
+    "--output-tier",
+    "output_tier",
+    default=None,
+    type=click.Choice(["append_only", "modifiable"]),
+    help="Where the experiment's code writes its output: append_only (never overwritten) "
+         "or modifiable (working data that may change). Default: the repository's "
+         "output_tier in .murmurent.yaml, else append_only.",
+)
+def experiment_new(project_name: str, exp_name: str, status: str, analysis_status: str,
+                   output_tier: str | None) -> None:
+    experiment_cmd.cmd_new(project_name, exp_name, status=status, analysis_status=analysis_status,
+                           output_tier=output_tier or "")
 
 
 @experiment_group.command("list", help="List experiments and their statuses.")
