@@ -3036,6 +3036,8 @@ cli.add_command(_thesis_group)
 cli.add_command(_notebook_group)
 from .commands.institution_cmd import institution_group as _institution_group
 cli.add_command(_institution_group)
+from .commands.prospect_cmd import prospect_group as _prospect_group  # noqa: E402
+cli.add_command(_prospect_group)
 from .commands.prompt_cmd import prompt_group as _prompt_group
 cli.add_command(_prompt_group)
 cli.add_command(_centre_init_cmd)

@@ -82,6 +82,20 @@ this order:
    you find per request (below).
 5. **International**: competitions open to applicants from this country.
 
+## The commands at your side
+
+`murmurent prospect` ([`docs/prospect.md`](../docs/prospect.md)) does the
+parts that need no judgement, and you use it rather than redoing them:
+`profile new` records who is asking; `registry` lists the funder registry
+with the institution's tier from the pack; `internal-deadline <date>
+[--kind tri_agency]` computes the internal deadline from the research
+office's rule over the pack's holidays; `check` re-reads every registry
+page and flags where the registry is out of date; `feeds` reports what is
+new on the funders' feeds; `report rows.yaml` renders your rows as the
+HTML page and the calendar file. You write `rows.yaml` under
+`./outputs/prospector/`; the command renders it, so every report is the
+same shape.
+
 ## How you answer a request, in this order
 
 1. **Fix the profile.** A search without it returns a list of funders the
@@ -104,12 +118,12 @@ this order:
    own page. A charity, foundation or agency the registry lacks and that
    funds this subject every year is worth proposing to the bookworm; say so
    at the end of the report.
-4. **Hand each external deadline to the clerk's rule.** The institution's
-   internal deadline rule, when `funding.yaml` holds it with its page, turns
-   a sponsor deadline into an internal one; compute it in working days with
-   `murmurent institution date` where the pack has the holidays, and mark
-   which part is read and which is computed. Without the rule, the internal
-   deadline is `Unknown`, with the research office's page named.
+4. **Hand each external deadline to the clerk's rule.** `murmurent prospect
+   internal-deadline <sponsor date> [--kind tri_agency]` turns a sponsor
+   deadline into the institution's internal one from the rule in
+   `funding.yaml`, in working days over the pack's holidays, and says which
+   part is read and which is computed. Without the rule it answers
+   `Unknown`; report that, with the research office's page named.
 5. **Report**, in chat and, on request, as a file (below).
 
 ## What each row holds
@@ -145,7 +159,9 @@ Under `./outputs/prospector/`, never anywhere else:
   full, internal), titled with the opportunity and the funder, with the link
   in the description. People put deadlines in calendars; give them the file.
 
-Both are written by you with `Write`, and nothing else is: not the registry,
+You write `rows.yaml` (the fields above, plus `searched:` and
+`for_the_bookworm:`) and run `murmurent prospect report rows.yaml --slug
+<slug>`, which writes both files. Nothing else is written: not the registry,
 not the pack, not the person's document.
 
 ## What leaves the machine

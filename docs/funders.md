@@ -58,7 +58,7 @@ none is used for anything yet.
 
 | Agency | Listing page | What it gave on the date checked | Loads | Feed | Funds | Checked |
 |---|---|---|---|---|---|---|
-| CIHR (Canadian Institutes of Health Research) | <https://cihr-irsc.gc.ca/e/37788.html> | the funding overview; the competitions themselves are in ResearchNet, <https://www.researchnet-recherchenet.ca/rnr16/search.do?fodAgency=CIHR&fodLanguage=E&all=1&search=true&org=CIHR&sort=program&masterList=true&view=currentOpps>, which a plain fetch could not load (certificate error) | overview plain; ResearchNet refused | none found | health research: operating grants, fellowships, doctoral awards, team grants | 2026-11-12 |
+| CIHR (Canadian Institutes of Health Research) | <https://www.researchnet-recherchenet.ca/rnr16/search.do?fodAgency=CIHR&fodLanguage=E&all=1&search=true&org=CIHR&sort=program&masterList=true&view=currentOpps> | ResearchNet's list of every current CIHR opportunity: name, registration or letter-of-intent deadline, application deadline (on 2026-11-12: the Project Grant Fall 2026 and Spring 2027 with registration 2027-02-03, the Canada Graduate Research Scholarship doctoral award 2026-11-23, team grants, fellowships). Each name links to the full notice. The funding overview is at <https://cihr-irsc.gc.ca/e/37788.html> | plain, with a catch: the server omits its Entrust intermediate certificate, which a browser fetches for itself and a plain client cannot; `murmurent prospect feeds` reads the table once that intermediate is in the PEM file `$MURMURENT_CA_BUNDLE` names (see the prospect guide) | one RSS feed per category, relative to the listing: `fodRss.do?type=<n>&lang=E&chanTyp=PRG` (types 1, 2, 5, 7, 9, 12, 13, 21, 23, 43 on 2026-11-12) | health research: operating grants, fellowships, doctoral and master's awards, team grants | 2026-11-12 |
 | NSERC (Natural Sciences and Engineering Research Council) | <https://nserc-crsng.canada.ca/en/funding-opportunity> | every program by name with a "date modified", no deadlines on the list page; each program's page carries its own | plain | none found | natural sciences and engineering: Discovery, Alliance, scholarships and fellowships | 2026-11-12 |
 | SSHRC (Social Sciences and Humanities Research Council) | <https://sshrc-crsh.canada.ca/en/funding/opportunities.aspx> | an opportunities table with a Deadline column, drawn by script | script | none found | social sciences and humanities | 2026-11-12 |
 | New Frontiers in Research Fund (NFRF) | <https://sshrc-crsh.canada.ca/funding-financement/nfrf-fnfr/index-eng.aspx> | the competitions by name; each competition page carries its dates (the 2026 Exploration page gave a notice of intent on 2026-08-18 and a full application on 2026-10-20) | plain | none found | interdisciplinary, high-risk research, all three agencies | 2026-11-12 |
@@ -66,7 +66,7 @@ none is used for anything yet.
 | Mitacs | <https://www.mitacs.ca/our-programs/> | the programs by name, no deadlines (most take applications through the year) | plain | <https://www.mitacs.ca/feed/> (site news, not opportunities) | internships and fellowships with partners, Accelerate, Elevate, Globalink | 2026-11-12 |
 | Genome Canada | <https://genomecanada.ca/funding-opportunities/> | an opportunities listing drawn by script | script | none found | genomics and its applications | 2026-11-12 |
 | Canada Research Chairs | <https://www.chairs-chaires.gc.ca/program-programme/nomination-mise_en_candidature-eng.aspx> | the nomination process; nominations are continuous and made by the institution | plain | <https://www.chairs-chaires.gc.ca/rss-eng.xml> (news) | chairs, through the institution | 2026-11-12 |
-| Canada Postdoctoral Research Award | <https://www.nserc-crsng.gc.ca/Students-Etudiants/PD-NP/cpra-bprc_eng.asp> (named by the Banting page; not yet read) | the Banting Postdoctoral Fellowships page, <https://banting.fellowships-bourses.gc.ca/en/home-accueil.html>, says that program is closed and points here | Banting page plain | none found | postdoctoral fellowships across the three agencies | 2026-11-12 |
+| Canada Postdoctoral Research Award | <https://www.nserc-crsng.gc.ca/Students-Etudiants/PD-NP/cpra-bprc_eng.asp> | the program page: $70,000 per year for 24 months; application deadlines CIHR September 16 and NSERC October 17; eligibility by time since the degree, with extensions; at most three applications; one Canada Research Training Awards Suite program per year. Replaces the Banting Postdoctoral Fellowships, whose page <https://banting.fellowships-bourses.gc.ca/en/home-accueil.html> says so | plain | none found | postdoctoral fellowships across the three agencies | 2026-11-12 |
 | Canada Graduate Research Scholarship, Doctoral | <https://nserc-crsng.canada.ca/en/funding-opportunity/canada-graduate-research-scholarship-doctoral-program> | the program with its deadline (October 17, 8:00 pm ET for direct applicants; institutions set earlier internal dates). The Vanier page, <https://vanier.gc.ca/en/home-accueil.html>, says Vanier is closed and replaced by this | plain | none found | doctoral students | 2026-11-12 |
 | Canada Graduate Research Scholarship, Master's | <https://nserc-crsng.canada.ca/en/funding-opportunity/canada-graduate-research-scholarship-masters-program> | the program with its deadline (December 1, 8:00 pm ET, annually) | plain | none found | master's students | 2026-11-12 |
 
@@ -101,9 +101,9 @@ none is used for anything yet.
 
 | Agency | Listing page | What it gave on the date checked | Loads | Feed | Funds | Checked |
 |---|---|---|---|---|---|---|
-| NIH Guide for Grants and Contracts | <https://grants.nih.gov/funding/searchguide/> | the Guide, its weekly index and its RSS page all answered 403 to a plain fetch | refused | the Guide publishes RSS feeds, on a page that itself refused | biomedical research; many programs admit foreign institutions, each notice says | 2026-11-12 |
+| NIH Guide for Grants and Contracts | <https://grants.nih.gov/funding/nih-guide-for-grants-and-contracts> | the Guide's search, weekly index and feed all answer 403 to a plain client, including the feed itself; in a browser the Guide lists every notice with its due dates | refused | <https://grants.nih.gov/grants/guide/newsfeed/fundingopps.xml> (the Guide's feed, for a person's feed reader; it refuses a plain client too), named on <https://grants.nih.gov/news-events/subscribe-follow/email-updates-and-rss-feeds> | biomedical research; many programs admit foreign institutions, each notice says | 2026-11-12 |
 | NSF (National Science Foundation) | <https://www.nsf.gov/funding/opportunities> | the opportunities search is drawn by script; the RSS page <https://www.nsf.gov/rss> came through | script | <https://www.nsf.gov/rss/rss_www_funding_pgm_annc_inf.xml> (program announcements) and <https://www.nsf.gov/rss/rss_www_funding_upcoming.xml> (upcoming due dates; loaded, items carry deadlines) | science and engineering; foreign applicants only through a US partner, each solicitation says | 2026-11-12 |
-| Grants.gov | <https://www.grants.gov/search-grants> | the search is drawn by script | script | RSS at <https://www.grants.gov/connect/rss-feeds> (new and modified opportunities by agency and category); API at <https://www.grants.gov/api> with search and fetch endpoints documented at <https://www.grants.gov/api/applicant/> | every US federal grant notice | 2026-11-12 |
+| Grants.gov | <https://www.grants.gov/search-grants> | the search is drawn by script; the feed addresses its feeds page names (`/rss/GG_NewOppByCategory.xml` and the others) answered with the site's web app rather than XML on 2026-11-12, so no feed is listed here until one answers as XML | script | API at <https://www.grants.gov/api> with search and fetch endpoints documented under /api/applicant/; the feeds page is <https://www.grants.gov/connect/rss-feeds> | every US federal grant notice | 2026-11-12 |
 | DoD CDMRP (Congressionally Directed Medical Research Programs) | <https://cdmrp.health.mil/funding/default> | one open program named, no deadlines; the program announcements page answered 403 | plain, announcements refused | none found | disease-specific programs (cancer, neuroscience, and others); foreign institutions admitted, each announcement says | 2026-11-12 |
 | Gates Foundation | <https://www.gatesfoundation.org/about/how-we-work/grant-opportunities> | links to its submission portal and Grand Challenges; no opportunities on the page | plain | none found | global health and development, through Grand Challenges calls | 2026-11-12 |
 | Chan Zuckerberg Initiative | <https://chanzuckerberg.com/grants-ventures/grants/> | a grant database showing no open calls on the date checked | plain | none found | science programs by call | 2026-11-12 |
@@ -138,15 +138,11 @@ answers with the replacement and the page that says so.
 
 What the first pass could not settle, to be read and entered.
 
-- **The CIHR ResearchNet database** is the one listing that matters most for
-  health research here and refused a plain fetch (certificate error). Read
-  it in a browser, record what it lists and whether any feed exists.
-- **The NIH Guide** refused every page. Its RSS feeds exist; find a route
-  that loads one and record its address.
+- **The NIH Guide** refuses a plain client on every page and on its feed.
+  A person's feed reader can subscribe to the feed named in the table; no
+  automated route exists, and none should be forced.
 - **The Ontario Graduate Scholarship**: no provincial page was found. Each
   institution publishes its own; the institution tier is where it belongs.
-- **The Canada Postdoctoral Research Award** page, named by the Banting
-  page, has not been read yet.
 - **The script-rendered listings** (SSHRC, Genome Canada, NSF, Grants.gov,
   the EU portal, Wellcome, Cancer Research UK): find for each the plain page
   or the feed that gives the rows, and record it in the Feed column.
@@ -159,5 +155,8 @@ What the first pass could not settle, to be read and entered.
 Every row carries the date it was checked. A row older than a year is
 re-read before the prospector relies on its description of the page, and
 the prospector opens the page itself on every request regardless. There is
-no scheduled refresh yet; that is the poller the issue describes, which
-would read the Feed column and is not built.
+`murmurent prospect check` re-reads every listing page and says where the
+Loads column no longer matches; `murmurent prospect feeds` reads the Feed
+column (and the ResearchNet table) and reports what is new since the last
+run, on a weekly timer if the lab wants it. Both are in
+[the prospect command](prospect.md).

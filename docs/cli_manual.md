@@ -344,6 +344,20 @@ The full workflow is in [Assembling a choreography](assembling_choreographies.md
 
 The full guide is [Running long jobs](run_launcher.md).
 
+### Funding search (the Prospector)
+
+The deterministic half of the [prospector](agents.md#prospector). Guide:
+[`prospect.md`](prospect.md).
+
+| Command | What it does |
+|---|---|
+| `murmurent prospect profile new <name> --who student\|postdoc\|early_pi\|pi --field "..." [--terms a,b] [--citizenship ...] [--horizon-months 12]` | Record who is asking; nothing leaves the machine. `show`, `list`. |
+| `murmurent prospect registry [--tier t] [--feeds]` | The funder registry (`docs/funders.md`) as data, with the institution's tier from the pack's `funding.yaml`. |
+| `murmurent prospect check [--tier t]` | One honest GET per listing page; flags entries whose Loads column no longer matches. Exit 1 when any does. |
+| `murmurent prospect internal-deadline <YYYY-MM-DD> [--kind tri_agency]` | The institution's internal deadline from the research office's rule, in working days over the pack's holidays; `Unknown` without a rule. |
+| `murmurent prospect feeds [--post] [--dry-run]` | Poll the funders' feeds and CIHR's ResearchNet table; report what is new since the last run; `--post` routes it like `murmurent project note`. |
+| `murmurent prospect report rows.yaml [--out dir] [--slug s]` | Render the agent's rows as a self-contained HTML page and a calendar file of the deadlines. |
+
 ### Clusters
 
 Send work to a Slurm cluster and bring the results back. Guide:
