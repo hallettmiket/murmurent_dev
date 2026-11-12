@@ -108,6 +108,7 @@ and with which it must open its reply.
 | Centre Millwright | Centre-wide reconciler: cross-group permissions, membership drift and shared-infrastructure differences | centre | Reconciled / Drift / BLOCKED |
 | Registrar | Registry of groups, cores and collaborations; the centre-level administrative view | centre | Recorded / Conflict / Skipped |
 | Clerk | Ask it anything about the institution: it reads the answer off the institution's own pages, names the page and the date, and remembers it in the institution pack; checks documents, computes working-day dates, walks procedures | `Correct / Fix / Unknown` |
+| Prospector | Finds the funding opportunities a person may apply for, internal and external, reading each off the funder's own page: who may apply, what it pays, the deadlines, what the pre-application asks for, the link, the date read | member | `Found N open / None open / Unknown` |
 
 
 ## Who hands work to whom
@@ -711,6 +712,32 @@ codes and letterhead; **compute** a date in working days that never lands on
 a holiday; **walk** a procedure to its next steps with their forms. The
 Docent asks the Clerk for the institution-specific paperwork. Everything
 about the pack: [`docs/institution_pack.md`](institution_pack.md).
+
+## Prospector
+
+Tell the Prospector who is asking (a student, a postdoc, a PI), the field and
+the condition or subject, citizenship if it matters, and how far ahead to
+look, or point it at a scholarship application, a grant or a website to take
+those from. It returns the funding opportunities that person may apply for,
+each read today off the funder's own page: who may apply and why this person
+qualifies, what it pays, the registration or letter-of-intent date and what
+that asks for, the full deadline, the institution's internal deadline from the
+research office's rule, the link and the date read. What it could not read is
+`UNRESOLVED`, never guessed; what it searched and did not find is listed, so
+an empty result still says something.
+
+It starts from the **funder registry** ([`docs/funders.md`](funders.md)), the
+agencies people here apply to most, in tiers: the institution's own
+competitions (from the institution pack), the province, the country, the
+disease or field, the world. The registry holds the common ones; the
+disease-specific and the international it searches for per request, and
+proposes to the bookworm, who keeps the registry. On request it writes the
+report as a self-contained HTML page and the deadlines as a calendar file
+under `./outputs/prospector/`.
+
+It stops at the gate. The scribe writes the application; the clerk walks the
+institution's paperwork. A query carries the profile's public terms and never
+a sentence of a document or a person's name.
 
 ## Where to go next
 

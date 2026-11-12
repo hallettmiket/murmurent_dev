@@ -88,6 +88,7 @@ institution/<unique_name>/
   courses.yaml            fetch: a rule (url, method, fields, parser, limits); cache: one entry per course
   procedures/<name>.yaml  title, read_on, confirm_with, constants, steps, sources
   templates/letterhead.yaml  colours (name, role, hex, ...), fonts (name, role, weights), colour_rules, letterhead_templates
+  funding.yaml            the institution's tier of the funder registry, read by the prospector: internal_deadline (rule, working_days, source, date_read), internal_competitions, screened_lists (each with page, access public|login, source, date_read)
 ```
 
 Rules that `murmurent institution validate` enforces:
