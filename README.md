@@ -110,6 +110,7 @@ use it through Claude Code.
 | [`security_guard`](https://github.com/hallettmiket/murmurent/blob/main/agents/security_guard.md) | [The security guard](https://mikehallett.science/assets/videos/murmurent_agent_security_guard.html) | 1:43 |
 | [`clerk`](https://github.com/hallettmiket/murmurent/blob/main/agents/clerk.md) | [The clerk](https://mikehallett.science/assets/videos/murmurent_agent_clerk.html) | 2:31 |
 | [`docent`](https://github.com/hallettmiket/murmurent/blob/main/agents/docent.md) | [The docent](https://mikehallett.science/assets/videos/murmurent_agent_docent.html) | 2:00 |
+| [`prospector`](https://github.com/hallettmiket/murmurent/blob/main/agents/prospector.md) | [The prospector](https://mikehallett.science/assets/videos/murmurent_agent_prospector.html) | 3:00 |
 
 **News**, newest first (releases and new capabilities; the full record is the
 [changelog](https://github.com/hallettmiket/murmurent/blob/main/CHANGELOG.md)):
