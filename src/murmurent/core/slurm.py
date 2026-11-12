@@ -216,6 +216,36 @@ def parse_sinfo(text: str) -> list[dict[str, Any]]:
     return rows
 
 
+def queue_summary(queue: list[dict[str, str]]) -> list[dict[str, Any]]:
+    """Per user, what is running and what is waiting, kept apart.
+
+    A waiting job's cores and GPUs are what it asked for, not what it holds,
+    so adding them to the running ones overstates use (the scan once did,
+    and the per-user cores came to more than the nodes have). One row per
+    user, sorted by running cores then waiting cores, largest first.
+    """
+    rows: dict[str, dict[str, Any]] = {}
+    for job in queue:
+        row = rows.setdefault(job.get("user", ""), {
+            "user": job.get("user", ""), "running": 0, "running_cores": 0, "running_gpus": 0,
+            "waiting": 0, "waiting_cores": 0, "waiting_gpus": 0, "reasons": {},
+        })
+        cores = int(job["cpus"]) if str(job.get("cpus", "")).isdigit() else 0
+        gpus = gpu_count(job.get("gres", ""))
+        if job.get("state") == "RUNNING":
+            row["running"] += 1
+            row["running_cores"] += cores
+            row["running_gpus"] += gpus
+        else:
+            row["waiting"] += 1
+            row["waiting_cores"] += cores
+            row["waiting_gpus"] += gpus
+            reason = (job.get("reason") or "").strip("() ")
+            if reason:
+                row["reasons"][reason] = row["reasons"].get(reason, 0) + 1
+    return sorted(rows.values(), key=lambda r: (-r["running_cores"], -r["waiting_cores"], r["user"]))
+
+
 def gpu_count(gres: str) -> int:
     """How many GPUs a ``gres`` field names (``gpu:l40s:4`` is 4; ``gpu:2`` is 2)."""
     total = 0

@@ -1,0 +1,22 @@
+{
+  "//": "Written by core.project_cc_init.bootstrap_local. The agents.log task auto-tails the live subagent feed on folder open (#41). Edit freely \u2014 murmurent preserves user-modified files on re-bootstrap.",
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "agents.log",
+      "type": "shell",
+      "command": "tail -F \"${userHome}/.murmurent/agents.log\"",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "murmurent",
+        "clear": true
+      },
+      "runOptions": {
+        "runOn": "folderOpen"
+      },
+      "problemMatcher": []
+    }
+  ]
+}

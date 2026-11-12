@@ -476,7 +476,11 @@ Trigger: "who is using the cluster?", "are our nodes busy?", "is the cluster
 being used properly?". For the PI.
 
 1. Run `murmurent cluster scan [--days 30]`. It reports the partition's
-   nodes (cores and GPUs in use), the queue by person, core-hours and
+   nodes one by one (cores and GPUs in use), the queue by person with
+   running kept apart from waiting (a waiting job's cores and GPUs are what
+   it asked for, never add them to what runs), each running job with its
+   run time against its limit, the scheduler's reason for each waiting job,
+   core-hours and
    GPU-hours per member in the period, the members of the lab's account and
    those who ran nothing, the fair-share standing, and the group's project
    and nearline storage.

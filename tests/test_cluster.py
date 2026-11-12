@@ -33,7 +33,8 @@ DISKUSAGE = """                            Description                Space     
 On some clusters, a break down per user may be available by adding the option '--per_user'.
 """
 
-SINFO = "dus[97-98]|256|2312110|gpu:l40s:4|mix|12/500/0/512\n"
+SINFO = ("dus97|256|2312110|gpu:l40s:4|mix|12/244/0/256\n"
+         "dus98|256|2312110|gpu:l40s:4|idle|0/256/0/256\n")
 SQUEUE = ("345600|train|emucaki|ctb-hallett_gpu|biosharc|RUNNING|2:10:00|7-00:00:00|1|32|gpu:l40s:2|dus97\n"
           "345601|qc|fryday|ctb-hallett_cpu|biosharc|PENDING|0:00|12:00:00|1|64|N/A|(Priority)\n")
 ASSOC = "ctb-hallett_cpu|hallett|\nctb-hallett_gpu|hallett|\ndef-hallett-ab_cpu|hallett|\n"
@@ -148,7 +149,7 @@ def test_diskusage_report_rows():
 
 def test_sinfo_squeue_assoc_usage_df():
     node = _slurm.parse_sinfo(SINFO)[0]
-    assert node["cpus_total"] == 512 and node["cpus_allocated"] == 12 and _slurm.gpu_count(node["gres"]) == 4
+    assert node["cpus_total"] == 256 and node["cpus_allocated"] == 12 and _slurm.gpu_count(node["gres"]) == 4
     queue = _slurm.parse_squeue(SQUEUE)
     assert queue[0]["user"] == "emucaki" and _slurm.gpu_count(queue[0]["gres"]) == 2
     assert queue[1]["reason"] == "(Priority)"
@@ -327,7 +328,11 @@ def test_usage_report_names_each_tier(world, fake_cluster):
 def test_scan_reports_nodes_queue_members_and_idle(world, fake_cluster):
     client = _cl.ClusterClient(_cl.find_cluster("dusky"))
     report = client.scan(days=30)
-    assert report.partition == "biosharc" and report.nodes[0]["cpus_total"] == 512
+    assert report.partition == "biosharc"
+    assert [n["nodes"] for n in report.nodes] == ["dus97", "dus98"]
+    assert report.nodes[0]["cpus_allocated"] == 12 and report.nodes[1]["state"] == "idle"
+    calls, _answers = fake_cluster
+    assert any("sinfo -h -N -p biosharc" in " ".join(c) for c in calls)
     assert {j["user"] for j in report.queue} == {"emucaki", "fryday"}
     assert report.members == ["emucaki", "fryday", "hallett", "zz_idle"]
     assert report.idle_members() == ["hallett", "zz_idle"]
@@ -373,3 +378,17 @@ def test_submit_defaults_to_append_only_and_never_overwrites(world, fake_cluster
     assert card.out == str(world / "data" / "append_only" / "proj" / "1_fit")
     forced = _cl.submit(client, _cl.SubmitOptions(command=["true"], folder=exp, output_tier="modifiable"))
     assert forced.out == str(world / "data" / "modifiable" / "proj" / "1_fit")
+
+
+def test_queue_summary_keeps_running_and_waiting_apart():
+    queue = _slurm.parse_squeue(
+        SQUEUE
+        + "345602|big|fryday|ctb-hallett_gpu|biosharc|PENDING|0:00|1-00:00:00|1|128|gpu:l40s:4|(Resources)\n"
+        + "345603|fit|emucaki|ctb-hallett_cpu|biosharc|RUNNING|0:05|1:00:00|1|4|N/A|dus98\n")
+    rows = {r["user"]: r for r in _slurm.queue_summary(queue)}
+    assert rows["emucaki"]["running"] == 2 and rows["emucaki"]["running_cores"] == 36
+    assert rows["emucaki"]["running_gpus"] == 2 and rows["emucaki"]["waiting"] == 0
+    assert rows["fryday"]["running"] == 0 and rows["fryday"]["waiting"] == 2
+    assert rows["fryday"]["waiting_cores"] == 192 and rows["fryday"]["waiting_gpus"] == 4
+    assert rows["fryday"]["reasons"] == {"Priority": 1, "Resources": 1}
+    assert [r["user"] for r in _slurm.queue_summary(queue)] == ["emucaki", "fryday"]

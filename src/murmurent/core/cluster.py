@@ -379,7 +379,9 @@ class ClusterClient:
         account = self.cluster.account
         report = ScanReport(cluster=self.cluster.name, partition=partition, days=days)
 
-        result = self.run(f"sinfo -h -p {shlex.quote(partition)} -o {shlex.quote(_slurm.SINFO_FORMAT)}",
+        # -N: one row per node, so the PI sees each node's cores and GPUs rather
+        # than one line for the pair.
+        result = self.run(f"sinfo -h -N -p {shlex.quote(partition)} -o {shlex.quote(_slurm.SINFO_FORMAT)}",
                           timeout=60, check=False)
         if result.ok:
             report.nodes = _slurm.parse_sinfo(result.stdout)
