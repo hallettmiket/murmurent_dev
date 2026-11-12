@@ -67,6 +67,7 @@ AGENT_VOICES = {
     "judge": "Daniel",              # steady broadcaster
     "registrar": "Will",            # relaxed optimist
     "security_guard": "Adam",       # dominant, firm
+    "prospector": "Callum",         # husky, outdoors: digs and brings back only what it found
 }
 
 

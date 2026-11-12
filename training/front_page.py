@@ -35,7 +35,7 @@ SITE = "https://mikehallett.science/assets/videos/"
 REPO = "https://github.com/hallettmiket/murmurent/blob/main/"
 AGENT_ORDER = ["oracle", "bookworm", "adversary", "artist", "scribe", "teacher", "lab_oracle", "blacksmith",
                "conscience", "lawyer", "millwright", "centre_millwright", "judge", "registrar", "security_guard",
-               "clerk", "docent"]
+               "clerk", "docent", "prospector"]
 
 
 def load() -> dict:
