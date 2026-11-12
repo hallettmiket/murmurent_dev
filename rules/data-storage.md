@@ -16,6 +16,26 @@ guardrails, not a security perimeter, and the trees are writable on disk.
   ``<repos>/<project>/exp/<experiment>/`` (``<repos>`` is this machine's
   repositories folder; ``murmurent config repos-root`` prints it) so the relationship between code
   and its data is obvious.
+- **``modifiable/<project>/<experiment>/``**: the same, for an experiment that
+  chose it as its **output tier** (below). Code may overwrite and delete its
+  own earlier output there. No hook watches it.
+
+## The output tier: append_only or modifiable
+
+An experiment's output goes to ``append_only`` unless it says otherwise. A
+big build that rewrites its intermediate files on every run should say
+otherwise, or the folder grows with every attempt and the server pays for
+all of them. The choice is one line, read by ``murmurent experiment new``,
+``murmurent cluster submit`` and every agent that writes output:
+
+- ``output_tier: modifiable`` in the experiment's ``notebook.md`` front matter
+  (``murmurent experiment new --output-tier modifiable`` writes it);
+- else ``output_tier: modifiable`` at the top of the repository's
+  ``.murmurent.yaml``, the default for every experiment of that repository;
+- else ``append_only``.
+
+Only those two values are accepted. A result a paper or the lab will rely on
+is copied into ``append_only`` when the build is done, versioned as below.
 
 ## The lab folder protocol
 

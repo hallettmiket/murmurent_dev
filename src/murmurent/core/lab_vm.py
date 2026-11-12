@@ -35,6 +35,7 @@ LEGACY_ENV_VAR = "MURMURENT_LAB_VM_ROOT"
 
 IMMUTABLE_SUBDIR = "immutable"
 APPEND_ONLY_SUBDIR = "append_only"
+MODIFIABLE_SUBDIR = "modifiable"
 LEGACY_IMMUTABLE_SUBDIR = "raw"
 LEGACY_APPEND_ONLY_SUBDIR = "refined"
 
@@ -141,6 +142,15 @@ def clinical_root(env: dict[str, str] | None = None) -> Path:
     return data_root(env) / CLINICAL_SUBDIR
 
 
+def modifiable_root(env: dict[str, str] | None = None) -> Path:
+    """Return ``<data-root>/modifiable``: working data that may change.
+
+    No legacy name and no hook: the folder protocol's one tier that code may
+    overwrite. See :mod:`murmurent.core.output_tier`.
+    """
+    return data_root(env) / MODIFIABLE_SUBDIR
+
+
 def project_immutable_dir(project: str, env: dict[str, str] | None = None) -> Path:
     """Return ``<data-root>/immutable/<project>``."""
     return immutable_root(env) / project
@@ -149,6 +159,11 @@ def project_immutable_dir(project: str, env: dict[str, str] | None = None) -> Pa
 def project_append_only_dir(project: str, env: dict[str, str] | None = None) -> Path:
     """Return ``<data-root>/append_only/<project>``."""
     return append_only_root(env) / project
+
+
+def project_modifiable_dir(project: str, env: dict[str, str] | None = None) -> Path:
+    """Return ``<data-root>/modifiable/<project>``."""
+    return modifiable_root(env) / project
 
 
 # Legacy aliases.
@@ -168,6 +183,13 @@ def experiment_append_only_dir(
 ) -> Path:
     """Return ``<data-root>/append_only/<project>/<experiment>``."""
     return project_append_only_dir(project, env) / experiment
+
+
+def experiment_modifiable_dir(
+    project: str, experiment: str, env: dict[str, str] | None = None
+) -> Path:
+    """Return ``<data-root>/modifiable/<project>/<experiment>``."""
+    return project_modifiable_dir(project, env) / experiment
 
 
 # Legacy aliases.

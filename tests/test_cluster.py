@@ -340,3 +340,36 @@ def test_push_refuses_the_nearline_tier(world, fake_cluster):
     (world / "f.txt").write_text("x")
     with pytest.raises(_cl.ClusterError, match="nearline"):
         client.push(world / "f.txt", "/nearline/ctb-hallett/f.txt")
+
+
+def test_submit_sends_results_to_the_experiment_tier(world, fake_cluster, monkeypatch):
+    """An experiment that chose ``modifiable`` gets its results there, and the
+    watcher is allowed to replace files of the same name when it copies back."""
+    repo = world / "proj"
+    exp = repo / "exp" / "1_build"
+    exp.mkdir(parents=True)
+    (repo / ".murmurent.yaml").write_text("name: proj\n")
+    (exp / "notebook.md").write_text("---\nexperiment: 1_build\noutput_tier: modifiable\n---\n")
+    client = _cl.ClusterClient(_cl.find_cluster("dusky"))
+    card = _cl.submit(client, _cl.SubmitOptions(command=["true"], folder=exp))
+    assert card.requested["output_tier"] == "modifiable"
+    assert card.out == str(world / "data" / "modifiable" / "proj" / "1_build")
+
+    calls, _answers = fake_cluster
+    _cl.refresh(client, card)
+    pulls = [c for c in calls if c[0] == "rsync" and c[-2].endswith("/out/")]
+    assert pulls and "--ignore-existing" not in pulls[-1]
+    assert any("replaced" in n["text"] for n in card.notes)
+
+
+def test_submit_defaults_to_append_only_and_never_overwrites(world, fake_cluster):
+    repo = world / "proj"
+    exp = repo / "exp" / "1_fit"
+    exp.mkdir(parents=True)
+    (repo / ".murmurent.yaml").write_text("name: proj\n")
+    client = _cl.ClusterClient(_cl.find_cluster("dusky"))
+    card = _cl.submit(client, _cl.SubmitOptions(command=["true"], folder=exp))
+    assert card.requested["output_tier"] == "append_only"
+    assert card.out == str(world / "data" / "append_only" / "proj" / "1_fit")
+    forced = _cl.submit(client, _cl.SubmitOptions(command=["true"], folder=exp, output_tier="modifiable"))
+    assert forced.out == str(world / "data" / "modifiable" / "proj" / "1_fit")

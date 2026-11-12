@@ -96,6 +96,13 @@ mirrors the code repository's ``exp/``:
 That way the relationship between code and its data is one
 ``cd`` away.
 
+An experiment whose output is working data that changes on every run (a
+large build, say) sets ``output_tier: modifiable`` in its ``notebook.md``,
+or the repository sets it for all of its experiments in ``.murmurent.yaml``,
+and the same path sits under ``modifiable/`` instead, where code may
+overwrite its own files. ``append_only`` stays the default and the place for
+anything a paper will rest on. See ``rules/data-storage.md``.
+
 ## Sub-experiments / output kinds
 
 Inside ``append_only/<project>/<experiment>/`` you can split by

@@ -1,7 +1,7 @@
 # Running work on a compute cluster
 
 `murmurent cluster` sends a job to a compute cluster, watches it, and brings
-the results back into the experiment's `append_only` folder. It was built for
+the results back into the experiment's output folder. It was built for
 the clusters of the Digital Research Alliance of Canada (the national research
 computing service, formerly Compute Canada), which schedule work with **Slurm**:
 a program that takes a request for cores, memory, GPUs and a time limit, and
@@ -110,8 +110,13 @@ scheduler's modest defaults. A job script of your own goes in with
 | `murmurent cluster cancel <id>` | Stops it. |
 | `murmurent cluster fetch <id>` | Copies the results and log back again, on request. |
 
-When the job ends the watcher copies `out` into the experiment's `append_only`
-folder (or `--out`), **never overwriting a file already there**, pulls the
+When the job ends the watcher copies `out` into the experiment's output folder
+(or `--out`). That is its `append_only` folder, where **nothing already there
+is overwritten**, unless the experiment chose the `modifiable` tier
+(`output_tier: modifiable` in its `notebook.md`, or in the repository's
+`.murmurent.yaml` for all of its experiments; `--output-tier` on `submit`
+overrides either), where a re-run replaces files of the same name. The lab
+folder protocol page explains the choice. The watcher then pulls the
 scheduler's log beside the card, writes why the job ended in plain words (out
 of time, out of memory, an error in the program, a node failure), and posts one
 line to the project's channel through the same route `murmurent run` uses. The
@@ -151,7 +156,7 @@ facts that matter. On an Alliance cluster:
 The file-count quota matters as much as the byte quota: a folder of a million
 small files is refused on home long before 50 GB. Scratch is where jobs run
 and where murmurent stages them; results that matter come back to the lab's
-`append_only`, so the purge is harmless.
+`append_only` (or `modifiable`) folder, so the purge is harmless.
 
 ## For the PI: the partition as a whole
 

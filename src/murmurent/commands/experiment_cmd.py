@@ -18,6 +18,7 @@ from rich.console import Console
 from rich.table import Table
 
 from ..core import lab_vm
+from ..core import output_tier as _tier
 from ..core.frontmatter import dump_document, parse_file
 from ..core.identity import resolve as resolve_identity
 from ..core.ingest import IngestPlan, execute_ingest, format_plan, plan_ingest
@@ -90,9 +91,19 @@ def cmd_new(
     status: str = "planned",
     analysis_status: str = "not_started",
     performer: list[str] | None = None,
+    output_tier: str = "",
 ) -> Path:
-    """``murmurent experiment new`` — scaffold ``exp/<n>_<slug>/`` and lab-VM dirs."""
+    """``murmurent experiment new`` — scaffold ``exp/<n>_<slug>/`` and lab-VM dirs.
+
+    ``output_tier`` is ``append_only`` or ``modifiable``; empty means the
+    repository's default from ``.murmurent.yaml``, else ``append_only``.
+    """
     repo = _resolve_repo(project_name)
+    chosen = _tier.normalise_tier(output_tier)
+    if output_tier and not chosen:
+        raise click.ClickException(
+            f"--output-tier must be one of {', '.join(_tier.OUTPUT_TIERS)}; got {output_tier!r}")
+    tier = chosen or _tier.resolve_output_tier(repo.path).tier
     if not EXPERIMENT_DIR_PATTERN.match(f"1_{slug}"):
         raise click.ClickException(
             f"slug must be lowercase snake_case (matched against /^\\d+_{{slug}}$/): {slug!r}"
@@ -114,6 +125,7 @@ def cmd_new(
         performer=performer,
         status=status,
         analysis_status=analysis_status,
+        output_tier=tier,
     )
     (exp_dir / "notebook.md").write_text(notebook_text, encoding="utf-8")
 
@@ -130,7 +142,7 @@ def cmd_new(
         "Author: TBD\n"
         f"Date: {_today()}\n"
         "Input: see notebook.md immutable_data section.\n"
-        "Output: see notebook.md append_only_data section.\n"
+        f"Output: see notebook.md append_only_data section (output_tier: {tier}).\n"
         '"""\n\n'
         "from __future__ import annotations\n\n\n"
         "def main() -> int:\n"
@@ -143,10 +155,13 @@ def cmd_new(
     )
 
     lab_vm.ensure_experiment_dirs(project_name, exp_name)
+    out_dir = _tier.experiment_output_dir(project_name, exp_name, tier)
+    out_dir.mkdir(parents=True, exist_ok=True)
     click.echo(f"Created {exp_dir}")
     click.echo(
         f"Data immutable:   {lab_vm.experiment_immutable_dir(project_name, exp_name)}\n"
-        f"Data append_only: {lab_vm.experiment_append_only_dir(project_name, exp_name)}"
+        f"Data output:      {out_dir} ({tier}"
+        + (", files may be overwritten" if tier == "modifiable" else ", never overwritten") + ")"
     )
     return exp_dir
 

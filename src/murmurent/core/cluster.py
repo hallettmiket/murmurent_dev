@@ -18,7 +18,8 @@ How a job travels
    the command inside ``stage`` with ``$MURMURENT_OUT`` pointing at ``../out``.
 3. The watcher asks ``sacct`` every few minutes. When the job ends, ``out`` and
    the scheduler log come back to the caller's machine, into the output folder
-   named at submission (by default the experiment's ``append_only`` folder),
+   named at submission (by default the experiment's output folder, the
+   ``append_only`` or ``modifiable`` tier it chose; core/output_tier.py),
    with ``--ignore-existing`` so nothing there is ever overwritten.
 4. One line goes to the project's Slack channel, through the same route
    ``murmurent run`` uses.
@@ -43,6 +44,7 @@ from . import cluster_policy as _cp
 from . import hosts as _hosts
 from . import remote as _remote
 from . import run_cards as _cards
+from . import output_tier as _tier
 from . import slurm as _slurm
 
 SSH_OPTIONS = ["-o", "BatchMode=yes", "-o", "ConnectTimeout=10", "-o", "ServerAliveInterval=15"]
@@ -451,6 +453,7 @@ class SubmitOptions:
     stage: str = ""
     script: str = ""
     notify: bool = True
+    output_tier: str = ""   # "" = the experiment's own choice
     excludes: tuple[str, ...] = (".git", "__pycache__", ".venv", "*.pyc")
 
 
@@ -472,7 +475,9 @@ def submit(client: ClusterClient, options: SubmitOptions,
     moment = moment or _cards.now_local()
     job_id = _cards.new_job_id(moment)
     name = _safe_name(options.name or (options.command[0] if options.command else "job"))
-    project, _marker = _rl.project_for_folder(options.folder)
+    project, marker = _rl.project_for_folder(options.folder)
+    tier = (_tier.normalise_tier(options.output_tier)
+            or _tier.resolve_output_tier(options.folder, marker).tier)
     remote_dir = f"{client.work_root}/{project or 'jobs'}/{name}-{job_id}"
     stage_dir = f"{remote_dir}/stage"
     out_dir = f"{remote_dir}/out"
@@ -495,7 +500,7 @@ def submit(client: ClusterClient, options: SubmitOptions,
 
     local_out = options.out
     if not local_out:
-        local_out = _default_out(project, options.folder)
+        local_out = _default_out(project, options.folder, tier)
     runs = _cards.runs_dir()
     card = _cards.JobCard(
         id=job_id,
@@ -519,6 +524,7 @@ def submit(client: ClusterClient, options: SubmitOptions,
             "gpus": options.gpus,
             "memory": options.memory,
             "login": client.user,
+            "output_tier": tier,
         },
         cores=options.cores,
         gpus=list(range(options.gpus)),
@@ -535,13 +541,12 @@ def submit(client: ClusterClient, options: SubmitOptions,
     return card
 
 
-def _default_out(project: str, folder: Path) -> str:
-    """The experiment's append_only folder when the data root is known, else ``.``."""
+def _default_out(project: str, folder: Path, tier: str = "") -> str:
+    """The experiment's output folder in its tier when the project is known,
+    else ``cluster_out`` beside the code."""
     try:
-        from .lab_vm import project_append_only_dir
-
         if project:
-            return str(project_append_only_dir(project) / folder.name)
+            return str(_tier.experiment_output_dir(project, folder.name, tier))
     except Exception:  # noqa: BLE001
         pass
     return str(folder / "cluster_out")
@@ -614,9 +619,12 @@ def refresh(client: ClusterClient, card: _cards.JobCard, *,
         except ClusterError as exc:
             card.add_note(f"The scheduler log could not be copied back: {exc}", moment)
         if card.out and client.exists(f"{remote_dir}/out"):
+            overwrite = card.requested.get("output_tier") == "modifiable"
             try:
-                client.pull(f"{remote_dir}/out", card.out)
-                card.add_note(f"Results copied to {card.out} (existing files left untouched).", moment)
+                client.pull(f"{remote_dir}/out", card.out, ignore_existing=not overwrite)
+                card.add_note(f"Results copied to {card.out} "
+                              + ("(modifiable tier: files of the same name replaced)."
+                                 if overwrite else "(existing files left untouched)."), moment)
             except ClusterError as exc:
                 card.add_note(f"Results could not be copied back: {exc}", moment)
     _cards.write_card(card)

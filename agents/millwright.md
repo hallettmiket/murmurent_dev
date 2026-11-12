@@ -283,6 +283,7 @@ Steps (in order; stop and report if any step fails):
    ```bash
    mkdir -p $MURMURENT_DATA_ROOT/immutable/<project>      # original data, read-only once placed
    mkdir -p $MURMURENT_DATA_ROOT/append_only/<project>    # analyses: added to, never overwritten
+   mkdir -p $MURMURENT_DATA_ROOT/modifiable/<project>     # working data that may change (an experiment's output_tier: modifiable)
    ```
    (`raw/` and `refined/` are the former names; `murmurent data migrate`
    renames an existing root.)
@@ -430,8 +431,12 @@ job done?", "get the results back". Guide: [`docs/cluster.md`](../docs/cluster.m
    "estimate" for every estimate.
 3. The watcher asks the scheduler every few minutes, never faster than once a
    minute. When the job ends it copies the `out` folder back into the
-   experiment's `append_only` folder (or `--out`), never overwriting a file
-   already there, and posts one line to the project's channel. Read the
+   experiment's output folder (or `--out`): its `append_only` folder, never
+   overwriting a file already there, or its `modifiable` folder when the
+   experiment chose that tier (`output_tier: modifiable` in `notebook.md` or
+   the repository's `.murmurent.yaml`; `--output-tier` for one job), where a
+   re-run replaces files of the same name. It posts one line to the
+   project's channel. Read the
    outcome with `murmurent cluster status <id>`; a job that failed carries a
    plain reason on its card (out of time, out of memory, an error in the
    program) and its log.

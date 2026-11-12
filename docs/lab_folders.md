@@ -12,7 +12,7 @@ not follow it. murmurent never moves, renames or deletes anything to fix it.
 |---|---|---|
 | `immutable/` (was `raw/`) | Original data from the lab, a collaborator or a public source. Read-only once placed. | one per project |
 | `append_only/` (was `refined/`) | Analyses and intermediate files too large for GitHub. New files and new versions are added; nothing is overwritten or deleted. | one per project |
-| `modifiable/` | A project's working data that may change. | one per project |
+| `modifiable/` | A project's working data that may change. An experiment sends its output here instead of `append_only/` by choosing it as its output tier (below). | one per project |
 | `mothballed/` | Files waiting to go to long-term storage, after which they are removed from the server. People move files here; no agent changes them. | one per project |
 | `release/` | The lab's private copy of published papers and software. | one per project |
 | `cottage/` | Each person's large files, such as conda environments, since home folders are small. | one per person, named by their login |
@@ -26,6 +26,27 @@ do not put anything new in them.
 A project's subfolder has the project's own name, for example
 `append_only/bc_dcis/`. This is how murmurent knows which project a folder
 belongs to.
+
+## Which folder an experiment's output goes to
+
+Code writes its output to `append_only/<project>/<experiment>/` unless the
+experiment chooses `modifiable/`. The choice is called the **output tier**,
+and it is one line:
+
+- `output_tier: modifiable` in the experiment's `notebook.md` front matter,
+  which `murmurent experiment new --output-tier modifiable` writes for a new
+  experiment and which you can add to an existing one;
+- or `output_tier: modifiable` at the top of the repository's
+  `.murmurent.yaml`, the default for every experiment of that repository
+  that does not say otherwise.
+
+`murmurent experiment new` creates the folder in the chosen tier, and
+`murmurent cluster submit` brings a job's results back to it, replacing files
+of the same name in `modifiable/` and never in `append_only/`. Choose
+`modifiable/` for a build whose intermediate files change on every run and
+would otherwise pile up; copy what the paper will rest on into `append_only/`
+when it is done. Only `append_only` and `modifiable` are accepted; any other
+value is ignored and the default stands.
 
 ## Checking the lab folder
 

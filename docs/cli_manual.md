@@ -200,7 +200,7 @@ Experiments follow the lab project structure: `exp/<integer>_<slug>/` in the pro
 
 | Command | Effect |
 |---|---|
-| `murmurent experiment new --project <project> --name <slug>` | Scaffold `exp/<next-int>_<slug>/` with `README.md`, `run_all.py` skeleton, `notebook.md` template; create `$MURMURENT_DATA_ROOT/immutable/<project>/<exp>/` and `$MURMURENT_DATA_ROOT/append_only/<project>/<exp>/`; open `notebook.md` in Obsidian |
+| `murmurent experiment new --project <project> --name <slug> [--output-tier append_only\|modifiable]` | Scaffold `exp/<next-int>_<slug>/` with `README.md`, `run_all.py` skeleton, `notebook.md` template; create `$MURMURENT_DATA_ROOT/immutable/<project>/<exp>/` and the output folder in the chosen tier (`append_only/` by default, `modifiable/` for working data that may change; the repository's `.murmurent.yaml` may set `output_tier:` as its default); open `notebook.md` in Obsidian |
 | `murmurent experiment list [--project <project>]` | List experiments and their `status` |
 | `murmurent experiment status <project> <slug> --set <state>` | Update the `status` field on a notebook entry |
 | `murmurent experiment ingest <project> <slug> <source> [--instrument <t>] [--accept] [--dry-run]` | Classify files in `<source>` as raw vs derived (instrument profile + generic patterns), present for mandatory review, then copy: raw → `$MURMURENT_DATA_ROOT/immutable/<project>/<slug>/` (chmod a-w), derived → `.../append_only/<project>/<slug>/instrument_outputs/`. Compute SHA-256; update `immutable_data:`, `instrument_outputs:`, `checksums:` in `notebook.md`. |
@@ -356,7 +356,7 @@ of the lab records repository (`templates/clusters.yaml` is an example).
 | `murmurent cluster add <cluster> --ssh-host <login>@<address>` | Record your own login for a cluster (in your `hosts.yaml`). |
 | `murmurent cluster test [--cluster c]` | Log in and check that you may charge the lab's account. |
 | `murmurent cluster policy [--cluster c]` | The cluster's settings: account, partitions, storage tiers, polling. |
-| `murmurent cluster submit [--name n] [--cores N] [--gpus N] [--memory 32G] [--time 2h] [--out dir] -- <command>` | Copy this folder to the cluster, run the command as a job, start a watcher. |
+| `murmurent cluster submit [--name n] [--cores N] [--gpus N] [--memory 32G] [--time 2h] [--out dir] [--output-tier append_only\|modifiable] -- <command>` | Copy this folder to the cluster, run the command as a job, start a watcher. Results come back to the experiment's output folder in its tier. |
 | `murmurent cluster status [<id>]` | Where a job stands (asks the scheduler), or every cluster job. |
 | `murmurent cluster watch <id> [--once]` | Poll until the job ends; then copy results back and post to Slack. |
 | `murmurent cluster cancel <id>` | Ask the scheduler to stop a job. |
