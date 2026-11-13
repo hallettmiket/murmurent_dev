@@ -111,6 +111,10 @@ number of files where the machine reports one (a cluster does; a plain server
 does not), and `nearest its limit` on the tier closest to full. Tiers that
 share one filesystem say so, since `df` reports the filesystem, not the folder.
 
+In a Claude Code session, `/murmurent-machines` (or `/murmurent-machines
+usage`) runs the command and shows the table as it is, without interpretation;
+ask the millwright when you want it read for you.
+
 All three take `--json`, which prints the same rows as JSON for the millwright
 and the dashboard. The exit code is 0 even when a machine is unreachable; the
 row says so.

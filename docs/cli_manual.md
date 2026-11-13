@@ -393,6 +393,7 @@ cluster is one kind of machine and keeps its facts in `policy/clusters.yaml`.
 | `murmurent machine add <name> --ssh-host <login>@<address>` | Record your own login for a machine (in your `hosts.yaml`). `murmurent cluster add` is the same. |
 | `murmurent machines load [--json]` | Every set-up machine at once: cores busy of total, GPUs busy of total, jobs or sessions, who. |
 | `murmurent machines usage [--json]` | Every storage tier on every set-up machine: space and files used of quota, which tier is nearest its limit. |
+| `/murmurent-machines [load\|usage\|status]` | In a Claude Code session: run the matching command and show the table verbatim. |
 
 ### Papers and theses
 
