@@ -61,6 +61,9 @@ def world(tmp_path, monkeypatch):
         "dusky": {"profile": "alliance", "cluster": "dusky"},
     }}))
     monkeypatch.setenv(_mp.MACHINES_ENV, str(machines))
+    # the tests must read the same on the lab server as on a laptop
+    monkeypatch.setattr(_mp.socket, "gethostname", lambda: "testbox")
+    monkeypatch.setattr(_mp.socket, "getfqdn", lambda: "testbox.example.ca")
     monkeypatch.chdir(tmp_path)
     return tmp_path
 
@@ -382,3 +385,35 @@ def test_machine_add_and_cluster_add_write_the_same_row(world):
     assert result.exit_code != 0 and "no machine named 'nowhere'" in result.output
     result = runner.invoke(cli, ["machine", "add", "laptop", "--ssh-host", "x@y"])
     assert result.exit_code != 0 and "needs no login" in result.output
+
+
+def test_a_declared_server_that_is_this_computer_is_probed_locally(world, monkeypatch):
+    monkeypatch.setattr(_mp.socket, "gethostname", lambda: "biodatsci")
+    monkeypatch.setattr(_mp.socket, "getfqdn", lambda: "biodatsci.example.ca")
+    policy = _mp.load_machines()
+    # the server stands in for the laptop entry, first in the list, no login to record
+    assert policy.names() == ["biodatsci", "dusky"]
+    assert policy.get("biodatsci").here and policy.get("biodatsci").runs_here()
+    members = {m.name: m for m in _mp.person_set(policy)}
+    assert members["biodatsci"].set_up and members["biodatsci"].login
+    assert members["biodatsci"].host is not None and members["biodatsci"].host.kind == "local"
+    # the server profile answers, through a local shell rather than ssh
+    seen = []
+
+    def local_runner(host, command, timeout):
+        seen.append(host.kind)
+        return 0, server_answer(command), ""
+
+    rows = {r.name: r for r in _mp.ask_all(_mp.person_set(policy), "load", runner=local_runner)}
+    assert rows["biodatsci"].reachable and rows["biodatsci"].gpus_total == 2 and seen == ["local"]
+    assert not rows["dusky"].set_up
+    # the address form matches too
+    (world / "machines.yaml").write_text(yaml.safe_dump({"machines": {
+        "server": {"profile": "ssh_server", "ssh_host": "mhallet@biodatsci.example.ca", "data_root": "/data"}}}))
+    assert _mp.load_machines().get("server").here
+
+
+def test_ssh_runner_runs_a_local_host_in_a_shell(world):
+    host = _hosts.read()[_hosts.LOCAL_NAME]
+    code, out, err = _mp.ssh_runner(host, "echo '==x'; echo hello", 10)
+    assert code == 0 and "hello" in out

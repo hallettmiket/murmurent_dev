@@ -94,9 +94,15 @@ class Machine:
     cluster: str = ""
     tiers: tuple[Tier, ...] = ()
     notes: str = ""
+    #: True when this declared machine is the computer murmurent is running on:
+    #: it stands in for the built-in laptop entry and is probed without ssh.
+    here: bool = False
 
     def is_local(self) -> bool:
         return self.profile == "laptop"
+
+    def runs_here(self) -> bool:
+        return self.is_local() or self.here
 
 
 @dataclass
@@ -112,8 +118,8 @@ class MachinePolicy:
 
     def names(self) -> list[str]:
         """This computer first, then the rest in alphabetical order."""
-        rest = sorted(n for n in self.machines if n != LAPTOP_NAME)
-        return ([LAPTOP_NAME] if LAPTOP_NAME in self.machines else []) + rest
+        first = [n for n, m in self.machines.items() if m.runs_here()]
+        return first + sorted(n for n in self.machines if n not in first)
 
 
 # The lab folder protocol (rules/data-storage.md): what an ssh_server holds
@@ -273,7 +279,35 @@ def load_machines(env: dict[str, str] | None = None) -> MachinePolicy:
             _apply_file(policy, path)
         else:
             policy.problems.append(f"${MACHINES_ENV} names {path}, which does not exist")
+    _mark_this_machine(policy)
     return policy
+
+
+def this_machine_names() -> set[str]:
+    """The names this computer answers to: its hostname, the short form, the full form."""
+    names = set()
+    for n in (socket.gethostname(), socket.getfqdn()):
+        n = (n or "").strip().lower()
+        if n:
+            names.add(n)
+            names.add(n.split(".")[0])
+    return names
+
+
+def _mark_this_machine(policy: MachinePolicy) -> None:
+    """A declared server that is the computer murmurent runs on stands in for the
+    built-in laptop entry: a person sitting on the lab server has no login to
+    record for it, and its GPUs and tiers are read without ssh."""
+    mine = this_machine_names()
+    for name, machine in list(policy.machines.items()):
+        if machine.profile != "ssh_server":
+            continue
+        address = machine.ssh_host.split("@", 1)[-1].strip().lower()
+        candidates = {name.lower(), address, address.split(".")[0]} - {""}
+        if candidates & mine:
+            policy.machines[name] = replace(machine, here=True)
+            policy.machines.pop(LAPTOP_NAME, None)
+            return
 
 
 # ---------------------------------------------------------------------------
@@ -294,11 +328,11 @@ class Member:
 
     @property
     def set_up(self) -> bool:
-        return self.machine.is_local() or (self.host is not None and self.host.is_remote())
+        return self.machine.runs_here() or (self.host is not None and self.host.is_remote())
 
     @property
     def login(self) -> str:
-        if self.machine.is_local():
+        if self.machine.runs_here():
             return getpass.getuser()
         return self.host.ssh_host if self.host is not None and self.host.is_remote() else ""
 
@@ -318,7 +352,7 @@ def person_set(policy: MachinePolicy | None = None, env: dict[str, str] | None =
     out = []
     for name in policy.names():
         machine = policy.machines[name]
-        host = rows[_hosts.LOCAL_NAME] if machine.is_local() else login_for(machine, rows)
+        host = rows[_hosts.LOCAL_NAME] if machine.runs_here() else login_for(machine, rows)
         out.append(Member(machine=machine, host=host))
     return out
 
@@ -456,7 +490,8 @@ Runner = Callable[[_hosts.Host, str, int], tuple[int, str, str]]
 
 
 def ssh_runner(host: _hosts.Host, command: str, timeout: int) -> tuple[int, str, str]:
-    """Run over ``ssh -o BatchMode=yes`` through :class:`core.remote.Remote`; never raises."""
+    """Run over ``ssh -o BatchMode=yes`` through :class:`core.remote.Remote`, or in a local
+    shell when the host is this computer; never raises."""
     try:
         result = _remote.Remote(host).run(command, timeout=timeout, check=False)
     except _remote.RemoteError:

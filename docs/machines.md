@@ -22,7 +22,10 @@ The three profiles:
 
 - **laptop**: this computer. It needs no login and is always in your set. Load
   comes from the operating system; storage is your home folder and, when it is
-  set, the data root.
+  set, the data root. When this computer is itself one of the declared servers
+  (you are logged in on the lab server), that entry stands in for it: it is
+  listed first, marked "this computer", needs no login, and is probed through
+  the server profile in a local shell, so its GPUs and tiers are reported.
 - **ssh_server**: a Linux server reached by plain ssh, with no scheduler. Load
   comes from `uptime` and `nproc`, GPUs from `nvidia-smi` when it is installed,
   people from `who` and `ps`, and storage from `df` over the machine's tiers,

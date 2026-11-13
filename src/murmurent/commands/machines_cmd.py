@@ -106,7 +106,8 @@ def machines_group(ctx: click.Context, as_json: bool, no_check: bool) -> None:
             state, checked = "reachable" + (f" ({r.detail})" if r.detail else ""), _when(r.checked_at)
         else:
             state, checked = r.problem or "unreachable", _when(r.checked_at)
-        rows.append([m.name, m.machine.profile, m.login or "-", state, checked])
+        kind = m.machine.profile + (", this computer" if m.machine.here else "")
+        rows.append([m.name, kind, m.login or "-", state, checked])
     click.echo(_table(rows, ["machine", "kind", "login", "state", "checked"]))
     for m in members:
         if m.machine.description and not m.machine.is_local():
@@ -128,7 +129,7 @@ def machines_add(name: str, ssh_host: str, user: str) -> None:
             f"no machine named {name!r} in the lab's policy (known: {known}). The PI adds one in "
             "policy/machines.yaml of the lab records repository; templates/machines.yaml is an example."
         )
-    if machine.is_local():
+    if machine.runs_here():
         raise click.ClickException("this computer needs no login; it is always in your set")
     path = _mp.register_login(machine, ssh_host, user)
     click.echo(f"Recorded {ssh_host} as your login for {name} in {path}.")
