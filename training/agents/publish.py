@@ -13,7 +13,8 @@ Date: 2026-11-07
 Input: training/agents/<agent>/{<agent>_narrated.mp4, <agent>.srt, scenes.py}, or the
        <agent>_full.mp4 + .srt pair when an opening has been spliced on (opening/prepend.py);
        training/index.yaml for the durations.
-Output: the three files per agent under <site>/assets/videos/; then runs
+Output: the three files per agent under <site>/assets/videos/, the page linking the
+        movie and captions with a ?v= tag that changes with the movie's content; then runs
         training/front_page.py, which writes index.html there; prints the list.
 Usage: python3 training/agents/publish.py [--site ~/repos/hallettmiket.github.io] [agent ...]
 """
@@ -21,6 +22,7 @@ Usage: python3 training/agents/publish.py [--site ~/repos/hallettmiket.github.io
 from __future__ import annotations
 
 import argparse
+import hashlib
 import re
 import shutil
 import subprocess
@@ -56,8 +58,8 @@ PAGE = """<!doctype html>
 <main>
   <h1>{avatar}{title}</h1>
   <video controls preload="metadata">
-    <source src="{stem}_720p.mp4" type="video/mp4">
-    <track kind="captions" src="{stem}_720p.vtt" srclang="en" label="English">
+    <source src="{stem}_720p.mp4?v={v}" type="video/mp4">
+    <track kind="captions" src="{stem}_720p.vtt?v={v}" srclang="en" label="English">
   </video>
   <p>{tagline}. {minutes}; captions are in the picture; every terminal and chat scene is a real run.
   {source}
@@ -110,8 +112,9 @@ def main() -> None:
         tagline = re.search(r'tagline="([^"]+)"', spec_text).group(1).rstrip(".")
         shutil.copyfile(mp4, dest / f"{stem}_720p.mp4")
         (dest / f"{stem}_720p.vtt").write_text(srt_to_vtt(srt.read_text()))
+        version = hashlib.sha256(mp4.read_bytes()).hexdigest()[:8]    # changes with the movie: the page links are re-fetched, not served from a cache
         (dest / f"{stem}.html").write_text(PAGE.format(
-            title=entry.get("title", key), stem=stem, tagline=tagline, minutes=minutes,
+            title=entry.get("title", key), stem=stem, v=version, tagline=tagline, minutes=minutes,
             avatar=(f'<span class="avatar" aria-hidden="true">{GLYPHS[key]}</span>' if key in GLYPHS else ""),
             source=(f'The agent\'s own definition: <a href="https://github.com/hallettmiket/murmurent/blob/main/agents/{key}.md">agents/{key}.md</a>.'
                     if stem.startswith("murmurent_agent_") else

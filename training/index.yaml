@@ -260,14 +260,16 @@ movies:
   agent_sha256: 705fec4b04253ba77bc16824932f1e1d41d89d981158a7e8db98acdb554db11b
   file: training/agents/bookworm/bookworm_narrated.mp4
   make: python3 training/agents/bookworm/make.py
-  seconds: 151
+  # 6-second opening (opening/make_clip.py --prepend) + 151 s movie
+  seconds: 157
   chapters:
-    - ["0:00", "Welcome"]
-    - ["0:10", "What it does"]
-    - ["0:47", "Its scope"]
-    - ["1:11", "A real example"]
-    - ["1:30", "How to direct it"]
-    - ["1:58", "How to use it"]
+    - ["0:00", "Opening"]
+    - ["0:06", "Welcome"]
+    - ["0:16", "What it does"]
+    - ["0:53", "Its scope"]
+    - ["1:17", "A real example"]
+    - ["1:36", "How to direct it"]
+    - ["2:04", "How to use it"]
 - agent: adversary
   title: The adversary
   tagline: "The sceptical reviewer who tries to break your result before a referee does"
@@ -276,14 +278,16 @@ movies:
   agent_sha256: 10de8035a56e66b9cac23af36fb4c2d5bd9870ffc58f3c043e5a8cc84d324547
   file: training/agents/adversary/adversary_narrated.mp4
   make: python3 training/agents/adversary/make.py
-  seconds: 160
+  # 6-second opening (opening/make_clip.py --prepend) + 160 s movie
+  seconds: 166
   chapters:
-    - ["0:00", "Welcome"]
-    - ["0:11", "What it does"]
-    - ["1:00", "Its scope"]
-    - ["1:24", "A real example"]
-    - ["1:54", "How to direct it"]
-    - ["2:12", "How to use it"]
+    - ["0:00", "Opening"]
+    - ["0:06", "Welcome"]
+    - ["0:17", "What it does"]
+    - ["1:06", "Its scope"]
+    - ["1:30", "A real example"]
+    - ["2:00", "How to direct it"]
+    - ["2:18", "How to use it"]
 - agent: artist
   title: The artist
   tagline: "Figures, reports and slides made from your real results"
@@ -292,14 +296,16 @@ movies:
   agent_sha256: 30b918640fbe02472cea2bd7eff6ae80ddf9e4292264dbc3a6b014ec340955d0
   file: training/agents/artist/artist_narrated.mp4
   make: python3 training/agents/artist/make.py
-  seconds: 103
+  # 6-second opening (opening/make_clip.py --prepend) + 103 s movie
+  seconds: 109
   chapters:
-    - ["0:00", "Welcome"]
-    - ["0:07", "What it does"]
-    - ["0:27", "Its scope"]
-    - ["0:44", "A real example"]
-    - ["1:05", "How to direct it"]
-    - ["1:21", "How to use it"]
+    - ["0:00", "Opening"]
+    - ["0:06", "Welcome"]
+    - ["0:13", "What it does"]
+    - ["0:33", "Its scope"]
+    - ["0:50", "A real example"]
+    - ["1:11", "How to direct it"]
+    - ["1:27", "How to use it"]
 - agent: scribe
   title: The scribe
   tagline: "Scientific writing in your lab's own voice"
@@ -356,14 +362,16 @@ movies:
   agent_sha256: 45b32ffc161a50718b4ef96323fd79a4d11d98a5319067131302973e3dea6d24
   file: training/agents/blacksmith/blacksmith_narrated.mp4
   make: python3 training/agents/blacksmith/make.py
-  seconds: 111
+  # 6-second opening (opening/make_clip.py --prepend) + 111 s movie
+  seconds: 117
   chapters:
-    - ["0:00", "Welcome"]
-    - ["0:10", "What it does"]
-    - ["0:34", "Its scope"]
-    - ["0:53", "A real example"]
-    - ["1:14", "How to direct it"]
-    - ["1:30", "How to use it"]
+    - ["0:00", "Opening"]
+    - ["0:06", "Welcome"]
+    - ["0:16", "What it does"]
+    - ["0:40", "Its scope"]
+    - ["0:59", "A real example"]
+    - ["1:20", "How to direct it"]
+    - ["1:36", "How to use it"]
 - agent: conscience
   title: The conscience
   tagline: "Equity, diversity, inclusion and decolonization review that says where every finding comes from"
@@ -403,13 +411,15 @@ movies:
   agent_sha256: 0d749a8b115e5a0444284636a112dabb519c54e7893248d6270a087a40799fed
   file: training/agents/millwright/millwright_narrated.mp4
   make: python3 training/agents/millwright/make.py
-  seconds: 121
+  # 6-second opening (opening/make_clip.py --prepend) + 121 s movie
+  seconds: 127
   chapters:
-    - ["0:00", "Welcome"]
-    - ["0:13", "What it does"]
-    - ["0:48", "Its scope"]
-    - ["1:15", "A real example"]
-    - ["1:32", "How to use it"]
+    - ["0:00", "Opening"]
+    - ["0:06", "Welcome"]
+    - ["0:19", "What it does"]
+    - ["0:54", "Its scope"]
+    - ["1:21", "A real example"]
+    - ["1:38", "How to use it"]
 - agent: centre_millwright
   title: The centre millwright
   tagline: "Keeps every project's access consistent across the centre"

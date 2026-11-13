@@ -1,0 +1,39 @@
+1
+00:00:06,400 --> 00:00:19,013
+I am the millwright. I do the technical setup so that nobody else has to: I connect a new member's computer to the lab, and I set up the folders, the channel and the access for each new project.
+
+2
+00:00:19,400 --> 00:00:32,295
+When someone joins, I connect them: a checklist they follow on their own computer to reach the lab server, install Claude Code and create their personal notes. They get it in Slack and reply when it is done.
+
+3
+00:00:32,295 --> 00:00:43,891
+When a project starts, I set up its code on GitHub, a private Slack channel for its members, and its data folders on the lab server, laid out the way the lab's rules say files are stored.
+
+4
+00:00:43,891 --> 00:00:54,904
+I keep to those rules, and I check that each member's setup still works. Before I change anything the lab shares, I show the full plan and I ask the PI to confirm.
+
+5
+00:00:55,299 --> 00:01:01,322
+I cover one lab. When a project's members come from several labs, the centre millwright takes over.
+
+6
+00:01:01,322 --> 00:01:21,762
+Security and privacy are part of the setup. Each member makes their own secret key on their own computer, and only the public half leaves it. Folders that break the lab's layout are untidy, and I report them to the PI, who decides. Data is never deleted; old records are archived.
+
+7
+00:01:22,150 --> 00:01:27,011
+A real run that only reads. The PI asks me to check this machine's setup.
+
+8
+00:01:27,011 --> 00:01:38,925
+Murmurent runs, but the shared agents are not yet linked, and the safety checks use a different copy of Python. Each problem comes with its fix, and nothing was changed.
+
+9
+00:01:39,350 --> 00:01:51,038
+To use me, the PI types to Claude Code and names me: ask the millwright to set up a project, add a new member, or check everyone's setup. I show the plan and wait for a yes.
+
+10
+00:01:51,038 --> 00:02:06,527
+The first line is my verdict: Provisioned, Skipped or Failed. A lab tailors me through its own records: the lab's machines and folders fill in each new member's checklist.
