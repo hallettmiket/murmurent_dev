@@ -1,0 +1,53 @@
+# The machines a lab's members can reach, read by `murmurent machines` and the
+# millwright. A cluster is one kind of machine; the lab's servers are another.
+#
+# Copy this file into your lab's management repository as
+#     policy/machines.yaml
+# and change it to name your own machines. Each one picks a profile, which
+# fills in everything you do not say:
+#
+#   ssh_server   a Linux server reached by ssh. Load from uptime and nproc, GPUs
+#                from nvidia-smi when it is installed, storage from df over the
+#                tiers below, people from who. Give it a data_root and the
+#                tiers default to the lab folder protocol (rules/data-storage.md):
+#                immutable, append_only, modifiable, mothballed, release,
+#                cottage, tools, db. Name a tier to add one or change its path.
+#   alliance     a cluster of the Digital Research Alliance of Canada. Its facts
+#                stay in policy/clusters.yaml; `cluster` names the entry there,
+#                and `murmurent cluster usage` and `scan` answer for it.
+#   laptop       this computer. It is always in everyone's set and is never
+#                declared here.
+#
+# Each member's own login on a machine is NOT recorded here, because this file
+# is shared. A member runs, once per machine:
+#     murmurent machine add <name> --ssh-host <login>@<address>
+# A declared machine with no login recorded is listed as "not set up" and is
+# never probed.
+#
+# The example below is one lab's machines at Western University, recorded
+# 2026-11-13. It is an example, not a recommendation.
+
+machines:
+  biodatsci:
+    profile: ssh_server
+    description: the lab's own server, holding the data root /data/lab_vm
+    # The address members log in to. A member's `machine add` may give a
+    # different alias; this is the default shown in the setup hint.
+    ssh_host: biodatsci.schulich.uwo.ca
+    # The data root. The eight folders of the lab folder protocol under it
+    # become the storage tiers that `murmurent machines usage` reports.
+    data_root: /data/lab_vm
+    # Add a tier, or change the path of one the protocol names. A tier is a
+    # path, or a mapping with path, purpose and quota.
+    tiers:
+      home:
+        path: /home
+        purpose: home folders; small, keep large files in cottage
+    notes: Reached by plain ssh; no scheduler.
+
+  dusky:
+    profile: alliance
+    # The entry in policy/clusters.yaml that holds the account, partitions and
+    # tiers. The address and the description come from there when left out.
+    cluster: dusky
+    description: SHARCNET cluster Dusky, holding the lab's biosharc nodes

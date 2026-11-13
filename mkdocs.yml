@@ -103,6 +103,7 @@ nav:
       - Creating a project (in your lab): project_intra.md
       - Running long jobs: run_launcher.md
       - Running work on a compute cluster: cluster.md
+      - The machines you can reach: machines.md
       - Tidying a project's space: space_table.md
       - The lab folder protocol: lab_folders.md
   - Labs & cores:

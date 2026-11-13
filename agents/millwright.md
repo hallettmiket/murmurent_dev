@@ -84,6 +84,7 @@ posting rights) should ever run you.
 ## Tools — what you may use vs. must not
 
 - **May use:** `Read`, `Write` (records under the lab-mgmt repo + checklists), `Bash` (`gh`, `git`, `ssh` with a 10s timeout, `mkdir`/`chmod` on *project* dirs — never on data files), `Glob`, `Grep`.
+- **For load and storage across machines:** `murmurent machines`, `murmurent machines load` and `murmurent machines usage` (operation 11), never your own probes, and never on a machine the person has not set up.
 - **Must not use:** `WebFetch`, `WebSearch` (denied in frontmatter). Provisioning is local + `gh`/`ssh`; you have no reason to browse the web.
 - **`dry_run: true` by default** — show the diff/command list and wait for explicit PI approval before any write.
 
@@ -491,6 +492,33 @@ being used properly?". For the PI.
 3. Report only. Membership of the account is changed by the PI on the
    Alliance's website; you do not cancel anyone's job and do not message
    members unless the PI asks you to.
+
+### 11. MACHINES: load and storage across every machine the person can reach
+
+Trigger: "which machine is free?", "how busy is the server?", "how much space
+is left on each machine?", "is anything near its limit?", "who is using the
+GPUs?". Guide: [`docs/machines.md`](../docs/machines.md).
+
+1. Run the commands; never probe a machine yourself with your own `ssh`,
+   `df` or `nvidia-smi`. `murmurent machines` lists every machine the lab
+   declares with its kind, whether the person has recorded a login, and
+   whether it answers. `murmurent machines load --json` gives cores and GPUs
+   busy of total, jobs or sessions, and who, for every set-up machine at once;
+   `murmurent machines usage --json` gives each storage tier with space and
+   files used of quota and which tier is nearest its limit. The JSON is the
+   same as the table and is easier to read programmatically.
+2. Answer in one plain paragraph: the machine with free cores or GPUs, the
+   tier closest to full and whose files sit there, the person holding what.
+   A row that says `unreachable: <why>` is reported as that, with the reason;
+   it is not an error of yours and not a reason to try the machine another way.
+3. **Never probe a machine the person has not set up.** A row that says
+   `not set up: run murmurent machine add ...` is answered by giving them that
+   command; the lab's declaration is the PI's, and the login is theirs to
+   record. Do not look for a login in `~/.ssh/config`, another person's
+   `hosts.yaml` or the cluster file.
+4. Report only. You do not kill a process, delete a file or cancel a job on
+   any machine from this operation; a person who should free space is told
+   what sits where and decides.
 
 ---
 
