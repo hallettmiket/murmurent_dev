@@ -5,7 +5,7 @@ Purpose: The blacksmith's six-second opening, the loud one. From agents/blacksmi
          The gag: at the forge, three ringing hammer blows on a white-hot bar, sparks on
          every one, the fourth so hard the sparks go up as fireworks; then, with the whole
          sky still banging, the blacksmith calmly holds a caliper to the bar and the reading
-         comes up: measured, not promised.
+         comes up. No promises, just deliveries.
 Author: Mike Hallett (with Claude Code)
 Date: 2026-11-13
 Input: nothing; drawn here on training/lib/opening.py.
@@ -38,7 +38,7 @@ READ = 4.1                         # the reading shows
 class Blacksmith(Opening):
     agent = "blacksmith"
     title = "THE BLACKSMITH"
-    tagline = "does not promise; it measures"
+    tagline = "no promises, just deliveries"
     prompt_line = "ask the blacksmith to train the classifier on our data and show me the code"
     title_at, tagline_at, prompt_at = 2.65, 3.1, 4.6
     title_colours = ((8, (90, 30, 0, 255)), (4, (255, 120, 20, 255)), (0, (255, 240, 200, 255)))
