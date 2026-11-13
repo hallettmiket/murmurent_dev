@@ -110,9 +110,19 @@ def cluster_policy(name: str | None) -> None:
 @click.option("--ssh-host", required=True, help="login@address, or an alias from ~/.ssh/config.")
 @click.option("--user", default="", help="Your login on the cluster, when the address does not say.")
 def cluster_add(name: str, ssh_host: str, user: str) -> None:
-    """Record your own login for a cluster the lab's policy names."""
+    """Record your own login for a cluster the lab's policy names.
+
+    The same as ``murmurent machine add``: the login is one row in your
+    ``hosts.yaml``, read by both commands.
+    """
     cluster = _cluster_or_fail(name)
-    path = _cl.register_connection(cluster, ssh_host, user)
+    from ..core import machine_policy as _mp
+
+    machine = _mp.load_machines().get(name)
+    if machine is not None and machine.profile == "alliance" and not machine.is_local():
+        path = _mp.register_login(machine, ssh_host, user)
+    else:
+        path = _cl.register_connection(cluster, ssh_host, user)
     click.echo(f"Recorded {ssh_host} as your login for {name} in {path}.")
     click.echo(f"Check it: murmurent cluster test --cluster {name}")
 

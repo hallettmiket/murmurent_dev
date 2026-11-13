@@ -380,6 +380,20 @@ of the lab records repository (`templates/clusters.yaml` is an example).
 | `murmurent cluster usage [--cluster c]` | Your storage on each tier, with what each is for, and your jobs. |
 | `murmurent cluster scan [--days 30]` | For the PI: nodes, queue, use per member, idle members, fair share, group storage. Report only. |
 
+### Machines
+
+The machines you can reach, their load and their storage, in one table. Guide:
+[`machines.md`](machines.md). Machines are declared in `policy/machines.yaml`
+of the lab records repository (`templates/machines.yaml` is an example); a
+cluster is one kind of machine and keeps its facts in `policy/clusters.yaml`.
+
+| Command | What it does |
+|---|---|
+| `murmurent machines [--json] [--no-check]` | One row per declared machine: kind, your login or the setup hint, reachable or not, last checked. |
+| `murmurent machine add <name> --ssh-host <login>@<address>` | Record your own login for a machine (in your `hosts.yaml`). `murmurent cluster add` is the same. |
+| `murmurent machines load [--json]` | Every set-up machine at once: cores busy of total, GPUs busy of total, jobs or sessions, who. |
+| `murmurent machines usage [--json]` | Every storage tier on every set-up machine: space and files used of quota, which tier is nearest its limit. |
+
 ### Papers and theses
 
 A paper as a queryable package, and a thesis composed of them; see

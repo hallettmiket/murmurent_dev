@@ -3100,3 +3100,9 @@ cli.add_command(_cluster_group)
 
 if __name__ == "__main__":  # pragma: no cover
     cli()
+
+# Machines: the machines a person can reach, their load and storage, in one table.
+# `murmurent machine add` is the same group under its singular name.
+from .commands.machines_cmd import machines_group as _machines_group
+cli.add_command(_machines_group)
+cli.add_command(_machines_group, name="machine")
