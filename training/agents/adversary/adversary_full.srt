@@ -1,0 +1,47 @@
+1
+00:00:06,400 --> 00:00:17,852
+I am the adversary, the sceptical reviewer. I try to break your result before a referee does: I re-run your analysis and I check what your write-up claims.
+
+2
+00:00:18,250 --> 00:00:35,511
+I re-run your code rather than trusting the write-up. Most of what I see is not a classifier: it is a t-test, an analysis of variance, a regression, a survival curve, the statistics of an ordinary thesis. I reproduce those the same way.
+
+3
+00:00:35,511 --> 00:00:49,661
+I look for the classic faults: the wrong test for the data, a hidden grouping, samples that are not independent, a result that seems too good, and, for a prediction model, test data leaking into training.
+
+4
+00:00:49,661 --> 00:01:06,246
+In a write-up, I check that each cited paper is real and says what you claim. For a prediction model, I go through the reporting checklist a journal will use, TRIPOD plus AI, and name each item you missed.
+
+5
+00:01:06,649 --> 00:01:16,852
+My scope is how a result was produced and whether it holds up. Each finding is marked as checked, when I confirmed it by running something, or only suspected.
+
+6
+00:01:16,852 --> 00:01:30,280
+When a result touches a patent or governed data, I refer it to the lawyer myself, mid-audit, and fold their verdict into mine. I audit what was built; I do not build it.
+
+7
+00:01:30,700 --> 00:01:40,252
+A real run, on the example paper that ships with Murmurent: do colonies grown in serum come out larger, and does the difference hold?
+
+8
+00:01:40,252 --> 00:02:00,803
+The verdict is Questions. The number reproduces exactly, but the serum and control samples come from different countries, the test is one-sided and the write-up does not say so, and the Methods misdescribe the code. Each finding says whether I checked it or only suspect it.
+
+9
+00:02:01,200 --> 00:02:10,427
+Say what to audit: the tests in a thesis chapter, a classifier before submission, or a Results section against its own numbers.
+
+10
+00:02:10,427 --> 00:02:18,342
+Say what you want settled, and I say for each finding whether I checked it or only suspect it.
+
+11
+00:02:18,750 --> 00:02:32,481
+To use me, type to Claude Code and name me: ask the adversary to audit the statistics in a chapter, or a result before you submit it. Give me the folder with the code and the data.
+
+12
+00:02:32,481 --> 00:02:45,787
+The first line is my verdict: Pass, Questions or Reject. Then each finding, marked checked or suspected, with what would settle it.

@@ -1,0 +1,43 @@
+1
+00:00:06,400 --> 00:00:13,069
+I am the artist. I turn your results into figures, reports and slides that make the science clear.
+
+2
+00:00:13,450 --> 00:00:26,206
+I draw publication figures, from model-accuracy curves to heatmaps and volcano plots, each one labelled, with proper axes and legends. I build slide decks, and keep a project report of the figures so far.
+
+3
+00:00:26,206 --> 00:00:33,782
+What makes me different: I draw each figure from your real data and save it at print resolution.
+
+4
+00:00:34,199 --> 00:00:43,287
+I cover figures, reports and slides. I draw the numbers as they arrive, from your results or an analysis already run; I compute none myself.
+
+5
+00:00:43,287 --> 00:00:50,306
+I never invent a data point to fill a plot; when an input is missing, I say so.
+
+6
+00:00:50,699 --> 00:01:02,249
+A real run, on simulated data. The member asks me for one figure: colony size by growth medium, every point shown, the means marked.
+
+7
+00:01:02,249 --> 00:01:11,468
+My answer is Rendered. The image itself says the data are simulated, the caption says what to notice, and I state that I ran no test.
+
+8
+00:01:11,849 --> 00:01:20,101
+Say what you want and where it is going: a figure sized for a journal, a deck for lab meeting, or a new page in the project report.
+
+9
+00:01:20,101 --> 00:01:28,017
+Name your colours and figure size in the request; within a project I keep one palette for every figure.
+
+10
+00:01:28,399 --> 00:01:39,484
+To use me, type to Claude Code and name me: ask the artist for a figure from your results, and say what it is for. A figure for a talk differs from one for a paper.
+
+11
+00:01:39,484 --> 00:01:48,564
+My reply starts with Rendered, Skipped or Failed. Then the figure, and a caption that says what to notice.

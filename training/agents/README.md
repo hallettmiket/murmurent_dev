@@ -19,12 +19,14 @@ The list of movies with their links and chapter times is in
 | `<agent>/make.py` | renders the movie (same ten lines in every folder) |
 | [`../lib/`](../lib/) | the shared renderer: drawing, scenes timed from the narration, narration with ElevenLabs |
 | [`../index.yaml`](../index.yaml) | one entry per movie: version, date and the hash of the agent file it was checked against; chapters |
+| `<agent>/opening/make_clip.py` | optional: a six-second cartoon opening in the agent's own character, a short spec on [`../lib/opening.py`](../lib/opening.py); only for an agent whose file has a personality section, and drawn from that section alone |
 
 ```bash
 python3 training/agents/oracle/make.py                 # renders oracle.mp4 + oracle.srt, then voices oracle_narrated.mp4
 python3 training/agents/oracle/make.py --no-voice      # the silent movie only
 python3 training/agents/oracle/make.py --stills /tmp/s # one PNG every five seconds, for checking a scene
 python3 training/agents/publish.py oracle              # copy to the website repo (see below)
+python3 training/agents/bookworm/opening/make_clip.py --prepend   # the opening, spliced onto bookworm_narrated.mp4 as bookworm_full.mp4
 ```
 
 Rendering needs Python with PIL and numpy, and ffmpeg. Voicing needs the
@@ -68,7 +70,11 @@ movie is re-rendered, the agent's file is right and the movie is not.
 
 To update one: edit `scenes.py` if a quote or the narration must change, re-run
 the agent if the example must, then `make.py` (which rewrites the entry in
-`index.yaml`) and `publish.py`, and commit the website files.
+`index.yaml`) and `publish.py`, and commit the website files. An agent with an
+opening needs one more step between the two: `opening/make_clip.py --prepend`,
+which splices the opening onto the new `_narrated.mp4` and shifts the new
+captions, since `publish.py` shows the `_full` pair when it exists; and the six
+seconds are added by hand to the entry's `seconds` and chapter times.
 
 ## Publishing
 
