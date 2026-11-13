@@ -30,7 +30,10 @@ updated: [`agents/README.md`](agents/README.md).
 
 **Checked against** Murmurent 2026.11.1, 9 November 2026. All eighteen are
 narrated; the prospector's was added 12 November 2026 against 2026.11.2. Each scene is timed from the measured length of its voice clip, so
-re-voicing a changed sentence re-times the picture with it.
+re-voicing a changed sentence re-times the picture with it. The prospector's movie opens with the
+six-second cartoon that announced it (a Yukon prospector blasting a mountain of funding open), made by
+[`agents/prospector/opening/make_clip.py`](agents/prospector/opening/make_clip.py) and spliced on by
+`opening/prepend.py`, which also shifts the captions; `publish.py` shows that spliced copy.
 
 | Agent | Watch | Length | Narrated | Chapters |
 |---|---|---|---|---|
@@ -51,7 +54,7 @@ re-voicing a changed sentence re-times the picture with it.
 | [`security_guard`](../agents/security_guard.md) | [The security guard](https://mikehallett.science/assets/videos/murmurent_agent_security_guard.html) | 1:43 | yes | 0:00 Welcome, 0:11 What it does, 0:31 Its scope, 0:55 A real example, 1:22 How to use it |
 | [`clerk`](../agents/clerk.md) | [The clerk](https://mikehallett.science/assets/videos/murmurent_agent_clerk.html) | 2:31 | yes | 0:00 Welcome, 0:15 What it does, 0:43 Its scope, 1:09 A real example, 1:57 How to direct it, 2:10 How to use it |
 | [`docent`](../agents/docent.md) | [The docent](https://mikehallett.science/assets/videos/murmurent_agent_docent.html) | 2:00 | yes | 0:00 Welcome, 0:11 What it does, 0:34 Its scope, 1:03 A real example, 1:33 How to use it |
-| [`prospector`](../agents/prospector.md) | [The prospector](https://mikehallett.science/assets/videos/murmurent_agent_prospector.html) | 3:00 | yes | 0:00 Welcome, 0:16 What it does, 0:56 Its scope, 1:34 A real example, 2:10 How to direct it, 2:24 How to use it |
+| [`prospector`](../agents/prospector.md) | [The prospector](https://mikehallett.science/assets/videos/murmurent_agent_prospector.html) | 3:06 | yes | 0:00 Opening, 0:06 Welcome, 0:22 What it does, 1:02 Its scope, 1:40 A real example, 2:16 How to direct it, 2:30 How to use it |
 
 
 ## Working through Claude Code, and the skills

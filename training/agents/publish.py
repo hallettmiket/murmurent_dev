@@ -10,7 +10,8 @@ Purpose: Copy the agent movies to the website repository: for each agent
          hand, naming only these files.
 Author: Mike Hallett (with Claude Code)
 Date: 2026-11-07
-Input: training/agents/<agent>/{<agent>_narrated.mp4, <agent>.srt, scenes.py};
+Input: training/agents/<agent>/{<agent>_narrated.mp4, <agent>.srt, scenes.py}, or the
+       <agent>_full.mp4 + .srt pair when an opening has been spliced on (opening/prepend.py);
        training/index.yaml for the durations.
 Output: the three files per agent under <site>/assets/videos/; then runs
         training/front_page.py, which writes index.html there; prints the list.
@@ -96,6 +97,8 @@ def main() -> None:
         narrated = (folder / f"{key}_narrated.mp4").exists()
         mp4 = folder / (f"{key}_narrated.mp4" if narrated else f"{key}.mp4")
         srt = folder / f"{key}.srt"
+        if (folder / f"{key}_full.mp4").exists():    # the narrated movie with an opening spliced on (opening/prepend.py)
+            mp4, srt, narrated = folder / f"{key}_full.mp4", folder / f"{key}_full.srt", True
         if not mp4.exists() or not srt.exists():
             print(f"skip {key}: no movie or srt", file=sys.stderr)
             continue

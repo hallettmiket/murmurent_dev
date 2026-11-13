@@ -509,11 +509,13 @@ movies:
   agent_sha256: 63503a3f62411f6c410a8ee7b75e78c78d350104e651d6e1878f8c92f8c34d7f
   file: training/agents/prospector/prospector_narrated.mp4
   make: python3 training/agents/prospector/make.py
-  seconds: 180
+  # 6-second opening (opening/prepend.py) + 180 s movie
+  seconds: 186
   chapters:
-    - ["0:00", "Welcome"]
-    - ["0:16", "What it does"]
-    - ["0:56", "Its scope"]
-    - ["1:34", "A real example"]
-    - ["2:10", "How to direct it"]
-    - ["2:24", "How to use it"]
+    - ["0:00", "Opening"]
+    - ["0:06", "Welcome"]
+    - ["0:22", "What it does"]
+    - ["1:02", "Its scope"]
+    - ["1:40", "A real example"]
+    - ["2:16", "How to direct it"]
+    - ["2:30", "How to use it"]

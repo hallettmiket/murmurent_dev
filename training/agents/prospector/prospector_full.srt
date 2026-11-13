@@ -1,0 +1,39 @@
+1
+00:00:06,400 --> 00:00:22,032
+I am the prospector. Tell me who you are, a student, a postdoc, a PI, what you work on and how far ahead you are looking, and I find the funding you may apply for, and bring back only what I dug up.
+
+2
+00:00:22,449 --> 00:00:41,011
+I start from the funder registry the bookworm keeps: the institution's own competitions, then the province, the country, the disease, the world. Then I search beyond it, for the charities that fund your condition and the competitions open to you abroad.
+
+3
+00:00:41,011 --> 00:01:02,473
+For each opportunity I report the gate and stop there: who may apply, what it pays, the registration or letter-of-intent date, the full deadline, what the pre-application asks for, and the institution's internal deadline. Every row names the page I read it from and the date.
+
+4
+00:01:02,850 --> 00:01:18,764
+I know a great deal about funders, and much of it is out of date, so none of it counts. A page I could not read today is reported as UNRESOLVED, with the reason, never dropped and never filled in from memory.
+
+5
+00:01:18,764 --> 00:01:40,272
+I do not write the application; the scribe writes. I do not walk the institution's paperwork; the clerk does, from the institution pack. And when I search the web, only public terms leave the machine: your field and condition, never your name and never a sentence of your draft.
+
+6
+00:01:40,650 --> 00:01:50,759
+A real run. A second-year PhD student working on cystic fibrosis genomics asks what they can apply for in the next twelve months.
+
+7
+00:01:50,759 --> 00:02:16,047
+I read the institution pack and the registry, then the funders' pages. Six are open: a travel award, the provincial scholarship, a grant to work abroad, three internal awards. One site refused me, so that row is UNRESOLVED, not dropped. The big doctoral scholarship closed in September, and I say so.
+
+8
+00:02:16,450 --> 00:02:30,449
+These are examples. Ask me for any kind of funding: a scholarship, a fellowship, an operating grant, an equipment competition, a travel award, a disease charity's call.
+
+9
+00:02:30,850 --> 00:02:46,300
+To use me, type to Claude Code and name me, the prospector. Give me who you are, your field and condition in a few public words, your citizenship when it matters, and how far ahead you are looking.
+
+10
+00:02:46,300 --> 00:03:05,782
+The first line is my verdict: Found, with the number open, None open, or Unknown. On request I also write the report as a web page and the deadlines as a calendar file, under outputs slash prospector.
