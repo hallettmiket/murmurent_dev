@@ -5,7 +5,7 @@ Purpose: A six-second announcement for `murmurent machines` and the /murmurent-m
          with a handheld scanner and sweeps its laser over three machines in turn, a laptop,
          the lab's server rack and a two-node cluster; each one lights up with its reading
          (cores busy, GPUs busy, space), and the laptop on the bench prints the one table.
-         Title "MACHINES", tagline, and the one thing to type.
+         Title "MACHINES", tagline, and the skill to type: /murmurent-machines.
 Author: Mike Hallett (with Claude Code)
 Date: 2026-11-13
 Input: nothing; drawn here on training/lib/opening.py (the openings engine, PR #321).
@@ -49,8 +49,8 @@ class Machines(Opening):
     title = "MACHINES"
     tagline = "every machine you can reach: load and space, one table"
     tagline_font = font("Arial Black.ttf", 36)
-    prompt_line = "/murmurent-machines        murmurent machines load"
-    footer = "murmurent machines · new today"
+    prompt_line = "a skill. Type:  /murmurent-machines"
+    footer = "it prints the table as it is · new today"
     title_at, tagline_at, prompt_at, footer_at = 3.9, 4.3, 4.9, 5.3
     title_colours = ((8, (10, 50, 45, 255)), (4, (52, 190, 170, 255)), (0, (235, 250, 245, 255)))
     tagline_colour, tagline_shadow = (200, 240, 230), (10, 40, 36)
