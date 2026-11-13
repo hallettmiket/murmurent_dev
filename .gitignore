@@ -57,3 +57,7 @@ training/getting_started_coda/audio/
 # Per-machine files that murmurent writes or backs up in a checkout
 .claude/settings.json.bak_*
 .vscode/tasks.json
+training/agents/*/opening/frames/
+training/agents/*/opening/*.mp4
+training/agents/*/opening/*.wav
+training/agents/*/opening/*.png
