@@ -59,6 +59,9 @@ def world(tmp_path, monkeypatch):
                       "tiers": {"home": {"path": "/home", "purpose": "home folders"},
                                 "append_only": {"path": "/data/lab_vm/append_only", "quota": "none"}}},
         "dusky": {"profile": "alliance", "cluster": "dusky"},
+        "biodatweb": {"profile": "ssh_server", "ssh_host": "biodatweb.example.ca", "via": "biodatsci",
+                      "via_setup": "source ~/.ssh/agent-env",
+                      "tiers": {"root": "/", "web": {"path": "/var/www/html", "purpose": "the pages"}}},
     }}))
     monkeypatch.setenv(_mp.MACHINES_ENV, str(machines))
     # the tests must read the same on the lab server as on a laptop
@@ -91,7 +94,7 @@ def fake_runner(answers: dict[str, str | tuple[int, str, str]]):
 
 def test_profile_fills_what_the_lab_file_leaves_out(world):
     policy = _mp.load_machines()
-    assert policy.names() == ["laptop", "biodatsci", "dusky"]
+    assert policy.names() == ["laptop", "biodatsci", "biodatweb", "dusky"]
     assert not policy.problems
     server = policy.get("biodatsci")
     names = [t.name for t in server.tiers]
@@ -130,9 +133,10 @@ def test_template_is_valid(world, tmp_path, monkeypatch):
     template = commons_root() / "templates" / "machines.yaml"
     monkeypatch.setenv(_mp.MACHINES_ENV, str(template))
     policy = _mp.load_machines()
-    assert policy.names() == ["laptop", "biodatsci", "dusky"]
+    assert policy.names() == ["laptop", "biodatsci", "biodatweb", "dusky"]
     assert policy.problems == []
     assert policy.get("biodatsci").data_root == "/data/lab_vm"
+    assert policy.get("biodatweb").via == "biodatsci"
     assert policy.get("dusky").cluster == "dusky"
 
 
@@ -153,7 +157,7 @@ def test_set_is_this_computer_plus_machines_with_a_login(world):
     row = _hosts.read()["biodatsci"]
     assert row.kind == "ssh" and row.remote_user == "mhallet"
     members = {m.name: m for m in _mp.person_set()}
-    assert all(m.set_up for m in members.values())
+    assert all(members[n].set_up for n in ("laptop", "biodatsci", "dusky"))
     assert members["dusky"].login == "hallett@dusky.example.ca"
 
 
@@ -392,7 +396,7 @@ def test_a_declared_server_that_is_this_computer_is_probed_locally(world, monkey
     monkeypatch.setattr(_mp.socket, "getfqdn", lambda: "biodatsci.example.ca")
     policy = _mp.load_machines()
     # the server stands in for the laptop entry, first in the list, no login to record
-    assert policy.names() == ["biodatsci", "dusky"]
+    assert policy.names() == ["biodatsci", "biodatweb", "dusky"]
     assert policy.get("biodatsci").here and policy.get("biodatsci").runs_here()
     members = {m.name: m for m in _mp.person_set(policy)}
     assert members["biodatsci"].set_up and members["biodatsci"].login
@@ -417,3 +421,52 @@ def test_ssh_runner_runs_a_local_host_in_a_shell(world):
     host = _hosts.read()[_hosts.LOCAL_NAME]
     code, out, err = _mp.ssh_runner(host, "echo '==x'; echo hello", 10)
     assert code == 0 and "hello" in out
+
+
+def test_a_machine_reached_via_another_hops_from_there(world):
+    policy = _mp.load_machines()
+    web = policy.get("biodatweb")
+    assert web.via == "biodatsci" and [t.name for t in web.tiers] == ["root", "web"]
+    # a login for the web host alone is not enough: the hop machine must be set up too
+    _mp.register_login(web, "mhallet@biodatweb.example.ca")
+    members = {m.name: m for m in _mp.person_set()}
+    assert not members["biodatweb"].set_up
+    assert _mp.setup_hint(web, members["biodatweb"]) == "not set up: it is reached via biodatsci, which is not set up"
+    _mp.register_login(policy.get("biodatsci"), "mhallet@biodatsci.example.ca")
+    members = {m.name: m for m in _mp.person_set()}
+    assert members["biodatweb"].set_up and members["biodatweb"].via_host.name == "biodatsci"
+
+    seen = []
+
+    def runner(host, command, timeout):
+        seen.append((host.name, command, timeout))
+        return 0, "biodatweb\n", ""
+
+    status = _mp.probe_for(members["biodatweb"], runner=runner).status()
+    assert status.reachable and status.detail == "biodatweb"
+    name, command, timeout = seen[0]
+    # the probe ran on biodatsci: the setup line, then one batch-mode ssh to the web host
+    assert name == "biodatsci" and timeout == _mp.STATUS_TIMEOUT + _mp.HOP_TIMEOUT
+    assert command.startswith("source ~/.ssh/agent-env; ssh -o BatchMode=yes")
+    assert "mhallet@biodatweb.example.ca" in command and "hostname" in command
+
+    assert members["biodatweb"].via_host.kind == "ssh"
+
+
+def test_bad_via_is_reported(world, tmp_path):
+    (tmp_path / "machines.yaml").write_text(yaml.safe_dump({"machines": {
+        "a": {"profile": "ssh_server", "data_root": "/d", "via": "a"},
+        "b": {"profile": "ssh_server", "data_root": "/d", "via": "nowhere"},
+    }}))
+    policy = _mp.load_machines()
+    assert policy.get("a").via == ""
+    assert any("cannot be reached via itself" in p for p in policy.problems)
+    assert any("'nowhere', which is not a declared machine" in p for p in policy.problems)
+
+
+def test_the_hop_runs_locally_when_the_hop_machine_is_this_computer(world, monkeypatch):
+    monkeypatch.setattr(_mp.socket, "gethostname", lambda: "biodatsci")
+    policy = _mp.load_machines()
+    _mp.register_login(policy.get("biodatweb"), "mhallet@biodatweb.example.ca")
+    members = {m.name: m for m in _mp.person_set(policy)}
+    assert members["biodatweb"].set_up and members["biodatweb"].via_host.kind == "local"
