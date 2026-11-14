@@ -45,6 +45,30 @@ machines:
         purpose: home folders; small, keep large files in cottage
     notes: Reached by plain ssh; no scheduler.
 
+  # A server only another server may log in to (a web host behind a firewall,
+  # say). `via` names the declared machine every probe hops through, with one
+  # batch-mode ssh from there; `via_setup` is a shell line run on that machine
+  # first, for example to reach the ssh agent that holds the key the web host
+  # accepts. A member records a login for the web host as usual; the probe uses
+  # it from the hop machine. Tiers are declared outright: the web host has no
+  # data root.
+  biodatweb:
+    profile: ssh_server
+    description: the lab's web server, reached only from biodatsci
+    ssh_host: biodatweb.schulich.uwo.ca
+    via: biodatsci
+    via_setup: source ~/.ssh/agent-env
+    tiers:
+      root:
+        path: /
+        purpose: the system disk
+      home:
+        path: /home
+        purpose: home folders
+      web:
+        path: /var/www/html
+        purpose: the pages the public sees
+
   dusky:
     profile: alliance
     # The entry in policy/clusters.yaml that holds the account, partitions and

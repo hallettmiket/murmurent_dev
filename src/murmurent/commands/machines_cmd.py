@@ -81,7 +81,7 @@ def machines_group(ctx: click.Context, as_json: bool, no_check: bool) -> None:
         for m in members:
             if not m.set_up:
                 reports.append(_mp.Status(name=m.name, profile=m.machine.profile, set_up=False,
-                                          problem=_mp.setup_hint(m.machine)))
+                                          problem=_mp.setup_hint(m.machine, m)))
                 continue
             last = remembered.get(m.name, {})
             reports.append(_mp.Status(name=m.name, profile=m.machine.profile, set_up=True,
@@ -106,7 +106,8 @@ def machines_group(ctx: click.Context, as_json: bool, no_check: bool) -> None:
             state, checked = "reachable" + (f" ({r.detail})" if r.detail else ""), _when(r.checked_at)
         else:
             state, checked = r.problem or "unreachable", _when(r.checked_at)
-        kind = m.machine.profile + (", this computer" if m.machine.here else "")
+        kind = m.machine.profile + (", this computer" if m.machine.here else "") \
+            + (f" via {m.machine.via}" if m.machine.via else "")
         rows.append([m.name, kind, m.login or "-", state, checked])
     click.echo(_table(rows, ["machine", "kind", "login", "state", "checked"]))
     for m in members:

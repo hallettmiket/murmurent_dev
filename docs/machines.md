@@ -85,6 +85,33 @@ Your **set** is this computer plus every declared machine for which you have
 recorded a login. A declared machine with no login is listed as
 `not set up: run murmurent machine add ...` and is never probed.
 
+## A machine reached through another
+
+Some servers accept a login only from another server: a web host behind a
+firewall, or one that trusts a key held by an ssh agent on the lab server and
+nothing on a laptop. Such a machine declares `via: <machine>` and, when needed,
+`via_setup: <shell line>`:
+
+```yaml
+  biodatweb:
+    profile: ssh_server
+    ssh_host: biodatweb.example.ca
+    via: biodatsci                        # every probe hops from here
+    via_setup: source ~/.ssh/agent-env    # run there first, to reach the agent
+    tiers:
+      root: {path: /, purpose: the system disk}
+      web: {path: /var/www/html, purpose: the pages the public sees}
+```
+
+You record a login for the web host as usual (`murmurent machine add
+biodatweb --ssh-host mhallet@biodatweb.example.ca`), and the probe uses it from
+the hop machine: the setup line, then one batch-mode ssh. The machine counts as
+set up only when the hop machine is too; when you are logged in on the hop
+machine itself, the hop runs from a local shell. A host key never seen before
+is accepted on first contact and refused if it later changes. A machine that
+refuses the login reports `unreachable: Permission denied` and the rest of the
+table stands.
+
 ## The three commands
 
 ```bash

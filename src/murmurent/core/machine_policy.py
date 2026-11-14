@@ -62,6 +62,9 @@ STATUS_TIMEOUT = 20
 LOAD_TIMEOUT = 45
 USAGE_TIMEOUT = 60
 
+#: Extra seconds allowed for the hop when a machine is reached via another.
+HOP_TIMEOUT = 10
+
 #: A GPU counts as busy above this utilisation, or with this share of its
 #: memory taken: a model loaded and waiting still blocks the card.
 GPU_BUSY_UTILISATION = 5
@@ -97,6 +100,11 @@ class Machine:
     #: True when this declared machine is the computer murmurent is running on:
     #: it stands in for the built-in laptop entry and is probed without ssh.
     here: bool = False
+    #: The declared machine every probe hops through, for a server that only
+    #: another server may log in to; and a shell line run there first (to reach
+    #: an ssh agent, say) before the hop.
+    via: str = ""
+    via_setup: str = ""
 
     def is_local(self) -> bool:
         return self.profile == "laptop"
@@ -193,10 +201,13 @@ def _machine_from(name: str, raw: dict[str, Any], where: str, problems: list[str
         profile = "ssh_server"
     machine = Machine(name=name, profile=profile, description=PROFILES[profile]["description"])
     changes: dict[str, Any] = {}
-    for key in ("description", "ssh_host", "data_root", "cluster", "notes"):
+    for key in ("description", "ssh_host", "data_root", "cluster", "notes", "via", "via_setup"):
         if key in raw and raw[key] is not None:
             changes[key] = str(raw[key])
     machine = replace(machine, **changes)
+    if machine.via == name:
+        problems.append(f"{where}: a machine cannot be reached via itself")
+        machine = replace(machine, via="")
     if profile == "alliance":
         if not machine.cluster:
             machine = replace(machine, cluster=name)
@@ -280,6 +291,9 @@ def load_machines(env: dict[str, str] | None = None) -> MachinePolicy:
         else:
             policy.problems.append(f"${MACHINES_ENV} names {path}, which does not exist")
     _mark_this_machine(policy)
+    for name, machine in policy.machines.items():
+        if machine.via and machine.via not in policy.machines:
+            policy.problems.append(f"{name}: reached via {machine.via!r}, which is not a declared machine")
     return policy
 
 
@@ -317,10 +331,16 @@ def _mark_this_machine(policy: MachinePolicy) -> None:
 
 @dataclass(frozen=True)
 class Member:
-    """One machine in a person's set: the declaration and their login, if any."""
+    """One machine in a person's set: the declaration and their login, if any.
+
+    ``via_host`` is how the person reaches the machine this one is reached
+    through (their login there, or this computer when that machine is here);
+    None when the machine is reached directly or the hop is not set up.
+    """
 
     machine: Machine
     host: _hosts.Host | None
+    via_host: _hosts.Host | None = None
 
     @property
     def name(self) -> str:
@@ -328,7 +348,10 @@ class Member:
 
     @property
     def set_up(self) -> bool:
-        return self.machine.runs_here() or (self.host is not None and self.host.is_remote())
+        if self.machine.runs_here():
+            return True
+        own = self.host is not None and self.host.is_remote()
+        return own and (not self.machine.via or self.via_host is not None)
 
     @property
     def login(self) -> str:
@@ -346,14 +369,20 @@ def login_for(machine: Machine, rows: dict[str, _hosts.Host]) -> _hosts.Host | N
     return None
 
 
+def _reach(machine: Machine, rows: dict[str, _hosts.Host]) -> _hosts.Host | None:
+    return rows[_hosts.LOCAL_NAME] if machine.runs_here() else login_for(machine, rows)
+
+
 def person_set(policy: MachinePolicy | None = None, env: dict[str, str] | None = None) -> list[Member]:
     policy = policy or load_machines(env)
     rows = _hosts.read(env)
     out = []
     for name in policy.names():
         machine = policy.machines[name]
-        host = rows[_hosts.LOCAL_NAME] if machine.runs_here() else login_for(machine, rows)
-        out.append(Member(machine=machine, host=host))
+        via_host = None
+        if machine.via and machine.via in policy.machines:
+            via_host = _reach(policy.machines[machine.via], rows)
+        out.append(Member(machine=machine, host=_reach(machine, rows), via_host=via_host))
     return out
 
 
@@ -369,8 +398,10 @@ def register_login(machine: Machine, ssh_host: str, user: str = "",
     return _hosts.write(rows, env)
 
 
-def setup_hint(machine: Machine) -> str:
+def setup_hint(machine: Machine, member: "Member | None" = None) -> str:
     address = machine.ssh_host or "<address>"
+    if member is not None and machine.via and member.host is not None and member.host.is_remote():
+        return f"not set up: it is reached via {machine.via}, which is not set up"
     return f"not set up: run murmurent machine add {machine.name} --ssh-host <login>@{address}"
 
 
@@ -501,6 +532,18 @@ def ssh_runner(host: _hosts.Host, command: str, timeout: int) -> tuple[int, str,
     return result.returncode, result.stdout, result.stderr
 
 
+def hop_command(machine: Machine, host: _hosts.Host, command: str) -> str:
+    """The shell line run on the machine ``machine.via`` to run ``command`` on
+    ``machine``: the declared setup line, then one batch-mode ssh. A host key
+    never seen before is accepted on first contact and refused if it changes."""
+    import shlex
+
+    hop = ("ssh -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new "
+           f"{shlex.quote(host.ssh_host)} {shlex.quote('bash -lc ' + shlex.quote(command))}")
+    setup = machine.via_setup.strip()
+    return f"{setup}; {hop}" if setup else hop
+
+
 def _why(returncode: int, stderr: str) -> str:
     text = (stderr.strip().splitlines() or [""])[-1]
     if returncode == 124:
@@ -535,6 +578,9 @@ class Probe:
 
     def _run(self, command: str, timeout: int) -> tuple[int, str, str]:
         assert self.member.host is not None
+        if self.machine.via and self.member.via_host is not None:
+            return self.runner(self.member.via_host, hop_command(self.machine, self.member.host, command),
+                               timeout + HOP_TIMEOUT)
         return self.runner(self.member.host, command, timeout)
 
 
@@ -826,7 +872,7 @@ def probe_for(member: Member, runner: Runner | None = None, env: dict[str, str] 
 def _not_set_up(member: Member, kind: str):
     cls = {"status": Status, "load": Load, "usage": Usage}[kind]
     return cls(name=member.name, profile=member.machine.profile, set_up=False,
-               problem=setup_hint(member.machine))
+               problem=setup_hint(member.machine, member))
 
 
 def ask_all(members: list[Member], kind: str, runner: Runner | None = None,
@@ -899,7 +945,7 @@ __all__ = [
     "MACHINES_ENV", "LAPTOP_NAME", "PROFILE_NAMES", "PROFILES",
     "Tier", "Machine", "MachinePolicy", "Member",
     "Status", "Load", "Usage", "TierUse",
-    "load_machines", "lab_machines_path", "person_set", "login_for", "register_login", "setup_hint",
+    "load_machines", "lab_machines_path", "person_set", "login_for", "register_login", "setup_hint", "hop_command",
     "Probe", "LaptopProbe", "SshServerProbe", "AllianceProbe", "probe_for", "ask_all",
     "ssh_runner", "read_state", "remember", "state_file",
     "parse_uptime_load", "parse_nvidia_smi", "parse_ps_cores", "describe_people", "lab_folder_tiers",

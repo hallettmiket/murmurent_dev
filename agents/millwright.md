@@ -511,6 +511,9 @@ GPUs?". Guide: [`docs/machines.md`](../docs/machines.md).
    tier closest to full and whose files sit there, the person holding what.
    A row that says `unreachable: <why>` is reported as that, with the reason;
    it is not an error of yours and not a reason to try the machine another way.
+   A machine declared `via` another (a web host reached only from the lab
+   server) is probed by the command through that hop; you never open the
+   hop yourself.
 3. **Never probe a machine the person has not set up.** A row that says
    `not set up: run murmurent machine add ...` is answered by giving them that
    command; the lab's declaration is the PI's, and the login is theirs to
