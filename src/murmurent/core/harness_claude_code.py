@@ -19,7 +19,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from .harness_policy import Harness, InstallPaths, Installed, Profile, TranscriptStore
+from .harness_policy import Harness, InstallPaths, Installed, Profile, ToolEvent, TranscriptStore
 
 DEFAULT_SETTINGS_PATH = Path("~/.claude/settings.json").expanduser()
 
@@ -476,3 +476,42 @@ class ClaudeCodeProfile(Profile):
     def transcript_stores(self, home: Path) -> list[TranscriptStore]:
         return [TranscriptStore(harness=self.facts.name, root=home / ".claude" / "projects",
                                 pattern="*/*.jsonl")]
+
+    # --- the hook contract (phase 2) --------------------------------------------
+
+    #: Claude Code's tool names and murmurent's kind for each.
+    KINDS: dict[str, str] = {
+        "Bash": "shell", "Write": "write", "Edit": "edit", "MultiEdit": "edit",
+        "NotebookEdit": "notebook", "Read": "read", "Agent": "agent",
+    }
+
+    def to_event(self, payload: dict[str, Any]) -> ToolEvent:
+        name = str(payload.get("tool_name") or payload.get("tool") or "")
+        args = payload.get("tool_input") or payload.get("args") or {}
+        if not isinstance(args, dict):
+            args = {}
+        kind = self.KINDS.get(name, "other")
+        return ToolEvent(
+            harness=self.facts.name,
+            session=str(payload.get("session_id") or ""),
+            cwd=str(payload.get("cwd") or ""),
+            tool=kind,
+            tool_name=name,
+            command=str(args.get("command") or "") if kind == "shell" else "",
+            path=str(args.get("file_path") or args.get("notebook_path") or ""),
+            content=str(args.get("content") or args.get("new_string") or ""),
+            raw=payload,
+        )
+
+    def from_decision(self, decision: dict[str, Any]) -> dict[str, Any]:
+        """Claude Code's modern hook shape: nothing for allow, a
+        ``hookSpecificOutput`` block for deny."""
+        if decision.get("decision") != "deny":
+            return {}
+        return {
+            "hookSpecificOutput": {
+                "hookEventName": "PreToolUse",
+                "permissionDecision": "deny",
+                "permissionDecisionReason": decision.get("reason", ""),
+            },
+        }

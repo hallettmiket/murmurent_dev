@@ -291,25 +291,25 @@ recorded in `docs/harnesses.md` with the date.
 
 ### Phase 2: the governance hooks hold in Antigravity (medium, the one that matters)
 
-- [ ] `ToolEvent` adapters: `claude_code.to_event` and `antigravity.to_event`,
+- [x] `ToolEvent` adapters: `claude_code.to_event` and `antigravity.to_event`,
       the latter mapping `run_command` to `shell` and `CommandLine` to
       `command`, `write_to_file` and the two `replace_*` tools to `write` and
       `edit`, `view_file` to `read`. Unknown tools map to `other` and are
       allowed (the hooks are permissive by design, as today).
-- [ ] `raw_guard`, `protected_paths` and `phi_check` read a `ToolEvent`
+- [x] `raw_guard`, `protected_paths` and `phi_check` read a `ToolEvent`
       instead of the raw payload. Their tests run twice, once through each
       adapter, from the same fixtures.
-- [ ] `hooks/adapter.py`: the one entry point Antigravity's `hooks.json`
+- [x] `hooks/adapter.py`: the one entry point Antigravity's `hooks.json`
       calls (`python -m murmurent.hooks.adapter --harness antigravity`),
       which reads stdin, builds the event, runs the chain, and writes the
       decision in Antigravity's shape.
-- [ ] `hook_config` for Antigravity writes a `PreToolUse` entry with the
+- [x] `hook_config` for Antigravity writes a `PreToolUse` entry with the
       matcher from the sketch and the adapter command, plus `PostToolUse` for
       the audit record and `SessionStart` for context injection.
-- [ ] The audit record gains `harness`, `model` and `place`. The agents log
+- [x] The audit record gains `harness`, `model` and `place`. The agents log
       gains one line at session start naming them. `session_log` gets an
       Antigravity path through `PreInvocation`.
-- [ ] A test harness script, `scripts/harness_smoke.sh`, feeds the adapter the
+- [x] `murmurent harness smoke <name>` (a command, not a script, so it runs anywhere) feeds the adapter the
       recorded Antigravity payloads for a write under `immutable/` and a
       delete under `append_only/` and asserts a deny, so the guard is checked
       on every machine at install time without running Antigravity.
@@ -321,7 +321,7 @@ shows the refusal with `harness: antigravity`. Recorded in `harnesses.md`.
 Also in this phase, the perimeter below the hooks, which is not Antigravity
 work but is what rule 4 requires:
 
-- [ ] `murmurent security acl check <data-root>` (read-only) reports whether
+- [x] `murmurent security acl-check <data-root>` (read-only) reports whether
       `immutable/` is writable by anyone but its owner and whether
       `append_only/` allows delete, so the PI sees the filesystem state the
       hooks assume. Setting the permissions stays a human step on the server.

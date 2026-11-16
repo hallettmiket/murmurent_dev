@@ -155,6 +155,30 @@ class ToolEvent:
     path: str = ""      # the file, for write | edit | read | notebook
     content: str = ""   # new content, for write | edit
     raw: dict[str, Any] = field(default_factory=dict)
+    #: The harness's own name for the tool, for the record and the audit.
+    tool_name: str = ""
+
+    def as_claude_call(self) -> dict[str, Any]:
+        """The same call in Claude Code's hook shape (``tool_name`` +
+        ``tool_input``), which is what the guards evaluate. Every harness's
+        payload becomes this, so one guard serves them all."""
+        if self.tool == "shell":
+            return {"tool_name": "Bash", "tool_input": {"command": self.command}}
+        if self.tool == "write":
+            return {"tool_name": "Write", "tool_input": {"file_path": self.path, "content": self.content}}
+        if self.tool == "edit":
+            return {"tool_name": "Edit", "tool_input": {"file_path": self.path}}
+        if self.tool == "notebook":
+            return {"tool_name": "NotebookEdit", "tool_input": {"notebook_path": self.path}}
+        if self.tool == "read":
+            return {"tool_name": "Read", "tool_input": {"file_path": self.path}}
+        if self.tool == "agent":
+            return {"tool_name": "Agent", "tool_input": dict(self.raw.get("tool_input") or {})}
+        return {"tool_name": self.tool_name or "other", "tool_input": dict(self.raw.get("tool_input") or self.raw.get("args") or {})}
+
+
+#: murmurent's own tool vocabulary.
+TOOL_KINDS: tuple[str, ...] = ("shell", "write", "edit", "notebook", "read", "agent", "other")
 
 
 @dataclass(frozen=True)

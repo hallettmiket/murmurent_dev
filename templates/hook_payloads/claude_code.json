@@ -1,0 +1,12 @@
+{
+  "_about": "The same cases in Claude Code's hook shape, so the guards are proven to answer alike through both adapters.",
+  "cases": [
+    {"name": "write under immutable", "expect": "deny", "payload": {"hook_event_name": "PreToolUse", "session_id": "smoke", "cwd": "<DATA_ROOT>", "tool_name": "Write", "tool_input": {"file_path": "<DATA_ROOT>/immutable/proj/raw_1.csv", "content": "x"}}},
+    {"name": "shell rm under immutable", "expect": "deny", "payload": {"hook_event_name": "PreToolUse", "session_id": "smoke", "cwd": "<DATA_ROOT>", "tool_name": "Bash", "tool_input": {"command": "rm <DATA_ROOT>/immutable/proj/raw_1.csv"}}},
+    {"name": "shell rm under append_only", "expect": "deny", "payload": {"hook_event_name": "PreToolUse", "session_id": "smoke", "cwd": "<DATA_ROOT>", "tool_name": "Bash", "tool_input": {"command": "rm -f <DATA_ROOT>/append_only/proj/1_qc/result_1.csv"}}},
+    {"name": "edit an existing file under append_only", "expect": "deny", "payload": {"hook_event_name": "PreToolUse", "session_id": "smoke", "cwd": "<DATA_ROOT>", "tool_name": "Edit", "tool_input": {"file_path": "<DATA_ROOT>/append_only/proj/1_qc/result_1.csv", "old_string": "a", "new_string": "b"}}},
+    {"name": "new file under append_only", "expect": "allow", "payload": {"hook_event_name": "PreToolUse", "session_id": "smoke", "cwd": "<DATA_ROOT>", "tool_name": "Write", "tool_input": {"file_path": "<DATA_ROOT>/append_only/proj/1_qc/result_2.csv", "content": "x"}}},
+    {"name": "read under immutable", "expect": "allow", "payload": {"hook_event_name": "PreToolUse", "session_id": "smoke", "cwd": "<DATA_ROOT>", "tool_name": "Read", "tool_input": {"file_path": "<DATA_ROOT>/immutable/proj/raw_1.csv"}}},
+    {"name": "a shell command elsewhere", "expect": "allow", "payload": {"hook_event_name": "PreToolUse", "session_id": "smoke", "cwd": "<DATA_ROOT>", "tool_name": "Bash", "tool_input": {"command": "murmurent machines load"}}}
+  ]
+}

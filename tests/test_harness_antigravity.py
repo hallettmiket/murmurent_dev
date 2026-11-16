@@ -213,6 +213,6 @@ def test_a_machine_without_claude_code_installs_lists_and_passes_doctor(home, mo
     assert "antigravity" in res.stdout and "yes" in res.stdout
     res = runner.invoke(cli, ["doctor"])
     assert res.exit_code == 0, res.output
-    assert "antigravity: rules, skills and MCP servers in place" in res.output
+    assert "antigravity: rules, skills, MCP servers and the governance hooks in place" in res.output
     assert "agents:" not in res.output and "hooks:" not in res.output   # Claude Code's checks did not run
     assert "✗" not in res.output

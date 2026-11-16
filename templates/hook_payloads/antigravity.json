@@ -1,0 +1,29 @@
+{
+  "_about": "Recorded Antigravity hook payloads (docs/hooks, App 2.32.1, 2026-11-16) with <DATA_ROOT> standing for the data root. `murmurent harness smoke antigravity` feeds each to the adapter and expects the decision given. Replace these with real recordings once a hook has logged them.",
+  "cases": [
+    {"name": "write under immutable", "expect": "deny", "payload": {
+      "hookEventName": "PreToolUse", "conversationId": "smoke", "cwd": "<DATA_ROOT>", "modelName": "gemini-4-argon",
+      "toolCall": {"id": "t1", "name": "write_to_file", "args": {"TargetFile": "<DATA_ROOT>/immutable/proj/raw_1.csv", "CodeContent": "x"}}}},
+    {"name": "shell rm under immutable", "expect": "deny", "payload": {
+      "hookEventName": "PreToolUse", "conversationId": "smoke", "cwd": "<DATA_ROOT>", "modelName": "gemini-4-argon",
+      "toolCall": {"id": "t2", "name": "run_command", "args": {"CommandLine": "rm <DATA_ROOT>/immutable/proj/raw_1.csv"}}}},
+    {"name": "shell rm under append_only", "expect": "deny", "payload": {
+      "hookEventName": "PreToolUse", "conversationId": "smoke", "cwd": "<DATA_ROOT>", "modelName": "gemini-4-argon",
+      "toolCall": {"id": "t3", "name": "run_command", "args": {"CommandLine": "rm -f <DATA_ROOT>/append_only/proj/1_qc/result_1.csv"}}}},
+    {"name": "edit an existing file under append_only", "expect": "deny", "payload": {
+      "hookEventName": "PreToolUse", "conversationId": "smoke", "cwd": "<DATA_ROOT>", "modelName": "gemini-4-argon",
+      "toolCall": {"id": "t4", "name": "replace_file_content", "args": {"TargetFile": "<DATA_ROOT>/append_only/proj/1_qc/result_1.csv", "TargetContent": "a", "ReplacementContent": "b"}}}},
+    {"name": "write under immutable with an unexpected key name", "expect": "deny", "payload": {
+      "hookEventName": "PreToolUse", "conversationId": "smoke", "cwd": "<DATA_ROOT>", "modelName": "gemini-4-argon",
+      "toolCall": {"id": "t5", "name": "write_to_file", "args": {"SomeOtherName": "<DATA_ROOT>/immutable/proj/raw_2.csv", "CodeContent": "x"}}}},
+    {"name": "new file under append_only", "expect": "allow", "payload": {
+      "hookEventName": "PreToolUse", "conversationId": "smoke", "cwd": "<DATA_ROOT>", "modelName": "gemini-4-argon",
+      "toolCall": {"id": "t6", "name": "write_to_file", "args": {"TargetFile": "<DATA_ROOT>/append_only/proj/1_qc/result_2.csv", "CodeContent": "x"}}}},
+    {"name": "read under immutable", "expect": "allow", "payload": {
+      "hookEventName": "PreToolUse", "conversationId": "smoke", "cwd": "<DATA_ROOT>", "modelName": "gemini-4-argon",
+      "toolCall": {"id": "t7", "name": "view_file", "args": {"AbsolutePath": "<DATA_ROOT>/immutable/proj/raw_1.csv"}}}},
+    {"name": "a shell command elsewhere", "expect": "allow", "payload": {
+      "hookEventName": "PreToolUse", "conversationId": "smoke", "cwd": "<DATA_ROOT>", "modelName": "gemini-4-argon",
+      "toolCall": {"id": "t8", "name": "run_command", "args": {"CommandLine": "murmurent machines load"}}}}
+  ]
+}
