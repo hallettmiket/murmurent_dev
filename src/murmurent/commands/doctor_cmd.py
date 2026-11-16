@@ -395,11 +395,45 @@ def check_lab_records() -> Check:
     return Check("lab records", status, f"{st.group}: not cloned; {acc.detail}", acc.fix)
 
 
+def check_harnesses() -> list[Check]:
+    """One check per harness this machine uses (rule 6 of docs/harnesses_plan.md:
+    none is required). Claude Code keeps its detailed link and hook checks;
+    every other harness is asked whether the commons are installed into it.
+    With no choice made, the harnesses found on the machine are checked."""
+    from ..core import harness_policy as _hp
+
+    policy = _hp.load_harnesses()
+    out: list[Check] = []
+    for problem in policy.problems:
+        out.append(Check("harnesses", WARN, problem, "fix policy/harnesses.yaml in the lab records"))
+    chosen = _hp.chosen_harnesses(policy)
+    if not chosen:
+        return out + [Check("harnesses", FAIL, "no harness chosen and none found on this machine",
+                            "run: murmurent harness enable <name>")]
+    explicit = bool(_hp.machine_harnesses())
+    if not explicit:
+        out.append(Check("harnesses", OK, f"none chosen on this machine; checking what is here: {', '.join(chosen)}"))
+    for name in chosen:
+        if name == "claude_code":
+            out.extend(check_links())
+            out.append(check_hooks())
+            continue
+        state = _hp.profiles()[name].installed(Path.home())
+        if state.yes:
+            out.append(Check(name, OK, state.detail))
+        elif explicit:
+            out.append(Check(name, FAIL, state.detail, f"run: murmurent install --harness {name}"))
+        else:
+            out.append(Check(name, WARN, f"on this machine but without the commons: {state.detail}",
+                             f"run: murmurent install --harness {name}, or murmurent harness enable claude_code "
+                             "to say this machine uses Claude Code only"))
+    return out
+
+
 def run_checks() -> list[Check]:
     checks: list[Check] = [check_platform(), check_python(), check_path_tools(), check_version(),
                            check_clone_remote()]
-    checks.extend(check_links())
-    checks.append(check_hooks())
+    checks.extend(check_harnesses())
     checks.append(check_packaged_commons())
     checks.append(check_repos_root())
     checks.append(check_launcher())

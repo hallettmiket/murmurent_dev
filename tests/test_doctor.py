@@ -58,6 +58,7 @@ def test_path_check_flags_a_stranger_python(monkeypatch, tmp_path):
 
 @pytest.fixture
 def cc_dir(tmp_path, monkeypatch) -> Path:
+    monkeypatch.setenv("MURMURENT_HARNESSES", "claude_code")  # this machine uses Claude Code only
     cc = tmp_path / "claude"
     cc.mkdir()
     monkeypatch.setenv("MURMURENT_CC_DIR", str(cc))

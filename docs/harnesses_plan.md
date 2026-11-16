@@ -248,40 +248,40 @@ both and compares.
 
 ### Phase 1: the commons load into Antigravity (medium)
 
-- [ ] The inventory of rule 6: every place the code reaches for `~/.claude/`
+- [x] The inventory of rule 6: every place the code reaches for `~/.claude/`
       or runs `claude`, listed in `docs/harnesses.md` with its kind from the
       table above and the phase that moves it behind a profile.
-- [ ] `policy/harnesses.yaml` gains `enabled:`; `~/.murmurent/config.yaml`
+- [x] `policy/harnesses.yaml` gains `enabled:`; `~/.murmurent/config.yaml`
       gains `harnesses:`; `murmurent harness enable|disable`; `murmurent
       install` installs into the chosen harnesses only, and with none chosen
       into every allowed one it finds on the machine.
-- [ ] `murmurent doctor` checks each chosen harness and no other, so a
+- [x] `murmurent doctor` checks each chosen harness and no other, so a
       machine without Claude Code is not told to install it.
-- [ ] `AntigravityProfile`: paths under `~/.gemini/config/` (rules, skills,
+- [x] `AntigravityProfile`: paths under `~/.gemini/config/` (rules, skills,
       agents, `mcp_config.json`, `hooks.json`) from the sketch, each with the
       documentation page it was read from in a comment and the date.
-- [ ] `render_rules`: each of `rules/*.md` and `rules/local/*.md` becomes
+- [x] `render_rules`: each of `rules/*.md` and `rules/local/*.md` becomes
       `~/.gemini/config/rules/murmurent_<name>.md` with a front matter of
       `trigger: always_on`; `oracle_schema.md` gets `model_decision` and a
       one-line description. `output_styles/plain_english.md` becomes
       `murmurent_voice.md`. A size check refuses to render past Antigravity's
       per-file limit and warns past the shared budget, both read from the
       profile's constants, not hard-coded in the renderer.
-- [ ] `render_agents`: each of `agents/*.md` becomes a subagent file with the
+- [x] `render_agents`: each of `agents/*.md` becomes a subagent file with the
       `tools` line rewritten through a vocabulary map in the profile and
       unknown fields dropped, listed in the install output.
-- [ ] Skills: links from `~/.gemini/config/skills/<name>` to `skills/<name>`.
+- [x] Skills: links from `~/.gemini/config/skills/<name>` to `skills/<name>`.
       The installer prints which skills carry `disable-model-invocation`,
       since Antigravity ignores it, and asks the PI whether to link them.
-- [ ] `mcp_config`: the four `MCP_REGISTRATIONS` merged under `mcpServers`,
+- [x] `mcp_config`: the four `MCP_REGISTRATIONS` merged under `mcpServers`,
       other servers left alone, a `murmurent-*` allow rule printed for the
       PI to add by hand (permissions files are never written by murmurent).
-- [ ] `murmurent install --harness antigravity`: calls the profile's renderers
+- [x] `murmurent install --harness antigravity`: calls the profile's renderers
       in order, prints every file written, and prints the data-handling
       warning from the sketch (fact 3) at the end, every time.
-- [ ] `murmurent install --harness antigravity --dry-run`: the same, writing
+- [x] `murmurent install --harness antigravity --dry-run`: the same, writing
       nothing.
-- [ ] Tests render into a temporary home and compare against fixtures;
+- [x] Tests render into a temporary home and compare against fixtures;
       Antigravity itself is never run in tests.
 
 Acceptance: on the PI's Mac, after the install, an Antigravity conversation in

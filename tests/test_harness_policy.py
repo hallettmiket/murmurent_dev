@@ -29,6 +29,8 @@ def home(monkeypatch, tmp_path):
     monkeypatch.delenv(_hp.HARNESSES_ENV, raising=False)
     # No lab records on the test machine.
     monkeypatch.setattr(_hp, "lab_harnesses_path", lambda env=None: None)
+    monkeypatch.delenv(_hp.MACHINE_ENV, raising=False)
+    monkeypatch.setattr(_hp, "_machine_file", lambda: tmp_path / ".murmurent" / "machine.yaml")
     return tmp_path
 
 
@@ -116,8 +118,9 @@ def test_lab_file_overrides_facts_and_reports_mistakes(home, monkeypatch, tmp_pa
     path = tmp_path / "harnesses.yaml"
     path.write_text(yaml.safe_dump({"harnesses": {
         "claude_code": {"place": "lab_server", "models": ["claude-opus-5-5"], "headless": "no"},
-        "antigravity": {"place": "google_personal"},
+        "antigravity": {"place": "google_cloud"},
         "opencode": "later",
+        "faraday": {"place": "lab_server"},
     }}), encoding="utf-8")
     monkeypatch.setenv(_hp.HARNESSES_ENV, str(path))
     policy = _hp.load_harnesses()
@@ -127,7 +130,8 @@ def test_lab_file_overrides_facts_and_reports_mistakes(home, monkeypatch, tmp_pa
     assert cc.headless == "claude -p"
     text = "\n".join(policy.problems)
     assert "'headless' cannot be changed by the lab" in text
-    assert "'antigravity' is not a harness murmurent knows" in text
+    assert policy.harnesses["antigravity"].place == "google_cloud"
+    assert "'faraday' is not a harness murmurent knows" in text
     assert "'opencode' is not a harness murmurent knows" in text
     assert str(path) in policy.sources
 
@@ -161,7 +165,7 @@ def test_harness_list_table_and_json(home):
     assert res.exit_code == 0, res.output
     assert "harness" in res.output.splitlines()[0]
     assert "claude_code" in res.output and "anthropic_cloud" in res.output
-    assert "no: hooks not in" in res.output
+    assert "not on this machine" in res.output or "not installed: hooks not in" in res.output
 
     res = runner.invoke(harness_group, ["--json"])
     assert res.exit_code == 0, res.output
@@ -170,6 +174,7 @@ def test_harness_list_table_and_json(home):
     assert row["name"] == "claude_code"
     assert row["installed"] is False
     assert row["paths"]["settings"].endswith("settings.json")
+    assert data["chosen"] == []
     assert data["problems"] == []
 
 

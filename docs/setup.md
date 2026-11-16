@@ -146,6 +146,25 @@ creates or modifies locally:
 - your Obsidian personal vault (the `murmurent_vault` clone) and, on the lab
   server, the bulk-data root `$MURMURENT_DATA_ROOT/{immutable,append_only}/`.
 
+## Choosing harnesses
+
+A **harness** is the program that runs murmurent's agents: Claude Code, Google
+Antigravity, and others as they are added. No harness is required, Claude
+Code included; an institution runs the ones it has. The lab may list the
+harnesses it allows in `policy/harnesses.yaml` of its records repository
+(`enabled:`), and each machine records the ones it uses:
+
+```bash
+murmurent harness list                       # what murmurent knows, and the state on this machine
+murmurent harness enable antigravity         # this machine uses Antigravity
+murmurent install --harness antigravity      # render the commons into it (and record the choice)
+```
+
+A plain `murmurent install` installs into every chosen harness, or, with no
+choice made, into every allowed harness it finds on the machine. `murmurent
+doctor` checks only those. The guide to what each harness gets and what it
+cannot yet: [`harnesses.md`](harnesses.md).
+
 ## Initializing a directory for Murmurent
 
 A **repository** (or "repo") is a folder of code and files tracked by git,

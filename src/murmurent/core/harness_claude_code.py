@@ -436,6 +436,9 @@ class ClaudeCodeProfile(Profile):
             output_styles=claude / "output-styles",
         )
 
+    def present(self, home: Path) -> bool:
+        return shutil.which("claude") is not None or (home / ".claude").is_dir()
+
     def installed(self, home: Path) -> Installed:
         paths = self.install_paths(home)
         assert paths.settings is not None and paths.mcp is not None

@@ -93,7 +93,7 @@ def cli(ctx: click.Context) -> None:
 # ---------------------------------------------------------------------------
 
 
-@cli.command("install", help="Install murmurent hooks + MCP into ~/.claude/settings.json.")
+@cli.command("install", help="Install the murmurent commons into the harnesses this machine uses.")
 @click.option("--hooks", is_flag=True, help="Install hook + MCP registrations only (phase 4).")
 @click.option(
     "--settings",
@@ -105,8 +105,16 @@ def cli(ctx: click.Context) -> None:
 @click.option("--no-backup", is_flag=True, help="Skip the .bak copy of settings.json.")
 @click.option("--no-launcher", is_flag=True,
               help="Don't create the Murmurent Dashboard icon.")
+@click.option("--harness", "harnesses", multiple=True,
+              help="Install into this harness (repeatable) and record the choice; "
+                   "with none given, into every harness this machine has chosen, "
+                   "or has, if none is chosen.")
+@click.option("--dry-run", is_flag=True, help="Say what would be written; write nothing.")
+@click.option("--all-skills", is_flag=True,
+              help="Also link the skills meant to be typed by a person into a harness that cannot keep that guard.")
 def install_command(hooks: bool, settings_path: Path | None, no_backup: bool,
-                    no_launcher: bool) -> None:
+                    no_launcher: bool, harnesses: tuple[str, ...], dry_run: bool,
+                    all_skills: bool) -> None:
     """Bare ``murmurent install`` is the whole install: wire the commons,
     register the hooks, then re-link every murmurent-ready repo on the machine.
     It used to say "not yet implemented in v1", which left the obvious command
@@ -127,18 +135,29 @@ def install_command(hooks: bool, settings_path: Path | None, no_backup: bool,
     readiness notice in ``hooks.context_inject`` tells them a new agent exists,
     and ``repo upgrade --all-agents`` opts in.
     """
-    if not hooks:
-        rc = setup_cmd.cmd_setup(show_next_step=False)
-        if rc != 0:
-            raise SystemExit(rc)
-        click.echo()
-    install_cmd.cmd_install(hooks=True, settings_path=settings_path, backup=not no_backup)
-    if not hooks:
-        from .commands import repo_cmd as _repo_cmd
-        _repo_cmd.cmd_upgrade(path=None, all_repos=True, add_agents_csv=None,
-                              all_agents=False, quiet=True, marker_only=True)
-        if not no_launcher:
-            _make_launcher_quietly()
+    from .commands import harness_cmd as _harness_cmd
+
+    targets = _harness_cmd.install_targets(list(harnesses), hooks_only=hooks)
+    if "claude_code" in targets:
+        if not hooks:
+            rc = setup_cmd.cmd_setup(show_next_step=False)
+            if rc != 0:
+                raise SystemExit(rc)
+            click.echo()
+        if dry_run:
+            click.echo("claude_code: would register the hooks and MCP servers (no dry run for Claude Code yet)")
+        else:
+            install_cmd.cmd_install(hooks=True, settings_path=settings_path, backup=not no_backup)
+        if not hooks and not dry_run:
+            from .commands import repo_cmd as _repo_cmd
+            _repo_cmd.cmd_upgrade(path=None, all_repos=True, add_agents_csv=None,
+                                  all_agents=False, quiet=True, marker_only=True)
+            if not no_launcher:
+                _make_launcher_quietly()
+    for name in targets:
+        if name == "claude_code":
+            continue
+        _harness_cmd.install_into(name, dry_run=dry_run, all_skills=all_skills)
 
 
 def _make_launcher_quietly() -> None:
