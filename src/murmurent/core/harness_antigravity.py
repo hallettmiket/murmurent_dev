@@ -27,7 +27,7 @@ from pathlib import Path
 from typing import Any
 
 from . import frontmatter as _fm
-from .harness_policy import Harness, InstallPaths, InstallReport, Installed, Profile, TranscriptStore
+from .harness_policy import Harness, InstallPaths, InstallReport, Installed, Profile, ToolEvent, TranscriptStore
 
 # --- Paths (docs/hooks, docs/mcp, docs/rules, docs/skills, docs/subagents; the shipped guide) ---
 CONFIG_DIR = ".gemini/config"                    # shared by the App, the IDE and the CLI
@@ -67,6 +67,27 @@ TOOL_MAP: dict[str, str] = {
     "NotebookEdit": "write_to_file",
     "Bash": "run_command",
 }
+
+#: Antigravity's tool names and murmurent's kind for each (docs/hooks: the
+#: five names in the matcher examples; the rest unconfirmed and left as
+#: "other", which the guards allow).
+KINDS: dict[str, str] = {
+    "run_command": "shell",
+    "write_to_file": "write",
+    "replace_file_content": "edit",
+    "multi_replace_file_content": "edit",
+    "view_file": "read",
+}
+#: The argument that names the shell line (docs/hooks, confirmed) and the
+#: ones that may name the file (unconfirmed: taken from the tools' common
+#: lineage; the adapter also looks at every string argument that is an
+#: absolute path, so a wrong key name cannot blind the guards).
+COMMAND_KEY = "CommandLine"
+PATH_KEYS: tuple[str, ...] = ("TargetFile", "AbsolutePath", "FilePath", "TargetPath", "file_path", "path")
+CONTENT_KEYS: tuple[str, ...] = ("CodeContent", "ReplacementContent", "Content", "content")
+#: The matcher for the governance hook: every tool that can change a file.
+GOVERNED_MATCHER = "run_command|write_to_file|replace_file_content|multi_replace_file_content"
+HOOK_NAME = "murmurent-governance"
 
 #: The data-handling fact every install prints (the terms, Section 5, read
 #: 2026-11-16). It is printed every time, not once.
@@ -137,9 +158,16 @@ class AntigravityProfile(Profile):
             missing.append(f"no murmurent MCP servers in {paths.mcp}")
         if not (paths.skills.is_dir() and any(p.name.startswith("murmurent") for p in paths.skills.iterdir())):
             missing.append(f"no murmurent skills in {paths.skills}")
+        assert paths.hooks is not None
+        try:
+            hooks = json.loads(paths.hooks.read_text(encoding="utf-8") or "{}")
+        except (OSError, json.JSONDecodeError):
+            hooks = {}
+        if HOOK_NAME not in hooks:
+            missing.append(f"no governance hooks in {paths.hooks}")
         if missing:
             return Installed(False, "; ".join(missing) + " (run: murmurent install --harness antigravity)")
-        return Installed(True, "rules, skills and MCP servers in place; hooks come in phase 2")
+        return Installed(True, "rules, skills, MCP servers and the governance hooks in place")
 
     def headless_command(self, prompt: str, model: str, cwd: Path) -> list[str] | None:
         cmd = [CLI_BINARY, "-p", prompt]
@@ -153,6 +181,68 @@ class AntigravityProfile(Profile):
             TranscriptStore(harness=self.facts.name, root=home / APP_DATA_DIR, pattern=pattern),
             TranscriptStore(harness=self.facts.name, root=home / CLI_DATA_DIR, pattern=pattern),
         ]
+
+    # --- the hook contract (phase 2) --------------------------------------------
+
+    def to_event(self, payload: dict[str, Any]) -> ToolEvent:
+        call = payload.get("toolCall") or {}
+        name = str(call.get("name") or "")
+        args = call.get("args") or {}
+        if not isinstance(args, dict):
+            args = {}
+        kind = KINDS.get(name, "other")
+        path = next((str(args[k]) for k in PATH_KEYS if args.get(k)), "")
+        if not path and kind in ("write", "edit", "read"):
+            # A key name we did not expect: take the first absolute path among
+            # the arguments rather than see nothing.
+            path = next((v for v in args.values() if isinstance(v, str) and v.startswith("/")), "")
+        content = next((str(args[k]) for k in CONTENT_KEYS if args.get(k)), "")
+        return ToolEvent(
+            harness=self.facts.name,
+            session=str(payload.get("conversationId") or ""),
+            cwd=str(payload.get("cwd") or (payload.get("workspacePaths") or [""])[0] or ""),
+            tool=kind,
+            tool_name=name,
+            command=str(args.get(COMMAND_KEY) or "") if kind == "shell" else "",
+            path=path,
+            content=content,
+            raw=payload,
+        )
+
+    def from_decision(self, decision: dict[str, Any]) -> dict[str, Any]:
+        """Antigravity's PreToolUse answer. A deny is a hard block. For allow
+        the adapter says nothing (``{}``), so Antigravity's own permission
+        rules still apply; an explicit ``allow`` would auto-approve the call
+        and widen what the agent may do. (That ``{}`` means "no opinion" is
+        how the docs' PostToolUse contract reads; for PreToolUse it is
+        unconfirmed and is what the by-hand check of phase 2 verifies.)"""
+        if decision.get("decision") != "deny":
+            return {}
+        return {"decision": "deny", "reason": decision.get("reason", "")}
+
+    def hook_config(self, home: Path) -> RenderedFileList:
+        """``hooks.json`` with murmurent's named hook merged in; every other
+        named hook the person has is kept."""
+        import sys
+
+        target = self.install_paths(home).hooks
+        assert target is not None
+        data: dict[str, Any] = {}
+        if target.is_file():
+            try:
+                data = json.loads(target.read_text(encoding="utf-8") or "{}")
+            except json.JSONDecodeError:
+                data = {}
+        adapter = f"{sys.executable} -m murmurent.hooks.adapter --harness antigravity"
+        data[HOOK_NAME] = {
+            "PreToolUse": [{"matcher": GOVERNED_MATCHER,
+                            "hooks": [{"type": "command", "command": f"{adapter} --event PreToolUse", "timeout": 20}]}],
+            "PostToolUse": [{"matcher": "*",
+                             "hooks": [{"type": "command", "command": f"{adapter} --event PostToolUse", "timeout": 20}]}],
+            "SessionStart": [{"type": "command", "command": f"{adapter} --event SessionStart", "timeout": 20}],
+            "PreInvocation": [{"type": "command", "command": f"{adapter} --event PreInvocation", "timeout": 20}],
+        }
+        return RenderedFileList(target, json.dumps(data, indent=2) + "\n", None)
 
     # --- rendering -------------------------------------------------------------
 
@@ -291,8 +381,11 @@ class AntigravityProfile(Profile):
         report.notes.append(
             "MCP tools run in ask mode until a permission rule allows them; add in Antigravity's settings: "
             + ", ".join(f"mcp({n}/*)" for n in MCP_REGISTRATIONS) + ", and command(murmurent)")
-        report.notes.append("the data-governance hooks are not installed into Antigravity yet (phase 2); "
-                            "a session there can write under immutable/ until they are")
+        # The governance hooks.
+        hooks = self.hook_config(home)
+        _write(hooks.path, hooks.text, dry_run, report)
+        report.notes.append("the governance hooks run through murmurent.hooks.adapter; check them with: "
+                            "murmurent harness smoke antigravity")
         report.warnings.append(DATA_WARNING)
         return report
 
@@ -325,4 +418,4 @@ def chosen_here(home: Path | None = None) -> bool:
     return "antigravity" in machine_harnesses()
 
 
-__all__ = ["AntigravityProfile", "DATA_WARNING", "RULE_FILE_LIMIT", "TOOL_MAP", "chosen_here"]
+__all__ = ["AntigravityProfile", "DATA_WARNING", "GOVERNED_MATCHER", "HOOK_NAME", "KINDS", "RULE_FILE_LIMIT", "TOOL_MAP", "chosen_here"]

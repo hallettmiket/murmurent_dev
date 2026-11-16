@@ -17,6 +17,7 @@ Output:  A table, or ``--json``. Exit 0 always; a problem in the lab's file is
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -183,3 +184,65 @@ def install_into(name: str, *, dry_run: bool = False, all_skills: bool = False) 
     report = profile.install(home, commons_root(), dry_run=dry_run, all_skills=all_skills)
     for line in report.lines():
         click.echo(line)
+
+
+# ---------------------------------------------------------------------------
+# `murmurent harness smoke`: the guards, checked without running the harness
+# ---------------------------------------------------------------------------
+
+
+def smoke_cases(name: str) -> list[dict[str, Any]]:
+    """The recorded payloads for a harness, from the commons' templates."""
+    from ..core.commons import commons_root
+
+    path = commons_root() / "templates" / "hook_payloads" / f"{name}.json"
+    if not path.is_file():
+        raise click.ClickException(f"no recorded payloads for {name} at {path}")
+    return json.loads(path.read_text(encoding="utf-8"))["cases"]
+
+
+def run_smoke(name: str, data_root: Path) -> list[tuple[str, str, str, str]]:
+    """Feed every recorded payload to the adapter against ``data_root`` (a
+    scratch folder holding the files the cases refer to). Returns rows of
+    (case, expected, got, guard)."""
+    from ..hooks import adapter as _adapter
+
+    profile = _hp.profiles()[name]
+    for rel in ("immutable/proj/raw_1.csv", "append_only/proj/1_qc/result_1.csv"):
+        (data_root / rel).parent.mkdir(parents=True, exist_ok=True)
+        (data_root / rel).write_text("x\n", encoding="utf-8")
+    rows: list[tuple[str, str, str, str]] = []
+    env_before = os.environ.get("MURMURENT_DATA_ROOT")
+    os.environ["MURMURENT_DATA_ROOT"] = str(data_root)
+    try:
+        for case in smoke_cases(name):
+            payload = json.loads(json.dumps(case["payload"]).replace("<DATA_ROOT>", str(data_root)))
+            decision, guard = _adapter.decide(profile.to_event(payload))
+            rows.append((case["name"], case["expect"], decision.get("decision", "allow"), guard))
+    finally:
+        if env_before is None:
+            os.environ.pop("MURMURENT_DATA_ROOT", None)
+        else:
+            os.environ["MURMURENT_DATA_ROOT"] = env_before
+    return rows
+
+
+@harness_group.command("smoke")
+@click.argument("name", default="antigravity")
+def harness_smoke(name: str) -> None:
+    """Feed recorded NAME payloads through the governance hooks and check each
+    decision, in a scratch data root. Exit 1 when any case disagrees."""
+    import tempfile
+
+    if name not in _hp.profiles():
+        raise click.ClickException(f"{name!r} is not a harness murmurent knows: {', '.join(_hp.profiles())}")
+    with tempfile.TemporaryDirectory() as tmp:
+        rows = run_smoke(name, Path(tmp))
+    bad = 0
+    for case, expect, got, guard in rows:
+        ok = expect == got
+        bad += not ok
+        click.echo(f"  {'ok ' if ok else 'BAD'} {case}: expected {expect}, got {got}" + (f" ({guard})" if guard else ""))
+    click.echo(f"{len(rows) - bad} of {len(rows)} as expected")
+    if bad:
+        raise SystemExit(1)

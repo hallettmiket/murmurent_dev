@@ -407,6 +407,8 @@ or models in `policy/harnesses.yaml` of its records repository.
 |---|---|
 | `murmurent harness [list] [--json]` | One row per harness: where its model runs (its place), whether its hooks can refuse a call, its headless command, and whether the commons are installed into it on this machine, with what is missing. Read-only. |
 | `murmurent harness enable <name>` / `disable <name>` | Record that this machine uses, or no longer uses, a harness (`harnesses:` in `~/.murmurent/machine.yaml`). `disable` uninstalls nothing. A harness the lab has not enabled is refused. |
+| `murmurent harness smoke [<name>]` | Feed the recorded hook payloads of a harness (`templates/hook_payloads/`) through the governance hooks in a scratch data root and check every decision. Exit 1 on a disagreement. |
+| `murmurent security acl-check [<data-root>]` | What the filesystem enforces on `immutable/` and `append_only/`: owner, group, mode, the sticky bit, and the fix for the PI to run. Read-only. The perimeter the hooks assume. |
 | `murmurent install --harness <name> [--dry-run] [--all-skills]` | Render the commons into that harness (repeatable) and record the choice. `--dry-run` says what would be written. `--all-skills` also links the skills meant to be typed by a person, which Antigravity cannot keep from the model. A plain `murmurent install` acts on the chosen harnesses, or on every allowed one it finds. |
 
 ### Papers and theses

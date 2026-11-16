@@ -48,8 +48,16 @@ def _project_name(start: str | None = None) -> str | None:
     return repo.name if repo is not None else None
 
 
-def write_entry(payload: dict[str, Any], *, log_dir: Path | None = None) -> Path:
-    """Write the audit row for ``payload``. Returns the log path."""
+def write_entry(payload: dict[str, Any], *, log_dir: Path | None = None,
+                harness: str = "claude_code", model: str = "", place: str = "anthropic_cloud",
+                decision: str = "", hook: str = "") -> Path:
+    """Write the audit row for ``payload``. Returns the log path.
+
+    ``harness``, ``model`` and ``place`` say which program made the call and
+    where its model ran (docs/harnesses_plan.md: one record for every
+    harness); the Claude Code hook leaves the defaults, the adapter for
+    another harness fills them in. ``decision`` and ``hook`` record a refusal
+    and the guard that made it."""
     log_dir = log_dir or _log_dir()
     log_dir.mkdir(parents=True, exist_ok=True)
     today = _dt.date.today().isoformat()
@@ -64,6 +72,11 @@ def write_entry(payload: dict[str, Any], *, log_dir: Path | None = None) -> Path
         "args_summary": _summarise_args(payload.get("tool_input") or payload.get("args")),
         "outcome": str(payload.get("outcome") or payload.get("status") or "ok"),
         "duration_ms": payload.get("duration_ms"),
+        "harness": harness,
+        "model": model,
+        "place": place,
+        "decision": decision,
+        "hook": hook,
     }
     with open(log_path, "a", encoding="utf-8") as fh:
         fh.write(json.dumps(entry) + "\n")

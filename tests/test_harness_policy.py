@@ -52,8 +52,6 @@ def test_later_phases_say_which_phase(home):
     profile = _hp.profiles()["claude_code"]
     with pytest.raises(NotImplementedError, match="phase 1"):
         profile.render_rules([], home)
-    with pytest.raises(NotImplementedError, match="phase 2"):
-        profile.to_event({})
     with pytest.raises(NotImplementedError, match="phase 4"):
         next(profile.read_events(home))
 

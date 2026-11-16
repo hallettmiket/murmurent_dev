@@ -214,9 +214,53 @@ CLI share), overwriting only what it wrote last time:
 | Agents | `agents/<name>.md` | A translated copy: `name` and `description` kept, `model: inherit`, the body (the prompt) unchanged. A `tools` line only when every required tool has a confirmed Antigravity name; today `Glob`, `Grep`, `WebFetch` and `WebSearch` do not, so every agent gets Antigravity's full set, and the report says so once. The fields Antigravity has no place for are listed once. |
 | MCP servers | `mcp_config.json` | The four murmurent servers merged under `mcpServers`; every other server kept. |
 
+| The governance hooks | `hooks.json` | A named hook, `murmurent-governance`, merged in beside the person's own: `PreToolUse` on every tool that can change a file, `PostToolUse` for the audit record, `SessionStart` for the project context and the agents-log line, `PreInvocation` for the session record. All four run `python -m murmurent.hooks.adapter --harness antigravity --event <name>`. |
+
 The report ends with two notes to act on by hand (MCP tools run in ask
-mode until a permission rule allows them, and the governance hooks are not
-installed until phase 2) and the data-handling warning, printed every time.
+mode until a permission rule allows them; `murmurent harness smoke
+antigravity` checks the hooks) and the data-handling warning, printed every
+time.
+
+### The governance hooks in another harness
+
+Phase 2. The three guards that protect the data root (`raw_guard`,
+`protected_paths`, `phi_check`) are unchanged: they evaluate a tool call in
+Claude Code's shape. What changed is that every harness's payload now becomes
+one neutral **tool event** (shell, write, edit, notebook, read, agent, other)
+through its profile's `to_event`, and that event is turned back into the shape
+the guards read. So one guard serves every harness, and the same recorded
+cases (`templates/hook_payloads/<harness>.json`) are proven to get the same
+decisions through both adapters.
+
+`murmurent.hooks.adapter` is the one entry point for a harness other than
+Claude Code. For a `PreToolUse` call it runs the guards in order and answers
+in the harness's shape: a deny is `{"decision": "deny", "reason": ...}`; for
+allow it says `{}`, so the harness's own permission rules still apply (an
+explicit allow would auto-approve the call). It also writes the audit row
+with the harness, the model and the place, the agents-log line at session
+start, and the prompt into the vault's session record once per prompt. It
+never raises: a guard that throws is treated as allow, and everything else
+is skipped with the reason on stderr when `MURMURENT_HOOK_DEBUG=1`.
+
+Antigravity's argument names are only partly confirmed (`CommandLine` is
+documented; the file keys `TargetFile`, `AbsolutePath` and the rest come from
+the tools' common lineage). The adapter therefore also takes the first
+absolute path among a write's arguments, so a key it did not expect cannot
+blind the guards; the recorded case "write under immutable with an
+unexpected key name" proves it.
+
+```bash
+murmurent harness smoke antigravity   # every recorded case through the hooks, in a scratch data root
+murmurent harness smoke claude_code   # the same cases through Claude Code's adapter
+```
+
+The Antigravity hook adapter runs under the Python that installed murmurent;
+on a machine that runs murmurent from a development checkout, the hooks see
+the branch that checkout has. **The perimeter below the hooks** is the
+filesystem, which `murmurent security acl-check <data-root>` reads without
+changing anything: whether `immutable/` is writable by anyone but its owner,
+and whether `append_only/` lets a member add files but not delete another's
+(the sticky bit). The fixes it prints are for the PI to run on the server.
 
 A plain `murmurent install` with Antigravity chosen, or found and nothing
 chosen, does the same after the Claude Code steps. `--hooks` alone keeps its
@@ -240,7 +284,7 @@ profile in the phase named; "text" means a help string or docstring only.
 | Kind | Files | Phase |
 |---|---|---|
 | Install paths: where agents, rules, skills, settings and `CLAUDE.md` are linked or read | `scripts/setup.sh`, `scripts/bootstrap.sh` (text), `scripts/install_remote.sh` (text), `commands/setup_cmd.py`, `commands/doctor_cmd.py` (done: checks the chosen harnesses), `commands/install_cmd.py` (text), `commands/repo_cmd.py`, `commands/project_push_cmd.py`, `commands/centre_cmd.py`, `commands/agent_cmd.py` (text), `cli.py` (text), `core/agent_forks.py`, `core/agent_levels.py`, `core/agent_in_use.py`, `core/agent_links.py`, `core/agent_edit.py` (text), `core/personal_agents.py`, `core/repo_ready.py`, `core/repo_inventory.py`, `core/adopt.py`, `core/project_cc_init.py`, `core/remote_adopt.py`, `core/remote_install.py`, `core/vault_provision.py`, `core/paper_package.py`, `core/choreography_init.py`, `core/security_agent_review.py`, `core/projectize.py` (text), `dashboard/server.py` (text), `hooks/context_inject.py`, the hook and MCP docstrings, `scripts/murmurent_sec_scan.sh`, the push, project-push, reset and admin skills | 1 (the global links: done through `install --harness`); the per-repository links (`repo adopt`, `repo upgrade`, `project_cc_init`, the remote installs) and the agent forks: phase 1, second PR |
-| Session state: transcripts, the audit log, the agents log, agent memory | `hooks/audit.py`, `dashboard/audit_log.py` (text), `core/role_audit.py` (text), `core/project_gather.py`, `dashboard/snapshot.py`, `dashboard/workspace_file.py`, `dashboard/contract.py`, `core/project_cc_init.py` (the tail task), `scripts/murmurent_log_agent_event.sh`, `scripts/start_workspace.sh`, the update-me skill | 4 |
+| Session state: transcripts, the audit log, the agents log, agent memory | `hooks/audit.py` (done: the row carries harness, model and place), `dashboard/audit_log.py` (text), `core/role_audit.py` (text), `core/project_gather.py`, `dashboard/snapshot.py`, `dashboard/workspace_file.py`, `dashboard/contract.py`, `core/project_cc_init.py` (the tail task), `scripts/murmurent_log_agent_event.sh`, `scripts/start_workspace.sh`, the update-me skill | 4 |
 | The harness as a program: running `claude`, detecting a session | `dashboard/launchers.py`, `dashboard/workspace_file.py`, `scripts/bootstrap.sh` | 3 (the headless command) and 4 |
 | Later, said so in the docs | the training movies (one harness on screen); the `teacher` modes and the course skill (Claude Code subagents) | not planned |
 
