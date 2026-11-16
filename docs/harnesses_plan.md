@@ -182,19 +182,19 @@ tests, and ends with `pytest` green and `mkdocs build --strict` clean.
 
 ### Phase 0: the branch and the interface (small)
 
-Done on 2026-11-16 as far as the branch; the rest is the first PR.
+Done on 2026-11-16: the branch, and the first PR with the rest.
 
 - [x] Branch `harnesses` from `main`, worktree, `docs/harnesses.md` merged in.
-- [ ] `core/harness_policy.py` with `Harness`, `Profile`, `ToolEvent`,
+- [x] `core/harness_policy.py` with `Harness`, `Profile`, `ToolEvent`,
       `Event`, `TranscriptStore` and `PROFILES` holding only `claude_code`.
-- [ ] Move the body of `install_cmd.py` (hook and MCP registration into
+- [x] Move the body of `install_cmd.py` (hook and MCP registration into
       `~/.claude/settings.json` and `~/.claude.json`) behind
       `PROFILES["claude_code"]`. `murmurent install --hooks` keeps its name,
       output and effect. Its existing tests pass unchanged.
-- [ ] `murmurent harness` (new group): `murmurent harness list` prints each
+- [x] `murmurent harness` (new group): `murmurent harness list` prints each
       profile, whether it is installed on this machine (its config paths
       exist), its place and whether its hooks can deny. Read-only.
-- [ ] `docs/harnesses.md` and this plan in the mkdocs nav under "The machines
+- [x] `docs/harnesses.md` and this plan in the mkdocs nav under "The machines
       you can reach".
 
 Acceptance: a fresh clone on the branch installs Claude Code exactly as

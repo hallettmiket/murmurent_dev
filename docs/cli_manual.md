@@ -396,6 +396,17 @@ cluster is one kind of machine and keeps its facts in `policy/clusters.yaml`.
 | `murmurent machines usage [--json]` | Every storage tier on every set-up machine: space and files used of quota, which tier is nearest its limit. |
 | `/murmurent-machines [load\|usage\|status]` | In a Claude Code session: run the matching command and show the table verbatim. |
 
+### Harnesses
+
+The programs that can run murmurent's agents (Claude Code today; others on the
+`harnesses` branch). Guide: [`harnesses.md`](harnesses.md); plan:
+[`harnesses_plan.md`](harnesses_plan.md). A lab may change a harness's place
+or models in `policy/harnesses.yaml` of its records repository.
+
+| Command | What it does |
+|---|---|
+| `murmurent harness [list] [--json]` | One row per harness: where its model runs (its place), whether its hooks can refuse a call, its headless command, and whether the commons are installed into it on this machine, with what is missing. Read-only. |
+
 ### Papers and theses
 
 A paper as a queryable package, and a thesis composed of them; see
