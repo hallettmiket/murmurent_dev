@@ -398,14 +398,16 @@ cluster is one kind of machine and keeps its facts in `policy/clusters.yaml`.
 
 ### Harnesses
 
-The programs that can run murmurent's agents (Claude Code today; others on the
-`harnesses` branch). Guide: [`harnesses.md`](harnesses.md); plan:
+The programs that can run murmurent's agents (Claude Code and Google
+Antigravity; others as they are added). No harness is required. Guide: [`harnesses.md`](harnesses.md); plan:
 [`harnesses_plan.md`](harnesses_plan.md). A lab may change a harness's place
 or models in `policy/harnesses.yaml` of its records repository.
 
 | Command | What it does |
 |---|---|
 | `murmurent harness [list] [--json]` | One row per harness: where its model runs (its place), whether its hooks can refuse a call, its headless command, and whether the commons are installed into it on this machine, with what is missing. Read-only. |
+| `murmurent harness enable <name>` / `disable <name>` | Record that this machine uses, or no longer uses, a harness (`harnesses:` in `~/.murmurent/machine.yaml`). `disable` uninstalls nothing. A harness the lab has not enabled is refused. |
+| `murmurent install --harness <name> [--dry-run] [--all-skills]` | Render the commons into that harness (repeatable) and record the choice. `--dry-run` says what would be written. `--all-skills` also links the skills meant to be typed by a person, which Antigravity cannot keep from the model. A plain `murmurent install` acts on the chosen harnesses, or on every allowed one it finds. |
 
 ### Papers and theses
 

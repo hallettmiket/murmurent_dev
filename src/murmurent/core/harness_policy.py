@@ -48,6 +48,10 @@ TIERS: tuple[str, ...] = ("standard", "restricted", "protected")
 #: What the lab may change about a profile in ``policy/harnesses.yaml``.
 OVERRIDABLE: tuple[str, ...] = ("description", "place", "models")
 
+#: The key in ``~/.murmurent/machine.yaml`` that lists the harnesses this
+#: machine uses (rule 6 of the plan: none is required, Claude Code included).
+MACHINE_KEY = "harnesses"
+
 
 # ---------------------------------------------------------------------------
 # Facts
@@ -111,6 +115,25 @@ class Installed:
 
     yes: bool
     detail: str
+
+
+@dataclass
+class InstallReport:
+    """What an install into one harness did, or would do with ``dry_run``."""
+
+    harness: str
+    written: list[Path] = field(default_factory=list)
+    linked: list[Path] = field(default_factory=list)
+    skipped: list[str] = field(default_factory=list)    # what was left out, and why
+    warnings: list[str] = field(default_factory=list)   # what the person should know
+    notes: list[str] = field(default_factory=list)      # what to do by hand
+
+    def lines(self) -> list[str]:
+        out = [f"  + {p}" for p in self.written] + [f"  -> {p}" for p in self.linked]
+        out += [f"  - skipped: {s}" for s in self.skipped]
+        out += [f"  ! {w}" for w in self.warnings]
+        out += [f"  note: {n}" for n in self.notes]
+        return out
 
 
 # ---------------------------------------------------------------------------
@@ -185,7 +208,7 @@ class Profile:
 
     #: The phase of ``docs/harnesses_plan.md`` that fills in each method.
     PHASES: dict[str, int] = {
-        "render_rules": 1, "render_agents": 1, "mcp_config": 1, "hook_config": 2,
+        "install": 1, "render_rules": 1, "render_agents": 1, "mcp_config": 1, "hook_config": 2,
         "to_event": 2, "from_decision": 2, "read_events": 4,
     }
 
@@ -200,8 +223,18 @@ class Profile:
     def install_paths(self, home: Path) -> InstallPaths:
         raise NotImplementedError(f"{self.facts.name}.install_paths")
 
+    def present(self, home: Path) -> bool:
+        """Whether the harness itself is on this machine (its program or its
+        folder), before any install into it."""
+        raise NotImplementedError(f"{self.facts.name}.present")
+
     def installed(self, home: Path) -> Installed:
         raise NotImplementedError(f"{self.facts.name}.installed")
+
+    def install(self, home: Path, commons: Path, *, dry_run: bool = False) -> InstallReport:
+        """Render the commons into this harness's own paths. Overwrites what
+        it wrote last time; never a file it did not write."""
+        raise self._later("install")
 
     def headless_command(self, prompt: str, model: str, cwd: Path) -> list[str] | None:
         """The command line that runs one prompt and exits; None when the
@@ -247,9 +280,10 @@ class Profile:
 def profiles() -> dict[str, Profile]:
     """Every built-in profile by name. Imported here, not at module load, so
     a profile module may import this one."""
+    from .harness_antigravity import AntigravityProfile
     from .harness_claude_code import ClaudeCodeProfile
 
-    built_in: list[Profile] = [ClaudeCodeProfile()]
+    built_in: list[Profile] = [ClaudeCodeProfile(), AntigravityProfile()]
     return {p.facts.name: p for p in built_in}
 
 
@@ -258,9 +292,17 @@ class HarnessPolicy:
     harnesses: dict[str, Harness] = field(default_factory=dict)
     problems: list[str] = field(default_factory=list)
     sources: list[str] = field(default_factory=list)
+    #: The harnesses the lab allows (``enabled:`` in its file); None = all.
+    enabled: tuple[str, ...] | None = None
 
     def names(self) -> list[str]:
         return list(self.harnesses)
+
+    def allowed(self, name: str) -> bool:
+        return name in self.harnesses and (self.enabled is None or name in self.enabled)
+
+    def allowed_names(self) -> list[str]:
+        return [n for n in self.harnesses if self.allowed(n)]
 
 
 def _read_yaml(path: Path) -> tuple[dict | None, str | None]:
@@ -306,7 +348,16 @@ def _apply_file(policy: HarnessPolicy, path: Path) -> None:
         policy.problems.append(problem)
         return
     policy.sources.append(str(path))
-    harnesses = data.get("harnesses", data)
+    if "enabled" in data:
+        enabled = data["enabled"]
+        if not isinstance(enabled, list) or not all(isinstance(e, str) for e in enabled):
+            policy.problems.append(f"{path}: 'enabled' must be a list of harness names; every harness stays allowed")
+        else:
+            unknown = [e for e in enabled if e not in policy.harnesses]
+            for e in unknown:
+                policy.problems.append(f"{path}: enabled names {e!r}, which is not a harness murmurent knows")
+            policy.enabled = tuple(e for e in enabled if e in policy.harnesses)
+    harnesses = data.get("harnesses", {} if "enabled" in data else data)
     if not isinstance(harnesses, dict):
         policy.problems.append(f"{path}: 'harnesses' must be a mapping of harness name to settings")
         return
@@ -351,3 +402,67 @@ def load_harnesses(env: dict[str, str] | None = None) -> HarnessPolicy:
         else:
             policy.problems.append(f"${HARNESSES_ENV} names {path}, which does not exist")
     return policy
+
+
+# ---------------------------------------------------------------------------
+# The machine's choice (rule 6)
+# ---------------------------------------------------------------------------
+
+
+def _machine_file() -> Path:
+    from .repo import MACHINE_SETTINGS_FILE
+
+    return MACHINE_SETTINGS_FILE
+
+
+#: Overrides the machine's choice for one command (tests, unusual installs):
+#: a comma-separated list of harness names.
+MACHINE_ENV = "MURMURENT_HARNESSES"
+
+
+def machine_harnesses() -> list[str]:
+    """The harnesses this machine uses: ``$MURMURENT_HARNESSES`` if set, else
+    ``machine.yaml``; empty when nobody has chosen yet."""
+    env = os.environ.get(MACHINE_ENV)
+    if env is not None:
+        return [n.strip() for n in env.split(",") if n.strip()]
+    path = _machine_file()
+    try:
+        data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    except Exception:  # noqa: BLE001 - a missing or broken file means "not chosen"
+        return []
+    value = data.get(MACHINE_KEY) if isinstance(data, dict) else None
+    if not isinstance(value, list):
+        return []
+    return [str(v) for v in value]
+
+
+def set_machine_harnesses(names: list[str]) -> list[str]:
+    """Record the harnesses this machine uses. Every other line of
+    ``machine.yaml`` is kept. Returns what was stored."""
+    path = _machine_file()
+    data: dict = {}
+    if path.is_file():
+        loaded = yaml.safe_load(path.read_text(encoding="utf-8"))
+        data = loaded if isinstance(loaded, dict) else {}
+    stored = sorted(set(names))
+    data[MACHINE_KEY] = stored
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(yaml.safe_dump(data, sort_keys=False, allow_unicode=True), encoding="utf-8")
+    return stored
+
+
+def chosen_harnesses(policy: HarnessPolicy | None = None, home: Path | None = None) -> list[str]:
+    """The harnesses murmurent acts on here: the machine's choice, restricted
+    to what the lab allows; with no choice made, every allowed harness that is
+    present on the machine."""
+    policy = policy or load_harnesses()
+    home = home or Path.home()
+    chosen = [n for n in machine_harnesses() if policy.allowed(n)]
+    if chosen:
+        return chosen
+    out: list[str] = []
+    for name, profile in profiles().items():
+        if policy.allowed(name) and profile.present(home):
+            out.append(name)
+    return out

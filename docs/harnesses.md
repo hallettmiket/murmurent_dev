@@ -162,6 +162,92 @@ decision)`. The Antigravity reader is written only once a real transcript
 exists to read; its line format is unconfirmed today. Until then the review
 reports "Antigravity: N conversations in the index, transcripts not read".
 
+## 4. What is built, and how to use it
+
+Phases 0 and 1 of [`harnesses_plan.md`](harnesses_plan.md) are on the
+`harnesses` branch. A harness is a **profile** in
+`src/murmurent/core/harness_policy.py`, one class per harness answering the
+same questions; `harness_claude_code.py` and `harness_antigravity.py` are the
+two so far.
+
+### No harness is required
+
+Which harnesses an institution runs is its own choice, and murmurent runs
+with any one of them alone (rule 6 of the plan). Two layers decide:
+
+- **The lab**: `enabled:` in `policy/harnesses.yaml` of the lab records
+  repository lists the harnesses it allows. A harness outside the list is
+  shown as "not allowed by the lab" and refused by `install` and `enable`.
+  No list means every harness is allowed. The same file may change a
+  harness's `place`, `models` or `description`; anything else is reported
+  and the profile's value kept.
+- **The machine**: `harnesses:` in `~/.murmurent/machine.yaml`, written by
+  `murmurent harness enable <name>` or by `murmurent install --harness
+  <name>`. With no choice made, murmurent acts on every allowed harness it
+  finds on the machine (`claude` on the path or `~/.claude/`; the Antigravity
+  app, its data folder or `agy` on the path) and says so.
+
+```bash
+murmurent harness list          # every harness: place, hooks can refuse, headless, chosen, state here
+murmurent harness enable antigravity
+murmurent harness disable claude_code   # the choice only; nothing is uninstalled
+```
+
+`murmurent doctor` checks the chosen harnesses and no other, so a machine
+without Claude Code is never told to install it. A harness that is on the
+machine but not chosen and without the commons is a warning, not a failure.
+
+### `murmurent install --harness antigravity`
+
+```bash
+murmurent install --harness antigravity --dry-run   # what would be written
+murmurent install --harness antigravity             # write it, and record the choice
+```
+
+It writes, under `~/.gemini/config/` (the folder the App, the IDE and the
+CLI share), overwriting only what it wrote last time:
+
+| What | Where | How |
+|---|---|---|
+| Rules (`rules/*.md`, `rules/local/*.md`), the output style, the commons overview | `rules/murmurent_<name>.md` | Each with a `trigger: always_on` front matter; `oracle_schema.md` gets `model_decision` with a sentence saying when to read it. A file over Antigravity's 24,000-byte limit is **skipped and named** rather than cut off (today: `CLAUDE.md`, 25 KB). The total is checked against the 20,000-token budget. |
+| Skills | `skills/<name>` | Links to the commons. A skill marked `disable-model-invocation` (meant to be typed, never chosen by the model) is left out and named, since Antigravity ignores that guard; `--all-skills` links it anyway. |
+| Agents | `agents/<name>.md` | A translated copy: `name` and `description` kept, `model: inherit`, the body (the prompt) unchanged. A `tools` line only when every required tool has a confirmed Antigravity name; today `Glob`, `Grep`, `WebFetch` and `WebSearch` do not, so every agent gets Antigravity's full set, and the report says so once. The fields Antigravity has no place for are listed once. |
+| MCP servers | `mcp_config.json` | The four murmurent servers merged under `mcpServers`; every other server kept. |
+
+The report ends with two notes to act on by hand (MCP tools run in ask
+mode until a permission rule allows them, and the governance hooks are not
+installed until phase 2) and the data-handling warning, printed every time.
+
+A plain `murmurent install` with Antigravity chosen, or found and nothing
+chosen, does the same after the Claude Code steps. `--hooks` alone keeps its
+old meaning: Claude Code only.
+
+### Checked by hand
+
+2026-11-16, Antigravity App 2.32.1 on the PI's Mac, personal sign-in with
+telemetry off (global settings, Account, "Enable Telemetry"). After
+`murmurent install --harness antigravity` and the five permission grants
+added once in the App's global settings, a conversation in a murmurent-ready
+repository listed the rendered rules, searched the oracle over MCP and ran
+`murmurent machines load`. Reported working by the PI. The CLI (`agy`) is
+not installed on that machine; nothing in phase 1 needs it.
+
+### The Claude Code assumptions still in the code
+
+Read on 2026-11-16 with the two profile modules excluded. Each moves behind a
+profile in the phase named; "text" means a help string or docstring only.
+
+| Kind | Files | Phase |
+|---|---|---|
+| Install paths: where agents, rules, skills, settings and `CLAUDE.md` are linked or read | `scripts/setup.sh`, `scripts/bootstrap.sh` (text), `scripts/install_remote.sh` (text), `commands/setup_cmd.py`, `commands/doctor_cmd.py` (done: checks the chosen harnesses), `commands/install_cmd.py` (text), `commands/repo_cmd.py`, `commands/project_push_cmd.py`, `commands/centre_cmd.py`, `commands/agent_cmd.py` (text), `cli.py` (text), `core/agent_forks.py`, `core/agent_levels.py`, `core/agent_in_use.py`, `core/agent_links.py`, `core/agent_edit.py` (text), `core/personal_agents.py`, `core/repo_ready.py`, `core/repo_inventory.py`, `core/adopt.py`, `core/project_cc_init.py`, `core/remote_adopt.py`, `core/remote_install.py`, `core/vault_provision.py`, `core/paper_package.py`, `core/choreography_init.py`, `core/security_agent_review.py`, `core/projectize.py` (text), `dashboard/server.py` (text), `hooks/context_inject.py`, the hook and MCP docstrings, `scripts/murmurent_sec_scan.sh`, the push, project-push, reset and admin skills | 1 (the global links: done through `install --harness`); the per-repository links (`repo adopt`, `repo upgrade`, `project_cc_init`, the remote installs) and the agent forks: phase 1, second PR |
+| Session state: transcripts, the audit log, the agents log, agent memory | `hooks/audit.py`, `dashboard/audit_log.py` (text), `core/role_audit.py` (text), `core/project_gather.py`, `dashboard/snapshot.py`, `dashboard/workspace_file.py`, `dashboard/contract.py`, `core/project_cc_init.py` (the tail task), `scripts/murmurent_log_agent_event.sh`, `scripts/start_workspace.sh`, the update-me skill | 4 |
+| The harness as a program: running `claude`, detecting a session | `dashboard/launchers.py`, `dashboard/workspace_file.py`, `scripts/bootstrap.sh` | 3 (the headless command) and 4 |
+| Later, said so in the docs | the training movies (one harness on screen); the `teacher` modes and the course skill (Claude Code subagents) | not planned |
+
+There are no `claude -p` calls and no `claude` subprocess in the code today:
+murmurent has never run a harness headless, so phase 3 builds that command
+line rather than replacing one.
+
 ## Risks
 
 - **Governance hooks absent.** Every Antigravity session on this Mac today
