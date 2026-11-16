@@ -224,10 +224,13 @@ old meaning: Claude Code only.
 
 ### Checked by hand
 
-Not yet. The acceptance step of phase 1 (a real Antigravity conversation in
-a murmurent-ready repository seeing the voice rules, calling `oracle_search`
-and running `/murmurent-machines`) is recorded here with the date and the
-App version when the PI has done it.
+2026-11-16, Antigravity App 2.32.1 on the PI's Mac, personal sign-in with
+telemetry off (global settings, Account, "Enable Telemetry"). After
+`murmurent install --harness antigravity` and the five permission grants
+added once in the App's global settings, a conversation in a murmurent-ready
+repository listed the rendered rules, searched the oracle over MCP and ran
+`murmurent machines load`. Reported working by the PI. The CLI (`agy`) is
+not installed on that machine; nothing in phase 1 needs it.
 
 ### The Claude Code assumptions still in the code
 
