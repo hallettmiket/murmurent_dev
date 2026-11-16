@@ -213,3 +213,21 @@ def _cli():
     from murmurent.cli import cli
 
     return cli
+
+
+def test_hooks_json_carries_the_data_root(home, monkeypatch):
+    """The App is started from the Dock with no shell variables, so the hook
+    command must carry the data root itself."""
+    ag = _hp.profiles()["antigravity"]
+    monkeypatch.setenv("MURMURENT_DATA_ROOT", "/data/lab vm")
+    rep = ag.install(home, COMMONS)
+    data = json.loads((home / _ag.CONFIG_DIR / _ag.HOOKS_FILE).read_text(encoding="utf-8"))
+    cmd = data[_ag.HOOK_NAME]["PreToolUse"][0]["hooks"][0]["command"]
+    assert cmd.startswith("MURMURENT_DATA_ROOT='/data/lab vm' ")
+    assert any("carry the data root /data/lab vm" in n for n in rep.notes)
+    monkeypatch.delenv("MURMURENT_DATA_ROOT")
+    monkeypatch.delenv("MURMURENT_LAB_VM_ROOT", raising=False)
+    rep = ag.install(home, COMMONS)
+    data = json.loads((home / _ag.CONFIG_DIR / _ag.HOOKS_FILE).read_text(encoding="utf-8"))
+    assert not data[_ag.HOOK_NAME]["PreToolUse"][0]["hooks"][0]["command"].startswith("MURMURENT_DATA_ROOT")
+    assert any("MURMURENT_DATA_ROOT is not set" in w for w in rep.warnings)
