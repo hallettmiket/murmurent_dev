@@ -22,6 +22,7 @@ marked unconfirmed in its comment.
 from __future__ import annotations
 
 import json
+import os
 import shutil
 from pathlib import Path
 from typing import Any
@@ -233,7 +234,16 @@ class AntigravityProfile(Profile):
                 data = json.loads(target.read_text(encoding="utf-8") or "{}")
             except json.JSONDecodeError:
                 data = {}
-        adapter = f"{sys.executable} -m murmurent.hooks.adapter --harness antigravity"
+        # The App is started from the Dock, with none of the shell's variables,
+        # so the data root the guards protect is written into the command the
+        # way Claude Code's hooks carry their own settings. Read at install
+        # time; re-run the install when it changes.
+        import os
+        import shlex
+
+        root = os.environ.get("MURMURENT_DATA_ROOT") or os.environ.get("MURMURENT_LAB_VM_ROOT") or ""
+        prefix = f"MURMURENT_DATA_ROOT={shlex.quote(root)} " if root else ""
+        adapter = f"{prefix}{sys.executable} -m murmurent.hooks.adapter --harness antigravity"
         data[HOOK_NAME] = {
             "PreToolUse": [{"matcher": GOVERNED_MATCHER,
                             "hooks": [{"type": "command", "command": f"{adapter} --event PreToolUse", "timeout": 20}]}],
@@ -384,6 +394,12 @@ class AntigravityProfile(Profile):
         # The governance hooks.
         hooks = self.hook_config(home)
         _write(hooks.path, hooks.text, dry_run, report)
+        root = os.environ.get("MURMURENT_DATA_ROOT") or os.environ.get("MURMURENT_LAB_VM_ROOT") or ""
+        if root:
+            report.notes.append(f"the governance hooks carry the data root {root}; re-run this install if it changes")
+        else:
+            report.warnings.append("MURMURENT_DATA_ROOT is not set, so the hooks do not know the lab's data root "
+                                   "and will not refuse writes under it; set it and run this install again")
         report.notes.append("the governance hooks run through murmurent.hooks.adapter; check them with: "
                             "murmurent harness smoke antigravity")
         report.warnings.append(DATA_WARNING)
