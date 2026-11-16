@@ -104,6 +104,7 @@ nav:
       - Running long jobs: run_launcher.md
       - Running work on a compute cluster: cluster.md
       - The machines you can reach: machines.md
+      - "A second harness (Antigravity) 🚧": harnesses.md
       - Tidying a project's space: space_table.md
       - The lab folder protocol: lab_folders.md
   - Labs & cores:
