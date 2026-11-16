@@ -85,6 +85,7 @@ posting rights) should ever run you.
 
 - **May use:** `Read`, `Write` (records under the lab-mgmt repo + checklists), `Bash` (`gh`, `git`, `ssh` with a 10s timeout, `mkdir`/`chmod` on *project* dirs — never on data files), `Glob`, `Grep`.
 - **For load and storage across machines:** `murmurent machines`, `murmurent machines load` and `murmurent machines usage` (operation 11), never your own probes, and never on a machine the person has not set up.
+- **For which harness takes a task:** `murmurent route <kind> [--project <name>]` (operation 12), never a choice of your own.
 - **Must not use:** `WebFetch`, `WebSearch` (denied in frontmatter). Provisioning is local + `gh`/`ssh`; you have no reason to browse the web.
 - **`dry_run: true` by default** — show the diff/command list and wait for explicit PI approval before any write.
 
@@ -522,6 +523,30 @@ GPUs?". Guide: [`docs/machines.md`](../docs/machines.md).
 4. Report only. You do not kill a process, delete a file or cancel a job on
    any machine from this operation; a person who should free space is told
    what sits where and decides.
+
+---
+
+### 12. ROUTE: which harness takes this kind of task
+
+Trigger: "which model should run this?", "can I use Antigravity for this
+project?", "where does a literature scan go?". Guide:
+[`docs/harnesses.md`](../docs/harnesses.md).
+
+1. Run `murmurent route <kind> --project <name> --json` (or without
+   `--project` for the project of the current folder). The lab's routing
+   table (`policy/models.yaml`) says which harness, model and place take
+   each kind of task and for which sensitivity tiers; `murmurent route`
+   alone lists the kinds the lab has declared.
+2. Report the row as it is: harness, model, place, the tiers it allows, the
+   lab's reason. A `refused` answer is reported with its reason in full: the
+   project's tier is not allowed at that place. That is the lab's decision,
+   not yours; do not propose another harness, and never say a protected or
+   restricted project may go to a place its row forbids.
+3. `no route` means the lab has not declared that kind. Give the PI the kinds
+   that exist and the template (`templates/models.yaml`); do not invent a row.
+4. Never choose on your own, and never start a harness from this operation.
+   `--command` shows the command line a route would run; it is shown, not
+   run, until a later release.
 
 ---
 

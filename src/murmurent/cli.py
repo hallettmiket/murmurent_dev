@@ -3127,6 +3127,9 @@ from .commands.harness_cmd import harness_group as _harness_group  # noqa: E402
 cli.add_command(_harness_group)
 cli.add_command(_harness_group, name="harnesses")
 
+from .commands.route_cmd import route_command as _route_command  # noqa: E402
+cli.add_command(_route_command)
+
 
 if __name__ == "__main__":  # pragma: no cover
     cli()
