@@ -3098,11 +3098,16 @@ from .commands.cluster_cmd import cluster_group as _cluster_group
 cli.add_command(_cluster_group)
 
 
-if __name__ == "__main__":  # pragma: no cover
-    cli()
-
 # Machines: the machines a person can reach, their load and storage, in one table.
 # `murmurent machine add` is the same group under its singular name.
 from .commands.machines_cmd import machines_group as _machines_group
 cli.add_command(_machines_group)
 cli.add_command(_machines_group, name="machine")
+
+from .commands.harness_cmd import harness_group as _harness_group  # noqa: E402
+cli.add_command(_harness_group)
+cli.add_command(_harness_group, name="harnesses")
+
+
+if __name__ == "__main__":  # pragma: no cover
+    cli()

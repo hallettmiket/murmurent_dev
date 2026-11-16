@@ -71,6 +71,12 @@ can check a change against them without reading the sketch.
    own refusals, which hold whatever harness a session runs in.
 5. **One event record.** Murmurent reads one normalised event, produced by a
    reader per profile. Nothing downstream knows a harness's transcript format.
+6. **No harness is required, Claude Code included.** Which harnesses an
+   institution runs is its own choice: one, two or all. The lab says which
+   it allows; each machine says which it has. Murmurent must install, run and
+   report with any one of them alone, and nothing in it may assume
+   `~/.claude/` exists. Claude Code stays the first profile, not the
+   required one.
 
 ## Architecture
 
@@ -175,6 +181,45 @@ whose `data` list does not include the project's sensitivity, with the reason.
 `place` is the field the refusal reads. The `data` list is the one field that
 is not documentation.
 
+## Choosing harnesses
+
+Rule 6 has two layers, like the machines file:
+
+- **The lab's choice**, in `policy/harnesses.yaml`: an `enabled:` list of
+  the harnesses this institution allows, with the overrides it makes. A
+  harness not in the list is shown by `murmurent harness list` as "not
+  allowed here" and refused by `murmurent install --harness` and by the
+  routing table. No list means every profile is allowed.
+- **The machine's choice**, in `~/.murmurent/config.yaml` under `harnesses:`,
+  written by `murmurent install --harness <name>` (repeatable) and changed by
+  `murmurent harness enable <name>` and `disable <name>`. A plain
+  `murmurent install` with nothing chosen installs into every allowed harness
+  it finds on the machine (`claude` on the path, the Antigravity app folder,
+  and so on), prints what it found, and installs into none it does not find.
+  It never asks for a harness that is absent.
+
+Everything that today reaches for `~/.claude/` goes through the chosen
+profiles instead. On 2026-11-16 that is 40 source files (20 in `core/`, 7 in
+`commands/`, 5 in `hooks/`, 4 in the dashboard, 3 in `mcp/`, plus
+`scripts/setup.sh`), and the inventory of them is the first task of
+phase 1. Each falls into one of three kinds:
+
+| Kind | Examples | What happens to it |
+|---|---|---|
+| Install paths: where agents, rules, skills and settings are linked | `scripts/setup.sh`, `install_cmd`, `repo adopt` and `repo upgrade` (the `.claude/agents` links in each repository), `doctor` | Replaced by `Profile.install_paths` over the chosen profiles; a repository is adopted for each chosen harness |
+| Session state: where the harness keeps transcripts, the audit log, the agents log | `hooks/audit.py`, `hooks/session_log.py`, the dashboard's agent pane, `project_cc_init` | Replaced by the event record of phase 4 and `Profile.transcript_stores` |
+| The harness as a program: running `claude`, reading `~/.claude.json` | the launcher, `prompt_send`, the remote install | Replaced by `Profile.headless_command` and the routing table |
+
+Two things stay Claude Code's for now and are said so in the docs: the
+training movies, which show one harness, and the `teacher` modes, which
+dispatch Claude Code subagents. Both get an entry in the inventory with
+"later" beside them rather than silently staying coupled.
+
+Acceptance for rule 6 is a test added in phase 1 and kept for the life of
+the branch: with `harnesses: [antigravity]` on a machine that has no
+`~/.claude/` at all, `murmurent install`, `murmurent harness list`,
+`murmurent doctor` and `murmurent route` all run and exit 0.
+
 ## Phases
 
 Each phase is one or more pull requests against `harnesses`, each with its
@@ -182,19 +227,19 @@ tests, and ends with `pytest` green and `mkdocs build --strict` clean.
 
 ### Phase 0: the branch and the interface (small)
 
-Done on 2026-11-16 as far as the branch; the rest is the first PR.
+Done on 2026-11-16: the branch, and the first PR with the rest.
 
 - [x] Branch `harnesses` from `main`, worktree, `docs/harnesses.md` merged in.
-- [ ] `core/harness_policy.py` with `Harness`, `Profile`, `ToolEvent`,
+- [x] `core/harness_policy.py` with `Harness`, `Profile`, `ToolEvent`,
       `Event`, `TranscriptStore` and `PROFILES` holding only `claude_code`.
-- [ ] Move the body of `install_cmd.py` (hook and MCP registration into
+- [x] Move the body of `install_cmd.py` (hook and MCP registration into
       `~/.claude/settings.json` and `~/.claude.json`) behind
       `PROFILES["claude_code"]`. `murmurent install --hooks` keeps its name,
       output and effect. Its existing tests pass unchanged.
-- [ ] `murmurent harness` (new group): `murmurent harness list` prints each
+- [x] `murmurent harness` (new group): `murmurent harness list` prints each
       profile, whether it is installed on this machine (its config paths
       exist), its place and whether its hooks can deny. Read-only.
-- [ ] `docs/harnesses.md` and this plan in the mkdocs nav under "The machines
+- [x] `docs/harnesses.md` and this plan in the mkdocs nav under "The machines
       you can reach".
 
 Acceptance: a fresh clone on the branch installs Claude Code exactly as
@@ -203,6 +248,15 @@ both and compares.
 
 ### Phase 1: the commons load into Antigravity (medium)
 
+- [ ] The inventory of rule 6: every place the code reaches for `~/.claude/`
+      or runs `claude`, listed in `docs/harnesses.md` with its kind from the
+      table above and the phase that moves it behind a profile.
+- [ ] `policy/harnesses.yaml` gains `enabled:`; `~/.murmurent/config.yaml`
+      gains `harnesses:`; `murmurent harness enable|disable`; `murmurent
+      install` installs into the chosen harnesses only, and with none chosen
+      into every allowed one it finds on the machine.
+- [ ] `murmurent doctor` checks each chosen harness and no other, so a
+      machine without Claude Code is not told to install it.
 - [ ] `AntigravityProfile`: paths under `~/.gemini/config/` (rules, skills,
       agents, `mcp_config.json`, `hooks.json`) from the sketch, each with the
       documentation page it was read from in a comment and the date.
