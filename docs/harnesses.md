@@ -315,6 +315,38 @@ printed and not run; running a route, and reading what it did, is a later
 branch. The millwright's operation 12 runs `murmurent route` and reports the
 row or the refusal, and never chooses on its own.
 
+### One session record for every harness
+
+Phase 4. Each profile reads its own transcripts into one kind of row (time,
+harness, model, place, session, project, tool, a short summary of the
+arguments): Claude Code's one file per session under `~/.claude/projects/`,
+Antigravity's `transcript.jsonl` under each conversation's folder in
+`~/.gemini/antigravity/brain/` (read from the App 2.32.1's own files on
+2026-11-16: one JSON object per step; a `PLANNER_RESPONSE` step carries the
+tool calls). The audit log, which the hooks write for every harness, adds
+the refusals and, for Antigravity, the model, since its transcript names
+none.
+
+```bash
+murmurent sessions                 # yesterday's and today's sessions, every harness
+murmurent sessions --since 2026-11-01
+murmurent sessions --all --json
+```
+
+One row per session: start, end, harness, model, place, project, tool calls,
+refusals. A harness whose transcripts could not be read has a row of its own
+saying so, never a silent gap. The dashboard's agent pane already shows the
+line the adapter writes at an Antigravity session's start, beside Claude
+Code's.
+
+The same live conversations showed the App's own tool names (`read_file`
+with a `Path` argument, `search_web`, `run_command`), not the `view_file`
+of its hooks documentation. The governance hook therefore now matches every
+tool, and a tool name murmurent has not met is classed by what it says
+(`edit`, `write`, `create`, `delete`, `command`, `read`) so that a write
+tool under a new name still reaches the guards; a name that says nothing is
+allowed, as before.
+
 ### The Claude Code assumptions still in the code
 
 Read on 2026-11-16 with the two profile modules excluded. Each moves behind a

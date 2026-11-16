@@ -348,16 +348,16 @@ the row.
 
 ### Phase 4: one record for every harness (medium)
 
-- [ ] `TranscriptStore` for Claude Code (`~/.claude/projects/<slug>/*.jsonl`)
+- [x] `TranscriptStore` for Claude Code (`~/.claude/projects/<slug>/*.jsonl`)
       and `read_events` for its format, tested on a recorded session.
-- [ ] The same for Antigravity, written only once a real
+- [x] The same for Antigravity, written only once a real
       `transcript.jsonl` exists on the PI's Mac to read; until then
       `murmurent sessions` reports "antigravity: N conversations in the
       index, transcripts not read", from `conversation_summaries.db`.
-- [ ] `murmurent sessions [--since <date>]`: one row per session across
+- [x] `murmurent sessions [--since <date>]`: one row per session across
       harnesses: when, harness, model, place, project, tool calls, refusals.
       Read-only, `--json`.
-- [ ] The dashboard's agent pane reads this record instead of only the
+- [x] The dashboard's agent pane reads this record instead of only the
       agents log, so a session in Antigravity appears beside one in Claude
       Code.
 

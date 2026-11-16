@@ -91,7 +91,7 @@ def audit(profile: _hp.Profile, event: _hp.ToolEvent, payload: dict[str, Any],
         call = event.as_claude_call()
         call["outcome"] = "error" if payload.get("error") else "ok"
         _audit.write_entry(call, harness=profile.facts.name, model=_model(payload),
-                           place=profile.facts.place, decision=decision, hook=hook)
+                           place=profile.facts.place, decision=decision, hook=hook, session=event.session)
     except Exception as exc:  # noqa: BLE001
         _debug(f"audit skipped: {exc!r}")
 

@@ -19,7 +19,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from .harness_policy import Harness, InstallPaths, Installed, Profile, ToolEvent, TranscriptStore
+from .harness_policy import Event, Harness, InstallPaths, Installed, Profile, ToolEvent, TranscriptStore
 
 DEFAULT_SETTINGS_PATH = Path("~/.claude/settings.json").expanduser()
 
@@ -476,6 +476,47 @@ class ClaudeCodeProfile(Profile):
     def transcript_stores(self, home: Path) -> list[TranscriptStore]:
         return [TranscriptStore(harness=self.facts.name, root=home / ".claude" / "projects",
                                 pattern="*/*.jsonl")]
+
+    # --- the session record (phase 4) ------------------------------------------
+
+    def read_events(self, path: Path):
+        """Every tool call in one Claude Code session transcript, as an
+        :class:`Event`. Transcripts are one JSON object per line; a tool
+        call is a ``tool_use`` block inside an ``assistant`` line's message.
+        Lines that are not JSON, or not that shape, are skipped."""
+        from .harness_policy import project_for_cwd, summarise
+
+        try:
+            lines = path.read_text(encoding="utf-8").splitlines()
+        except OSError:
+            return
+        for line in lines:
+            try:
+                d = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if not isinstance(d, dict) or d.get("type") != "assistant":
+                continue
+            msg = d.get("message") or {}
+            content = msg.get("content")
+            if not isinstance(content, list):
+                continue
+            cwd = str(d.get("cwd") or "")
+            for block in content:
+                if not isinstance(block, dict) or block.get("type") != "tool_use":
+                    continue
+                yield Event(
+                    t=str(d.get("timestamp") or ""),
+                    harness=self.facts.name,
+                    model=str(msg.get("model") or ""),
+                    place=self.facts.place,
+                    session=str(d.get("sessionId") or path.stem),
+                    project=project_for_cwd(cwd),
+                    repo=Path(cwd).name if cwd else "",
+                    tool=str(block.get("name") or ""),
+                    summary=summarise(block.get("input")),
+                    decision="",
+                )
 
     # --- the hook contract (phase 2) --------------------------------------------
 

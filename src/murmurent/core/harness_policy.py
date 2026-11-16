@@ -28,6 +28,7 @@ that fills them in, so a caller never gets a silent empty answer.
 
 from __future__ import annotations
 
+import json
 import os
 from dataclasses import dataclass, field, replace
 from pathlib import Path
@@ -490,3 +491,39 @@ def chosen_harnesses(policy: HarnessPolicy | None = None, home: Path | None = No
         if policy.allowed(name) and profile.present(home):
             out.append(name)
     return out
+
+
+# ---------------------------------------------------------------------------
+# Helpers the transcript readers share (phase 4)
+# ---------------------------------------------------------------------------
+
+SUMMARY_LENGTH = 120
+
+_project_cache: dict[str, str] = {}
+
+
+def project_for_cwd(cwd: str) -> str:
+    """The project of a folder, by its repository's record; '' when none.
+    Cached per folder, since a transcript repeats its folder on every line."""
+    if not cwd:
+        return ""
+    if cwd not in _project_cache:
+        try:
+            from . import cert_projects as _cp
+
+            _project_cache[cwd] = _cp.project_name_for_cwd(cwd) or ""
+        except Exception:  # noqa: BLE001
+            _project_cache[cwd] = ""
+    return _project_cache[cwd]
+
+
+def summarise(value: Any) -> str:
+    """A tool call's arguments in one short line for the record."""
+    if value is None:
+        return ""
+    try:
+        text = value if isinstance(value, str) else json.dumps(value, default=str)
+    except (TypeError, ValueError):
+        text = str(value)
+    text = " ".join(text.split())
+    return text if len(text) <= SUMMARY_LENGTH else text[: SUMMARY_LENGTH - 1] + "…"
