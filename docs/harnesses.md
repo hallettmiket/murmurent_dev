@@ -223,6 +223,13 @@ time.
 
 ### The governance hooks in another harness
 
+Checked by hand on 2026-11-16, Antigravity App 2.32.1 on the PI's Mac: after
+the install wrote `hooks.json`, a conversation asked to delete a file under
+the data root's `immutable/` was refused with murmurent's own message.
+Before that, running the hook command with an empty environment (as the App
+runs it) had shown the guards could not see the data root; the command now
+carries it (PR 329).
+
 Phase 2. The three guards that protect the data root (`raw_guard`,
 `protected_paths`, `phi_check`) are unchanged: they evaluate a tool call in
 Claude Code's shape. What changed is that every harness's payload now becomes
@@ -275,6 +282,38 @@ added once in the App's global settings, a conversation in a murmurent-ready
 repository listed the rendered rules, searched the oracle over MCP and ran
 `murmurent machines load`. Reported working by the PI. The CLI (`agy`) is
 not installed on that machine; nothing in phase 1 needs it.
+
+### The routing table
+
+Phase 3. `policy/models.yaml` in the lab records repository says which
+harness, which model and which place take which kind of task, and for which
+sensitivity tiers. `templates/models.yaml` is the commented example, with two
+rows; the lab names the kinds its routines use. It is read the way the
+machines and harnesses files are: a row with a harness murmurent does not
+know (or the lab has not enabled), a place that is not where that harness
+runs, or a data tier that does not exist is reported and dropped, and the
+other rows stand. There are no built-in rows: a lab that has written none
+has no routes, and the command says so.
+
+```bash
+murmurent route                                   # every route the lab declared
+murmurent route literature_scan                   # the row, for the project of this folder
+murmurent route literature_scan --project coin_seq
+murmurent route literature_scan --command "find papers on DCIS"   # also the command line, not run
+```
+
+The `data:` list of a row is the one field that is not documentation. With
+`--project` (or the project of the current folder), a route whose list does
+not include the project's tier is **refused**, with the place named in the
+reason, since the place is what the tier is about. A protected project never
+reaches a row whose place is a personal Google sign-in, whatever the model.
+Exit 0 always, as `machines` does.
+
+`--command` prints the headless command line the route's harness would run,
+built by the profile (`claude -p ...`, `agy -p ... --model ...`). It is
+printed and not run; running a route, and reading what it did, is a later
+branch. The millwright's operation 12 runs `murmurent route` and reports the
+row or the refusal, and never chooses on its own.
 
 ### The Claude Code assumptions still in the code
 

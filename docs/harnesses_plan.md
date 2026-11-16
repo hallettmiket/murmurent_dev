@@ -328,17 +328,17 @@ work but is what rule 4 requires:
 
 ### Phase 3: the routing table (small)
 
-- [ ] `core/route_policy.py`: loader, `Route` dataclass, validation that
+- [x] `core/route_policy.py`: loader, `Route` dataclass, validation that
       `harness` names a profile, `place` matches the profile's place, and
       `data` holds only the three tiers. Problems reported, defaults kept.
-- [ ] `templates/models.yaml`: the two-row example above, every line
+- [x] `templates/models.yaml`: the two-row example above, every line
       explained.
-- [ ] `murmurent route <kind> [--project]`: prints the row; refuses on
+- [x] `murmurent route <kind> [--project]`: prints the row; refuses on
       sensitivity; `--json`; exit 0 always, as `machines` does.
-- [ ] `murmurent route --command <kind> "<prompt>"`: prints the headless
+- [x] `murmurent route --command <kind> "<prompt>"`: prints the headless
       command line the profile builds (`claude -p …`, `agy -p … --model …`)
       and does not run it. Running is a later branch.
-- [ ] The millwright gains operation 12, "which harness takes this": runs
+- [x] The millwright gains operation 12, "which harness takes this": runs
       `murmurent route` and reports the row and the refusal reason, never
       choosing on its own.
 

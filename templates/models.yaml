@@ -1,0 +1,38 @@
+# policy/models.yaml: the routing table. Which harness, which model and which
+# place take which kind of task. Copy this file into the lab records
+# repository (murmurent_lab_mgmt_<lab>/policy/models.yaml), replace the two
+# example rows with the lab's own, and have the PI review every change: this
+# table is written by people, never learned. `murmurent route <kind>` reads
+# it; `murmurent route --project <name>` refuses a row the project's
+# sensitivity forbids. Guide: docs/harnesses.md.
+#
+# Each row names three things kept apart on purpose: the harness (the program
+# around the model), the model, and the place (where the model runs and the
+# conversation is kept). Data sensitivity depends on the place alone.
+#
+# A row with a harness murmurent does not know, a place that is not where that
+# harness runs, or a data tier that does not exist is reported as a problem
+# and dropped; the other rows stand.
+
+routes:
+
+  # A kind of task: a short snake_case name the lab chooses. These two are
+  # examples; the lab names the kinds its routines use.
+  software_build:
+    harness: claude_code            # a harness murmurent knows: murmurent harness list
+    model: claude-opus-5-5          # the model, as the harness names it; checked at
+                                    # install against the harness's own list, never trusted
+    place: anthropic_cloud          # optional; must be where the harness runs
+    data: [standard, restricted, protected]   # the sensitivity tiers a project may carry
+                                              # for this route to apply
+    why: governance hooks installed; the vendor terms accepted for the lab
+
+  literature_scan:
+    harness: antigravity
+    model: gemini-4-argon
+    place: google_personal
+    data: [standard]                # never restricted or protected under a personal
+                                    # sign-in: Google may keep, review and train on the
+                                    # session (docs/harnesses.md, the three facts)
+    agent: bookworm                 # optional: the agent that takes the task
+    why: cheap long-context reading of public text; nothing of the lab's leaves
