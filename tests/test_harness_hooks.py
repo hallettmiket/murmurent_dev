@@ -94,7 +94,7 @@ def test_from_decision_shapes():
     assert cc.from_decision(deny)["hookSpecificOutput"]["permissionDecision"] == "deny"
     assert cc.from_decision({"decision": "allow"}) == {}
     assert ag.from_decision(deny) == {"decision": "deny", "reason": "no"}
-    assert ag.from_decision({"decision": "allow"}) == {}
+    assert ag.from_decision({"decision": "allow"}) == {"decision": "ask"}   # required field; own check decides
 
 
 # ---------------------------------------------------------------------------
@@ -120,19 +120,27 @@ def test_entry_point_denies_in_antigravity_shape_and_audits_it(home, data_root):
     assert rows[-1]["place"] == "google_personal"
 
 
-def test_entry_point_says_nothing_for_an_allowed_call_and_audits_post(home, data_root):
+def test_entry_point_asks_for_an_allowed_call_and_audits_post(home, data_root):
+    """Antigravity's contract says ``decision`` is required: its command-line
+    tool refused every call answered ``{}`` (2026-11-16). ``ask`` leaves the
+    call to Antigravity's own permission check."""
     payload = {"hookEventName": "PreToolUse", "toolCall": {"name": "run_command", "args": {"CommandLine": "ls"}}}
-    assert _run(["--harness", "antigravity", "--event", "PreToolUse"], payload) == {}
+    assert _run(["--harness", "antigravity", "--event", "PreToolUse"], payload) == {"decision": "ask"}
     assert _run(["--harness", "antigravity", "--event", "PostToolUse"], dict(payload, error="exit status 1")) == {}
     rows = [json.loads(l) for f in (home / "audit").glob("*.log") for l in f.read_text().splitlines()]
     assert rows[-1]["outcome"] == "error" and rows[-1]["tool"] == "Bash" and rows[-1]["harness"] == "antigravity"
 
 
-def test_entry_point_never_stops_the_harness(home):
+def test_entry_point_never_stops_the_harness(home, monkeypatch):
     assert _run(["--harness", "nope", "--event", "PreToolUse"], {"x": 1}) == {}
     out = io.StringIO()
     assert _adapter.main(["--harness", "antigravity", "--event", "PreToolUse"], stdin=io.StringIO("not json"), stdout=out) == 0
-    assert json.loads(out.getvalue()) == {}
+    assert json.loads(out.getvalue()) == {"decision": "ask"}      # unreadable input: the harness's own rules decide
+    # A crash inside the adapter answers the same neutral shape, never a refusal.
+    monkeypatch.setattr(_adapter, "handle", lambda *a: (_ for _ in ()).throw(RuntimeError("boom")))
+    assert _run(["--harness", "antigravity", "--event", "PreToolUse"], {"toolCall": {"name": "run_command"}}) == {"decision": "ask"}
+    assert _run(["--harness", "antigravity", "--event", "PostToolUse"], {}) == {}
+    assert _run(["--harness", "claude_code", "--event", "PreToolUse"], {}) == {}
 
 
 def test_session_start_writes_the_agents_log_line(home):
