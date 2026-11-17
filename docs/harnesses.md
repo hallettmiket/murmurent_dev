@@ -268,11 +268,15 @@ murmurent harness smoke claude_code   # the same cases through Claude Code's ada
 
 The Antigravity hook adapter runs under the Python that installed murmurent;
 on a machine that runs murmurent from a development checkout, the hooks see
-the branch that checkout has. **The perimeter below the hooks** is the
-filesystem, which `murmurent security acl-check <data-root>` reads without
-changing anything: whether `immutable/` is writable by anyone but its owner,
-and whether `append_only/` lets a member add files but not delete another's
-(the sticky bit). The fixes it prints are for the PI to run on the server.
+the branch that checkout has. **Below the hooks** is whatever the storage
+enforces, which the hooks do not change: they are a discipline for agents,
+not a security perimeter (`rules/data-storage.md`). `murmurent security
+acl-check <data-root>` reads the governed folders' mode bits without changing
+anything and says in words what they allow. It prescribes no fix: on a
+network mount from a storage array (biodatsci's `/data` is NFS from OneFS)
+the array's own rules decide and may override a change made from the client,
+and a group-writable set-gid tree is the usual design of a shared lab folder.
+A change there is a request to the storage administrators, not a command.
 
 A plain `murmurent install` with Antigravity chosen, or found and nothing
 chosen, does the same after the Claude Code steps. `--hooks` alone keeps its

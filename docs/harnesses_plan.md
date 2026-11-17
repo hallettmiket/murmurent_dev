@@ -321,10 +321,17 @@ shows the refusal with `harness: antigravity`. Recorded in `harnesses.md`.
 Also in this phase, the perimeter below the hooks, which is not Antigravity
 work but is what rule 4 requires:
 
-- [x] `murmurent security acl-check <data-root>` (read-only) reports whether
-      `immutable/` is writable by anyone but its owner and whether
-      `append_only/` allows delete, so the PI sees the filesystem state the
-      hooks assume. Setting the permissions stays a human step on the server.
+- [x] `murmurent security acl-check <data-root>` (read-only) reports each
+      governed folder's owner, group and mode bits and says in words what
+      they allow, so the PI knows what holds when no hook is present. It
+      prescribes nothing. The bits are one layer: on a network mount from a
+      storage array the array's own rules decide and may override a change
+      made from the client, and a group-writable set-gid tree is the usual
+      design of a shared lab folder (biodatsci's `/data` is exactly that, NFS
+      from OneFS with a create mask enforced by the array). Any change is a
+      request to whoever administers the storage, never a command from a
+      session; an earlier version of this plan printed `chmod` lines, which
+      was wrong, and they are withdrawn (2026-11-17).
 
 ### Phase 3: the routing table (small)
 
@@ -406,9 +413,11 @@ kinds, and the counts match what each harness's own interface shows.
 1. Before phase 1: whether the Antigravity App on the Mac stays on the
    personal sign-in for the trial, with telemetry turned off in its
    settings, and which projects (standard only) it may be used in.
-2. Before phase 2: whether to set the filesystem permissions on biodatsci's
-   data root as `murmurent security acl check` reports, since that is the
-   perimeter the hooks assume.
+2. Before phase 2: none in the end. The data root's permissions are the
+   storage array's and the lab's design, not this branch's concern; the
+   hooks are the discipline for agents, as `rules/data-storage.md` says. If
+   the PI ever wants on-disk enforcement it is a request to the storage
+   administrators (the biodatsci user guide names the tech support contact).
 3. Before phase 3: the first two rows of `policy/models.yaml`, and the task
    kinds the lab will name.
 4. Before phase 5: whether Faraday's two harnesses are the next branch, and
