@@ -199,22 +199,17 @@ def test_smoke_command_passes_for_both(home):
         assert "BAD" not in res.output and "as expected" in res.output
 
 
-def test_acl_check_reads_the_filesystem(tmp_path):
+def test_acl_check_describes_and_prescribes_nothing(tmp_path):
+    """The full cases are in test_acl_check.py; here only that the command
+    runs from the CLI and never prints a chmod line."""
     root = tmp_path / "lab"
     (root / "immutable").mkdir(parents=True)
     (root / "append_only").mkdir()
-    (root / "immutable").chmod(0o775)
-    (root / "append_only").chmod(0o775)
-    rows = {r["folder"]: r for r in security_cmd.acl_check_rows(root)}
-    assert rows["immutable"]["state"] == "open" and "chmod -R a-w" in rows["immutable"]["fix"]
-    assert rows["append_only"]["state"] == "open" and "chmod +t" in rows["append_only"]["fix"]
-    (root / "immutable").chmod(0o555)
-    (root / "append_only").chmod(0o3775)
-    rows = {r["folder"]: r for r in security_cmd.acl_check_rows(root)}
-    assert rows["immutable"]["state"] == "ok" and rows["append_only"]["state"] == "ok"
-    assert security_cmd.acl_check_rows(tmp_path / "nowhere")[0]["state"] == "missing"
+    (root / "immutable").chmod(0o2770)
+    (root / "append_only").chmod(0o2770)
     res = CliRunner().invoke(_cli(), ["security", "acl-check", str(root)])
-    assert res.exit_code == 0 and "read-only" in res.output
+    assert res.exit_code == 0 and "chmod" not in res.output and "Nothing was changed" in res.output
+    assert security_cmd.acl_check_rows(tmp_path / "nowhere")[0]["state"] == "missing"
 
 
 def _cli():

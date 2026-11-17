@@ -348,27 +348,38 @@ def cmd_secrets_scan(*, staged: bool = True, tracked: bool = False,
     return 0
 
 
+ACL_CHECK_CAVEAT = (
+    "mode bits only, read from this machine: on a network mount from a storage "
+    "array (NFS from OneFS, say) the array's own access rules decide, may differ "
+    "from these bits and may override a change made here; a shared lab tree is "
+    "usually group-writable with the set-gid bit by design. Nothing was changed. "
+    "Changing permissions is a request to whoever administers the storage, not a "
+    "command for a session."
+)
+
+
 def acl_check_rows(data_root: Path) -> list[dict[str, str]]:
-    """What the filesystem itself enforces on the governed folders, read-only.
+    """What the mode bits of the governed folders say, read-only.
 
     The murmurent hooks refuse writes under ``immutable/`` and deletes under
-    ``append_only/`` from inside a harness session; the filesystem is what
-    holds when no hook is present (rule 4 of docs/harnesses_plan.md). This
-    reports each folder's owner, group and mode, and says whether the mode
-    matches what the hooks assume: ``immutable/`` not writable by anyone but
-    its owner, ``append_only/`` writable (new files may be added) but with
-    the sticky bit, so only a file's owner can delete it.
+    ``append_only/`` from inside a harness session; they are a discipline for
+    agents, not a security perimeter (rules/data-storage.md). This reports
+    each folder's owner, group and mode bits and says in words what those
+    bits allow, so the PI knows what holds when no hook is present. It
+    prescribes nothing: the bits are one layer, a storage array's own rules
+    may sit above them, and a group-writable set-gid tree is the usual design
+    of a shared lab folder. See :data:`ACL_CHECK_CAVEAT`.
     """
     import stat
 
     rows: list[dict[str, str]] = []
-    for name, legacy, want in (("immutable", "raw", "read-only"), ("append_only", "refined", "append-only")):
+    for name, legacy in (("immutable", "raw"), ("append_only", "refined")):
         folder = data_root / name
         if not folder.is_dir() and (data_root / legacy).is_dir():
             folder = data_root / legacy
         if not folder.is_dir():
             rows.append({"folder": name, "path": str(data_root / name), "state": "missing",
-                         "detail": "no such folder", "fix": ""})
+                         "detail": "no such folder", "note": ""})
             continue
         st = folder.stat()
         mode = stat.S_IMODE(st.st_mode)
@@ -383,25 +394,23 @@ def acl_check_rows(data_root: Path) -> list[dict[str, str]]:
         group_w = bool(mode & stat.S_IWGRP)
         other_w = bool(mode & stat.S_IWOTH)
         sticky = bool(st.st_mode & stat.S_ISVTX)
-        detail = f"{owner}:{group} {oct(mode)}" + (" sticky" if sticky else "")
-        if want == "read-only":
-            if other_w or group_w:
-                rows.append({"folder": name, "path": str(folder), "state": "open",
-                             "detail": detail + "; writable by " + ("everyone" if other_w else "the group"),
-                             "fix": f"chmod -R a-w {folder}   (and set files back to a-w after each delivery)"})
-            else:
-                rows.append({"folder": name, "path": str(folder), "state": "ok", "detail": detail, "fix": ""})
+        setgid = bool(st.st_mode & stat.S_ISGID)
+        detail = f"{owner}:{group} {oct(mode)}" + (" set-gid" if setgid else "") + (" sticky" if sticky else "")
+        who = "everyone" if other_w else ("the group" if group_w else "the owner only")
+        if name == "immutable":
+            note = (f"the bits let {who} add, change and delete files here; only the hooks refuse a session"
+                    if (group_w or other_w) else "the bits let only the owner write here")
+            state = "shared" if (group_w or other_w) else "owner-only"
         else:
-            if not sticky and (group_w or other_w):
-                rows.append({"folder": name, "path": str(folder), "state": "open",
-                             "detail": detail + "; anyone in the group can delete another's files",
-                             "fix": f"chmod +t {folder}   (and its project folders; a file then is deleted only by its owner)"})
-            elif not (group_w or other_w):
-                rows.append({"folder": name, "path": str(folder), "state": "closed",
-                             "detail": detail + "; only the owner can add files, so members cannot append",
-                             "fix": f"chmod g+ws {folder}; chmod +t {folder}"})
+            if group_w or other_w:
+                note = (f"the bits let {who} add files; "
+                        + ("a file is deleted only by its owner (sticky bit)" if sticky
+                           else "anyone in the group can delete another's files; only the hooks refuse a session"))
+                state = "shared"
             else:
-                rows.append({"folder": name, "path": str(folder), "state": "ok", "detail": detail, "fix": ""})
+                note = "the bits let only the owner add files, so members cannot append"
+                state = "owner-only"
+        rows.append({"folder": name, "path": str(folder), "state": state, "detail": detail, "note": note})
     return rows
 
 
@@ -415,16 +424,16 @@ def cmd_acl_check(data_root: str | None, *, json_out: bool = False) -> int:
         return 2
     rows = acl_check_rows(Path(root).expanduser())
     if json_out:
-        click.echo(_json.dumps(rows, indent=2))
-    else:
-        click.echo(f"data root {root}: what the filesystem enforces (the hooks assume this)")
-        for r in rows:
-            mark = {"ok": "✓", "open": "✗", "closed": "!", "missing": "-"}[r["state"]]
-            click.echo(f"  {mark} {r['folder']}: {r['detail']}")
-            if r["fix"]:
-                click.echo(f"      fix: {r['fix']}")
-        click.echo("  (read-only: nothing was changed; the fixes are for the PI to run on the server)")
-    return 1 if any(r["state"] == "open" for r in rows) else 0
+        click.echo(_json.dumps({"rows": rows, "caveat": ACL_CHECK_CAVEAT}, indent=2))
+        return 0
+    click.echo(f"data root {root}: what the mode bits say (the hooks are the discipline above them)")
+    for r in rows:
+        mark = {"shared": "~", "owner-only": "=", "missing": "-"}[r["state"]]
+        click.echo(f"  {mark} {r['folder']}: {r['detail']}")
+        if r["note"]:
+            click.echo(f"      {r['note']}")
+    click.echo(f"  ({ACL_CHECK_CAVEAT})")
+    return 0
 
 
 def add_to_cli(cli_group: click.Group) -> None:
