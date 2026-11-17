@@ -50,7 +50,7 @@ def _project_name(start: str | None = None) -> str | None:
 
 def write_entry(payload: dict[str, Any], *, log_dir: Path | None = None,
                 harness: str = "claude_code", model: str = "", place: str = "anthropic_cloud",
-                decision: str = "", hook: str = "") -> Path:
+                decision: str = "", hook: str = "", session: str = "") -> Path:
     """Write the audit row for ``payload``. Returns the log path.
 
     ``harness``, ``model`` and ``place`` say which program made the call and
@@ -72,6 +72,7 @@ def write_entry(payload: dict[str, Any], *, log_dir: Path | None = None,
         "args_summary": _summarise_args(payload.get("tool_input") or payload.get("args")),
         "outcome": str(payload.get("outcome") or payload.get("status") or "ok"),
         "duration_ms": payload.get("duration_ms"),
+        "session": session or str(payload.get("session_id") or ""),
         "harness": harness,
         "model": model,
         "place": place,

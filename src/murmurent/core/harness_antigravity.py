@@ -28,7 +28,7 @@ from pathlib import Path
 from typing import Any
 
 from . import frontmatter as _fm
-from .harness_policy import Harness, InstallPaths, InstallReport, Installed, Profile, ToolEvent, TranscriptStore
+from .harness_policy import Event, Harness, InstallPaths, InstallReport, Installed, Profile, ToolEvent, TranscriptStore
 
 # --- Paths (docs/hooks, docs/mcp, docs/rules, docs/skills, docs/subagents; the shipped guide) ---
 CONFIG_DIR = ".gemini/config"                    # shared by the App, the IDE and the CLI
@@ -78,16 +78,28 @@ KINDS: dict[str, str] = {
     "replace_file_content": "edit",
     "multi_replace_file_content": "edit",
     "view_file": "read",
+    "read_file": "read",          # what the App 2.32.1 recorded (transcript of 2026-11-16)
 }
+#: A tool name not in KINDS is classed by what its name says, in this order,
+#: so a write tool murmurent has not met yet still reaches the guards (the
+#: safe direction); a name that says nothing is "other", which the guards
+#: allow.
+KIND_HINTS: tuple[tuple[str, str], ...] = (
+    ("replace", "edit"), ("edit", "edit"), ("patch", "edit"),
+    ("write", "write"), ("create", "write"), ("save", "write"), ("delete", "write"), ("remove", "write"), ("move", "write"),
+    ("command", "shell"), ("shell", "shell"), ("terminal", "shell"), ("exec", "shell"),
+    ("read", "read"), ("view", "read"), ("open", "read"),
+)
 #: The argument that names the shell line (docs/hooks, confirmed) and the
 #: ones that may name the file (unconfirmed: taken from the tools' common
 #: lineage; the adapter also looks at every string argument that is an
 #: absolute path, so a wrong key name cannot blind the guards).
 COMMAND_KEY = "CommandLine"
-PATH_KEYS: tuple[str, ...] = ("TargetFile", "AbsolutePath", "FilePath", "TargetPath", "file_path", "path")
+PATH_KEYS: tuple[str, ...] = ("TargetFile", "AbsolutePath", "FilePath", "TargetPath", "Path", "file_path", "path")
 CONTENT_KEYS: tuple[str, ...] = ("CodeContent", "ReplacementContent", "Content", "content")
-#: The matcher for the governance hook: every tool that can change a file.
-GOVERNED_MATCHER = "run_command|write_to_file|replace_file_content|multi_replace_file_content"
+#: The matcher for the governance hook: every tool, since a write tool under
+#: a name murmurent has not met would otherwise never reach the guards.
+GOVERNED_MATCHER = "*"
 HOOK_NAME = "murmurent-governance"
 
 #: The data-handling fact every install prints (the terms, Section 5, read
@@ -183,6 +195,45 @@ class AntigravityProfile(Profile):
             TranscriptStore(harness=self.facts.name, root=home / CLI_DATA_DIR, pattern=pattern),
         ]
 
+    # --- the session record (phase 4) ------------------------------------------
+
+    def read_events(self, path: Path):
+        """Every tool call in one Antigravity conversation transcript
+        (``brain/<id>/.system_generated/logs/transcript.jsonl``), as an
+        :class:`Event`. Read from the App 2.32.1's own files on 2026-11-16:
+        one JSON object per step; a ``PLANNER_RESPONSE`` step carries
+        ``tool_calls``, each ``{"name", "args"}``, and ``created_at``. The
+        transcript names no model; the row's model is empty."""
+        from .harness_policy import summarise
+
+        try:
+            lines = path.read_text(encoding="utf-8").splitlines()
+        except OSError:
+            return
+        session = path.parents[2].name if len(path.parents) > 2 else path.stem
+        for line in lines:
+            try:
+                d = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if not isinstance(d, dict):
+                continue
+            for call in d.get("tool_calls") or []:
+                if not isinstance(call, dict):
+                    continue
+                yield Event(
+                    t=str(d.get("created_at") or ""),
+                    harness=self.facts.name,
+                    model="",
+                    place=self.facts.place,
+                    session=session,
+                    project="",
+                    repo="",
+                    tool=str(call.get("name") or ""),
+                    summary=summarise(call.get("args")),
+                    decision="",
+                )
+
     # --- the hook contract (phase 2) --------------------------------------------
 
     def to_event(self, payload: dict[str, Any]) -> ToolEvent:
@@ -191,7 +242,7 @@ class AntigravityProfile(Profile):
         args = call.get("args") or {}
         if not isinstance(args, dict):
             args = {}
-        kind = KINDS.get(name, "other")
+        kind = KINDS.get(name) or next((k for hint, k in KIND_HINTS if hint in name.lower()), "other")
         path = next((str(args[k]) for k in PATH_KEYS if args.get(k)), "")
         if not path and kind in ("write", "edit", "read"):
             # A key name we did not expect: take the first absolute path among
@@ -204,7 +255,10 @@ class AntigravityProfile(Profile):
             cwd=str(payload.get("cwd") or (payload.get("workspacePaths") or [""])[0] or ""),
             tool=kind,
             tool_name=name,
-            command=str(args.get(COMMAND_KEY) or "") if kind == "shell" else "",
+            command=(str(args.get(COMMAND_KEY)
+                         or next((v for k, v in args.items() if isinstance(v, str) and ("command" in k.lower() or "cmd" in k.lower())), "")
+                         or next((v for v in args.values() if isinstance(v, str)), ""))
+                     if kind == "shell" else ""),
             path=path,
             content=content,
             raw=payload,
