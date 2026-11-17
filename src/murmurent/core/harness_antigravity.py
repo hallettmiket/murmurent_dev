@@ -100,6 +100,7 @@ CONTENT_KEYS: tuple[str, ...] = ("CodeContent", "ReplacementContent", "Content",
 #: The matcher for the governance hook: every tool, since a write tool under
 #: a name murmurent has not met would otherwise never reach the guards.
 GOVERNED_MATCHER = "*"
+NEUTRAL_ANSWER: dict[str, str] = {"decision": "ask"}   # "no opinion": Antigravity's own permission check decides
 HOOK_NAME = "murmurent-governance"
 
 #: The data-handling fact every install prints (the terms, Section 5, read
@@ -266,13 +267,15 @@ class AntigravityProfile(Profile):
 
     def from_decision(self, decision: dict[str, Any]) -> dict[str, Any]:
         """Antigravity's PreToolUse answer. A deny is a hard block. For allow
-        the adapter says nothing (``{}``), so Antigravity's own permission
-        rules still apply; an explicit ``allow`` would auto-approve the call
-        and widen what the agent may do. (That ``{}`` means "no opinion" is
-        how the docs' PostToolUse contract reads; for PreToolUse it is
-        unconfirmed and is what the by-hand check of phase 2 verifies.)"""
+        the answer is ``ask``: the contract both the App and the command-line
+        tool ship says ``decision`` is required, and ``ask`` hands the call
+        to Antigravity's own permission check, which keeps the person's
+        "always allow" choices; an explicit ``allow`` would auto-approve the
+        call and widen what the agent may do. (``{}``, which the App let
+        pass, is an unsupported decision to the command-line tool, which
+        refused every call on 2026-11-16.)"""
         if decision.get("decision") != "deny":
-            return {}
+            return dict(NEUTRAL_ANSWER)
         return {"decision": "deny", "reason": decision.get("reason", "")}
 
     def hook_config(self, home: Path) -> RenderedFileList:

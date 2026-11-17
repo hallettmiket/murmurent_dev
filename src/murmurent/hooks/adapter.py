@@ -182,6 +182,19 @@ def handle(harness: str, event_name: str, payload: dict[str, Any]) -> dict[str, 
     return {}
 
 
+def neutral(harness: str, event_name: str) -> dict[str, Any]:
+    """The answer that leaves the harness to its own rules: what the adapter
+    says when it cannot decide. For a PreToolUse call that is the profile's
+    allow shape (a harness may require a decision field; an empty object
+    was a refusal to Antigravity's command-line tool), and ``{}`` otherwise."""
+    if event_name != "PreToolUse":
+        return {}
+    try:
+        return _hp.profiles()[harness].from_decision({"decision": "allow"})
+    except Exception:  # noqa: BLE001
+        return {}
+
+
 def main(argv: list[str] | None = None, stdin: IO[str] | None = None, stdout: IO[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="murmurent.hooks.adapter")
     parser.add_argument("--harness", required=True)
@@ -204,7 +217,7 @@ def main(argv: list[str] | None = None, stdin: IO[str] | None = None, stdout: IO
         answer = handle(args.harness, args.event, payload)
     except Exception as exc:  # noqa: BLE001 - never stop the harness
         _debug(f"{args.event} failed: {exc!r}")
-        answer = {}
+        answer = neutral(args.harness, args.event)
     dst.write(json.dumps(answer))
     return 0
 

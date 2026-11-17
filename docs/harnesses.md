@@ -242,8 +242,13 @@ decisions through both adapters.
 `murmurent.hooks.adapter` is the one entry point for a harness other than
 Claude Code. For a `PreToolUse` call it runs the guards in order and answers
 in the harness's shape: a deny is `{"decision": "deny", "reason": ...}`; for
-allow it says `{}`, so the harness's own permission rules still apply (an
-explicit allow would auto-approve the call). It also writes the audit row
+allow it says `{"decision": "ask"}`, which hands the call to the harness's own
+permission check, so the person's "always allow" choices stand and nothing is
+widened (an explicit allow would auto-approve the call). Antigravity's
+contract says `decision` is required: `{}`, which the App let pass, was an
+unsupported decision to its command-line tool, which refused every call that
+way on 2026-11-16. When the adapter cannot decide (unreadable input, a crash)
+it gives that same neutral answer. It also writes the audit row
 with the harness, the model and the place, the agents-log line at session
 start, and the prompt into the vault's session record once per prompt. It
 never raises: a guard that throws is treated as allow, and everything else
@@ -280,8 +285,14 @@ telemetry off (global settings, Account, "Enable Telemetry"). After
 `murmurent install --harness antigravity` and the five permission grants
 added once in the App's global settings, a conversation in a murmurent-ready
 repository listed the rendered rules, searched the oracle over MCP and ran
-`murmurent machines load`. Reported working by the PI. The CLI (`agy`) is
-not installed on that machine; nothing in phase 1 needs it.
+`murmurent machines load`. Reported working by the PI.
+
+Later the same day, the command-line tool (`agy` 1.5.9, installed that
+afternoon) refused `murmurent machines load` with "tool call denied by
+pre-tool hook". The adapter had answered `{}` for allow; the tool's contract
+says `decision` is required, and it reads a missing one as a refusal. Fixed
+by answering `ask` (above). The tool reads the same `~/.gemini/config/hooks.json`
+as the App and picks up a rewrite of it without a restart.
 
 ### The routing table
 
