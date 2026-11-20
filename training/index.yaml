@@ -309,19 +309,20 @@ movies:
 - agent: scribe
   title: The scribe
   tagline: "Scientific writing in your lab's own voice"
-  version: 2026.11.1
-  date: 2026-11-09
+  version: 2026.11.2
+  date: 2026-11-20
   agent_sha256: 161da45268cd3ddc6f6df5e0956094965cf6a3df37ad33b688954ce72a456898
   file: training/agents/scribe/scribe_narrated.mp4
   make: python3 training/agents/scribe/make.py
-  seconds: 127
+  seconds: 168
   chapters:
-    - ["0:00", "Welcome"]
-    - ["0:11", "What it does"]
-    - ["0:42", "Its scope"]
-    - ["1:06", "A real example"]
-    - ["1:24", "How to direct it"]
-    - ["1:45", "How to use it"]
+    - ["0:00", "A clean, well-lighted sentence"]
+    - ["0:40", "Welcome"]
+    - ["0:52", "What it does"]
+    - ["1:23", "Its scope"]
+    - ["1:47", "A real example"]
+    - ["2:05", "How to direct it"]
+    - ["2:26", "How to use it"]
 - agent: teacher
   title: The teacher
   tagline: "Plain words, like Feynman: in a minute in chat, on a page with a quiz, or over weeks"

@@ -1,6 +1,7 @@
 """The scribe movie: narration in the scribe's own voice, cards on what the scribe does, and the real exchange in transcript.md."""
 from lib.agent_movie import AgentSpec, Exchange, Quote
 from lib.draw import SAND
+from cold_open import COLD_OPEN
 
 SPEC = AgentSpec(
     agent="scribe",
@@ -61,4 +62,5 @@ SPEC = AgentSpec(
         "Or write a figure legend for a grant, in Word, under a word limit. Those are examples; ask for "
         "any piece of scientific writing, in any form."],
     docs=["docs/scientific_writing.md"],
+    openers=[COLD_OPEN],
 )
