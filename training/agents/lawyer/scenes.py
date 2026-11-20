@@ -1,6 +1,7 @@
 """The lawyer movie: narration in the lawyer's own voice, plain statements checked against agents/lawyer.md, and the real exchange in transcript.md."""
 from lib.agent_movie import AgentSpec, Exchange, Quote
 from lib.draw import SKY
+from cold_open import COLD_OPEN
 
 SPEC = AgentSpec(
     agent="lawyer",
@@ -54,4 +55,5 @@ SPEC = AgentSpec(
         "The first line is my verdict: Clear, Conflict or Unknown. The detail names what I searched, or the "
         "clause I relied on. I read the agreements and ethics approvals your lab keeps in its project records."],
     docs=[],
+    openers=[COLD_OPEN],
 )

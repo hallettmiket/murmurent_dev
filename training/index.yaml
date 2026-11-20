@@ -391,18 +391,19 @@ movies:
 - agent: lawyer
   title: The lawyer
   tagline: "Patents, and whether your project's data may move or be shared"
-  version: 2026.11.1
-  date: 2026-11-09
+  version: 2026.11.2
+  date: 2026-11-20
   agent_sha256: b9065d58756ee5478ff45c123e29f7e2a2b47e0291a59689b76de6a884ea0652
   file: training/agents/lawyer/lawyer_narrated.mp4
   make: python3 training/agents/lawyer/make.py
-  seconds: 139
+  seconds: 175
   chapters:
-    - ["0:00", "Welcome"]
-    - ["0:17", "What it does"]
-    - ["0:46", "Its scope"]
-    - ["1:26", "A real example"]
-    - ["1:56", "How to use it"]
+    - ["0:00", "A word from our sponsor"]
+    - ["0:33", "Welcome"]
+    - ["0:51", "What it does"]
+    - ["1:22", "Its scope"]
+    - ["2:02", "A real example"]
+    - ["2:31", "How to use it"]
 - agent: millwright
   title: The millwright
   tagline: "Gets a new member's computer connected to the lab, and sets up each new project"
