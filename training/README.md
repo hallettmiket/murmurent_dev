@@ -47,6 +47,9 @@ with a patent on it; no win, no fee; the fine print is the true part), a scene o
 itself rather than a spliced clip. So is the clerk's: window four of a counter that has seen it all,
 a lit cigarette under the NO SMOKING sign, a NOW SERVING display stuck at eight, and the one thing
 said in earnest, that the answer is read off the page and is Unknown when the page does not say.
+And the security guard's: a red head-up display from a certain kind of 1980s film scans the change you are
+about to push, finds an API key, a date of birth and a sandwich (the sandwich may proceed), gives you
+twenty seconds to comply, and says Clear.
 `make_clip.py --prepend` renders the clip and splices it onto
 the narrated movie, shifting the captions; `publish.py` shows that spliced copy. The six seconds are
 counted in the lengths and chapter times below.
@@ -67,7 +70,7 @@ counted in the lengths and chapter times below.
 | [`centre_millwright`](../agents/centre_millwright.md) | [The centre millwright](https://mikehallett.science/assets/videos/murmurent_agent_centre_millwright.html) | 1:41 | yes | 0:00 Welcome, 0:12 What it does, 0:39 Its scope, 0:56 A real example, 1:13 How to use it |
 | [`judge`](../agents/judge.md) | [The judge](https://mikehallett.science/assets/videos/murmurent_agent_judge.html) | 2:17 | yes | 0:00 Welcome, 0:10 What it does, 0:46 Its scope, 1:16 A real example, 1:48 How to use it |
 | [`registrar`](../agents/registrar.md) | [The registrar](https://mikehallett.science/assets/videos/murmurent_agent_registrar.html) | 1:45 | yes | 0:00 Welcome, 0:12 What it does, 0:37 Its scope, 0:57 A real example, 1:14 How to use it |
-| [`security_guard`](../agents/security_guard.md) | [The security guard](https://mikehallett.science/assets/videos/murmurent_agent_security_guard.html) | 1:43 | yes | 0:00 Welcome, 0:11 What it does, 0:31 Its scope, 0:55 A real example, 1:22 How to use it |
+| [`security_guard`](../agents/security_guard.md) | [The security guard](https://mikehallett.science/assets/videos/murmurent_agent_security_guard.html) | 2:16 | yes | 0:00 Halt, 0:32 Welcome, 0:44 What it does, 1:05 Its scope, 1:29 A real example, 1:55 How to use it |
 | [`clerk`](../agents/clerk.md) | [The clerk](https://mikehallett.science/assets/videos/murmurent_agent_clerk.html) | 2:58 | yes | 0:00 Window four, 0:25 Welcome, 0:41 What it does, 1:09 Its scope, 1:34 A real example, 2:23 How to direct it, 2:36 How to use it |
 | [`docent`](../agents/docent.md) | [The docent](https://mikehallett.science/assets/videos/murmurent_agent_docent.html) | 2:00 | yes | 0:00 Welcome, 0:11 What it does, 0:34 Its scope, 1:03 A real example, 1:33 How to use it |
 | [`prospector`](../agents/prospector.md) | [The prospector](https://mikehallett.science/assets/videos/murmurent_agent_prospector.html) | 3:06 | yes | 0:00 Opening, 0:06 Welcome, 0:22 What it does, 1:02 Its scope, 1:40 A real example, 2:16 How to direct it, 2:30 How to use it |

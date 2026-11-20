@@ -107,7 +107,7 @@ use it through Claude Code.
 | [`centre_millwright`](https://github.com/hallettmiket/murmurent/blob/main/agents/centre_millwright.md) | [The centre millwright](https://mikehallett.science/assets/videos/murmurent_agent_centre_millwright.html) | 1:41 |
 | [`judge`](https://github.com/hallettmiket/murmurent/blob/main/agents/judge.md) | [The judge](https://mikehallett.science/assets/videos/murmurent_agent_judge.html) | 2:17 |
 | [`registrar`](https://github.com/hallettmiket/murmurent/blob/main/agents/registrar.md) | [The registrar](https://mikehallett.science/assets/videos/murmurent_agent_registrar.html) | 1:45 |
-| [`security_guard`](https://github.com/hallettmiket/murmurent/blob/main/agents/security_guard.md) | [The security guard](https://mikehallett.science/assets/videos/murmurent_agent_security_guard.html) | 1:43 |
+| [`security_guard`](https://github.com/hallettmiket/murmurent/blob/main/agents/security_guard.md) | [The security guard](https://mikehallett.science/assets/videos/murmurent_agent_security_guard.html) | 2:16 |
 | [`clerk`](https://github.com/hallettmiket/murmurent/blob/main/agents/clerk.md) | [The clerk](https://mikehallett.science/assets/videos/murmurent_agent_clerk.html) | 2:58 |
 | [`docent`](https://github.com/hallettmiket/murmurent/blob/main/agents/docent.md) | [The docent](https://mikehallett.science/assets/videos/murmurent_agent_docent.html) | 2:00 |
 | [`prospector`](https://github.com/hallettmiket/murmurent/blob/main/agents/prospector.md) | [The prospector](https://mikehallett.science/assets/videos/murmurent_agent_prospector.html) | 3:06 |

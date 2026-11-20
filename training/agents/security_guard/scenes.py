@@ -1,6 +1,7 @@
 """The security guard movie: narration in the guard's own voice, plain cards checked against agents/security_guard.md, and the real exchange in transcript.md."""
 from lib.agent_movie import AgentSpec, Exchange, Quote
 from lib.draw import RED
+from cold_open import COLD_OPEN
 
 SPEC = AgentSpec(
     agent="security_guard",
@@ -47,4 +48,5 @@ SPEC = AgentSpec(
         "The first line is my answer: Clear, Concerns or Blocked. Blocked means fix what I list before "
         "anything leaves."],
     docs=["rules/data-storage.md"],
+    openers=[COLD_OPEN],
 )

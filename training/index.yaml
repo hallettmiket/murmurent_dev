@@ -469,18 +469,19 @@ movies:
 - agent: security_guard
   title: The security guard
   tagline: "Checks what leaves your lab for passwords and patient data"
-  version: 2026.11.1
-  date: 2026-11-09
+  version: 2026.11.2
+  date: 2026-11-20
   agent_sha256: 39a529c56900031ab5a751c284b19f6c94e2e1849bb540ae50f41063b31ffdca
   file: training/agents/security_guard/security_guard_narrated.mp4
   make: python3 training/agents/security_guard/make.py
-  seconds: 103
+  seconds: 136
   chapters:
-    - ["0:00", "Welcome"]
-    - ["0:11", "What it does"]
-    - ["0:31", "Its scope"]
-    - ["0:55", "A real example"]
-    - ["1:22", "How to use it"]
+    - ["0:00", "Halt"]
+    - ["0:32", "Welcome"]
+    - ["0:44", "What it does"]
+    - ["1:05", "Its scope"]
+    - ["1:29", "A real example"]
+    - ["1:55", "How to use it"]
 - agent: docent
   title: The docent
   tagline: "Answers questions about a paper or thesis with the exact place in the work"
