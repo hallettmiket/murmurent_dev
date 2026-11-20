@@ -50,6 +50,14 @@ said in earnest, that the answer is read off the page and is Unknown when the pa
 And the security guard's: a red head-up display from a certain kind of 1980s film scans the change you are
 about to push, finds an API key, a date of birth and a sandwich (the sandwich may proceed), gives you
 twenty seconds to comply, and says Clear.
+The conscience's reviews those three: each gets a sticky note with a located finding and its source
+(who counts as a loved one; a queue assumes you can stand in it; not everyone reads at that speed),
+the footnotes pile up, and it speaks for no one. The thumbnails are the other movies' own openings,
+drawn by their own files.
+The scribe's is a clean, well-lighted sentence: a forty-one-word sentence taken apart on a typewriter page
+by a writer of the hard-drinking, big-game kind, the passive voice mounted on the wall like a marlin,
+the glass untouched until the figure legend is done, and the house style, which says do not go choppy,
+winning in the end.
 `make_clip.py --prepend` renders the clip and splices it onto
 the narrated movie, shifting the captions; `publish.py` shows that spliced copy. The six seconds are
 counted in the lengths and chapter times below.
@@ -60,11 +68,11 @@ counted in the lengths and chapter times below.
 | [`bookworm`](../agents/bookworm.md) | [The bookworm](https://mikehallett.science/assets/videos/murmurent_agent_bookworm.html) | 2:37 | yes | 0:00 Opening, 0:06 Welcome, 0:16 What it does, 0:53 Its scope, 1:17 A real example, 1:36 How to direct it, 2:04 How to use it |
 | [`adversary`](../agents/adversary.md) | [The adversary](https://mikehallett.science/assets/videos/murmurent_agent_adversary.html) | 2:46 | yes | 0:00 Opening, 0:06 Welcome, 0:17 What it does, 1:06 Its scope, 1:30 A real example, 2:00 How to direct it, 2:18 How to use it |
 | [`artist`](../agents/artist.md) | [The artist](https://mikehallett.science/assets/videos/murmurent_agent_artist.html) | 1:49 | yes | 0:00 Opening, 0:06 Welcome, 0:13 What it does, 0:33 Its scope, 0:50 A real example, 1:11 How to direct it, 1:27 How to use it |
-| [`scribe`](../agents/scribe.md) | [The scribe](https://mikehallett.science/assets/videos/murmurent_agent_scribe.html) | 2:07 | yes | 0:00 Welcome, 0:11 What it does, 0:42 Its scope, 1:06 A real example, 1:24 How to direct it, 1:45 How to use it |
+| [`scribe`](../agents/scribe.md) | [The scribe](https://mikehallett.science/assets/videos/murmurent_agent_scribe.html) | 2:48 | yes | 0:00 A clean, well-lighted sentence, 0:40 Welcome, 0:52 What it does, 1:23 Its scope, 1:47 A real example, 2:05 How to direct it, 2:26 How to use it |
 | [`teacher`](../agents/teacher.md) | [The teacher](https://mikehallett.science/assets/videos/murmurent_agent_teacher.html) | 3:00 | yes | 0:00 Welcome, 0:16 What it does, 0:45 Its scope, 1:23 A real example, 1:45 The idea, drawn, 2:27 How to direct it, 2:42 How to use it |
 | [`lab_oracle`](../agents/lab_oracle.md) | [The lab oracle](https://mikehallett.science/assets/videos/murmurent_agent_lab_oracle.html) | 1:41 | yes | 0:00 Welcome, 0:09 What it does, 0:25 Its scope, 0:41 A real example, 1:17 How to use it |
 | [`blacksmith`](../agents/blacksmith.md) | [The blacksmith](https://mikehallett.science/assets/videos/murmurent_agent_blacksmith.html) | 1:57 | yes | 0:00 Opening, 0:06 Welcome, 0:16 What it does, 0:40 Its scope, 0:59 A real example, 1:20 How to direct it, 1:36 How to use it |
-| [`conscience`](../agents/conscience.md) | [The conscience](https://mikehallett.science/assets/videos/murmurent_agent_conscience.html) | 2:32 | yes | 0:00 Welcome, 0:16 What it does, 0:57 Its scope, 1:26 A real example, 1:48 How to direct it, 2:03 How to use it |
+| [`conscience`](../agents/conscience.md) | [The conscience](https://mikehallett.science/assets/videos/murmurent_agent_conscience.html) | 2:59 | yes | 0:00 Reviewed before release, 0:26 Welcome, 0:42 What it does, 1:24 Its scope, 1:54 A real example, 2:15 How to direct it, 2:31 How to use it |
 | [`lawyer`](../agents/lawyer.md) | [The lawyer](https://mikehallett.science/assets/videos/murmurent_agent_lawyer.html) | 2:55 | yes | 0:00 A word from our sponsor, 0:33 Welcome, 0:51 What it does, 1:22 Its scope, 2:02 A real example, 2:31 How to use it |
 | [`millwright`](../agents/millwright.md) | [The millwright](https://mikehallett.science/assets/videos/murmurent_agent_millwright.html) | 2:07 | yes | 0:00 Opening, 0:06 Welcome, 0:19 What it does, 0:54 Its scope, 1:21 A real example, 1:38 How to use it |
 | [`centre_millwright`](../agents/centre_millwright.md) | [The centre millwright](https://mikehallett.science/assets/videos/murmurent_agent_centre_millwright.html) | 1:41 | yes | 0:00 Welcome, 0:12 What it does, 0:39 Its scope, 0:56 A real example, 1:13 How to use it |

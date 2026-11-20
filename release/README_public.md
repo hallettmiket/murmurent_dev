@@ -125,11 +125,11 @@ use it through Claude Code.
 | [`bookworm`](https://github.com/hallettmiket/murmurent/blob/main/agents/bookworm.md) | [The bookworm](https://mikehallett.science/assets/videos/murmurent_agent_bookworm.html) | 2:37 |
 | [`adversary`](https://github.com/hallettmiket/murmurent/blob/main/agents/adversary.md) | [The adversary](https://mikehallett.science/assets/videos/murmurent_agent_adversary.html) | 2:46 |
 | [`artist`](https://github.com/hallettmiket/murmurent/blob/main/agents/artist.md) | [The artist](https://mikehallett.science/assets/videos/murmurent_agent_artist.html) | 1:49 |
-| [`scribe`](https://github.com/hallettmiket/murmurent/blob/main/agents/scribe.md) | [The scribe](https://mikehallett.science/assets/videos/murmurent_agent_scribe.html) | 2:07 |
+| [`scribe`](https://github.com/hallettmiket/murmurent/blob/main/agents/scribe.md) | [The scribe](https://mikehallett.science/assets/videos/murmurent_agent_scribe.html) | 2:48 |
 | [`teacher`](https://github.com/hallettmiket/murmurent/blob/main/agents/teacher.md) | [The teacher](https://mikehallett.science/assets/videos/murmurent_agent_teacher.html) | 3:00 |
 | [`lab_oracle`](https://github.com/hallettmiket/murmurent/blob/main/agents/lab_oracle.md) | [The lab oracle](https://mikehallett.science/assets/videos/murmurent_agent_lab_oracle.html) | 1:41 |
 | [`blacksmith`](https://github.com/hallettmiket/murmurent/blob/main/agents/blacksmith.md) | [The blacksmith](https://mikehallett.science/assets/videos/murmurent_agent_blacksmith.html) | 1:57 |
-| [`conscience`](https://github.com/hallettmiket/murmurent/blob/main/agents/conscience.md) | [The conscience](https://mikehallett.science/assets/videos/murmurent_agent_conscience.html) | 2:32 |
+| [`conscience`](https://github.com/hallettmiket/murmurent/blob/main/agents/conscience.md) | [The conscience](https://mikehallett.science/assets/videos/murmurent_agent_conscience.html) | 2:59 |
 | [`lawyer`](https://github.com/hallettmiket/murmurent/blob/main/agents/lawyer.md) | [The lawyer](https://mikehallett.science/assets/videos/murmurent_agent_lawyer.html) | 2:55 |
 | [`millwright`](https://github.com/hallettmiket/murmurent/blob/main/agents/millwright.md) | [The millwright](https://mikehallett.science/assets/videos/murmurent_agent_millwright.html) | 2:07 |
 | [`centre_millwright`](https://github.com/hallettmiket/murmurent/blob/main/agents/centre_millwright.md) | [The centre millwright](https://mikehallett.science/assets/videos/murmurent_agent_centre_millwright.html) | 1:41 |
