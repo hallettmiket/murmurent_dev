@@ -3,11 +3,11 @@ strip-mall attorney, played before the title. The fine print is the true part: t
 is an agent, and a binding opinion goes through the institution's research office."""
 import math
 
-from PIL import Image, ImageDraw
+from PIL import ImageDraw
 
 from lib.agent_movie import Extra
 from lib.draw import (AMBER, F_BIG, F_BODY, F_H, F_MONO, F_TINY, MUTED, PANEL, RED, TEAL, TEXT, P, appear,
-                      eout, glow, icon, rrect, text_c, tw, wrap)
+                      glow, icon, rrect, stamp, text_c, tw, wrap)
 
 NARRATION = [
     "Have you, or a loved one, been handed a molecule with a patent on it?",
@@ -27,24 +27,6 @@ QUESTIONS = [
 
 FINE_PRINT = ("*Not a lawyer. Not legal advice. A binding opinion goes through your institution's research "
               "office. Offer void where prohibited, which is everywhere.")
-
-
-def _stamp(img, t, t0, cx, cy, text, colour, angle=-9):
-    """A rubber stamp slamming down and settling, slightly askew."""
-    p = P(t, t0, 0.35)
-    if p <= 0:
-        return
-    f = F_H
-    w, h = int(tw(text, f)) + 64, f.size + 44
-    layer = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-    d = ImageDraw.Draw(layer)
-    d.rounded_rectangle((3, 3, w - 4, h - 4), radius=10, outline=colour, width=6)
-    d.text((32, 18), text, font=f, fill=colour)
-    s = 1.7 - 0.7 * eout(p)
-    layer = layer.resize((int(w * s), int(h * s)), Image.BICUBIC)
-    layer = layer.rotate(angle, expand=True, resample=Image.BICUBIC)
-    layer.putalpha(layer.getchannel("A").point(lambda v: int(v * min(1.0, p * 2.5))))
-    img.paste(layer, (int(cx - layer.width / 2), int(cy - layer.height / 2)), layer)
 
 
 def s_ad(img, t, sc):
@@ -80,7 +62,7 @@ def s_ad(img, t, sc):
         d = ImageDraw.Draw(img)
         text_c(d, 1010, 322, "FREE*", F_H, TEXT)
 
-    _stamp(img, t, sc.when("No win"), 440, 496, "NO WIN, NO FEE", RED)
+    stamp(img, t, sc.when("No win"), 440, 496, "NO WIN, NO FEE", RED)
 
     # How to reach him, in the slot where the phone number would be.
     t_call = sc.when("Better call")

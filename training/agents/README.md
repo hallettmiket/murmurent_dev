@@ -58,7 +58,7 @@ silent cartoons spliced on afterwards. When the joke is spoken (the lawyer's is 
 late-night television advertisement, in the manner of the persona its agent file
 keeps), it is a scene of the narrated movie itself: `AgentSpec.openers` holds scenes
 played before the title, timed from their clips and captioned like any other, drawn
-by a file beside `scenes.py` (the lawyer's `cold_open.py`). The chapter list gains a
+by a file beside `scenes.py` (the lawyer's and the clerk's `cold_open.py`). The chapter list gains a
 first entry and `make.py` counts it, so nothing is added by hand. Keep it under half
 a minute: the agent's two minutes are the point, and the whole movie must stay under
 three.
