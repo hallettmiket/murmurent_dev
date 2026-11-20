@@ -6,7 +6,7 @@ import math
 from PIL import ImageDraw
 
 from lib.agent_movie import Extra
-from lib.draw import (AMBER, F_BIG, F_BODY, F_H, F_MONO, F_TINY, MUTED, PANEL, RED, TEAL, TEXT, P, appear,
+from lib.draw import (AMBER, F_BIG, F_BODY, F_H, F_MONO, F_TINY, MUTED, PANEL, RED, TEAL, TEXT, P, appear, eout,
                       glow, icon, rrect, stamp, text_c, tw, wrap)
 
 NARRATION = [
