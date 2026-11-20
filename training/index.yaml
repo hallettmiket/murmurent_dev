@@ -314,15 +314,15 @@ movies:
   agent_sha256: 161da45268cd3ddc6f6df5e0956094965cf6a3df37ad33b688954ce72a456898
   file: training/agents/scribe/scribe_narrated.mp4
   make: python3 training/agents/scribe/make.py
-  seconds: 168
+  seconds: 173
   chapters:
     - ["0:00", "A clean, well-lighted sentence"]
-    - ["0:40", "Welcome"]
-    - ["0:52", "What it does"]
-    - ["1:23", "Its scope"]
-    - ["1:47", "A real example"]
-    - ["2:05", "How to direct it"]
-    - ["2:26", "How to use it"]
+    - ["0:45", "Welcome"]
+    - ["0:57", "What it does"]
+    - ["1:28", "Its scope"]
+    - ["1:52", "A real example"]
+    - ["2:10", "How to direct it"]
+    - ["2:31", "How to use it"]
 - agent: teacher
   title: The teacher
   tagline: "Plain words, like Feynman: in a minute in chat, on a page with a quiz, or over weeks"

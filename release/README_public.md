@@ -125,7 +125,7 @@ use it through Claude Code.
 | [`bookworm`](https://github.com/hallettmiket/murmurent/blob/main/agents/bookworm.md) | [The bookworm](https://mikehallett.science/assets/videos/murmurent_agent_bookworm.html) | 2:37 |
 | [`adversary`](https://github.com/hallettmiket/murmurent/blob/main/agents/adversary.md) | [The adversary](https://mikehallett.science/assets/videos/murmurent_agent_adversary.html) | 2:46 |
 | [`artist`](https://github.com/hallettmiket/murmurent/blob/main/agents/artist.md) | [The artist](https://mikehallett.science/assets/videos/murmurent_agent_artist.html) | 1:49 |
-| [`scribe`](https://github.com/hallettmiket/murmurent/blob/main/agents/scribe.md) | [The scribe](https://mikehallett.science/assets/videos/murmurent_agent_scribe.html) | 2:48 |
+| [`scribe`](https://github.com/hallettmiket/murmurent/blob/main/agents/scribe.md) | [The scribe](https://mikehallett.science/assets/videos/murmurent_agent_scribe.html) | 2:53 |
 | [`teacher`](https://github.com/hallettmiket/murmurent/blob/main/agents/teacher.md) | [The teacher](https://mikehallett.science/assets/videos/murmurent_agent_teacher.html) | 3:00 |
 | [`lab_oracle`](https://github.com/hallettmiket/murmurent/blob/main/agents/lab_oracle.md) | [The lab oracle](https://mikehallett.science/assets/videos/murmurent_agent_lab_oracle.html) | 1:41 |
 | [`blacksmith`](https://github.com/hallettmiket/murmurent/blob/main/agents/blacksmith.md) | [The blacksmith](https://mikehallett.science/assets/videos/murmurent_agent_blacksmith.html) | 1:57 |
