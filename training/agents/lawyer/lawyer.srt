@@ -1,39 +1,55 @@
 1
-00:00:00,400 --> 00:00:17,286
-I am the lawyer. I search the patent databases around a gene, a molecule or a device. And I rule on whether a project may move or share data that a privacy law, an agreement or an ethics approval controls, always from the law, agreement or approval itself.
+00:00:00,400 --> 00:00:04,750
+Have you, or a loved one, been handed a molecule with a patent on it?
 
 2
-00:00:17,699 --> 00:00:30,874
-I search the patent databases worldwide for genes, proteins, molecules and devices, and I explain the claims in plain words a scientist can act on: who owns what, what has expired, what is pending.
+00:00:04,750 --> 00:00:13,374
+Did a reviewer say freedom to operate, in that tone? Did an agreement turn up with seventeen pages and a clause about Switzerland?
 
 3
-00:00:30,874 --> 00:00:46,856
-For data, I read the signed agreement or the ethics approval before I rule, and I name what is missing when I cannot find one. I check first whether there is anything to search, so a question with no patent at stake costs one step.
+00:00:13,374 --> 00:00:21,347
+Then you need a lawyer. Not a good one. A fast one. I chase patents the way other people chase ambulances, and I take the stairs.
 
 4
-00:00:47,250 --> 00:00:56,059
-I inform your decision. A binding opinion goes through the institution's research office, and the institution's patent office does the filing.
+00:00:21,347 --> 00:00:33,539
+No win, no fee. No fee at all, in fact, since I am an agent and not, legally speaking, a lawyer, which my colleagues call the best part. Better call the lawyer.
 
 5
-00:00:56,059 --> 00:01:10,673
-I speak the vocabulary of the short course Ontario asks its researchers to take, IP Foundations: a patent for an invention, copyright for a paper or code, a trademark, a trade secret. And I name which one applies.
+00:00:33,949 --> 00:00:51,904
+I am the lawyer. I search the patent databases around a gene, a molecule or a device. And I rule on whether a project may move or share data that a privacy law, an agreement or an ethics approval controls, always from the law, agreement or approval itself.
 
 6
-00:01:10,673 --> 00:01:26,608
-The adversary refers work to me in the middle of an audit; I triage first, so a referral with nothing to search costs one step. For every patent, I say whether the status is confirmed across databases or only inferred.
+00:00:52,299 --> 00:01:05,660
+I search the patent databases worldwide for genes, proteins, molecules and devices, and I explain the claims in plain words a scientist can act on: who owns what, what has expired, what is pending.
 
 7
-00:01:27,000 --> 00:01:39,710
-A real run, on a made-up question: may we publish a short protocol note and post our script under an open licence? That is a freedom-to-operate question: whether anyone's patent blocks you.
+00:01:05,660 --> 00:01:22,245
+For data, I read the signed agreement or the ethics approval before I rule, and I name what is missing when I cannot find one. I check first whether there is anything to search, so a question with no patent at stake costs one step.
 
 8
-00:01:39,710 --> 00:01:56,453
-My verdict is Clear, after the first check alone. Publishing is not an act a patent reaches, so I searched no database, and I say so. I add the one deadline to know: publishing starts the clock on filing a patent of your own.
+00:01:22,650 --> 00:01:31,505
+I inform your decision. A binding opinion goes through the institution's research office, and the institution's patent office does the filing.
 
 9
-00:01:56,849 --> 00:02:04,033
-To use me, type to Claude Code and name the lawyer. Give me the molecule or the data, and what you intend to do with it.
+00:01:31,505 --> 00:01:46,491
+I speak the vocabulary of the short course Ontario asks its researchers to take, IP Foundations: a patent for an invention, copyright for a paper or code, a trademark, a trade secret. And I name which one applies.
 
 10
-00:02:04,033 --> 00:02:19,383
+00:01:46,491 --> 00:02:02,937
+The adversary refers work to me in the middle of an audit; I triage first, so a referral with nothing to search costs one step. For every patent, I say whether the status is confirmed across databases or only inferred.
+
+11
+00:02:03,350 --> 00:02:16,338
+A real run, on a made-up question: may we publish a short protocol note and post our script under an open licence? That is a freedom-to-operate question: whether anyone's patent blocks you.
+
+12
+00:02:16,338 --> 00:02:31,874
+My verdict is Clear, after the first check alone. Publishing is not an act a patent reaches, so I searched no database, and I say so. I add the one deadline to know: publishing starts the clock on filing a patent of your own.
+
+13
+00:02:32,250 --> 00:02:39,665
+To use me, type to Claude Code and name the lawyer. Give me the molecule or the data, and what you intend to do with it.
+
+14
+00:02:39,665 --> 00:02:55,340
 The first line is my verdict: Clear, Conflict or Unknown. The detail names what I searched, or the clause I relied on. I read the agreements and ethics approvals your lab keeps in its project records.

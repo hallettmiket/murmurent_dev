@@ -53,6 +53,16 @@ to the movie, not a drift between them. Pick quote fragments without em dashes;
 the narration is checked for them too. The verdict lines in the transcripts are
 the agents' own output and are kept exactly as they came, dashes included.
 
+**A gag that needs the voice goes inside the movie.** The six-second openings above are
+silent cartoons spliced on afterwards. When the joke is spoken (the lawyer's is a
+late-night television advertisement, in the manner of the persona its agent file
+keeps), it is a scene of the narrated movie itself: `AgentSpec.openers` holds scenes
+played before the title, timed from their clips and captioned like any other, drawn
+by a file beside `scenes.py` (the lawyer's `cold_open.py`). The chapter list gains a
+first entry and `make.py` counts it, so nothing is added by hand. Keep it under half
+a minute: the agent's two minutes are the point, and the whole movie must stay under
+three.
+
 **The example is real.** Each transcript is the reply of the agent itself,
 run as a subagent on `examples/` or on synthetic data made for the movie
 (a throwaway vault, a demo repository with a fake token, an invented run

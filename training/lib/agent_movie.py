@@ -136,6 +136,7 @@ class AgentSpec:
     directions: list[tuple[str, str]] = field(default_factory=list)   # (what you type, what it produces)
     directions_narration: list[str] = field(default_factory=list)
     extras: list[Extra] = field(default_factory=list)                  # scenes of the movie's own, after the example
+    openers: list[Extra] = field(default_factory=list)                 # a cold open before the title, e.g. a gag
 
 
 # --------------------------------------------------------------------------- #
@@ -419,6 +420,8 @@ def s_howto(img, t, sc, spec: AgentSpec, version: str):
 def build_scenes(spec: AgentSpec, folder: Path, version: str) -> list[Scene]:
     exchanges = load_transcript(folder)
     sc: list[Scene] = []
+    for ex in spec.openers:
+        sc.append(Scene(ex.name, ex.narration, ex.draw, ex.chapter, tail=ex.tail))
     sc.append(Scene("title", spec.intro, lambda img, t, s: s_title(img, t, s, spec, version), "Welcome"))
     sc.append(Scene("does", spec.does_narration, lambda img, t, s: s_does(img, t, s, spec), "What it does", tail=1.6))
     sc.append(Scene("refuses", spec.refuses_narration, lambda img, t, s: s_refuses(img, t, s, spec),
@@ -486,7 +489,7 @@ def main(spec: AgentSpec, folder: Path, argv: list[str] | None = None) -> None:
     texts = spec.intro + spec.does_narration + spec.refuses_narration + spec.howto_narration + spec.directions_narration
     for ex in spec.examples:
         texts += ex.narration
-    for ex in spec.extras:
+    for ex in spec.extras + spec.openers:
         texts += ex.narration
     scene_mod.DURATIONS.update(clip_durations(folder, texts, args.voice))
     if scene_mod.DURATIONS:
