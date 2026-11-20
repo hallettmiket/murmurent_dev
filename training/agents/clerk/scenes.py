@@ -1,6 +1,7 @@
 """The clerk movie: narration in the clerk's own voice, plain statements checked against agents/clerk.md, and the real exchanges in transcript.md."""
 from lib.agent_movie import AgentSpec, Exchange, Quote
 from lib.draw import SAND
+from cold_open import COLD_OPEN
 
 SPEC = AgentSpec(
     agent="clerk",
@@ -67,4 +68,5 @@ SPEC = AgentSpec(
         "These are examples, not a list of what I can do. Ask me anything the institution's pages answer: "
         "a policy, a deadline, a form, a fee, a room."],
     docs=["docs/institution_pack.md", "institution/README.md"],
+    openers=[COLD_OPEN],
 )
