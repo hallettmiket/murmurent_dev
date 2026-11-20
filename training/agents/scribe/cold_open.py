@@ -1,4 +1,4 @@
-"""The scribe's cold open: a writer of the hard-drinking, big-game kind takes a forty-one-word
+"""The scribe's cold open: Ernest Hemingway, named on screen and in the first line, takes a forty-one-word
 sentence apart on a typewriter page. The passive voice is mounted on the wall like a marlin.
 The glass stays full until the figure legend is done, and the legend is never done. The one
 true thing: every number and citation is kept, and the house style, which says do not go
@@ -10,8 +10,9 @@ from lib.draw import (AMBER, DIM, F_BODY, F_LABEL, F_MONO, F_MONO_S, F_TINY, MUT
                       P, appear, rrect, text_c, tw, wrap)
 
 NARRATION = [
-    "I was in the lab. The data were good and true. The sentence was not. It was forty-one words "
-    "long and it began with it should be noted that. I shot it.",
+    "I write the way Ernest Hemingway wrote. Short sentences. True sentences. I was in the lab. The data "
+    "were good and true. The sentence was not. It was forty-one words long and it began with it should "
+    "be noted that. I shot it.",
     "I fished the verb out of the passive voice. It was a big verb. I let the adjectives go. They "
     "were not good adjectives. Decisively. Critically. Gone.",
     "I keep every number. I keep every citation. I do not touch the glass until the figure legend "
@@ -58,7 +59,16 @@ def s_desk(img, t, sc):
     rrect(d, (40, 80, 300, 250), (70, 44, 28), (130, 90, 58), 10, 3)
     _fish(d, 90, 150, 170, (150, 160, 180))
     text_c(d, 170, 196, "PASSIVE VOICE", F_LABEL, SAND)
-    text_c(d, 170, 220, "1,200 lb  ·  landed 2026", F_TINY, MUTED)
+    text_c(d, 170, 220, "1,200 lb  ·  Key West  ·  2026", F_TINY, MUTED)
+
+    # Whose manner this is, said plainly, for anyone who has not read him.
+    def who(d):
+        rrect(d, (1000, 80, 1240, 196), PANEL, SAND, 10, 3)
+        text_c(d, 1120, 92, "in the manner of", F_TINY, MUTED)
+        text_c(d, 1120, 114, "ERNEST", F_LABEL, SAND)
+        text_c(d, 1120, 138, "HEMINGWAY", F_LABEL, SAND)
+        text_c(d, 1120, 168, "\"one true sentence\"", F_TINY, TEXT)
+    appear(img, t, sc.when("Hemingway"), who, 0.5, 10)
 
     # The glass. It stays full.
     d.rectangle([1080, 420, 1180, 540], outline=(200, 200, 210), width=3)
