@@ -1,51 +1,51 @@
 1
-00:00:00,400 --> 00:00:06,051
+00:00:00,400 --> 00:00:05,958
 Halt. Identify yourself. You are attempting to push to the repository.
 
 2
-00:00:06,051 --> 00:00:18,761
+00:00:05,958 --> 00:00:17,925
 Scanning. Line forty-two: an API key. Line ninety: a patient's date of birth. Line one hundred and three: a sandwich. The sandwich may proceed.
 
 3
-00:00:18,761 --> 00:00:25,248
+00:00:17,925 --> 00:00:27,756
 You have twenty seconds to comply. Remove the key. Remove the date of birth. I will wait. I am very good at waiting.
 
 4
-00:00:25,248 --> 00:00:32,317
+00:00:27,756 --> 00:00:34,964
 Hasta la vista, token. Clear. I will be back. At the next pull request.
 
 5
-00:00:32,699 --> 00:00:44,106
+00:00:35,350 --> 00:00:46,941
 I am the security guard. Before something leaves your lab, a change you are about to share or a file you are sending, I check it for passwords and patient information.
 
 6
-00:00:44,499 --> 00:00:59,532
+00:00:47,350 --> 00:01:03,264
 I read what you are about to share and look for passwords, access keys and tokens. In a project that holds patient data, I also look for health card numbers, record numbers, social insurance numbers, and a birth date beside a name.
 
 7
-00:00:59,532 --> 00:01:05,854
+00:01:03,264 --> 00:01:10,562
 I fail any change to your lab's original data, which stays as it was collected.
 
 8
-00:01:06,250 --> 00:01:18,727
+00:01:10,950 --> 00:01:24,728
 My scope is what leaves the lab. Whether the science is right is not my question. When I block patient data in a protected project, I name the conscience, who reviews how people are described.
 
 9
-00:01:18,727 --> 00:01:29,787
+00:01:24,728 --> 00:01:36,205
 I report each problem, where it is, and how to fix it; you make the change. I work offline, so the check itself sends nothing anywhere.
 
 10
-00:01:30,200 --> 00:01:37,615
+00:01:36,600 --> 00:01:45,873
 A real run, on a practice folder with a fake password and an invented patient line. The member is about to share it.
 
 11
-00:01:37,615 --> 00:01:55,148
+00:01:45,873 --> 00:02:03,638
 My first line says Blocked. Below it, each problem and its fix: a Slack access key in a settings file, and a record number with a birth date in the notes. Both are already in the project's saved history, so deleting them now is not enough.
 
 12
-00:01:55,550 --> 00:02:05,380
+00:02:04,050 --> 00:02:14,205
 To use me, type to Claude Code: ask the security guard to check my project before I share it. Say if the project holds patient data.
 
 13
-00:02:05,380 --> 00:02:15,807
+00:02:14,205 --> 00:02:24,679
 The first line is my answer: Clear, Concerns or Blocked. Blocked means fix what I list before anything leaves.

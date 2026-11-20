@@ -66,7 +66,7 @@ AGENT_VOICES = {
     "centre_millwright": "Charlie", # deep, confident, energetic
     "judge": "Daniel",              # steady broadcaster
     "registrar": "Will",            # relaxed optimist
-    "security_guard": "Adam",       # dominant, firm
+    "security_guard": "Rufus",      # German accent, for the cold open; a library voice, added to the account on 2026-11-20
     "prospector": "Callum",         # husky, outdoors: digs and brings back only what it found
 }
 
