@@ -40,6 +40,10 @@ teacher, a steady broadcaster for the judge, a neutral one for the conscience,
 which has no persona. `--voice <name>` overrides it for one render; a skill
 movie has no agent and keeps the narrator, Matilda. Changing an agent's voice
 re-voices its whole movie, since clips are cached by voice and text.
+Most of the voices are ElevenLabs stock voices, on every account. The security guard's
+(Rufus, a German-accented action-film voice for its cold open) comes from the voice
+library and must be added to an account before that movie can be voiced there: in
+ElevenLabs, Voice Library, search the name, "Add to my voices".
 Rendered mp4s and audio clips are not committed. Clips are cached by the text
 of the sentence, so a re-render that changes two sentences re-voices two. When
 the clips exist, each scene is timed from the measured length of its clip, so
