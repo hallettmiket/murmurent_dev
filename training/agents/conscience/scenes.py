@@ -1,6 +1,7 @@
 """The conscience movie: narration in the conscience's own voice, plain-statement cards checked against agents/conscience.md, and the real exchange in transcript.md."""
 from lib.agent_movie import AgentSpec, Exchange, Quote
 from lib.draw import SAND
+from cold_open import COLD_OPEN
 
 SPEC = AgentSpec(
     agent="conscience",
@@ -65,4 +66,5 @@ SPEC = AgentSpec(
         "Say what the document is and what you want checked: a grant's SGBA plus section, a course outline "
         "for decolonization, or a paper's language. The document types are examples; the review is the same."],
     docs=["docs/edid_resources.md"],
+    openers=[COLD_OPEN],
 )

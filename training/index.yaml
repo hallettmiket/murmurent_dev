@@ -375,19 +375,20 @@ movies:
 - agent: conscience
   title: The conscience
   tagline: "Equity, diversity, inclusion and decolonization review that says where every finding comes from"
-  version: 2026.11.1
-  date: 2026-11-09
+  version: 2026.11.2
+  date: 2026-11-20
   agent_sha256: d2038feea86a734313d012dfdcfc6922424d7148c56de9b661f0c4c42cf9580f
   file: training/agents/conscience/conscience_narrated.mp4
   make: python3 training/agents/conscience/make.py
-  seconds: 152
+  seconds: 179
   chapters:
-    - ["0:00", "Welcome"]
-    - ["0:16", "What it does"]
-    - ["0:57", "Its scope"]
-    - ["1:26", "A real example"]
-    - ["1:48", "How to direct it"]
-    - ["2:03", "How to use it"]
+    - ["0:00", "Reviewed before release"]
+    - ["0:26", "Welcome"]
+    - ["0:42", "What it does"]
+    - ["1:24", "Its scope"]
+    - ["1:54", "A real example"]
+    - ["2:15", "How to direct it"]
+    - ["2:31", "How to use it"]
 - agent: lawyer
   title: The lawyer
   tagline: "Patents, and whether your project's data may move or be shared"
