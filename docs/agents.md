@@ -101,6 +101,7 @@ and with which it must open its reply.
 | Adversary | Methodological audit: validates design, checks for data leakage, demands cross-validation; checks written-up prediction models and marker studies against TRIPOD+AI, PROBAST+AI and REMARK | member | Pass / Questions / Reject |
 | Conscience | EDID and SGBA+ review of design, language, literature selection and presentation | member | OK / Flagged |
 | Lawyer | Patent landscape and freedom-to-operate assessment | member | Clear / Conflict / Unknown |
+| Detective | Research-integrity investigation of a manuscript's record: citations through the registries, data accessions at their archives, availability wording against the journal's policy, numbers traced to their source, leftover model text, figures through a named tool; four tiers, never above the evidence, never about a person | member | Clean / Suspected / Proven |
 | Security Guard | Scans diffs and outgoing data objects for credentials, protected health information and permission errors | member | Clear / Concerns / Blocked |
 | Judge | Combines contributions to one choreography on a shared key, shows disagreement, and computes a consensus only where the contributions share a metric | project | Presented / Split / Insufficient |
 | *Infrastructure and administration* | | | |
@@ -118,9 +119,11 @@ replies once. So when an agent needs another, it does not call it: it names
 the other agent in a hand-off line of its reply, and the session dispatches
 that agent next. The figure draws every such hand-off as it is written in
 the agents' own files. A solid arrow is a piece of work handed on; a dashed
-arrow is a review or a check. The one agent that dispatches another itself
-is the adversary, which refers IP-bearing work to the lawyer automatically
-mid-audit and folds the verdict into its own.
+arrow is a review or a check. Two agents dispatch another themselves: the
+adversary, which refers IP-bearing work to the lawyer automatically
+mid-audit and folds the verdict into its own, and the detective, which
+refers the passages it cannot judge to the adversary once and folds that
+verdict in.
 
 ![Which agent hands work to which, grouped as research and production, memory, review and adjudication, and infrastructure and administration](diagrams/agent_handoffs.svg)
 
@@ -738,6 +741,39 @@ under `./outputs/prospector/`.
 It stops at the gate. The scribe writes the application; the clerk walks the
 institution's paperwork. A query carries the profile's public terms and never
 a sentence of a document or a person's name.
+
+## Detective
+
+Point the Detective at a manuscript, yours or one you are reviewing, and say
+whose it is, where it stands (draft, under review at which journal,
+published) and which model is reading it. It investigates the **record** the
+paper rests on, not the science: whether every cited paper exists, is the
+paper the bibliography claims and says what the sentence says; whether every
+data accession exists at its archive and is public; whether the availability
+statement meets the journal's own policy, read from the journal's page;
+whether the numbers behind the central claims trace to their source; whether
+a passage was generated and never read back; and, when an image tool is
+available, whether a figure panel is reused. It reports in four tiers and
+never above the evidence: `PROVEN` only where a registry's own answer is the
+proof and is quoted, `SUSPECTED` with what would settle it, `NOTED` for a
+fact with no verdict, `CLEAN` for what was checked and held. It never names
+intent or a person; every finding is about the manuscript.
+
+The parts that need no judgement are one command, `murmurent integrity check`
+([`docs/integrity.md`](integrity.md)): citations, accessions, availability
+wording, leftover phrases, the journal in DOAJ and the **journal registry**
+([`docs/journals.md`](journals.md), which the bookworm keeps and holds facts
+with dates, never the word predatory). The detective adds the reading, refers
+what it cannot judge to the adversary once, and renders the manuscript's own
+text with every finding highlighted where it sits, as an HTML page and, for a
+PDF, as highlights in a copy of the PDF, under `./outputs/detective/`.
+
+It is gated. A manuscript under review is confidential, and many journals
+forbid giving one to an AI tool; the detective reads the journal's reviewer
+policy first, quotes it, and stops if it forbids. Nothing of the text leaves
+the machine: only identifiers and the journal's name go to the registries.
+It uses no AI-text detector, never calls a figure duplicated on its own eye,
+never grades, and never writes to an editor.
 
 ## Where to go next
 

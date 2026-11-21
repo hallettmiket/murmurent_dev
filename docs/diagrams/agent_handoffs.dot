@@ -69,6 +69,7 @@ digraph agent_handoffs {
     fontsize=11; fontcolor="#4F2683"; color="#4F2683";
     style="rounded,dashed"; bgcolor="#F1ECE3";
     adversary      [label="adversary\n(methods audit)"];
+    detective      [label="detective\n(the record)"];
     conscience     [label="conscience\n(equity and bias)"];
     lawyer         [label="lawyer\n(patents, data permission)"];
     security_guard [label="security guard\n(secrets, patient data)"];
@@ -109,6 +110,10 @@ digraph agent_handoffs {
 
   // Review and adjudication
   adversary      -> lawyer         [label="IP-bearing work\n(dispatched automatically)", penwidth=1.8, color="#4F2683", fontcolor="#4F2683"];
+  detective      -> adversary      [label="passages a scientist\nmust judge (dispatched)", penwidth=1.8, color="#4F2683", fontcolor="#4F2683"];
+  detective      -> bookworm       [label="a journal the\nregistry should hold"];
+  adversary      -> detective      [label="an identifier it\ncould not trace"];
+  docent         -> detective      [label="data a claim\npoints at, unreachable"];
   adversary      -> bookworm       [label="a reference\nto find"];
   adversary      -> security_guard [label="siblings: science\nversus what leaves", style=dashed, dir=none];
   security_guard -> conscience     [label="patient data blocked\nin a protected project"];
