@@ -32,6 +32,7 @@ EXPECTED_AGENTS = {
     "centre_millwright",
     "clerk",
     "conscience",
+    "detective",
     "docent",
     "judge",
     "lab_oracle",

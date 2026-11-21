@@ -2027,6 +2027,42 @@ def cite_check_cmd(path: str, as_json: bool) -> None:
     _cite.cmd_check(path, as_json=as_json)
 
 
+@cli.group("integrity", help="The detective's deterministic checks on a manuscript.")
+def integrity_group() -> None:
+    """Citations, data accessions, availability wording, leftover model text, the journal."""
+
+
+@integrity_group.command(
+    "check",
+    help="Check a manuscript (.tex, .md, .txt, .bib or .pdf): every citation through the registries, "
+         "every data accession at its archive, the data-availability wording, leftover language-model "
+         "phrases, and the journal in DOAJ and the journal registry. Findings in four tiers, PROVEN / "
+         "SUSPECTED / NOTED / CLEAN; exits 1 if any is PROVEN.")
+@click.argument("path", type=click.Path(exists=True, dir_okay=False))
+@click.option("--journal", default="", help="The journal's name, for the DOAJ and registry lookup.")
+@click.option("--issn", default="", help="The journal's ISSN, which beats the name.")
+@click.option("--json", "as_json", is_flag=True, help="Machine-readable output, for the detective and for `report`.")
+def integrity_check_cmd(path: str, journal: str, issn: str, as_json: bool) -> None:
+    from .commands import integrity_cmd as _ic
+
+    _ic.cmd_check(path, journal=journal, issn=issn, as_json=as_json)
+
+
+@integrity_group.command(
+    "report",
+    help="From the JSON that `check --json` printed, write the manuscript's text with every finding "
+         "highlighted where it sits as a self-contained HTML page, and, for a PDF manuscript with "
+         "--pdf-out, the same highlights written into a copy of the PDF (needs PyMuPDF).")
+@click.argument("findings_json", type=click.Path(exists=True, dir_okay=False))
+@click.option("--out", default="", help="The HTML file to write (default: beside the manuscript, .integrity.html).")
+@click.option("--pdf-out", default="", help="Also write an annotated copy of the PDF here.")
+@click.option("--title", default="", help="The page's title.")
+def integrity_report_cmd(findings_json: str, out: str, pdf_out: str, title: str) -> None:
+    from .commands import integrity_cmd as _ic
+
+    _ic.cmd_report(findings_json, out=out, pdf_out=pdf_out, title=title)
+
+
 @cli.command("publish", help="Promote a finding to the group oracle.")
 @click.argument("artefact", type=click.Path())
 @click.option("--to", "destination", required=True)

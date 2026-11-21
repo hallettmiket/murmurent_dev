@@ -68,6 +68,7 @@ AGENT_VOICES = {
     "registrar": "Will",            # relaxed optimist
     "security_guard": "Rufus",      # German accent, for the cold open; a library voice, added to the account on 2026-11-20
     "prospector": "Callum",         # husky, outdoors: digs and brings back only what it found
+    "detective": "Liam",            # articulate, even: just the facts
 }
 
 
