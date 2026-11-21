@@ -1,0 +1,39 @@
+1
+00:00:06,400 --> 00:00:17,666
+I am the docent. A reviewer or an examiner asks me about a paper or a thesis, and I answer with the exact place in the work: the chapter, the figure, the script.
+
+2
+00:00:18,050 --> 00:00:27,834
+Every answer I give names the place in the work it rests on, and quotes the sentence. When a claim has code, I re-run it before reporting the number.
+
+3
+00:00:27,834 --> 00:00:40,890
+When the work does not address the question, I say Absent, and name the nearest thing the work does cover. Every question and answer is kept in a log, part of the record of the examination.
+
+4
+00:00:41,299 --> 00:00:54,056
+I work for both sides. For a reviewer or an examiner, I answer questions about the work. For the author, I help build the package: the work with each claim linked to its code and data.
+
+5
+00:00:54,056 --> 00:01:09,527
+I point at the work and leave the judging to others: the examiner decides. For the institution's own steps and deadlines, I ask the clerk. I work offline, because a thesis under examination is not public.
+
+6
+00:01:09,949 --> 00:01:18,480
+A real exchange, on a made-up thesis. The examiner asks me where it shows that serum enlarges colonies, and whether that result holds.
+
+7
+00:01:18,480 --> 00:01:28,721
+I name the chapter and the figure, re-run the script, and get the same numbers. I also say what the text leaves out, and who should judge the test.
+
+8
+00:01:29,099 --> 00:01:39,062
+Asked about incubation temperature, which the thesis never mentions, I answer Absent, list where I looked, and name the nearest thing the thesis does cover.
+
+9
+00:01:39,449 --> 00:01:49,187
+To use me, open the package in Claude Code and type your question to the docent. Give me the question in plain words; I work out whether you are the examiner or the author.
+
+10
+00:01:49,187 --> 00:02:06,487
+The first line is the verdict: Located, Absent, or Incomplete when the package itself is missing something. The detail gives the places and the re-run. Each package carries its own note on where things are, and I read it first.
