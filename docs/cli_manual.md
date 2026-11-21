@@ -480,6 +480,8 @@ Note: `provision` is no longer a CLI command; it is a tool on the `inventory` MC
 | `murmurent push <project> --refined <exp>` | Recompute checksums in `$MURMURENT_DATA_ROOT/append_only/<project>/<exp>/`, update notebook `append_only_data` + `checksums`, push to personal branch |
 | `murmurent pull <project>` | Fetch latest |
 | `murmurent cite check <file>` | Look up every DOI, PMID and arXiv ID in a `.bib`, `.tex` or `.md` file. Reports any that do not exist, name a different paper from the one the bibliography claims, or have been retracted, and exits 1 if there are any. `--json` for agents |
+| `murmurent integrity check <manuscript> [--journal NAME \| --issn ISSN]` | The detective's deterministic checks on a `.tex`, `.md`, `.txt`, `.bib` or `.pdf`: every citation through the registries, every data accession at its archive, the availability wording, leftover language-model phrases, the journal in DOAJ and `docs/journals.md`. Findings in four tiers, `PROVEN / SUSPECTED / NOTED / CLEAN`; exits 1 on a `PROVEN` one. `--json` for the detective. Guide: `docs/integrity.md` |
+| `murmurent integrity report <findings.json> [--out page.html] [--pdf-out copy.pdf]` | The manuscript's own text with every finding highlighted where it sits, as a self-contained HTML page; for a PDF, the same as highlight annotations in a copy of the PDF (needs PyMuPDF) |
 | `murmurent audit <target>` | Invoke `adversary` on a path or PR |
 | `murmurent publish <artefact> --to <oracle>` | Promote a finding to the group oracle |
 | `murmurent request-sea --to <member> --kind <skill\|experiment\|analysis> --description <...>` | File an SEA request on the group request board |

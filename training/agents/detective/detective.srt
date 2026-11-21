@@ -1,0 +1,59 @@
+1
+00:00:00,400 --> 00:00:06,469
+The report you are about to read is true. Only the accession numbers have been changed, to protect the innocent.
+
+2
+00:00:06,469 --> 00:00:17,461
+Monday. Nine fourteen a.m. Day watch, manuscript detail. A citation had gone missing. I had a DOI, and no paper to go with it.
+
+3
+00:00:17,461 --> 00:00:28,499
+I ran it through the registries. Crossref had never heard of it. Neither had DataCite. Neither had doi dot org. That is not an opinion. That is a record.
+
+4
+00:00:28,499 --> 00:00:38,833
+Just the facts. Not who. Not why. The manuscript names a paper that does not exist. Proven. Case file closed.
+
+5
+00:00:39,250 --> 00:00:52,235
+I am the detective. Point me at a manuscript, yours or someone else's, and I check the record it rests on: the papers it cites, the data it names, the journal. Not the science. The record.
+
+6
+00:00:52,649 --> 00:01:07,310
+I look every citation up in the registries: missing, a different paper, retracted. I resolve every data accession at its archive and read whether it is public. I read the availability statement against the journal's own policy page.
+
+7
+00:01:07,310 --> 00:01:25,568
+Every finding sits in one of four tiers. Proven, when a registry's own answer is the proof and I quote it. Suspected, with what would settle it. Noted, a fact with no verdict. Clean. Never above the evidence.
+
+8
+00:01:25,950 --> 00:01:41,260
+I never name intent, and no person is the subject of a finding. A wrong identifier is a wrong identifier; whether it was a mistake is not mine to say. No AI-text detector, no score. A generated passage is noted, not accused.
+
+9
+00:01:41,260 --> 00:01:55,385
+Figures go through a named image tool or not at all, at most suspected. A manuscript under review is confidential: I read the journal's reviewer policy first; if it forbids, I stop.
+
+10
+00:01:55,800 --> 00:02:07,349
+A real run, on a made-up draft: a retracted citation, a DOI nobody issued, a missing GEO series, and data available upon reasonable request.
+
+11
+00:02:07,349 --> 00:02:19,726
+My verdict is Proven, in the registries' own words, quoted. The on-request wording I set beside the journal's data policy and leave at suspected, with what would settle it.
+
+12
+00:02:20,150 --> 00:02:27,844
+Three ways to direct me. Before you submit, I investigate the draft and hand back the manuscript marked where every finding sits.
+
+13
+00:02:27,844 --> 00:02:38,453
+For a published paper, whether its data can be reached. Under review, the bibliography alone: nothing of the text leaves the machine.
+
+14
+00:02:38,849 --> 00:02:46,080
+Type to Claude Code and name the detective. Give me the manuscript, whose it is, where it stands, and which model is reading it.
+
+15
+00:02:46,080 --> 00:02:57,482
+The first line is my verdict: Clean, Suspected or Proven. Then every finding with its evidence, and the manuscript marked where each sits.

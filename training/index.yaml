@@ -548,3 +548,20 @@ movies:
     - ["1:40", "A real example"]
     - ["2:16", "How to direct it"]
     - ["2:30", "How to use it"]
+- agent: detective
+  title: The detective
+  tagline: "Whether the record a manuscript rests on is real and reachable"
+  version: 2026.11.2
+  date: 2026-11-21
+  agent_sha256: 950af71e1eb1a0ca99017a25c41b32cb765a909451e6fdcc6818b68a88fe5e99
+  file: training/agents/detective/detective_narrated.mp4
+  make: python3 training/agents/detective/make.py
+  seconds: 178
+  chapters:
+    - ["0:00", "The report you are about to read"]
+    - ["0:38", "Welcome"]
+    - ["0:52", "What it does"]
+    - ["1:25", "Its scope"]
+    - ["1:55", "A real example"]
+    - ["2:19", "How to direct it"]
+    - ["2:38", "How to use it"]

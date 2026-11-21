@@ -5,7 +5,7 @@ hook can read it without the drawing libraries."""
 GLYPHS = {"oracle": "🔮", "lab_oracle": "📜", "bookworm": "📚", "blacksmith": "⚒️", "adversary": "⚔️",
           "artist": "🎨", "teacher": "🎓", "conscience": "🧭", "scribe": "✒️", "docent": "🗺️",
           "lawyer": "⚖️", "millwright": "🔧", "centre_millwright": "🏗️", "judge": "🧮",
-          "registrar": "🗂️", "security_guard": "🛡️", "clerk": "📋", "prospector": "⛏️"}
+          "registrar": "🗂️", "security_guard": "🛡️", "clerk": "📋", "prospector": "⛏️", "detective": "🕵️"}
 MEMBER_GLYPH = "🧑‍🔬"
 
 
