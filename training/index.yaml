@@ -245,13 +245,15 @@ movies:
   agent_sha256: 4ccaa69779f9dabfb86eb0918c8800e17882bd5e3f2b44e60048abed1a563bea
   file: training/agents/oracle/oracle_narrated.mp4
   make: python3 training/agents/oracle/make.py
-  seconds: 126
+  # 6-second opening (opening/make_clip.py --prepend) + 126 s movie
+  seconds: 132
   chapters:
-    - ["0:00", "Welcome"]
-    - ["0:13", "What it does"]
-    - ["0:37", "Its scope"]
-    - ["1:00", "A real example"]
-    - ["1:44", "How to use it"]
+    - ["0:00", "Opening"]
+    - ["0:06", "Welcome"]
+    - ["0:19", "What it does"]
+    - ["0:43", "Its scope"]
+    - ["1:06", "A real example"]
+    - ["1:50", "How to use it"]
 - agent: bookworm
   title: The bookworm
   tagline: "Finds the papers and the database records your project needs, and checks each one against its source"
@@ -331,15 +333,17 @@ movies:
   agent_sha256: e1ee79164cd5db3afcbe53e3a51d0c05020d1a75c94a8ff2346ae0e1f05081a5
   file: training/agents/teacher/teacher_narrated.mp4
   make: python3 training/agents/teacher/make.py
-  seconds: 180
+  # 6-second opening (opening/make_clip.py --prepend) + 180 s movie
+  seconds: 186
   chapters:
-    - ["0:00", "Welcome"]
-    - ["0:16", "What it does"]
-    - ["0:45", "Its scope"]
-    - ["1:23", "A real example"]
-    - ["1:45", "The idea, drawn"]
-    - ["2:27", "How to direct it"]
-    - ["2:42", "How to use it"]
+    - ["0:00", "Opening"]
+    - ["0:06", "Welcome"]
+    - ["0:22", "What it does"]
+    - ["0:51", "Its scope"]
+    - ["1:29", "A real example"]
+    - ["1:51", "The idea, drawn"]
+    - ["2:33", "How to direct it"]
+    - ["2:48", "How to use it"]
 - agent: lab_oracle
   title: The lab oracle
   tagline: "The lab's shared memory"
@@ -348,13 +352,15 @@ movies:
   agent_sha256: 040d8579d1a1fc415362bfddca15ff6b859dc95add4848b29ca49a3b24c2540e
   file: training/agents/lab_oracle/lab_oracle_narrated.mp4
   make: python3 training/agents/lab_oracle/make.py
-  seconds: 101
+  # 6-second opening (opening/make_clip.py --prepend) + 101 s movie
+  seconds: 107
   chapters:
-    - ["0:00", "Welcome"]
-    - ["0:09", "What it does"]
-    - ["0:25", "Its scope"]
-    - ["0:41", "A real example"]
-    - ["1:17", "How to use it"]
+    - ["0:00", "Opening"]
+    - ["0:06", "Welcome"]
+    - ["0:15", "What it does"]
+    - ["0:31", "Its scope"]
+    - ["0:47", "A real example"]
+    - ["1:23", "How to use it"]
 - agent: blacksmith
   title: The blacksmith
   tagline: "Runs the analysis on your own data and shows you the code"
@@ -431,13 +437,15 @@ movies:
   agent_sha256: 1cbc96e730fb153e1acca70c9fa61c03c3f782911d1187416202713704a1149c
   file: training/agents/centre_millwright/centre_millwright_narrated.mp4
   make: python3 training/agents/centre_millwright/make.py
-  seconds: 101
+  # 6-second opening (opening/make_clip.py --prepend) + 101 s movie
+  seconds: 107
   chapters:
-    - ["0:00", "Welcome"]
-    - ["0:12", "What it does"]
-    - ["0:39", "Its scope"]
-    - ["0:56", "A real example"]
-    - ["1:13", "How to use it"]
+    - ["0:00", "Opening"]
+    - ["0:06", "Welcome"]
+    - ["0:18", "What it does"]
+    - ["0:45", "Its scope"]
+    - ["1:02", "A real example"]
+    - ["1:19", "How to use it"]
 - agent: judge
   title: The judge
   tagline: "Puts several answers to one question side by side, with who found what"
@@ -446,13 +454,15 @@ movies:
   agent_sha256: bd86954fe8c9fd9da362185d4d0c9a58d0bcf78ddf6d889018298c6f32d03b3b
   file: training/agents/judge/judge_narrated.mp4
   make: python3 training/agents/judge/make.py
-  seconds: 137
+  # 6-second opening (opening/make_clip.py --prepend) + 137 s movie
+  seconds: 143
   chapters:
-    - ["0:00", "Welcome"]
-    - ["0:10", "What it does"]
-    - ["0:46", "Its scope"]
-    - ["1:16", "A real example"]
-    - ["1:48", "How to use it"]
+    - ["0:00", "Opening"]
+    - ["0:06", "Welcome"]
+    - ["0:16", "What it does"]
+    - ["0:52", "Its scope"]
+    - ["1:22", "A real example"]
+    - ["1:54", "How to use it"]
 - agent: registrar
   title: The registrar
   tagline: "The centre's one list of labs, cores and collaborations"
@@ -461,13 +471,15 @@ movies:
   agent_sha256: 6fb8c4282d8a608658836d2d2bfd417fada3c85e08b972e958ceadca1dbbeeac
   file: training/agents/registrar/registrar_narrated.mp4
   make: python3 training/agents/registrar/make.py
-  seconds: 105
+  # 6-second opening (opening/make_clip.py --prepend) + 105 s movie
+  seconds: 111
   chapters:
-    - ["0:00", "Welcome"]
-    - ["0:12", "What it does"]
-    - ["0:37", "Its scope"]
-    - ["0:57", "A real example"]
-    - ["1:14", "How to use it"]
+    - ["0:00", "Opening"]
+    - ["0:06", "Welcome"]
+    - ["0:18", "What it does"]
+    - ["0:43", "Its scope"]
+    - ["1:03", "A real example"]
+    - ["1:20", "How to use it"]
 - agent: security_guard
   title: The security guard
   tagline: "Checks what leaves your lab for passwords and patient data"
@@ -492,13 +504,15 @@ movies:
   agent_sha256: d0d1246dcbe638da683dcd35c8f7d2a6be8ee2a867961142e296a19defa05db4
   file: training/agents/docent/docent_narrated.mp4
   make: python3 training/agents/docent/make.py
-  seconds: 120
+  # 6-second opening (opening/make_clip.py --prepend) + 120 s movie
+  seconds: 126
   chapters:
-    - ["0:00", "Welcome"]
-    - ["0:11", "What it does"]
-    - ["0:34", "Its scope"]
-    - ["1:03", "A real example"]
-    - ["1:33", "How to use it"]
+    - ["0:00", "Opening"]
+    - ["0:06", "Welcome"]
+    - ["0:17", "What it does"]
+    - ["0:40", "Its scope"]
+    - ["1:09", "A real example"]
+    - ["1:39", "How to use it"]
 - agent: clerk
   title: The clerk
   tagline: "Ask it anything about your institution; it reads the answer off the institution's own pages"
