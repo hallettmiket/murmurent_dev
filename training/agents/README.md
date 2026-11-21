@@ -40,6 +40,10 @@ teacher, a steady broadcaster for the judge, a neutral one for the conscience,
 which has no persona. `--voice <name>` overrides it for one render; a skill
 movie has no agent and keeps the narrator, Matilda. Changing an agent's voice
 re-voices its whole movie, since clips are cached by voice and text.
+Most of the voices are ElevenLabs stock voices, on every account. The security guard's
+(Rufus, a German-accented action-film voice for its cold open) comes from the voice
+library and must be added to an account before that movie can be voiced there: in
+ElevenLabs, Voice Library, search the name, "Add to my voices".
 Rendered mp4s and audio clips are not committed. Clips are cached by the text
 of the sentence, so a re-render that changes two sentences re-voices two. When
 the clips exist, each scene is timed from the measured length of its clip, so
@@ -52,6 +56,16 @@ quote is no longer in the file. So a change to the agent is visibly a change
 to the movie, not a drift between them. Pick quote fragments without em dashes;
 the narration is checked for them too. The verdict lines in the transcripts are
 the agents' own output and are kept exactly as they came, dashes included.
+
+**A gag that needs the voice goes inside the movie.** The six-second openings above are
+silent cartoons spliced on afterwards. When the joke is spoken (the lawyer's is a
+late-night television advertisement, in the manner of the persona its agent file
+keeps), it is a scene of the narrated movie itself: `AgentSpec.openers` holds scenes
+played before the title, timed from their clips and captioned like any other, drawn
+by a file beside `scenes.py` (the `cold_open.py` of the lawyer, the clerk, the security guard, the conscience and the scribe). The chapter list gains a
+first entry and `make.py` counts it, so nothing is added by hand. Keep it under half
+a minute: the agent's two minutes are the point, and the whole movie must stay under
+three.
 
 **The example is real.** Each transcript is the reply of the agent itself,
 run as a subagent on `examples/` or on synthetic data made for the movie

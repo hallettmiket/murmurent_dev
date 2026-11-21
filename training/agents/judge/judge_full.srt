@@ -1,0 +1,35 @@
+1
+00:00:06,400 --> 00:00:16,691
+I am the judge. When several members or labs each answer the same question, I put their answers side by side and show who found what.
+
+2
+00:00:17,099 --> 00:00:33,803
+I line up every answer on the same items, for example the same compounds, and rank them by the rules of the person who asked. Every contribution is shown, even one that covers only some of the items.
+
+3
+00:00:33,803 --> 00:00:52,200
+Every number names who produced it, how it was measured, and how uncertain it is. Where the answers disagree, I say so. The person who asks sets the ranking rules; a lab can also adapt me to its own needs.
+
+4
+00:00:52,600 --> 00:01:09,350
+My scope is combining and presenting. The answers arrive already produced, and the person who asked decides what happens next. I hand my table to the artist, who turns it into a figure.
+
+5
+00:01:09,350 --> 00:01:22,406
+I give one combined score only when the measures share a scale. Otherwise the answer is Split, shown side by side. I never invent a consensus.
+
+6
+00:01:22,800 --> 00:01:34,767
+A real run, on invented data: two labs and five compounds. One lab gives a computed docking score, the other a measured binding strength.
+
+7
+00:01:34,767 --> 00:01:54,946
+My answer is Split: the two measures are on different scales, so there is no combined score. Under the asker's rule, two compounds rank first. I flag the compound that docks best but binds worst, and the untested one stays in the table.
+
+8
+00:01:55,350 --> 00:02:08,338
+To use me, once the contributions are in, type to Claude Code: ask the judge to present the results. I need each contribution's table, the question, and the ranking rules.
+
+9
+00:02:08,338 --> 00:02:23,177
+The first line is the answer: Presented, Split, or Insufficient when a result is missing. Then the table, every number with its source, ready for the artist.

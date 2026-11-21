@@ -1,0 +1,35 @@
+1
+00:00:06,400 --> 00:00:18,316
+I am the centre millwright. I work for the centre's administrator, the registrar, and keep each project's access the same everywhere: its Slack channel, its code and its data folders.
+
+2
+00:00:18,700 --> 00:00:33,081
+Each project has a list of its members. I compare that list with who is actually in the project's channel, on its code, and on its folders on the shared servers. Any difference is drift, and I report each one with what I would change.
+
+3
+00:00:33,081 --> 00:00:45,441
+I also set up projects whose members come from several labs, inviting the others as guests. I work one project at a time, and change nothing until the registrar approves.
+
+4
+00:00:45,850 --> 00:00:55,773
+Each lab's own millwright sets up that lab's members; I take over once a project crosses labs. I read each lab's records, which the lab's PI keeps.
+
+5
+00:00:55,773 --> 00:01:02,653
+When a channel is no longer needed, I archive it, so the registrar can bring it back.
+
+6
+00:01:03,050 --> 00:01:09,119
+A real run that changes nothing. The registrar asks me to check the centre's records on this machine.
+
+7
+00:01:09,119 --> 00:01:19,081
+The comparison of members with their access could not run here, and I say so. I then list eight local items, each with what I would do.
+
+8
+00:01:19,500 --> 00:01:29,748
+To use me, ask the centre millwright, on the registrar's computer, to check one project or every project. I show each difference before anything changes.
+
+9
+00:01:29,748 --> 00:01:46,862
+The first line is the verdict: Reconciled, Drift, or Blocked while I wait for approval. A centre sets its own name, Slack workspace and GitHub organisation, and every project's names follow from them.

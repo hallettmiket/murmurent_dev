@@ -611,3 +611,38 @@ def badge(img: Image.Image, glyph: str, colour, cx: float, cy: float, size: int 
         im.paste(g, (int((size - g.width) / 2), int((size - g.height) / 2)), g)
         _SPR[key] = im
     paste_c(img, _SPR[key], cx, cy, scale, alpha)
+
+
+def stamp(img, t, t0, cx, cy, text, colour, angle: float = -9, f=None) -> None:
+    """A rubber stamp slamming down from t0 and settling, slightly askew."""
+    p = P(t, t0, 0.35)
+    if p <= 0:
+        return
+    f = f or F_H
+    w, h = int(tw(text, f)) + 64, f.size + 44
+    layer = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    d = ImageDraw.Draw(layer)
+    d.rounded_rectangle((3, 3, w - 4, h - 4), radius=10, outline=colour, width=6)
+    d.text((32, 18), text, font=f, fill=colour)
+    s = 1.7 - 0.7 * eout(p)
+    layer = layer.resize((int(w * s), int(h * s)), Image.BICUBIC)
+    layer = layer.rotate(angle, expand=True, resample=Image.BICUBIC)
+    layer.putalpha(layer.getchannel("A").point(lambda v: int(v * min(1.0, p * 2.5))))
+    img.paste(layer, (int(cx - layer.width / 2), int(cy - layer.height / 2)), layer)
+
+
+def smoke(img, t, x, y, height: int = 160, colour=(200, 200, 210), t0: float = 0.0) -> None:
+    """A thin plume rising from (x, y), drifting as it goes."""
+    if t < t0:
+        return
+    layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    d = ImageDraw.Draw(layer)
+    n = 14
+    for i in range(n):
+        k = i / n
+        yy = y - k * height
+        xx = x + 14 * math.sin(k * 5.0 + t * 1.6) + 22 * k * k * math.sin(t * 0.7)
+        r = 3 + 11 * k
+        a = int(120 * (1 - k) * min(1.0, (t - t0) * 0.6))
+        d.ellipse([xx - r, yy - r, xx + r, yy + r], fill=colour + (a,))
+    img.paste(layer, (0, 0), layer)
