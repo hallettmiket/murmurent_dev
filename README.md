@@ -111,6 +111,7 @@ use it through Claude Code.
 | [`clerk`](https://github.com/hallettmiket/murmurent/blob/main/agents/clerk.md) | [The clerk](https://mikehallett.science/assets/videos/murmurent_agent_clerk.html) | 2:58 |
 | [`docent`](https://github.com/hallettmiket/murmurent/blob/main/agents/docent.md) | [The docent](https://mikehallett.science/assets/videos/murmurent_agent_docent.html) | 2:06 |
 | [`prospector`](https://github.com/hallettmiket/murmurent/blob/main/agents/prospector.md) | [The prospector](https://mikehallett.science/assets/videos/murmurent_agent_prospector.html) | 3:06 |
+| [`detective`](https://github.com/hallettmiket/murmurent/blob/main/agents/detective.md) | [The detective](https://mikehallett.science/assets/videos/murmurent_agent_detective.html) | 2:58 |
 
 **News**, newest first (releases and new capabilities; the full record is the
 [changelog](https://github.com/hallettmiket/murmurent/blob/main/CHANGELOG.md)):
