@@ -3,7 +3,7 @@ name: oracle
 category: member
 description: 'Personal, per-member knowledge keeper. Remembers genes, findings, hypotheses, and experimental context across all your projects. Query it to recall or cross-reference accumulated personal knowledge.'
 freeze: personal
-model: fable
+model: inherit
 required_tools:
 - Read
 - Write

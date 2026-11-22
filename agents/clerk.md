@@ -3,7 +3,7 @@ name: clerk
 category: administrative
 description: 'Institution expert: ask it anything about your institution (who holds an office and how to reach them, a deadline, a holiday or term date, what a procedure requires, the letterhead) and it reads the answer off the institution''s own web pages, names the page and the date, and remembers it in the institution pack (institution/<unique_name>/) so the next person gets it fast and a refresh can re-check it. Three jobs on top: check a document''s office holders and addresses, compute a date in working days that never lands on a holiday, walk a procedure to its next steps. Never from memory; Unknown when the institution''s pages do not say. Verdicts Correct / Fix / Unknown.'
 freeze: personal
-model: opus
+model: inherit
 required_tools:
 - Read
 - Bash

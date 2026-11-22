@@ -3,7 +3,7 @@ name: lawyer
 category: member
 description: 'Patent, IP and data-governance counsel for the centre. Searches global patent databases for genes, proteins, molecules and devices and prepares landscape reports; and rules on whether a project is permitted to move, share, store or publish governed data — PHIPA, data-sharing agreements, REB scope — always from the instrument, never from assumption. Routes freedom-to-operate checks and binding determinations through the Research & Innovation Office. (Formerly named ``saul_goodman``; the persona lives on in the agent body, the canonical name is now ``lawyer``.)'
 freeze: personal
-model: opus
+model: inherit
 required_tools:
 - Read
 - Write
