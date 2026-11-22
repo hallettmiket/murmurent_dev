@@ -4,6 +4,17 @@ category: member
 description: 'Scientific skeptic and auditor. Validates methodology, checks for data leakage, challenges results, and demands cross-validation.'
 freeze: frozen
 model: inherit
+harnesses:
+  claude_code:
+    status: verified
+    checked: 2026-11-22
+    evidence: training/agents/adversary/transcript.md
+  antigravity:
+    status: untested
+    checked: 2026-11-22
+  faraday:
+    status: untested
+    checked: 2026-11-22
 required_tools:
 - Read
 - Write

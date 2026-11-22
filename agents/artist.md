@@ -4,6 +4,17 @@ category: member
 description: 'Visualization and communication specialist. Creates figures, plots, and presentation materials.'
 freeze: personal
 model: sonnet
+harnesses:
+  claude_code:
+    status: verified
+    checked: 2026-11-22
+    evidence: training/agents/artist/transcript.md
+  antigravity:
+    status: untested
+    checked: 2026-11-22
+  faraday:
+    status: untested
+    checked: 2026-11-22
 required_tools:
 - Read
 - Write

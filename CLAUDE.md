@@ -81,6 +81,12 @@ Auto-loaded into every CC session via `~/.claude/rules/`:
   a session never picks a channel itself. Which workspace and bot is a
   deployment fact and lives in `rules/local/`. How every kind of message is
   routed: [`docs/slack_routing.md`](docs/slack_routing.md).
+- [`rules/optional_helpers.md`](rules/optional_helpers.md): an agent may use a
+  plugin, skill or connector from outside the commons only when it is present
+  in the session, only in its `## Optional helpers` section with the fallback
+  beside it, and never as a requirement; absent means do without and say so.
+  Each agent's `harnesses:` block records where it is verified, degraded or
+  untested ([`docs/harnesses.md`](docs/harnesses.md)).
 - [`rules/voice.md`](rules/voice.md) — read the voice guidelines at the start
   of every session, before writing anything a person will read. Points at
   [`output_styles/plain_english.md`](output_styles/plain_english.md) for the

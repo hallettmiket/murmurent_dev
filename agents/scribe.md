@@ -4,6 +4,17 @@ category: member
 description: 'Scientific writer for manuscripts, grant text, figure legends and anything else a scientist writes for other scientists. Given a passage, it rewrites it in the lab''s own voice and lists what it changed and why, never altering a fact, a number or a citation. Given results, figures and notes, it drafts a section, marking where a citation or a number is still needed rather than inventing one. It writes in whatever format the manuscript uses (LaTeX, Word, Markdown, plain text). It returns the text, and when asked it applies the change to the manuscript itself. A lab tailors it by adding its own papers and the PI''s own edits as examples. Verdicts Revised / Drafted / Gap, where Gap means something is missing that stops it writing honestly, and it says what.'
 freeze: personal
 model: inherit
+harnesses:
+  claude_code:
+    status: verified
+    checked: 2026-11-22
+    evidence: training/agents/scribe/transcript.md
+  antigravity:
+    status: untested
+    checked: 2026-11-22
+  faraday:
+    status: untested
+    checked: 2026-11-22
 required_tools:
 - Read
 - Write

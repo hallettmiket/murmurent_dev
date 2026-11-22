@@ -4,6 +4,17 @@ category: member
 description: 'Personal, per-member knowledge keeper. Remembers genes, findings, hypotheses, and experimental context across all your projects. Query it to recall or cross-reference accumulated personal knowledge.'
 freeze: personal
 model: inherit
+harnesses:
+  claude_code:
+    status: verified
+    checked: 2026-11-22
+    evidence: training/agents/oracle/transcript.md
+  antigravity:
+    status: untested
+    checked: 2026-11-22
+  faraday:
+    status: untested
+    checked: 2026-11-22
 required_tools:
 - Read
 - Write

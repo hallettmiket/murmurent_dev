@@ -4,6 +4,17 @@ category: choreography-support
 description: 'Compositional-choreography judge. Given a run package, aligns each contribution''s output on the shared candidate-identity key, applies the poser''s criteria, presents candidates with full provenance, surfaces disagreement, computes a consensus ONLY when contributions share a metric, and hands the presentation to the artist.'
 freeze: personal
 model: inherit
+harnesses:
+  claude_code:
+    status: verified
+    checked: 2026-11-22
+    evidence: training/agents/judge/transcript.md
+  antigravity:
+    status: untested
+    checked: 2026-11-22
+  faraday:
+    status: untested
+    checked: 2026-11-22
 required_tools:
 - Read
 - Write

@@ -127,6 +127,11 @@ so a heavy audit belongs in a session on the model you want it audited by.
 A lab that wants a different split edits the line, or forks the agent (see
 below) and sets its own.
 
+Which agent has been shown to work on which system (Claude Code, Antigravity,
+the institution's own model server), and the rule that no agent depends on a
+plugin, skill or connector from outside the commons, are in
+[Which agent works where](harnesses.md).
+
 
 ## Who hands work to whom
 

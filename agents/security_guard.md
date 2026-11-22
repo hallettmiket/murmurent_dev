@@ -4,6 +4,17 @@ category: member
 description: 'Guardian persona that scans diffs and outgoing artefacts for secrets, restricted paths, and PHI patterns. Always invoked on PRs that touch shared code or data.'
 freeze: frozen
 model: sonnet
+harnesses:
+  claude_code:
+    status: verified
+    checked: 2026-11-22
+    evidence: training/agents/security_guard/transcript.md
+  antigravity:
+    status: untested
+    checked: 2026-11-22
+  faraday:
+    status: untested
+    checked: 2026-11-22
 required_tools:
 - Read
 - Grep

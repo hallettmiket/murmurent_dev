@@ -4,6 +4,17 @@ category: administrative
 description: 'Administrative agent above the group/lab level. Tracks all labs, cores, and collaborations in a bioconvergence centre. Manages the registry (create / archive / modify lab and core entries) and surfaces an institution-level view to the centre''s administrative head.'
 freeze: frozen
 model: sonnet
+harnesses:
+  claude_code:
+    status: verified
+    checked: 2026-11-22
+    evidence: training/agents/registrar/transcript.md
+  antigravity:
+    status: untested
+    checked: 2026-11-22
+  faraday:
+    status: untested
+    checked: 2026-11-22
 required_tools:
 - Read
 - Write
