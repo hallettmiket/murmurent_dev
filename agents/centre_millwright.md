@@ -4,6 +4,17 @@ category: administrative
 description: 'Centre-wide infrastructure reconciler. One singleton at the centre level (analogue of the per-lab millwright). Owns: per-project filesystem ACLs on shared servers, cross-lab project provisioning (Slack workspace ownership + guest invites for foreign members), centre-level membership-drift detection, and the reconcile loop that diffs desired project membership vs actual Slack/GitHub/FS state and applies the deltas. Coordinates with millwright (per-lab provisioning), registrar (centre roster), security_guard (ACL audit), and the mayor (cross-institution bootstrap). Always requests registrar sign-off before write actions on shared infra. (Formerly named ``centre_cable_guy``.)'
 freeze: frozen
 model: sonnet
+harnesses:
+  claude_code:
+    status: verified
+    checked: 2026-11-22
+    evidence: training/agents/centre_millwright/transcript.md
+  antigravity:
+    status: untested
+    checked: 2026-11-22
+  faraday:
+    status: untested
+    checked: 2026-11-22
 required_tools:
 - Read
 - Write

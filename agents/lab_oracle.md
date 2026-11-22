@@ -4,6 +4,17 @@ category: member
 description: 'Lab-wide, reviewed institutional memory backed by the lab-mgmt repo. Read-only from the agent side; entries arrive via the murmurent oracle publish CLI after PI/peer review. Use to recall what the WHOLE lab has agreed on, distinct from one member''s personal Oracle.'
 freeze: frozen
 model: sonnet
+harnesses:
+  claude_code:
+    status: verified
+    checked: 2026-11-22
+    evidence: training/agents/lab_oracle/transcript.md
+  antigravity:
+    status: untested
+    checked: 2026-11-22
+  faraday:
+    status: untested
+    checked: 2026-11-22
 required_tools:
 - Read
 - Glob

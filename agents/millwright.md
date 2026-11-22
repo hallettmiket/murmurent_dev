@@ -4,6 +4,17 @@ category: member
 description: 'Infrastructure provisioner and environment wrangler. Onboards new members (SSH keys, repo clone, CC config, Obsidian vault, lab-base path setup), scaffolds new projects (GitHub repo, Slack channel, immutable/ and append_only/ dirs), assesses disk use through the lab folder protocol, maintains the installations registry, and health-checks existing environments. Coordinates with Oracle to record every provisiong and with Security Guard on key hygiene. Always requests PI sign-off before acting on shared infrastructure. (Formerly named ``cable_guy``.)'
 freeze: frozen
 model: sonnet
+harnesses:
+  claude_code:
+    status: verified
+    checked: 2026-11-22
+    evidence: training/agents/millwright/transcript.md
+  antigravity:
+    status: untested
+    checked: 2026-11-22
+  faraday:
+    status: untested
+    checked: 2026-11-22
 required_tools:
 - Read
 - Write

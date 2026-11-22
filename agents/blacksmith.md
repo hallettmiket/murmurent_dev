@@ -4,6 +4,17 @@ category: member
 description: 'The computational workhorse. Loads data, engineers features, trains and evaluates classifiers, and builds dashboards/GUIs.'
 freeze: personal
 model: inherit
+harnesses:
+  claude_code:
+    status: verified
+    checked: 2026-11-22
+    evidence: training/agents/blacksmith/transcript.md
+  antigravity:
+    status: untested
+    checked: 2026-11-22
+  faraday:
+    status: untested
+    checked: 2026-11-22
 required_tools:
 - Read
 - Write

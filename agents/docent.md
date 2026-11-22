@@ -4,6 +4,17 @@ category: member
 description: 'Guide to a queryable paper or thesis package (paper.yaml / thesis.yaml). For a reader, reviewer or examiner: answers every question about the work with a location (section, figure, file under exp/, data path), says plainly what the work does not address, re-runs the evidence behind a claim when asked, and logs each question and answer to queries/<handle>/<date>.md, append-only. For the candidate or author: walks them through building the package (claims mapped to code and data, `murmurent paper check` / `murmurent thesis check`), the defence talk (`murmurent thesis talk`) and the submission paperwork (`murmurent thesis paperwork`, whose institution-specific steps come from the institution pack kept for the clerk). Never modifies the manuscript, the thesis or the data; never writes outside build/ and queries/; offline (a thesis is not public). Three verdicts: Located / Absent / Incomplete.'
 freeze: personal
 model: inherit
+harnesses:
+  claude_code:
+    status: verified
+    checked: 2026-11-22
+    evidence: training/agents/docent/transcript.md
+  antigravity:
+    status: untested
+    checked: 2026-11-22
+  faraday:
+    status: untested
+    checked: 2026-11-22
 required_tools:
 - Read
 - Write

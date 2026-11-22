@@ -4,6 +4,17 @@ category: member
 description: 'Equity, diversity, inclusion and decolonization reviewer. Rewrites the passage, says why in scientific terms, says what the change costs, and names what it could not back up. Grounded in the centre''s curated resources, and searches the web for what they do not hold.'
 freeze: frozen
 model: inherit
+harnesses:
+  claude_code:
+    status: verified
+    checked: 2026-11-22
+    evidence: training/agents/conscience/transcript.md
+  antigravity:
+    status: untested
+    checked: 2026-11-22
+  faraday:
+    status: untested
+    checked: 2026-11-22
 required_tools:
 - Read
 - Write
