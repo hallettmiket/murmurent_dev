@@ -244,6 +244,29 @@ It cannot tell whether a real paper supports the sentence that cites it. For a
 `.md` file it prints each paper's real title beside the line that cites it, so
 you can compare them.
 
+### Reviewing a field: `deep-research`, then the Bookworm
+
+A single lookup is the Bookworm's alone. A review of a whole field is many
+threads at once, and the Bookworm, one agent fetching one page after another,
+returns a reading list rather than a review. For that the main session runs
+Anthropic's `deep-research` skill: it splits the question into topics, sends
+several researchers out in parallel, and has one writer turn their notes into
+a narrative report. The skill is Anthropic's and synced to a member's own
+account, so murmurent names it rather than ships it; install it from the
+skills catalogue in the Claude app.
+
+The skill's own standard is a web address beside every claim, which is weaker
+than the Bookworm's, and its researchers search the open web where invented
+statistics rank well. So the session gives the researchers the field's
+databases as sources and the rule that every paper carries its DOI or PMID
+and every number its study, and when the report lands it dispatches the
+Bookworm on the file. The Bookworm runs `murmurent cite check` on it, reads
+each cited sentence against the real title, follows each number to its study,
+and labels every citation as in the table above. Only then does the report
+reach the member or the Oracle. Each researcher's search queries leave the
+machine, so an unpublished hypothesis is phrased as its field, not its
+finding, before the review starts.
+
 **Verdict vocabulary:** `Found N sources — <one-line summary>`
 
 > **You:** Bookworm, find the three most-cited papers on MMP11 in breast
