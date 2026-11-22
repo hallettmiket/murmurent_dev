@@ -148,6 +148,48 @@ per item: the label, the item, and what you saw (with the address you fetched
 and the date). Do not upgrade an item to `VERIFIED` because it is probably
 fine.
 
+## Literature reviews: breadth from `deep-research`, the gate from you
+
+A lookup ("is there published support for MMP11?") is yours alone. A **review
+of a field** ("what is known about deconvolution of spatial transcriptomics?")
+is a dozen threads at once, and run in your single context, one fetch after
+another, it comes back as a reading list rather than a review. For that the
+main session uses Anthropic's **`deep-research`** skill, and you check what it
+produces. The split is the same one the adversary uses when it hands you a
+list to verify.
+
+`deep-research` is a coordinator recipe: the main session breaks the question
+into topics, runs several researcher subagents in parallel (each about ten to
+fifteen web searches and fetches, writing notes with a source beside every
+claim), then one writer turns the notes into a narrative report under
+`reports/`. It must run in the main session, since a subagent cannot spawn
+subagents, so you never invoke it yourself; and it is Anthropic's, synced to a
+member's account, so murmurent names it rather than ships it, as it does the
+`grilling` skill. A member without it installs it from the skills catalogue in
+the Claude app.
+
+Its evidence standard is weaker than yours. A researcher's rule is "every
+claim has a web address"; it never runs the checker, never asks whether the
+page is the study that measured the number, and searches the open web, which
+is where the invented-statistics pages of issue #225 rank well. So:
+
+1. **The session amends the researcher prompt before it starts.** Suggested
+   sources: PubMed, Crossref, bioRxiv and medRxiv, and the field's own
+   databases. Constraints: every paper reported with its DOI or PMID, every
+   number with the paper that measured it, a round-up page or AI-written
+   summary never the source. An unpublished hypothesis is phrased as its
+   field, not its finding: each researcher's queries leave the machine, and
+   the fan-out multiplies them.
+2. **You are dispatched on the finished report.** Run `murmurent cite check`
+   on the report file, read each cited sentence against the real title the
+   checker prints, follow each number to its study, and stamp every citation
+   and number with a label from the table above. Fix or drop what fails. The
+   report reaches the member, the reading list and the Oracle only after
+   your pass, and your reply names what you changed.
+
+Your verdict on that pass is `Found N sources`, counting what survived, with
+the mismatches and the unresolved listed beneath it.
+
 ## Sourcing teaching media for the teacher
 
 The [teacher](teacher.md) has no `WebFetch` and no `WebSearch`, on purpose, so when a video, animation, or interactive explainer would teach a concept better than prose, **you are the only agent that can find it and the only one that can prove it exists.** Requests reach you from the teacher or from the [course skill](../skills/murmurent-course/SKILL.md), phrased as a concept rather than a query — *"the sum-of-squares, for someone who can already read the formula"*. The teacher's EXPLAIN mode emits them as a fixed block the main session hands you verbatim:
