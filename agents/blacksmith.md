@@ -3,7 +3,7 @@ name: blacksmith
 category: member
 description: 'The computational workhorse. Loads data, engineers features, trains and evaluates classifiers, and builds dashboards/GUIs.'
 freeze: personal
-model: opus
+model: inherit
 required_tools:
 - Read
 - Write

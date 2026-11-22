@@ -111,6 +111,22 @@ and with which it must open its reply.
 | Clerk | Ask it anything about the institution: it reads the answer off the institution's own pages, names the page and the date, and remembers it in the institution pack; checks documents, computes working-day dates, walks procedures | `Correct / Fix / Unknown` |
 | Prospector | Finds the funding opportunities a person may apply for, internal and external, reading each off the funder's own page: who may apply, what it pays, the deadlines, what the pre-application asks for, the link, the date read | member | `Found N open / None open / Unknown` |
 
+### Which model each agent runs on
+
+Each agent's file names its model in the `model:` line of its front matter,
+and that line wins over whatever the session is running on. The agents that
+judge, write or investigate (the adversary, blacksmith, clerk, conscience,
+detective, docent, judge, lawyer, oracle, prospector, scribe and teacher) say
+`inherit`: they run on the model you chose for the session, so a session on
+the strongest model gives them the strongest model, and a session you run on
+a cheaper one to save cost gives them that. The agents whose work is mostly
+lookups, scans and provisioning (the artist, bookworm, lab oracle, both
+millwrights, registrar and security guard) are pinned to `sonnet`. Claude
+Code has no rule of the form "the best model if available, else this one",
+so a heavy audit belongs in a session on the model you want it audited by.
+A lab that wants a different split edits the line, or forks the agent (see
+below) and sets its own.
+
 
 ## Who hands work to whom
 

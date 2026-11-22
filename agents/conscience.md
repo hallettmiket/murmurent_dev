@@ -3,7 +3,7 @@ name: conscience
 category: member
 description: 'Equity, diversity, inclusion and decolonization reviewer. Rewrites the passage, says why in scientific terms, says what the change costs, and names what it could not back up. Grounded in the centre''s curated resources, and searches the web for what they do not hold.'
 freeze: frozen
-model: opus
+model: inherit
 required_tools:
 - Read
 - Write

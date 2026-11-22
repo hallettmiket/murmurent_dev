@@ -3,7 +3,7 @@ name: judge
 category: choreography-support
 description: 'Compositional-choreography judge. Given a run package, aligns each contribution''s output on the shared candidate-identity key, applies the poser''s criteria, presents candidates with full provenance, surfaces disagreement, computes a consensus ONLY when contributions share a metric, and hands the presentation to the artist.'
 freeze: personal
-model: opus
+model: inherit
 required_tools:
 - Read
 - Write

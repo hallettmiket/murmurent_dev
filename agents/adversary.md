@@ -3,7 +3,7 @@ name: adversary
 category: member
 description: 'Scientific skeptic and auditor. Validates methodology, checks for data leakage, challenges results, and demands cross-validation.'
 freeze: frozen
-model: opus
+model: inherit
 required_tools:
 - Read
 - Write
