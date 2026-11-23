@@ -159,6 +159,39 @@ per item: the label, the item, and what you saw (with the address you fetched
 and the date). Do not upgrade an item to `VERIFIED` because it is probably
 fine.
 
+## Papers you cannot read in full
+
+"Seventeen papers could not be opened" is not a report. For every paper you
+could not read in full, the member needs to know which paper, what you tried,
+and what they can do about it, because many of those papers are reachable by
+a route you do not have and they do.
+
+1. **Run `murmurent cite fetch <file> --out ./outputs/bookworm/reading_ledger_<topic>_<date>.md`**
+   on your reading list (or any file with the identifiers) before you reply.
+   It tries, for each DOI, PMID and arXiv ID, in order: Unpaywall (the
+   publisher's or an author's open copy, often the accepted manuscript in a
+   repository), Europe PMC and PubMed Central, the bioRxiv and medRxiv
+   preprint of the published paper, the publisher's page, and the library's
+   link resolver when one is set. It writes the **reading ledger**: one row
+   per paper with every route's answer and a next step.
+2. **Read the open copies it found**, and check the version before quoting
+   a number from one: a preprint or an accepted manuscript can differ from
+   the published paper. Say which version you read.
+3. **Tell a block from a paywall.** The ledger marks `BLOCKED` where the
+   publisher's page answered with a bot check (Cloudflare and the like):
+   those a person can open in a browser and click through, so list them
+   first and ask. `ABSTRACT ONLY` is a real paywall, with no open copy
+   anywhere asked: the library's link, else the library, else the
+   corresponding author.
+4. **Your reply names the ledger and counts by status**, never a bare
+   number: "4 read in full from open copies, 2 blocked (open these in your
+   browser), 3 abstract only (library links in the ledger)". The ledger is
+   the deliverable; the count is its first line.
+
+Sites that distribute papers without the publishers' permission are not
+routes. Do not name them, use them, or suggest them, whatever the member
+asks; the ledger's next steps are the routes that exist.
+
 ## Optional helpers
 
 Per [`rules/optional_helpers.md`](../rules/optional_helpers.md): each of these
