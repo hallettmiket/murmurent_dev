@@ -171,3 +171,59 @@ def test_old_pmid_unknown_to_pmc_is_still_followed() -> None:
 def test_pmid_nobody_has_is_not_found() -> None:
     r = fetcher().fetch(claim("pmid", PMID_NONE))
     assert r.status == "NOT FOUND"
+
+
+def _pack(tmp_path: Path, library: str | None) -> Path:
+    root = tmp_path / "pack"
+    root.mkdir(parents=True)
+    (root / "institution.yaml").write_text("name: T\nunique_name: t\ndomains: [t.edu]\nkeeper: bookworm\n")
+    if library is not None:
+        (root / "library.yaml").write_text(library)
+    return root
+
+
+def test_pack_library_resolver_reads_template(tmp_path: Path) -> None:
+    root = _pack(tmp_path, "link_resolver:\n  name: The catalogue\n"
+                           "  template: https://lib.t.edu/openurl?rft_id=info:doi/{doi}\n")
+    template, note = cite_fetch.pack_library_resolver(root)
+    assert template == "https://lib.t.edu/openurl?rft_id=info:doi/{doi}"
+    assert note == "The catalogue, from the institution pack pack"
+
+
+def test_pack_library_resolver_is_never_guessed(tmp_path: Path) -> None:
+    assert cite_fetch.pack_library_resolver(None) == ("", "")
+    assert cite_fetch.pack_library_resolver(_pack(tmp_path / "a", None)) == ("", "")
+    assert cite_fetch.pack_library_resolver(_pack(tmp_path / "c", "link_resolver: null\n")) == ("", "")
+    no_doi = _pack(tmp_path / "b", "link_resolver:\n  template: https://lib.t.edu/openurl\n")
+    assert cite_fetch.pack_library_resolver(no_doi) == ("", "")
+
+
+def test_example_pack_ships_a_resolver() -> None:
+    root = Path(__file__).resolve().parents[1] / "institution" / "example"
+    template, note = cite_fetch.pack_library_resolver(root)
+    assert "{doi}" in template and "example.edu" in template
+    assert note.endswith("from the institution pack example")
+
+
+def test_cli_takes_the_library_link_from_the_pack(tmp_path: Path, monkeypatch) -> None:
+    root = _pack(tmp_path, "link_resolver:\n  name: The catalogue\n"
+                           "  template: https://lib.t.edu/openurl?rft_id=info:doi/{doi}\n")
+    monkeypatch.setenv("MURMURENT_INSTITUTION_PACK", str(root))
+    monkeypatch.delenv("MURMURENT_LIBRARY_RESOLVER", raising=False)
+    monkeypatch.setattr(cite_fetch, "http_get_page", canned_page)
+    monkeypatch.setattr(cite_check, "http_get_json", canned_json)
+    monkeypatch.setattr(cite_fetch.Fetcher.__init__, "__defaults__",
+                        (canned_json, canned_page, lambda s: None, None, None))
+    notes = tmp_path / "notes.md"
+    notes.write_text(f"doi:{WALL}\n")
+    out = tmp_path / "ledger.md"
+    result = CliRunner().invoke(cli, ["cite", "fetch", str(notes), "--out", str(out), "--email", ""])
+    assert result.exit_code == 0, result.output
+    text = out.read_text()
+    assert "Library link: The catalogue, from the institution pack pack." in text
+    assert "library: <https://lib.t.edu/openurl?rft_id=info:doi/10.1000%2Fpaywalled>" in text
+    # The environment variable wins over the pack, and the ledger says so.
+    monkeypatch.setenv("MURMURENT_LIBRARY_RESOLVER", "https://env.t.edu/{doi}")
+    result = CliRunner().invoke(cli, ["cite", "fetch", str(notes), "--out", str(out), "--email", ""])
+    assert result.exit_code == 0, result.output
+    assert "Library link: from MURMURENT_LIBRARY_RESOLVER." in out.read_text()

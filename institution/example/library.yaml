@@ -1,0 +1,12 @@
+# How the library turns a DOI into "get it through the library", read by
+# `murmurent cite fetch` for the ledger's library link when neither --resolver
+# nor MURMURENT_LIBRARY_RESOLVER is given. Invented address on example.edu,
+# as in the rest of this pack. The template holds {doi}; the source is the
+# library page that links the resolver, with the date it was read.
+link_resolver:
+  name: Example University Library catalogue
+  template: https://catalogue.lib.example.edu/openurl?rft_id=info:doi/{doi}
+  what: Shows every way the library can supply the paper after the member signs in. A link, never fetched by murmurent.
+  source: https://www.lib.example.edu/
+  evidence: catalogue.lib.example.edu/openurl
+  date_read: 2026-11-12

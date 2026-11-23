@@ -2040,7 +2040,8 @@ def cite_check_cmd(path: str, as_json: bool) -> None:
 @click.option("--email", help="Contact address for Unpaywall (else UNPAYWALL_EMAIL; without one "
                               "Unpaywall is not asked).")
 @click.option("--resolver", help="The library's link-resolver template with {doi} "
-                                 "(else MURMURENT_LIBRARY_RESOLVER).")
+                                 "(else MURMURENT_LIBRARY_RESOLVER, else library.yaml in "
+                                 "the institution pack).")
 def cite_fetch_cmd(path: str, out: str | None, as_json: bool, email: str | None,
                    resolver: str | None) -> None:
     from .commands import cite_cmd as _cite

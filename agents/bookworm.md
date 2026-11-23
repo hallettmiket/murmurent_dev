@@ -172,7 +172,8 @@ a route you do not have and they do.
    publisher's or an author's open copy, often the accepted manuscript in a
    repository), Europe PMC and PubMed Central, the bioRxiv and medRxiv
    preprint of the published paper, the publisher's page, and the library's
-   link resolver when one is set. It writes the **reading ledger**: one row
+   link resolver (recorded in the institution pack's `library.yaml`, or set
+   on the machine). It writes the **reading ledger**: one row
    per paper with every route's answer and a next step.
 2. **Read the open copies it found**, and check the version before quoting
    a number from one: a preprint or an accepted manuscript can differ from

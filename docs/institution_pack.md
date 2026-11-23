@@ -89,6 +89,7 @@ institution/<unique_name>/
   procedures/<name>.yaml  title, read_on, confirm_with, constants, steps, sources
   templates/letterhead.yaml  colours (name, role, hex, ...), fonts (name, role, weights), colour_rules, letterhead_templates
   funding.yaml            the institution's tier of the funder registry, read by the prospector: internal_deadline (rule, working_days, source, date_read), internal_competitions, screened_lists (each with page, access public|login, source, date_read)
+  library.yaml            link_resolver: how the library turns a DOI into "get it through the library", read by `murmurent cite fetch` for the bookworm: template (an address with {doi}), name, what, source, date_read
 ```
 
 Rules that `murmurent institution validate` enforces:
