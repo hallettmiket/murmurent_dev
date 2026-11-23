@@ -25,8 +25,10 @@ Routes, in order, each recorded whether it answers or not:
 4. **The publisher's page** through doi.org: a PDF, a page (usually the
    abstract), or a bot-check page (Cloudflare and the like), which a person can
    open in a browser and click through.
-5. **The library's link resolver** (``MURMURENT_LIBRARY_RESOLVER``, a template
-   with ``{doi}``): a link, not a fetch, since the sign-in is the member's.
+5. **The library's link resolver**: a link, not a fetch, since the sign-in is
+   the member's. The template (with ``{doi}``) comes from ``--resolver``, else
+   ``MURMURENT_LIBRARY_RESOLVER``, else ``library.yaml`` in the institution
+   pack, where the centre records it once for everyone.
 
 Sites that distribute papers without the publishers' permission are not
 routes and are not suggested.
@@ -55,6 +57,7 @@ IDCONV = "https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0/"
 DOI_ORG = "https://doi.org/"
 ARXIV_ABS = "https://arxiv.org/abs/"
 REQUEST_SPACING = 0.34
+LIBRARY_FILE = "library.yaml"   # in the institution pack: link_resolver.template with {doi}
 
 #: Statuses. ``OPEN COPY``: a copy a person may read was found and its address
 #: is in the row. ``BLOCKED``: the publisher's page is behind a bot check; a
@@ -344,6 +347,32 @@ class Fetcher:
         return res
 
 
+def pack_library_resolver(pack_root: str | Path | None) -> tuple[str, str]:
+    """The link-resolver template recorded in the institution pack's
+    ``library.yaml`` (``link_resolver: {template, name, source, date_read}``),
+    and a short note saying where it came from. ``("", "")`` when the pack or
+    the file is absent, the file is malformed, or the template lacks ``{doi}``:
+    an absent setting is never guessed."""
+    if pack_root is None:
+        return "", ""
+    path = Path(pack_root) / LIBRARY_FILE
+    if not path.is_file():
+        return "", ""
+    try:
+        import yaml
+        doc = yaml.safe_load(path.read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001  (a bad file means no resolver, not a crash)
+        return "", ""
+    block = doc.get("link_resolver") if isinstance(doc, dict) else None
+    if not isinstance(block, dict):
+        return "", ""
+    template = str(block.get("template") or "").strip()
+    if "{doi}" not in template:
+        return "", ""
+    name = str(block.get("name") or "the library's link resolver")
+    return template, f"{name}, from the institution pack {Path(pack_root).name}"
+
+
 def fetch_file(path: str | Path, fetcher: Fetcher | None = None) -> list[FetchResult]:
     """Every identifier in the file, once each, with its ledger row."""
     f = fetcher or Fetcher()
@@ -358,8 +387,11 @@ def fetch_file(path: str | Path, fetcher: Fetcher | None = None) -> list[FetchRe
     return out
 
 
-def format_ledger(results: list[FetchResult], *, as_json: bool = False, source: str = "") -> str:
-    """The reading ledger: a summary, then one section per status, worst first."""
+def format_ledger(results: list[FetchResult], *, as_json: bool = False, source: str = "",
+                  library_note: str = "") -> str:
+    """The reading ledger: a summary, then one section per status, worst first.
+    ``library_note`` says where the library link came from, so a reader knows
+    whether one was in play."""
     if as_json:
         return json.dumps([r.to_dict() for r in results], indent=2)
     counts = {s: sum(1 for r in results if r.status == s) for s in STATUSES}
@@ -370,6 +402,8 @@ def format_ledger(results: list[FetchResult], *, as_json: bool = False, source: 
              "", "A copy listed here is one someone was allowed to post. A blocked page is one a "
              "person can open in a browser. An abstract-only paper goes to the library or to its "
              "author.", ""]
+    if library_note:
+        lines += [f"Library link: {library_note}.", ""]
     for status in ("BLOCKED", "ABSTRACT ONLY", "NOT FOUND", "UNRESOLVED", "OPEN COPY"):
         rows = [r for r in results if r.status == status]
         if not rows:

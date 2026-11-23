@@ -271,13 +271,17 @@ Before it reports that a paper could not be opened, the Bookworm runs
 **`murmurent cite fetch <file>`**, which tries the legitimate routes for every
 identifier in order (Unpaywall, Europe PMC and PubMed Central, the bioRxiv or
 medRxiv preprint of a published paper, the publisher's page, the library's
-link resolver when `MURMURENT_LIBRARY_RESOLVER` is set) and writes a reading
+link resolver) and writes a reading
 ledger: one row per paper with every route's answer, the open copy when there
 is one, and the next step for a person. It tells a bot check (`BLOCKED`, which
 a person can open in a browser) from a paywall (`ABSTRACT ONLY`, which goes to
 the library or the author), and it names a missing identifier (`NOT FOUND`).
 The reply counts by status and names the ledger; it never gives a bare number.
 Unpaywall wants a contact address: set `UNPAYWALL_EMAIL`, or pass `--email`.
+The library's link is recorded once for everyone in the institution pack's
+`library.yaml` (see [the institution pack](institution_pack.md)); `--resolver`
+or `MURMURENT_LIBRARY_RESOLVER` overrides it on one machine, and the ledger
+says which was used.
 
 ```bash
 murmurent cite fetch reading_list.md --out outputs/bookworm/reading_ledger_dcis_2026-11-23.md

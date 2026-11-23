@@ -12,6 +12,7 @@ Output: A report on stdout; exit status 1 when any identifier is NOT FOUND,
 
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
@@ -28,13 +29,36 @@ def cmd_check(path: str, *, as_json: bool) -> None:
         sys.exit(1)
 
 
+def _library_resolver(given: str | None) -> tuple[str, str]:
+    """The template and a note on its origin, in the order the docs promise."""
+    if given:
+        return given, "from --resolver"
+    env = os.environ.get("MURMURENT_LIBRARY_RESOLVER", "").strip()
+    if env:
+        return env, "from MURMURENT_LIBRARY_RESOLVER"
+    try:
+        from ..core import institution as _inst
+        root = _inst.find_pack()
+    except Exception:  # noqa: BLE001  (no centre, no pack: no resolver)
+        root = None
+    template, note = cite_fetch.pack_library_resolver(root)
+    if template:
+        return template, note
+    return "", ("none set: record one in the institution pack's library.yaml, or set "
+                "MURMURENT_LIBRARY_RESOLVER")
+
+
 def cmd_fetch(path: str, *, out: str | None, as_json: bool, email: str | None,
               resolver: str | None) -> None:
     """Write the reading ledger for the file at ``path``. Exit status is always 0:
-    the ledger is information, not a verdict."""
+    the ledger is information, not a verdict. The library link comes from
+    ``--resolver``, else ``MURMURENT_LIBRARY_RESOLVER``, else the institution
+    pack's ``library.yaml``; the ledger says which."""
+    resolver, note = _library_resolver(resolver)
     fetcher = cite_fetch.Fetcher(unpaywall_email=email, library_resolver=resolver)
     results = cite_fetch.fetch_file(Path(path), fetcher)
-    text = cite_fetch.format_ledger(results, as_json=as_json, source=Path(path).name)
+    text = cite_fetch.format_ledger(results, as_json=as_json, source=Path(path).name,
+                                    library_note=note)
     if out is None:
         click.echo(text, nl=False)
         return
