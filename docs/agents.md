@@ -265,6 +265,24 @@ It cannot tell whether a real paper supports the sentence that cites it. For a
 `.md` file it prints each paper's real title beside the line that cites it, so
 you can compare them.
 
+### Papers it cannot read in full
+
+Before it reports that a paper could not be opened, the Bookworm runs
+**`murmurent cite fetch <file>`**, which tries the legitimate routes for every
+identifier in order (Unpaywall, Europe PMC and PubMed Central, the bioRxiv or
+medRxiv preprint of a published paper, the publisher's page, the library's
+link resolver when `MURMURENT_LIBRARY_RESOLVER` is set) and writes a reading
+ledger: one row per paper with every route's answer, the open copy when there
+is one, and the next step for a person. It tells a bot check (`BLOCKED`, which
+a person can open in a browser) from a paywall (`ABSTRACT ONLY`, which goes to
+the library or the author), and it names a missing identifier (`NOT FOUND`).
+The reply counts by status and names the ledger; it never gives a bare number.
+Unpaywall wants a contact address: set `UNPAYWALL_EMAIL`, or pass `--email`.
+
+```bash
+murmurent cite fetch reading_list.md --out outputs/bookworm/reading_ledger_dcis_2026-11-23.md
+```
+
 ### Reviewing a field: `deep-research`, then the Bookworm
 
 A single lookup is the Bookworm's alone. A review of a whole field is many
