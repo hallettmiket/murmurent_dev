@@ -69,6 +69,16 @@ HOOK_REGISTRATIONS: list[dict[str, Any]] = [
         "label": "murmurent-protected-paths",
     },
     {
+        # The rest of the data root: modifiable/ is free, mothballed/ takes
+        # new files only, and everywhere else a new file is fine, an
+        # overwrite is refused and a delete asks the member first.
+        "event": "PreToolUse",
+        "matcher": "Write|Edit|Bash|NotebookEdit",
+        "module": "murmurent.hooks.data_root_guard",
+        "env": {},
+        "label": "murmurent-data-root-guard",
+    },
+    {
         "event": "PreToolUse",
         "matcher": "Bash|WebFetch|WebSearch|mcp__slack__.*|mcp__claude_ai_Slack__.*",
         "module": "murmurent.hooks.phi_check",

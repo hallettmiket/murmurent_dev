@@ -65,7 +65,11 @@ Auto-loaded into every CC session via `~/.claude/rules/`:
   [`raw_guard`](src/murmurent/hooks/raw_guard.py) +
   [`protected_paths`](src/murmurent/hooks/protected_paths.py) hooks, which
   refuse deletes and overwrites under immutable/append_only **from inside a
-  Claude Code session**. This is a guardrail, not a security perimeter: the
+  Claude Code session**, and the
+  [`data_root_guard`](src/murmurent/hooks/data_root_guard.py) hook for the
+  rest of the root: `modifiable/` is free, `mothballed/` takes new files only,
+  and elsewhere a new file is written freely, an overwrite is refused and a
+  delete asks the member first. This is a guardrail, not a security perimeter: the
   hooks are per-user and inert in a plain shell, in a script run outside a
   session, and for any member who has not installed them. The trees themselves
   are group-writable on disk.
