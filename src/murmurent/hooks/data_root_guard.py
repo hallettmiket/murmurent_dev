@@ -107,11 +107,8 @@ def tier_of(candidate: str) -> str:
 
 
 def _is_file(candidate: str) -> bool:
-    try:
-        p = Path(candidate).expanduser()
-        return p.is_file() or p.is_symlink()
-    except OSError:
-        return False
+    from . import remote_paths
+    return remote_paths.exists(candidate)
 
 
 # ---------------------------------------------------------------------------
@@ -184,12 +181,26 @@ def evaluate(call: dict[str, Any]) -> dict[str, Any]:
     operation in the call decides: a deny beats an ask beats an allow."""
     worst, reason = ALLOW, ""
     rank = {ALLOW: 0, ASK: 1, DENY: 2}
-    for op, path in operations(call):
-        tier = tier_of(path)
-        verdict = POLICY[tier][op]
-        if rank[verdict] > rank[worst]:
-            worst = verdict
-            reason = f"{_WHY.get((tier, op), 'lab data policy')}: {op} of {path}"
+
+    def judge(ops: list[tuple[str, str]], where: str) -> None:
+        nonlocal worst, reason
+        for op, path in ops:
+            tier = tier_of(path)
+            verdict = POLICY[tier][op]
+            if rank[verdict] > rank[worst]:
+                worst = verdict
+                reason = f"{_WHY.get((tier, op), 'lab data policy')}: {op} of {where}{path}"
+
+    judge(operations(call), "")
+    tool = call.get("tool_name") or call.get("tool") or ""
+    if tool == "Bash":
+        # The same rules for a stretch of the command that runs on another
+        # machine whose data root is declared (ssh, scp, rsync).
+        from . import remote_paths
+        args = call.get("tool_input") or call.get("args") or {}
+        for host, root, view in remote_paths.views(args.get("command", "")):
+            with remote_paths.on_host(host, root):
+                judge(_bash_operations(view), f"{host}:")
     return {"decision": worst, "reason": reason} if worst != ALLOW else {"decision": ALLOW}
 
 

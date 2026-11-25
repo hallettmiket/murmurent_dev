@@ -149,12 +149,24 @@ def evaluate(call: dict[str, Any]) -> dict[str, Any]:
                 ),
             }
     elif tool == "Bash":
-        violated, reason = _bash_targets_raw(args.get("command", ""))
+        command = args.get("command", "")
+        violated, reason = _bash_targets_raw(command)
         if violated:
             return {
                 "decision": "deny",
                 "reason": f"immutable data is read-only by lab policy; {reason}",
             }
+        # The same rule for a stretch of the command that runs on another
+        # machine whose data root is declared (ssh, scp, rsync).
+        from . import remote_paths
+        for host, root, view in remote_paths.views(command):
+            with remote_paths.on_host(host, root):
+                violated, reason = _bash_targets_raw(view)
+            if violated:
+                return {
+                    "decision": "deny",
+                    "reason": f"immutable data is read-only by lab policy; on {host}: {reason}",
+                }
     return {"decision": "allow"}
 
 
