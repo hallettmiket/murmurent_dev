@@ -8,10 +8,8 @@ allowed-tools: Bash(murmurent machines*)
 
 # /murmurent-machines: the load on every machine, as a table
 
-Mike Hallett asked for this on 2026-11-13: asking the millwright about the
-machines gave a different answer every time, and he wanted "something quick to
-give me back what the load is". So this skill runs one command and shows what
-it printed. It does not interpret, summarise, or advise.
+This skill runs one command and shows what it printed, so two people asking get the
+same answer. It does not interpret, summarise, or advise; that is the millwright's job.
 
 ## What to do
 

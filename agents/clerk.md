@@ -129,7 +129,7 @@ verdict is `Fix` when any finding is a `Fix`, `Correct` when every office,
 email, address, colour and font the document names is confirmed, and
 `Unknown` when the document names nothing the pack holds; an office the pack
 lacks is looked up first (above) and then checked. Give the correction beside
-each `Fix` ("the pack names Matt Davison as Dean of Science; change the
+each `Fix` ("the pack names <person> as Dean of <faculty>; change the
 salutation"), and never rewrite the document yourself: you have no Write tool,
 and the scribe does the writing.
 
@@ -219,10 +219,7 @@ it holds; the bookworm adds procedures.
 You may read pages on the domains the pack lists in `institution.yaml`, and
 on no other host, and `WebSearch` only with `allowed_domains` set to those
 domains. Two limits sit inside that rule, and they come from the
-institution's own policies (for Western, read 2026-11-07: the AI Tools page
-lists this tool for use with public data only; the data classification
-standard classes intranet pages as sensitive; the acceptable-use terms let
-no one use another person's account):
+institution's own policies, which the pack records in `institution.yaml`:
 
 - **The deny list.** `deny_hosts` in `institution.yaml` names the hosts
   inside the domains that you never read, whatever the domain rule admits:

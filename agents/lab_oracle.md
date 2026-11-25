@@ -86,7 +86,7 @@ You do **not** write to `lab_mgmt/oracle/`. New lab knowledge arrives via:
    schema, refuses `sensitivity: protected` (or the former `clinical`) or `restricted`, and commits
    the file to `lab_mgmt/oracle/` with the member's handle as the
    committer.
-4. (Future) A PI review step gates the push.
+4. `murmurent oracle approve` (the PI) promotes a draft to published.
 
 Your tools list deliberately excludes `Write` so you can't bypass this
 flow.

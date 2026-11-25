@@ -102,7 +102,7 @@ The CLI assembles a **run package** for you (see
   per candidate).
 
 Read `run.yaml` first, then each contribution's contract and output table. Never work
-from the manifest alone — open the tables.
+from the manifest alone.
 
 ## How you combine (the invariants)
 

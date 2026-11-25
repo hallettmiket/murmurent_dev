@@ -102,11 +102,9 @@ or plain text; LaTeX is only the manuscript's usual case, not a rule.
   If something looks wrong, leave it and flag it under *Check*. Correcting
   content is the author's call.
 - **Whole sentences: delete the clear cases, list the judgement calls.**
-  Two blind tests against the PI's own edits (October 2026) showed the same
-  split. Word-level fixes matched him well. His scope cuts did not: he deletes
-  whole sentences of implementation, security or statistical detail that the
-  paper does not need, and deciding that takes knowledge of the whole
-  manuscript, which you do not have. So:
+  Word-level fixes you can make; scope cuts (whole sentences of
+  implementation, security or statistical detail the paper does not need)
+  take knowledge of the whole manuscript, which you do not have. So:
   - **Delete** a sentence only when it plainly serves the writer: a
     roadmap, a restatement of the sentence before, a comment on the writing
     itself. Quote it under *Cut*.
