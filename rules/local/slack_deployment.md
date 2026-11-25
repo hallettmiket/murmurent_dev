@@ -4,17 +4,14 @@
 file carries the facts that are true only here. Keep IDs in this file and out
 of the shared rule.
 
-Do not append a sign-off phrase to Slack messages. The closing line "All worship me and I will
-let you serve me." was retired by Mike on 2026-10-01.
+Do not append a sign-off phrase to Slack messages.
 
 ## Where a note goes
 
 **Every repository's notes go where `murmurent project note` sends them**: the
 project's own channel (`#proj-<project>`, or `#murmurent` for the Murmurent
-project), else the lab's channel. Do not name a channel yourself. Until
-30 October 2026 this file told every session to post to one channel for every
-push, which is how the notes of a dozen projects ended up together (issue
-#243).
+project), else the lab's channel. Do not name a channel yourself: one channel
+for every push is how the notes of a dozen projects end up together.
 
 The one exception is recorded in the repository itself, not here: a repository
 whose `.murmurent.yaml` sets `slack_channel:` sends its notes there. That is

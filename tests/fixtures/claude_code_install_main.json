@@ -1,151 +1,120 @@
 {
   "settings.json": {
+    "env": {
+      "CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY": "1"
+    },
     "hooks": {
-      "PreToolUse": [
-        {
-          "matcher": "Agent",
-          "hooks": [
-            {
-              "type": "command",
-              "command": "bash /opt/murmurent/scripts/murmurent_log_agent_event.sh",
-              "name": "murmurent-agent-report-pre"
-            }
-          ]
-        },
-        {
-          "matcher": "Write|Edit|Bash|NotebookEdit",
-          "hooks": [
-            {
-              "type": "command",
-              "command": "/opt/venv/bin/python -m murmurent.hooks.raw_guard",
-              "name": "murmurent-raw-guard"
-            }
-          ]
-        },
-        {
-          "matcher": "Write|Edit|Bash|NotebookEdit",
-          "hooks": [
-            {
-              "type": "command",
-              "command": "/opt/venv/bin/python -m murmurent.hooks.protected_paths",
-              "name": "murmurent-protected-paths"
-            }
-          ]
-        },
-        {
-          "matcher": "Bash|WebFetch|WebSearch|mcp__slack__.*|mcp__claude_ai_Slack__.*",
-          "hooks": [
-            {
-              "type": "command",
-              "command": "MURMURENT_PHI_HOOK_MODE=pre /opt/venv/bin/python -m murmurent.hooks.phi_check",
-              "name": "murmurent-phi-pre"
-            }
-          ]
-        }
-      ],
-      "SubagentStop": [
-        {
-          "hooks": [
-            {
-              "type": "command",
-              "command": "bash /opt/murmurent/scripts/murmurent_log_agent_event.sh",
-              "name": "murmurent-agent-report-stop"
-            }
-          ]
-        }
-      ],
-      "SubagentStart": [
-        {
-          "hooks": [
-            {
-              "type": "command",
-              "command": "bash /opt/murmurent/scripts/murmurent_log_agent_event.sh",
-              "name": "murmurent-agent-report-start"
-            }
-          ]
-        }
-      ],
       "PostToolUse": [
         {
-          "matcher": ".*",
           "hooks": [
             {
-              "type": "command",
               "command": "MURMURENT_PHI_HOOK_MODE=post /opt/venv/bin/python -m murmurent.hooks.phi_check",
-              "name": "murmurent-phi-post"
+              "name": "murmurent-phi-post",
+              "type": "command"
             }
-          ]
+          ],
+          "matcher": ".*"
         },
         {
-          "matcher": ".*",
           "hooks": [
             {
-              "type": "command",
               "command": "/opt/venv/bin/python -m murmurent.hooks.audit",
-              "name": "murmurent-audit"
+              "name": "murmurent-audit",
+              "type": "command"
             }
-          ]
+          ],
+          "matcher": ".*"
         },
         {
-          "matcher": "Write|Edit|NotebookEdit",
           "hooks": [
             {
-              "type": "command",
               "command": "/opt/venv/bin/python -m murmurent.hooks.conscience_gaps",
-              "name": "murmurent-conscience-gaps"
+              "name": "murmurent-conscience-gaps",
+              "type": "command"
             }
-          ]
+          ],
+          "matcher": "Write|Edit|NotebookEdit"
         },
         {
-          "matcher": "Write|Edit|MultiEdit|NotebookEdit",
           "hooks": [
             {
-              "type": "command",
               "command": "/opt/venv/bin/python -m murmurent.hooks.agent_movie",
-              "name": "murmurent-agent-movie"
+              "name": "murmurent-agent-movie",
+              "type": "command"
             }
-          ]
+          ],
+          "matcher": "Write|Edit|MultiEdit|NotebookEdit"
         },
         {
-          "matcher": "Write|Edit|MultiEdit|NotebookEdit|mcp__murmurent-oracle__.*",
           "hooks": [
             {
-              "type": "command",
               "command": "/opt/venv/bin/python -m murmurent.hooks.vault_sync",
-              "name": "murmurent-vault-sync-write"
+              "name": "murmurent-vault-sync-write",
+              "type": "command"
             }
-          ]
+          ],
+          "matcher": "Write|Edit|MultiEdit|NotebookEdit|mcp__murmurent-oracle__.*"
         }
       ],
-      "UserPromptSubmit": [
+      "PreToolUse": [
         {
-          "matcher": ".*",
           "hooks": [
             {
-              "type": "command",
-              "command": "/opt/venv/bin/python -m murmurent.hooks.context_inject",
-              "name": "murmurent-context-inject"
+              "command": "bash /opt/murmurent/scripts/murmurent_log_agent_event.sh",
+              "name": "murmurent-agent-report-pre",
+              "type": "command"
             }
-          ]
+          ],
+          "matcher": "Agent"
         },
         {
-          "matcher": ".*",
           "hooks": [
             {
-              "type": "command",
-              "command": "/opt/venv/bin/python -m murmurent.hooks.session_log",
-              "name": "murmurent-session-log"
+              "command": "/opt/venv/bin/python -m murmurent.hooks.raw_guard",
+              "name": "murmurent-raw-guard",
+              "type": "command"
             }
-          ]
+          ],
+          "matcher": "Write|Edit|Bash|NotebookEdit"
+        },
+        {
+          "hooks": [
+            {
+              "command": "/opt/venv/bin/python -m murmurent.hooks.protected_paths",
+              "name": "murmurent-protected-paths",
+              "type": "command"
+            }
+          ],
+          "matcher": "Write|Edit|Bash|NotebookEdit"
+        },
+        {
+          "hooks": [
+            {
+              "command": "/opt/venv/bin/python -m murmurent.hooks.data_root_guard",
+              "name": "murmurent-data-root-guard",
+              "type": "command"
+            }
+          ],
+          "matcher": "Write|Edit|Bash|NotebookEdit"
+        },
+        {
+          "hooks": [
+            {
+              "command": "MURMURENT_PHI_HOOK_MODE=pre /opt/venv/bin/python -m murmurent.hooks.phi_check",
+              "name": "murmurent-phi-pre",
+              "type": "command"
+            }
+          ],
+          "matcher": "Bash|WebFetch|WebSearch|mcp__slack__.*|mcp__claude_ai_Slack__.*"
         }
       ],
       "SessionStart": [
         {
           "hooks": [
             {
-              "type": "command",
               "command": "/opt/venv/bin/python -m murmurent.hooks.vault_sync",
-              "name": "murmurent-vault-sync-start"
+              "name": "murmurent-vault-sync-start",
+              "type": "command"
             }
           ]
         }
@@ -154,84 +123,125 @@
         {
           "hooks": [
             {
-              "type": "command",
               "command": "/opt/venv/bin/python -m murmurent.hooks.vault_sync",
-              "name": "murmurent-vault-sync-stop"
+              "name": "murmurent-vault-sync-stop",
+              "type": "command"
             }
           ]
         }
+      ],
+      "SubagentStart": [
+        {
+          "hooks": [
+            {
+              "command": "bash /opt/murmurent/scripts/murmurent_log_agent_event.sh",
+              "name": "murmurent-agent-report-start",
+              "type": "command"
+            }
+          ]
+        }
+      ],
+      "SubagentStop": [
+        {
+          "hooks": [
+            {
+              "command": "bash /opt/murmurent/scripts/murmurent_log_agent_event.sh",
+              "name": "murmurent-agent-report-stop",
+              "type": "command"
+            }
+          ]
+        }
+      ],
+      "UserPromptSubmit": [
+        {
+          "hooks": [
+            {
+              "command": "/opt/venv/bin/python -m murmurent.hooks.context_inject",
+              "name": "murmurent-context-inject",
+              "type": "command"
+            }
+          ],
+          "matcher": ".*"
+        },
+        {
+          "hooks": [
+            {
+              "command": "/opt/venv/bin/python -m murmurent.hooks.session_log",
+              "name": "murmurent-session-log",
+              "type": "command"
+            }
+          ],
+          "matcher": ".*"
+        }
       ]
     },
-    "env": {
-      "CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY": "1"
-    },
     "mcpServers": {
-      "murmurent-inventory": {
-        "command": "/Users/mth/repos/murmurent_dev/.claude/worktrees/harnesses/../../../.venv/bin/python",
-        "args": [
-          "-m",
-          "murmurent.mcp.inventory_server"
-        ],
-        "env": {}
-      },
-      "murmurent-oracle": {
-        "command": "/Users/mth/repos/murmurent_dev/.claude/worktrees/harnesses/../../../.venv/bin/python",
-        "args": [
-          "-m",
-          "murmurent.mcp.oracle_server"
-        ],
-        "env": {}
-      },
       "murmurent-core-data": {
-        "command": "/Users/mth/repos/murmurent_dev/.claude/worktrees/harnesses/../../../.venv/bin/python",
         "args": [
           "-m",
           "murmurent.mcp.core_data_server"
         ],
+        "command": "/Users/mth/repos/murmurent_dev/.venv/bin/python",
         "env": {}
       },
       "murmurent-data": {
-        "command": "/Users/mth/repos/murmurent_dev/.claude/worktrees/harnesses/../../../.venv/bin/python",
         "args": [
           "-m",
           "murmurent.mcp.data_server"
         ],
+        "command": "/Users/mth/repos/murmurent_dev/.venv/bin/python",
+        "env": {}
+      },
+      "murmurent-inventory": {
+        "args": [
+          "-m",
+          "murmurent.mcp.inventory_server"
+        ],
+        "command": "/Users/mth/repos/murmurent_dev/.venv/bin/python",
+        "env": {}
+      },
+      "murmurent-oracle": {
+        "args": [
+          "-m",
+          "murmurent.mcp.oracle_server"
+        ],
+        "command": "/Users/mth/repos/murmurent_dev/.venv/bin/python",
         "env": {}
       }
     }
   },
   "claude.json": {
     "mcpServers": {
-      "murmurent-inventory": {
-        "command": "/Users/mth/repos/murmurent_dev/.claude/worktrees/harnesses/../../../.venv/bin/python",
-        "args": [
-          "-m",
-          "murmurent.mcp.inventory_server"
-        ],
-        "env": {}
-      },
-      "murmurent-oracle": {
-        "command": "/Users/mth/repos/murmurent_dev/.claude/worktrees/harnesses/../../../.venv/bin/python",
-        "args": [
-          "-m",
-          "murmurent.mcp.oracle_server"
-        ],
-        "env": {}
-      },
       "murmurent-core-data": {
-        "command": "/Users/mth/repos/murmurent_dev/.claude/worktrees/harnesses/../../../.venv/bin/python",
         "args": [
           "-m",
           "murmurent.mcp.core_data_server"
         ],
+        "command": "/Users/mth/repos/murmurent_dev/.venv/bin/python",
         "env": {}
       },
       "murmurent-data": {
-        "command": "/Users/mth/repos/murmurent_dev/.claude/worktrees/harnesses/../../../.venv/bin/python",
         "args": [
           "-m",
           "murmurent.mcp.data_server"
         ],
+        "command": "/Users/mth/repos/murmurent_dev/.venv/bin/python",
+        "env": {}
+      },
+      "murmurent-inventory": {
+        "args": [
+          "-m",
+          "murmurent.mcp.inventory_server"
+        ],
+        "command": "/Users/mth/repos/murmurent_dev/.venv/bin/python",
+        "env": {}
+      },
+      "murmurent-oracle": {
+        "args": [
+          "-m",
+          "murmurent.mcp.oracle_server"
+        ],
+        "command": "/Users/mth/repos/murmurent_dev/.venv/bin/python",
         "env": {}
       }
     }

@@ -48,6 +48,7 @@ PROCEDURES_DIR = "procedures"
 POLICIES_DIR = "policies"      # rules read from the institution's pages, applied to documents (a syllabus)
 TEMPLATES_DIR = "templates"
 LETTERHEAD_FILE = "letterhead.yaml"
+LIBRARY_FILE = "library.yaml"   # link_resolver: how the library turns a DOI into "get it through us"
 
 DEFAULT_MAX_FACT_AGE_DAYS = 180
 FETCH_TIMEOUT_SECONDS = 30
@@ -1078,6 +1079,10 @@ def init_pack(root: Path, *, name: str, unique_name: str, domains: list[str], ke
     put(CALENDAR_FILE, {"holidays": [], "terms": [], "deadlines": []})
     put(COURSES_FILE, {"fetch": None, "cache": []})
     put(f"{TEMPLATES_DIR}/{LETTERHEAD_FILE}", {"colours": [], "fonts": []})
+    put(LIBRARY_FILE, {"link_resolver": None,
+                       "note": "The library's link resolver, read by `murmurent cite fetch`: a mapping "
+                               "with template (an address with {doi} in it), name, source (the library "
+                               "page that links it) and date_read. Left empty until read off the page."})
     if thesis_procedure:
         put(f"{PROCEDURES_DIR}/thesis_examination.yaml", thesis_procedure)
     return written

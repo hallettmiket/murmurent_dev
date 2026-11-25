@@ -282,6 +282,7 @@ def test_init_pack_seeds_the_thesis_procedure_from_the_code(tmp_path):
                                                       "masters": pp.MASTERS_LEAD_WORKING_DAYS}
     assert proc["sources"][0]["date_read"] == pp.PAPERWORK_READ_ON
     assert inst.init_pack(tmp_path / "acme", name="Acme", unique_name="acme", domains=[], keeper="x") == []
+    assert (tmp_path / "acme" / "library.yaml").is_file()   # the resolver's place, empty until read
 
 
 def test_paperwork_uses_the_pack_and_falls_back_to_the_seed(tmp_path, monkeypatch, pack_dir):

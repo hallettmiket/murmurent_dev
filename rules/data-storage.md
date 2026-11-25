@@ -98,6 +98,35 @@ these operations **when they are attempted through a Claude Code tool call**:
   via [`protected_paths`](../src/murmurent/hooks/protected_paths.py). New
   files are allowed (it is append-only); the hook only blocks operations
   that mutate something that already exists there.
+- **The rest of the data root**, via
+  [`data_root_guard`](../src/murmurent/hooks/data_root_guard.py). Under
+  ``modifiable/`` anything goes. Under ``mothballed/`` a new file may be
+  placed, and nothing already there is changed or deleted (rule 1 of the
+  folder protocol). Everywhere else under
+  the root (``release/``, ``cottage/``, ``tools/``, ``db/``, a folder the
+  protocol does not name, a loose file at the top): a new file is written
+  without asking, an overwrite of an existing file is refused, and a delete
+  or a move out **asks the member first**, as a Claude Code permission
+  prompt that states the path and the reason.
+
+The three hooks together make the tree read as its names say: nothing in
+``immutable/``, additions only in ``append_only/``, anything in
+``modifiable/``, additions only in ``mothballed/`` too, and elsewhere new files freely,
+overwrites never, deletes only with a person's say-so. With no data root set
+in the environment the third hook guards nothing rather than guessing.
+
+**A session on another machine.** The three hooks also judge a Bash command
+that reaches a declared server's data root from elsewhere: an ``ssh <server>
+'...'`` whose remote command touches that root, or an ``rsync`` or ``scp``
+whose source or destination is ``<server>:<path>`` under it. The server's
+data root comes from the lab's ``policy/machines.yaml`` (its ``data_root``
+line), the ssh alias from your ``~/.murmurent/hosts.yaml``, and a machine
+with no lab records can declare one with
+``MURMURENT_REMOTE_DATA_ROOTS=host=/root``. Whether a file already exists
+there is asked of the server over ssh; a server that does not answer counts
+as holding the file, so an overwrite is refused rather than let through. A
+job that runs on the server outside any session, a Slurm script say, is
+beyond every hook; only file permissions on the server reach it.
 
 ### What the hooks do and do not do
 

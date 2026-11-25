@@ -161,11 +161,8 @@ def _exists(candidate: str) -> bool:
     convention is to mkdir freely (experiments live in `exp/1_name/`,
     `exp/2_name/` etc.) so directories must be re-creatable idempotently.
     """
-    try:
-        p = Path(candidate).expanduser()
-        return p.is_file() or p.is_symlink()
-    except OSError:
-        return False
+    from . import remote_paths
+    return remote_paths.exists(candidate)
 
 
 # ---------------------------------------------------------------------------
@@ -281,12 +278,24 @@ def evaluate(call: dict[str, Any]) -> dict[str, Any]:
                 ),
             }
     elif tool == "Bash":
-        reason = _bash_violation(args.get("command", ""))
+        command = args.get("command", "")
+        reason = _bash_violation(command)
         if reason:
             return {
                 "decision": "deny",
                 "reason": f"protected path is write-once by lab policy; {reason}",
             }
+        # The same rule for a stretch of the command that runs on another
+        # machine whose data root is declared (ssh, scp, rsync).
+        from . import remote_paths
+        for host, root, view in remote_paths.views(command):
+            with remote_paths.on_host(host, root):
+                reason = _bash_violation(view)
+            if reason:
+                return {
+                    "decision": "deny",
+                    "reason": f"protected path is write-once by lab policy; on {host}: {reason}",
+                }
     return {"decision": "allow"}
 
 

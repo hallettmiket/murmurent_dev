@@ -2046,6 +2046,28 @@ def cite_check_cmd(path: str, as_json: bool) -> None:
     _cite.cmd_check(path, as_json=as_json)
 
 
+@cite_group.command(
+    "fetch",
+    help="For every DOI, PMID and arXiv ID in a file, find whether the paper can be read "
+         "in full and where: Unpaywall, Europe PMC, PubMed Central, bioRxiv and medRxiv, "
+         "the publisher's page, the library's link. Writes a reading ledger that says, "
+         "paper by paper, what was tried, where a copy is, and what a person does next.")
+@click.argument("path", type=click.Path(exists=True, dir_okay=False))
+@click.option("--out", type=click.Path(dir_okay=False),
+              help="Write the ledger here instead of printing it (outputs/bookworm/... by convention).")
+@click.option("--json", "as_json", is_flag=True, help="Machine-readable output, for agents.")
+@click.option("--email", help="Contact address for Unpaywall (else UNPAYWALL_EMAIL; without one "
+                              "Unpaywall is not asked).")
+@click.option("--resolver", help="The library's link-resolver template with {doi} "
+                                 "(else MURMURENT_LIBRARY_RESOLVER, else library.yaml in "
+                                 "the institution pack).")
+def cite_fetch_cmd(path: str, out: str | None, as_json: bool, email: str | None,
+                   resolver: str | None) -> None:
+    from .commands import cite_cmd as _cite
+
+    _cite.cmd_fetch(path, out=out, as_json=as_json, email=email, resolver=resolver)
+
+
 @cli.group("integrity", help="The detective's deterministic checks on a manuscript.")
 def integrity_group() -> None:
     """Citations, data accessions, availability wording, leftover model text, the journal."""

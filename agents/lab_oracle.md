@@ -4,6 +4,17 @@ category: member
 description: 'Lab-wide, reviewed institutional memory backed by the lab-mgmt repo. Read-only from the agent side; entries arrive via the murmurent oracle publish CLI after PI/peer review. Use to recall what the WHOLE lab has agreed on, distinct from one member''s personal Oracle.'
 freeze: frozen
 model: sonnet
+harnesses:
+  claude_code:
+    status: verified
+    checked: 2026-11-22
+    evidence: training/agents/lab_oracle/transcript.md
+  antigravity:
+    status: untested
+    checked: 2026-11-22
+  faraday:
+    status: untested
+    checked: 2026-11-22
 required_tools:
 - Read
 - Glob
@@ -75,7 +86,7 @@ You do **not** write to `lab_mgmt/oracle/`. New lab knowledge arrives via:
    schema, refuses `sensitivity: protected` (or the former `clinical`) or `restricted`, and commits
    the file to `lab_mgmt/oracle/` with the member's handle as the
    committer.
-4. (Future) A PI review step gates the push.
+4. `murmurent oracle approve` (the PI) promotes a draft to published.
 
 Your tools list deliberately excludes `Write` so you can't bypass this
 flow.

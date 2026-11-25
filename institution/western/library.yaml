@@ -1,0 +1,13 @@
+# How Western's library turns a DOI into "get it through the library", read
+# by `murmurent cite fetch` for the ledger's library link when neither
+# --resolver nor MURMURENT_LIBRARY_RESOLVER is given. Not in the public
+# release: the address names this institution. The template is the OpenURL
+# entry of Omni, the catalogue the library homepage links to; the page it is
+# read from and the date are recorded as for every fact in this pack.
+link_resolver:
+  name: Omni (Western Libraries' catalogue)
+  template: https://ocul-uwo.primo.exlibrisgroup.com/openurl/01OCUL_UWO/01OCUL_UWO:UWO_DEFAULT?rft_id=info:doi/{doi}
+  what: Shows every way Western can supply the paper, a subscription, print, or interlibrary loan, after the member signs in. A link, never fetched by murmurent.
+  source: https://www.lib.uwo.ca/
+  evidence: ocul-uwo.primo.exlibrisgroup.com/discovery/search?vid=01OCUL_UWO:UWO_DEFAULT
+  date_read: 2026-11-23

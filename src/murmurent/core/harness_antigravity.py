@@ -109,7 +109,7 @@ DATA_WARNING = (
     "Under a personal Google sign-in, Antigravity's terms let Google keep, review and "
     "train on every interaction unless telemetry is off, and keep what it needs even "
     "then. Only a Google Cloud sign-in runs under contractual terms. Do not use it in "
-    "a restricted or protected project until the PI has decided (docs/harnesses.md)."
+    "a restricted or protected project until the PI has decided (docs/antigravity_harness.md)."
 )
 
 

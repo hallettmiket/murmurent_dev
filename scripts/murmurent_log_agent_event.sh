@@ -76,6 +76,27 @@ except Exception:
     fi
 }
 
+# Which system and model every real run happened on (rules/optional_helpers.md,
+# "Which agent works where"). One tab-separated line per SubagentStop in
+# ~/.murmurent/agent_runs.tsv: date, system, model, agent, first word of the
+# verdict. The system is MURMURENT_HARNESS when set (Antigravity and Faraday
+# set it in their launchers), else claude_code when Claude Code's own marker
+# is in the environment, else unknown. The model comes from the hook payload
+# when it carries one. scripts/harness_matrix.py reads the file.
+record_run() {
+    local agent="$1" msg="$2" runs harness model verdict
+    runs="${MURMURENT_AGENT_RUNS:-$HOME/.murmurent/agent_runs.tsv}"
+    harness="${MURMURENT_HARNESS:-}"
+    [[ -z "$harness" && -n "${CLAUDECODE:-}" ]] && harness="claude_code"
+    [[ -z "$harness" ]] && harness="unknown"
+    model="$(get model)"
+    [[ -z "$model" ]] && model="$(get tool_input.model)"
+    [[ -z "$model" ]] && model="unknown"
+    verdict="$(printf '%s' "$msg" | sed -E 's/^[[:space:]]*[*_`]*//' | awk '{print $1}' | tr -d ':*_`,.' )"
+    mkdir -p "$(dirname "$runs")"
+    printf '%s\t%s\t%s\t%s\t%s\n' "$(date '+%Y-%m-%d')" "$harness" "$model" "$agent" "${verdict:-?}" >> "$runs"
+}
+
 EVENT="$(get hook_event_name)"
 TOOL="$(get tool_name)"
 
@@ -534,6 +555,7 @@ print(json.dumps({"hookSpecificOutput": {"hookEventName": "SubagentStart", "addi
         seen_before "stopped" "$AGENT" "$msg" && exit 0
         printf '\033[%sm[%s] %s: %s\033[0m\n\n' \
             "$COLOR" "$ts" "$AGENT" "$msg" >> "$LOG"
+        record_run "$AGENT" "$msg"
         speak_verdict "$AGENT" "$msg" "$LAST_MSG"
         ;;
     *)

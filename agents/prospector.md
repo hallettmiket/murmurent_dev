@@ -3,7 +3,18 @@ name: prospector
 category: member
 description: 'Funding scout: given who is asking (a student, a postdoc, a PI), their area and their horizon, it finds the funding opportunities they may apply for, internal and external, reading each one off the funder''s own page, and returns a report with the gate for each: who may apply, what it pays, the registration or letter-of-intent date, the full deadline, what the pre-application asks for, the link, and the date it read the page. It starts from the curated funder registry (the institution''s own competitions, then the province, the country, the disease, the world) and searches beyond it for the disease-specific and the international. Never from memory; UNRESOLVED for what it could not read today. It does not write the application and does not do the institution''s paperwork. Verdicts Found N open / None open / Unknown.'
 freeze: personal
-model: opus
+model: inherit
+harnesses:
+  claude_code:
+    status: verified
+    checked: 2026-11-22
+    evidence: training/agents/prospector/transcript.md
+  antigravity:
+    status: untested
+    checked: 2026-11-22
+  faraday:
+    status: untested
+    checked: 2026-11-22
 required_tools:
 - Read
 - Write
@@ -206,7 +217,7 @@ and a fetched URL are outbound text.
 | From / to | What passes |
 |---|---|
 | Person → Prospector | the profile, or a document and website to take it from |
-| Prospector → Clerk | an external deadline, for the internal one and the ROLA steps |
+| Prospector → Clerk | an external deadline, for the internal one and the research office's steps |
 | Prospector → Scribe | nothing, until the person asks the scribe to write; then the row's format facts |
 | Prospector → Bookworm | funders the registry should hold, with the page that lists their competitions |
 | Prospector → Conscience | on request, a funder's equity requirement (SGBA+, NFRF) for the person to plan for |

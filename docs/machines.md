@@ -56,7 +56,7 @@ machines:
     profile: ssh_server
     description: the lab's own server, holding the data root /data/lab_vm
     ssh_host: biodatsci.schulich.uwo.ca     # the default address, for the setup hint
-    data_root: /data/lab_vm                 # the eight lab folders become the tiers
+    data_root: /data/lab_vm                 # the eight lab folders become the tiers; the data-root hooks judge ssh and rsync to it by this
     tiers:                                  # add a tier, or move one
       home:
         path: /home

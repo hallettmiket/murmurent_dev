@@ -111,6 +111,27 @@ and with which it must open its reply.
 | Clerk | Ask it anything about the institution: it reads the answer off the institution's own pages, names the page and the date, and remembers it in the institution pack; checks documents, computes working-day dates, walks procedures | `Correct / Fix / Unknown` |
 | Prospector | Finds the funding opportunities a person may apply for, internal and external, reading each off the funder's own page: who may apply, what it pays, the deadlines, what the pre-application asks for, the link, the date read | member | `Found N open / None open / Unknown` |
 
+### Which model each agent runs on
+
+Each agent's file names its model in the `model:` line of its front matter,
+and that line wins over whatever the session is running on. The agents that
+judge, write or investigate (the adversary, blacksmith, clerk, conscience,
+detective, docent, judge, lawyer, oracle, prospector, scribe and teacher) say
+`inherit`: they run on the model you chose for the session, so a session on
+the strongest model gives them the strongest model, and a session you run on
+a cheaper one to save cost gives them that. The agents whose work is mostly
+lookups, scans and provisioning (the artist, bookworm, lab oracle, both
+millwrights, registrar and security guard) are pinned to `sonnet`. Claude
+Code has no rule of the form "the best model if available, else this one",
+so a heavy audit belongs in a session on the model you want it audited by.
+A lab that wants a different split edits the line, or forks the agent (see
+below) and sets its own.
+
+Which agent has been shown to work on which system (Claude Code, Antigravity,
+the institution's own model server), and the rule that no agent depends on a
+plugin, skill or connector from outside the commons, are in
+[Which agent works where](harnesses.md).
+
 
 ## Who hands work to whom
 
@@ -243,6 +264,28 @@ murmurent cite check main-article.tex   # exits with an error if any reference f
 It cannot tell whether a real paper supports the sentence that cites it. For a
 `.md` file it prints each paper's real title beside the line that cites it, so
 you can compare them.
+
+### Papers it cannot read in full
+
+Before it reports that a paper could not be opened, the Bookworm runs
+**`murmurent cite fetch <file>`**, which tries the legitimate routes for every
+identifier in order (Unpaywall, Europe PMC and PubMed Central, the bioRxiv or
+medRxiv preprint of a published paper, the publisher's page, the library's
+link resolver) and writes a reading
+ledger: one row per paper with every route's answer, the open copy when there
+is one, and the next step for a person. It tells a bot check (`BLOCKED`, which
+a person can open in a browser) from a paywall (`ABSTRACT ONLY`, which goes to
+the library or the author), and it names a missing identifier (`NOT FOUND`).
+The reply counts by status and names the ledger; it never gives a bare number.
+Unpaywall wants a contact address: set `UNPAYWALL_EMAIL`, or pass `--email`.
+The library's link is recorded once for everyone in the institution pack's
+`library.yaml` (see [the institution pack](institution_pack.md)); `--resolver`
+or `MURMURENT_LIBRARY_RESOLVER` overrides it on one machine, and the ledger
+says which was used.
+
+```bash
+murmurent cite fetch reading_list.md --out outputs/bookworm/reading_ledger_dcis_2026-11-23.md
+```
 
 ### Reviewing a field: `deep-research`, then the Bookworm
 

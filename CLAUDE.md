@@ -39,11 +39,11 @@ reply with a ≤200-char verdict line (see
 | [`teacher`](agents/teacher.md) | Three modes, one entry point — `teacher debrief` \| `explain` \| `course` (see below). Debrief is "wait, what?" — fired at the sentence CC just wrote that was jargon, overcomplicated, or handed you an unexplained decision; it re-pitches that in plain words in chat, under 60s, from the tail of the real session transcript. Explain covers any method or paper; course recognises a subject and hands it to the course skill. Only explain renders a self-contained HTML page, on request, annotated in `lavish-axi` — where "wait, what?" gets that same re-pitch. Bullet-led and jargon-light, and it makes things **visual — reusing before drawing**: first a real image it found and may reuse (inlined with its licence, captioned with what to notice), then a video it actually loaded, and only then something hand-drawn (inline SVG, mermaid, a slider) when nothing suitable exists or the reader needs a knob to drag. Figures needing real data still go to the [`artist`](agents/artist.md). It has `WebSearch`/`WebFetch` for exactly this, **scoped: `debrief` is offline entirely**, since a search query is outbound text and session transcripts are not public. It never emits a URL, title, or attribution it did not load; citations it cannot verify escalate to the [`bookworm`](agents/bookworm.md). (persona: Richard Feynman — answers to "Feynman") |
 | [`conscience`](agents/conscience.md) | EDID + bias review. **Reviewing is the default and is not a mode** — located, line-by-line findings, every one with a citation, and its rules bind whatever else the agent is doing. One entry point, no mode to select: it is pointed at something and infers from it whether one of two other things is wanted instead, each inferred rather than named: **explain** fires on a flag the author disputed or missed, and re-pitches that one flag — in chat, or on request as an HTML page annotated in `lavish-axi`; it either teaches the concept or names an existing training module. and **design** fires when nothing has been built yet, returning the equitable blueprint — the design itself, not objections to one already built. Never speaks for — or as — a marginalized community; searches the web for what its curated resources do not hold, though only the [`bookworm`](agents/bookworm.md) can add to them. **No persona:** it works in a tradition (bell hooks, Freire, Lorde, Baldwin) and cites it rather than impersonating it. |
 | [`scribe`](agents/scribe.md) | Scientific writing: manuscripts, grant text, figure legends. **Revise** rewrites a passage in the house style and lists each change with its rule, never changing a fact, number or citation; **draft** writes a section from results and notes, leaving `[CITE]`/`[N=?]` gaps rather than inventing. Follows [`docs/scientific_writing.md`](docs/scientific_writing.md), built from the PI's own hand edits. Returns text; never edits the manuscript itself. |
-| [`docent`](agents/docent.md) | Guide to a queryable **paper package** or **thesis package** ([`docs/paper_package.md`](docs/paper_package.md)). For a reader, reviewer or examiner: every answer with a location, `Absent` when the work does not address it, re-runs a claim's code before reporting a number, logs each question to `queries/`, append-only; offline. For the author or candidate: walks them through `murmurent paper`/`thesis init`, `check`, `build`, the defence talk (`thesis talk`) and the Western paperwork (`thesis paperwork`). Never grades, never edits the work. |
+| [`docent`](agents/docent.md) | Guide to a queryable **paper package** or **thesis package** ([`docs/paper_package.md`](docs/paper_package.md)). For a reader, reviewer or examiner: every answer with a location, `Absent` when the work does not address it, re-runs a claim's code before reporting a number, logs each question to `queries/`, append-only; offline. For the author or candidate: walks them through `murmurent paper`/`thesis init`, `check`, `build`, the defence talk (`thesis talk`) and the institution's submission paperwork (`thesis paperwork`). Never grades, never edits the work. |
 | [`clerk`](agents/clerk.md) | Institution expert: ask it anything about your institution and it reads the answer off the institution's own web pages (a web search limited to the institution's domains, then the page), names the page and the date it read it, and remembers the fact in the **institution pack** ([`docs/institution_pack.md`](docs/institution_pack.md)), its memory, so the next person gets it fast and a scheduled refresh re-reads it; a remembered fact is re-read from its page every time before it is relied on. Three jobs on top: **check** a document's office holders and addresses, **compute** a date in working days that never lands on a holiday, **walk** a procedure to its next steps. Never from memory; `Unknown` when the institution's pages do not say. Verdicts `Correct / Fix / Unknown`. The docent asks it for the institution-specific paperwork. |
 | [`prospector`](agents/prospector.md) | Funding scout. Given who is asking (student, postdoc, PI), their area and horizon, finds the opportunities they may apply for, internal and external, reading each off the funder's own page: who may apply, what it pays, the letter-of-intent and full deadlines, what the pre-application asks for, the link, the date read. Starts from the **funder registry** ([`docs/funders.md`](docs/funders.md), bookworm-kept) and the institution's own competitions in the institution pack, then searches for the disease-specific and the international. Reports the institution's internal deadline rule beside each external deadline; `UNRESOLVED` for what it could not read today. Does not write the application and does not walk the paperwork (the [`scribe`](agents/scribe.md) and the [`clerk`](agents/clerk.md)). Verdicts `Found N open / None open / Unknown`. |
 | [`detective`](agents/detective.md) | Research-integrity investigator for a manuscript, yours or someone else's: whether the **record** it rests on is real and reachable. Runs `murmurent integrity check` (every citation through the registries, every data accession at its archive, the availability wording, leftover language-model text, the journal in DOAJ and the **journal registry** [`docs/journals.md`](docs/journals.md), bookworm-kept), then reads: citations against the sentences, the numbers behind the central claims to their source, the availability statement against the journal's own policy page. Four tiers and never above the evidence: `PROVEN` only where a registry's own answer is the proof, `SUSPECTED` with what would settle it, `NOTED` for a fact with no verdict (a generated passage is a fact, not a violation; no detector, no score), `CLEAN`. Never names intent or a person: the subject is the manuscript. Figures only through a named image tool, at most `SUSPECTED`. Refers what it cannot judge to the [`adversary`](agents/adversary.md), once, in the foreground. Gated by confidentiality: a manuscript under review is read only where the journal's policy allows and only on the institution's own model. Returns the manuscript's text with every finding highlighted where it sits (`murmurent integrity report`, HTML, and an annotated PDF). Verdicts `Clean / Suspected / Proven`. |
-| [`lawyer`](agents/lawyer.md) | Patent counsel + freedom-to-operate (formerly `saul_goodman`); reached on request **or** by automatic referral from the [`adversary`](agents/adversary.md) mid-audit — triages first, so a referral with no IP surface costs one step, not six database searches |
+| [`lawyer`](agents/lawyer.md) | Patent counsel + freedom-to-operate; reached on request **or** by automatic referral from the [`adversary`](agents/adversary.md) mid-audit — triages first, so a referral with no IP surface costs one step, not six database searches |
 | [`millwright`](agents/millwright.md) | Infrastructure provisioner. Also the lab's hand on a compute cluster ([`docs/cluster.md`](docs/cluster.md)): sends work to the lab's Slurm partition on its own account, watches it, brings results back into `append_only`, reports each storage tier's use, and scans the partition for the PI |
 | [`centre_millwright`](agents/centre_millwright.md) | Centre-wide infrastructure reconciler (cross-lab ACLs, drift loop) |
 | [`judge`](agents/judge.md) | Combines and presents member contributions in a compositional choreography |
@@ -65,12 +65,16 @@ Auto-loaded into every CC session via `~/.claude/rules/`:
   [`raw_guard`](src/murmurent/hooks/raw_guard.py) +
   [`protected_paths`](src/murmurent/hooks/protected_paths.py) hooks, which
   refuse deletes and overwrites under immutable/append_only **from inside a
-  Claude Code session**. This is a guardrail, not a security perimeter: the
+  Claude Code session**, and the
+  [`data_root_guard`](src/murmurent/hooks/data_root_guard.py) hook for the
+  rest of the root: `modifiable/` is free, `mothballed/` takes new files only,
+  and elsewhere a new file is written freely, an overwrite is refused and a
+  delete asks the member first. This is a guardrail, not a security perimeter: the
   hooks are per-user and inert in a plain shell, in a script run outside a
   session, and for any member who has not installed them. The trees themselves
   are group-writable on disk.
 - [`rules/project-structure.md`](rules/project-structure.md) —
-  `~/repos/<project>/{exp,src,obsolete,data}`, snake_case, integer-versioned files.
+  `<repos>/<project>/<project>/{exp,src,obsolete,data}` (`murmurent config repos-root` prints `<repos>`), snake_case, integer-versioned files.
 - [`rules/oracle_schema.md`](rules/oracle_schema.md) — every Oracle
   entry needs `title`, `date`, `project`, `sensitivity`, `tags`, `sources`.
 - [`rules/headline_first.md`](rules/headline_first.md) — every agent's
@@ -81,6 +85,12 @@ Auto-loaded into every CC session via `~/.claude/rules/`:
   a session never picks a channel itself. Which workspace and bot is a
   deployment fact and lives in `rules/local/`. How every kind of message is
   routed: [`docs/slack_routing.md`](docs/slack_routing.md).
+- [`rules/optional_helpers.md`](rules/optional_helpers.md): an agent may use a
+  plugin, skill or connector from outside the commons only when it is present
+  in the session, only in its `## Optional helpers` section with the fallback
+  beside it, and never as a requirement; absent means do without and say so.
+  Each agent's `harnesses:` block records where it is verified, degraded or
+  untested ([`docs/harnesses.md`](docs/harnesses.md)).
 - [`rules/voice.md`](rules/voice.md) — read the voice guidelines at the start
   of every session, before writing anything a person will read. Points at
   [`output_styles/plain_english.md`](output_styles/plain_english.md) for the
@@ -164,11 +174,6 @@ and a subagent replies once and never hears your answer. Use the **`grilling`** 
 not part of the commons; install it with `npx skills add mattpocock/skills`. It runs in your
 session, so it can actually follow up.
 
-**Nothing now forces that step, and that is a real trade.** The design it replaced made the
-challenge unskippable. If a plan being explained and then executed without ever being
-questioned turns out to matter, the fix belongs in how you dispatch — not inside teacher, which
-replies once and cannot hold a back-and-forth.
-
 ## Linked references (loaded on-demand)
 
 - [`docs/edid_resources.md`](docs/edid_resources.md) — the EDID resource pool the
@@ -186,7 +191,7 @@ replies once and cannot hold a back-and-forth.
   word predatory; the bookworm keeps it. [`docs/integrity.md`](docs/integrity.md): `murmurent
   integrity check` and `report`, the detective's deterministic half.
 - [`docs/oracle-workflow.md`](docs/oracle-workflow.md) — personal vs lab Oracle, publish flow, MCP search.
-- [`docs/obsidian-layout.md`](docs/obsidian-layout.md) — vault-side conventions + cross-reference to vault's own `CLAUDE.md` and `maps-legends/`.
+- [`docs/obsidian-usage.md`](docs/obsidian-usage.md) — vault-side conventions + cross-reference to vault's own `CLAUDE.md` and `maps-legends/`.
 - [`docs/vscode-workflow.md`](docs/vscode-workflow.md) — launcher, 4-quadrant layout, agent reporter, tmux copy-paste.
 - [`docs/setup.md`](docs/setup.md) — per-machine + per-project install steps.
 - [`training/README.md`](training/README.md) — the training videos, all watchable at
@@ -198,8 +203,7 @@ replies once and cannot hold a back-and-forth.
   personal vault (`murmurent vault init [--adopt]`); the symlinked-folder gotcha.
 - [`docs/ready_vs_projects.md`](docs/ready_vs_projects.md) — "murmurent-ready"
   (repo-level: `.murmurent.yaml` + commons agents) vs. a project
-  (governance-level: repos + certified members, in `cert_projects/`) — the
-  split that replaced adopt-also-minting-a-project.
+  (governance-level: repos + certified members, in `cert_projects/`).
 - [`docs/reconcile.md`](docs/reconcile.md) — `murmurent reconcile` drift-detection routine + daily `/routine` schedule.
 - [`docs/service_account.md`](docs/service_account.md): running the server's two
   policing timers (weekly space scan, weekday etiquette check) under a lab service
@@ -218,7 +222,8 @@ replies once and cannot hold a back-and-forth.
   shared secrets across a principal's machines (per-machine `age` identities +
   multi-recipient boxes in `lab_info`, locked per role); deploy + test runbooks
   in [`docs/keyring_deploy.md`](docs/keyring_deploy.md).
-- [`docs/project_creation.md`](docs/project_creation.md) — vignettes: creating
+- [`docs/project_intra.md`](docs/project_intra.md) and
+  [`docs/project_inter.md`](docs/project_inter.md) — vignettes: creating
   intra- and inter-group projects (lead-signed certificates, private channel,
   shared-workspace gate).
 - [`docs/slack_setup.md`](docs/slack_setup.md) — mayor's one-time Slack setup:

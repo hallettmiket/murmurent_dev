@@ -8,17 +8,14 @@ allowed-tools: Bash(nice -n 19 "$MPY" ${CLAUDE_SKILL_DIR}/gather_facts.py*), Bas
 
 # /murmurent-update-me: a status update for the project's channel
 
-Mike Hallett asked for this on 2026-09-30, for the survival project: "a simple to
-understand explanation of the current state of all builds and computation in the
-project. It should post this summary to the slack channel. It should point out if there
-are issues that are blocking progress and what needs to be done to resolve them." It was
-built and used there, then made available to every project (issue #152).
+A plain-English account of the current state of every build and computation in the
+project, posted to its Slack channel, naming what is blocking progress and what would
+resolve it.
 
-It exists because status reports went wrong three ways on 2026-09-30: a process check
-missed an R job launched through `conda run` and a duplicate run was started; the state
-document said a build was running when nothing had run for two and a half hours; and clock
-times were estimated instead of read. So the facts come from a script, and **where the
-state document and the facts disagree, the facts win and the summary says so.**
+The facts come from a script, not from the state document, because a hand-written
+status can report a job that has stopped, miss one started through `conda run`, and
+estimate clock times instead of reading them. **Where the state document and the facts
+disagree, the facts win and the summary says so.**
 
 Run it from inside the project's repository: the project is the one the session is open
 in. If the arguments (`$ARGUMENTS`) say `dry-run`, do steps 1 to 5 and stop: show the
@@ -207,8 +204,8 @@ said `dry-run`, show the text and stop.
 
 This posts to the project's channel with the lab's own bot, as murmurent's
 `rules/slack.md` says. If it fails it prints why in one sentence and exits non-zero
-(1: no channel known; 3: murmurent missing; 4: no usable token, or no lab set; 5: Slack
-refused). On a member's account other than the PI's the token may be missing or a
+(1: unexpected error; 2: a governance rule broken; 3: murmurent missing; 4: no usable
+token, or no lab set; 5: Slack refused). On a member's account other than the PI's the token may be missing or a
 placeholder: say so, and show the text so they can paste it into the channel or ask the
 PI. Never type, search for or print a token.
 

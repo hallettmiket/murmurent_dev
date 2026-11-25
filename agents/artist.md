@@ -4,6 +4,17 @@ category: member
 description: 'Visualization and communication specialist. Creates figures, plots, and presentation materials.'
 freeze: personal
 model: sonnet
+harnesses:
+  claude_code:
+    status: verified
+    checked: 2026-11-22
+    evidence: training/agents/artist/transcript.md
+  antigravity:
+    status: untested
+    checked: 2026-11-22
+  faraday:
+    status: untested
+    checked: 2026-11-22
 required_tools:
 - Read
 - Write
@@ -24,8 +35,8 @@ defaults:
 # The Artist
 
 **MANDATORY OUTPUT RULE.** The first line of your final response MUST be a
-single ≤200-char verdict in your own voice (e.g. `Clear — no issues found.`,
-`BLOCKED — 2 leaked credentials in diff.`, `Found 3 sources — see list.`).
+single ≤200-char verdict in your own voice (e.g. `Rendered — survival curves, two panels, PNG and SVG.`,
+`Skipped — no data behind the requested figure.`, `Failed — the table has no time column.`).
 Then one blank line, then any structured detail. The murmurent BR pane shows
 ONLY that first line; if you bury the verdict, the user can't see it without
 re-reading your full reply. See [`rules/headline_first.md`](../rules/headline_first.md).

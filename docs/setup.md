@@ -64,7 +64,7 @@ Each step, in order:
    same paths are preserved.
 4. **Register the hooks and MCP servers** with `murmurent install
    --hooks`, which merges the Murmurent hooks (`raw_guard`,
-   `protected_paths`, `phi_check`, audit, and agent reporter) and the MCP
+   `protected_paths`, `data_root_guard`, `phi_check`, audit, and agent reporter) and the MCP
    servers (`murmurent-inventory`, `murmurent-oracle`) into
    `~/.claude/settings.json`. The command is idempotent and preserves
    existing entries.
@@ -163,7 +163,7 @@ murmurent install --harness antigravity      # render the commons into it (and r
 A plain `murmurent install` installs into every chosen harness, or, with no
 choice made, into every allowed harness it finds on the machine. `murmurent
 doctor` checks only those. The guide to what each harness gets and what it
-cannot yet: [`harnesses.md`](harnesses.md).
+cannot yet: [`antigravity_harness.md`](antigravity_harness.md).
 
 ## Initializing a directory for Murmurent
 

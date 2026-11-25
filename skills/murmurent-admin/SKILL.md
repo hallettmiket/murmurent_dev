@@ -16,15 +16,15 @@ version of it. Do this **first**, before proposing or writing changes.
 Read these first so they anchor the rest of the session:
 
 1. **Obsidian maps/legends** — the vault's `maps-legends/` and the vault's
-   own `CLAUDE.md` (see `docs/obsidian-layout.md` for where the registered
+   own `CLAUDE.md` (see `docs/obsidian-usage.md` for where the registered
    vault is). These are the human index into the project's knowledge.
 2. **How to use Claude Code here** — the top-level `CLAUDE.md` of this repo
    (agents, hard rules, skills) and `docs/vscode-workflow.md`.
 
 ## 1. Reload murmurent's purpose from the docs
 
-The administrative layer uses **registrar / receptionist / accountant /
-centre-level security guard**; note there is **no "mayor" agent** — "mayor"
+The administrative layer uses **registrar / security_guard / millwright /
+centre_millwright** (step 2 below); note there is **no "mayor" agent** — "mayor"
 is a *human bootstrap role* only.
 
 - Start from [`docs/centre_overview.md`](../../docs/centre_overview.md),
@@ -48,9 +48,9 @@ re-implementing it:
 - `agents/registrar.md`, `agents/security_guard.md`, `agents/millwright.md`,
   `agents/centre_millwright.md` — the admin-layer agents.
 
-## 3. The three repos + the public hub
+## 3. The repos + the public hub
 
-Murmurent spans three repos plus a global onboarding hub. Name them
+Murmurent spans this repo, a global onboarding hub and one governance repo per group. Name them
 precisely when you reference them:
 
 | Repo | Purpose |

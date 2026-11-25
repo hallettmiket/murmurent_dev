@@ -104,7 +104,7 @@ nav:
       - Running long jobs: run_launcher.md
       - Running work on a compute cluster: cluster.md
       - The machines you can reach: machines.md
-      - "A second harness (Antigravity) 🚧": harnesses.md
+      - "A second harness (Antigravity) 🚧": antigravity_harness.md
       - "Plan for more than one harness 🚧": harnesses_plan.md
       - Tidying a project's space: space_table.md
       - The lab folder protocol: lab_folders.md
@@ -145,6 +145,7 @@ nav:
       - "The prospect command (the Prospector)": prospect.md
       - "The journal registry (the Detective)": journals.md
       - "The integrity command (the Detective)": integrity.md
+      - "Which agent works where": harnesses.md
       - "Writing guide for manuscripts (the Scribe)": scientific_writing.md
       - Architecture diagrams: diagrams.md
       - Versioning: versioning.md
