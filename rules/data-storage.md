@@ -100,8 +100,9 @@ these operations **when they are attempted through a Claude Code tool call**:
   that mutate something that already exists there.
 - **The rest of the data root**, via
   [`data_root_guard`](../src/murmurent/hooks/data_root_guard.py). Under
-  ``modifiable/`` anything goes. Under ``mothballed/`` nothing is written,
-  changed or deleted (rule 1 of the folder protocol). Everywhere else under
+  ``modifiable/`` anything goes. Under ``mothballed/`` a new file may be
+  placed, and nothing already there is changed or deleted (rule 1 of the
+  folder protocol). Everywhere else under
   the root (``release/``, ``cottage/``, ``tools/``, ``db/``, a folder the
   protocol does not name, a loose file at the top): a new file is written
   without asking, an overwrite of an existing file is refused, and a delete
@@ -110,7 +111,7 @@ these operations **when they are attempted through a Claude Code tool call**:
 
 The three hooks together make the tree read as its names say: nothing in
 ``immutable/``, additions only in ``append_only/``, anything in
-``modifiable/``, nothing in ``mothballed/``, and elsewhere new files freely,
+``modifiable/``, additions only in ``mothballed/`` too, and elsewhere new files freely,
 overwrites never, deletes only with a person's say-so. With no data root set
 in the environment the third hook guards nothing rather than guessing.
 

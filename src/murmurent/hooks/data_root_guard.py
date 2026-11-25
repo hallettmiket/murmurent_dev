@@ -7,8 +7,9 @@ Purpose: Claude Code ``PreToolUse`` hook for the parts of the data root that
 
            - ``modifiable/``: anything goes; code may overwrite and delete
              its own working data.
-           - ``mothballed/``: nothing is written, changed or deleted; people
-             move files there and no agent touches them (lab folder
+           - ``mothballed/``: a NEW file may be placed there; nothing already
+             there is changed or deleted. People move files there on their
+             way to long-term storage and no agent alters them (lab folder
              protocol, rule 1).
            - everything else under the root (``release/``, ``cottage/``,
              ``tools/``, ``db/``, a folder the protocol does not name, a
@@ -58,7 +59,7 @@ CREATE, OVERWRITE, DELETE = "create", "overwrite", "delete"
 POLICY: dict[str, dict[str, str]] = {
     "own_hook": {CREATE: ALLOW, OVERWRITE: ALLOW, DELETE: ALLOW},   # theirs to refuse
     "modifiable": {CREATE: ALLOW, OVERWRITE: ALLOW, DELETE: ALLOW},
-    "mothballed": {CREATE: DENY, OVERWRITE: DENY, DELETE: DENY},
+    "mothballed": {CREATE: ALLOW, OVERWRITE: DENY, DELETE: DENY},
     "other": {CREATE: ALLOW, OVERWRITE: DENY, DELETE: ASK},
 }
 
@@ -171,9 +172,8 @@ def operations(call: dict[str, Any]) -> list[tuple[str, str]]:
 # ---------------------------------------------------------------------------
 
 _WHY = {
-    ("mothballed", CREATE): "nothing is written under mothballed/: people move files there and no agent touches them",
-    ("mothballed", OVERWRITE): "nothing is changed under mothballed/: people move files there and no agent touches them",
-    ("mothballed", DELETE): "nothing is deleted under mothballed/: people move files there and no agent touches them",
+    ("mothballed", OVERWRITE): "nothing already under mothballed/ is changed: it is on its way to long-term storage",
+    ("mothballed", DELETE): "nothing under mothballed/ is deleted: it is on its way to long-term storage",
     ("other", OVERWRITE): "a file under the data root is not overwritten; write a new versioned name (file_2.csv) instead",
     ("other", DELETE): "deleting under the data root needs the member's permission",
 }

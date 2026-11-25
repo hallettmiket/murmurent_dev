@@ -67,7 +67,7 @@ Auto-loaded into every CC session via `~/.claude/rules/`:
   refuse deletes and overwrites under immutable/append_only **from inside a
   Claude Code session**, and the
   [`data_root_guard`](src/murmurent/hooks/data_root_guard.py) hook for the
-  rest of the root: `modifiable/` is free, `mothballed/` is never touched,
+  rest of the root: `modifiable/` is free, `mothballed/` takes new files only,
   and elsewhere a new file is written freely, an overwrite is refused and a
   delete asks the member first. This is a guardrail, not a security perimeter: the
   hooks are per-user and inert in a plain shell, in a script run outside a

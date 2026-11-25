@@ -3,7 +3,7 @@ Purpose: Pin :mod:`murmurent.hooks.data_root_guard`, the hook for the parts
          of the data root the two tier guards leave alone.
 
          - modifiable/: create, overwrite, delete all ALLOW
-         - mothballed/: create, overwrite, delete all DENY
+         - mothballed/: create ALLOW, overwrite and delete DENY
          - anywhere else under the root (release/, cottage/, tools/, db/, an
            unlisted folder, a loose file at the top): create ALLOW,
            overwrite DENY, delete or move out ASK
@@ -95,14 +95,17 @@ def test_modifiable_allows_overwrite_and_delete(root):
 # -- mothballed: never touched ---------------------------------------------
 
 
-def test_mothballed_denies_everything(root):
+def test_mothballed_takes_new_files_and_nothing_else(root):
     folder = root / "mothballed" / "proj"
-    assert _write(folder / "new.csv")["decision"] == "deny"
+    assert _write(folder / "new.csv")["decision"] == "allow"
+    assert _bash(f"cp a.csv {folder}/b.csv")["decision"] == "allow"
+    assert _bash(f"mv /tmp/done.tar {folder}/done.tar")["decision"] == "allow"
+    assert _write(folder / "old.csv")["decision"] == "deny"
     assert _edit(folder / "old.csv")["decision"] == "deny"
     r = _bash(f"rm {folder}/old.csv")
     assert r["decision"] == "deny" and "mothballed" in r["reason"]
-    assert _bash(f"cp a.csv {folder}/b.csv")["decision"] == "deny"
-    assert _bash(f"gzip -k {folder}/old.csv > {folder}/old.csv.gz")["decision"] == "deny"
+    assert _bash(f"mv {folder}/old.csv /tmp/back.csv")["decision"] == "deny"
+    assert _bash(f"gzip -c {folder}/old.csv > {folder}/old.csv")["decision"] == "deny"
 
 
 # -- everywhere else: new file yes, overwrite no, delete asks ---------------
