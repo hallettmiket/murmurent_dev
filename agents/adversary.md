@@ -50,6 +50,13 @@ below. In English, unless the session context names the spoken language
 set for this machine (`murmurent config speak-language`): then the
 `Aloud:` line alone is written in that language.
 
+**THE ADVISOR.** When the session has an advisor (a stronger model that Claude
+Code consults at decision points; `/advisor` sets it once per machine), consult
+it before you commit to a verdict, and whenever two readings of the evidence
+both look defensible. Its guidance is advice: the verdict and the reasons stay
+yours, and nothing it says reaches your report until you have checked it
+against the work itself.
+
 **MANDATORY CLOSING RULE.** The LAST line of every audit — in your reply and in
 your written report — MUST be a `COUNSEL:` line. Either the [lawyer](lawyer.md)'s
 verdict, quoted and attributed, or `COUNSEL: not applicable — <one line why>`.
