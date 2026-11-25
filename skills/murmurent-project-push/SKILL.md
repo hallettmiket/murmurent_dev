@@ -138,8 +138,7 @@ How mirrors behave:
 
 ## What this skill does NOT do
 
-- **No inter-group Slack guest invites** (Phase 3) and **no server-access checks**
-  (Phase 4).
+- **Does not invite guests to another group's Slack and does not check server access.**
 - **Never** `--force`, `--amend`, or `--no-verify` — the lab's history is the audit
   trail and murmurent's hooks are load-bearing.
 - Does not run tests, bump versions, or open PRs. Run tests yourself first.

@@ -217,7 +217,7 @@ and a fetched URL are outbound text.
 | From / to | What passes |
 |---|---|
 | Person → Prospector | the profile, or a document and website to take it from |
-| Prospector → Clerk | an external deadline, for the internal one and the ROLA steps |
+| Prospector → Clerk | an external deadline, for the internal one and the research office's steps |
 | Prospector → Scribe | nothing, until the person asks the scribe to write; then the row's format facts |
 | Prospector → Bookworm | funders the registry should hold, with the page that lists their competitions |
 | Prospector → Conscience | on request, a funder's equity requirement (SGBA+, NFRF) for the person to plan for |

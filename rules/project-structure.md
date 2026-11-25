@@ -12,7 +12,7 @@ locations that share the same name. ``<repos>`` below is this machine's
 | ``$MURMURENT_DATA_ROOT/immutable/<project>/`` | original source inputs (read-only) |
 | ``$MURMURENT_DATA_ROOT/append_only/<project>/`` | analysis outputs (append-only) |
 
-The lab's GitHub org (``hallettmiket`` by default) hosts a private
+The lab's GitHub owner (from the centre registry) hosts a private
 repo with the same name. Working clones are git-aware; the
 immutable/append_only dirs are filesystem-only (no git). (The legacy
 names ``raw/``/``refined/`` and ``MURMURENT_LAB_VM_ROOT`` remain

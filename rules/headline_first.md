@@ -35,7 +35,7 @@ vocabulary:
 | `bookworm` | `Found N sources — <one-line summary>` |
 | `blacksmith` | `Done / Failed / Partial — <one-line what>` |
 | `artist` | `Rendered / Skipped / Failed — <one-line what>` |
-| `conscience` | `OK / Flagged — <one-line concern>` |
+| `conscience` | `OK / Flagged / Designed / Explained / Gap — <one-line concern, blueprint, re-pitch or gap>` |
 | `scribe` | `Revised / Drafted / Gap — <one-line on what was written or what is missing>` |
 | `lawyer` | `Clear / Conflict / Unknown — <one-line on patent landscape>` |
 | `millwright` | `Provisioned / Skipped / Failed — <one-line on what>` |
@@ -63,10 +63,8 @@ Verdict: CLEAR
 
 ## Adding an agent
 
-**This table must list every agent in [`agents/`](../agents/).** It went two
-agents out of date (`centre_millwright`, `lab_oracle`) because nothing tied the
-two together: both agents declared their verdicts in their own files, so
-nothing was broken and nothing complained. If you add an agent, add its row
+**This table must list every agent in [`agents/`](../agents/).** Nothing checks
+that it does, so a missing row goes unnoticed. If you add an agent, add its row
 here in the same commit, and take the vocabulary from the agent's own
 `MANDATORY OUTPUT RULE` line rather than inventing one that looks plausible.
 

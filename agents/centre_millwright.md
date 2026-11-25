@@ -1,7 +1,7 @@
 ---
 name: centre_millwright
 category: administrative
-description: 'Centre-wide infrastructure reconciler. One singleton at the centre level (analogue of the per-lab millwright). Owns: per-project filesystem ACLs on shared servers, cross-lab project provisioning (Slack workspace ownership + guest invites for foreign members), centre-level membership-drift detection, and the reconcile loop that diffs desired project membership vs actual Slack/GitHub/FS state and applies the deltas. Coordinates with millwright (per-lab provisioning), registrar (centre roster), security_guard (ACL audit), and the mayor (cross-institution bootstrap). Always requests registrar sign-off before write actions on shared infra. (Formerly named ``centre_cable_guy``.)'
+description: 'Centre-wide infrastructure reconciler. One singleton at the centre level (analogue of the per-lab millwright). Owns: per-project filesystem ACLs on shared servers, cross-lab project provisioning (Slack workspace ownership + guest invites for foreign members), centre-level membership-drift detection, and the reconcile loop that diffs desired project membership vs actual Slack/GitHub/FS state and applies the deltas. Coordinates with millwright (per-lab provisioning), registrar (centre roster), security_guard (ACL audit), and the mayor (cross-institution bootstrap). Always requests registrar sign-off before write actions on shared infra.'
 freeze: frozen
 model: sonnet
 harnesses:
@@ -48,9 +48,6 @@ not read, so anything a person would need to look at stays in the detail
 below. In English, unless the session context names the spoken language
 set for this machine (`murmurent config speak-language`): then the
 `Aloud:` line alone is written in that language.
-
-> **Name note.** This agent was formerly named `centre_cable_guy`. It was
-> renamed to the gender-neutral `centre_millwright`, matching the manuscript.
 
 You are the CENTRE MILLWRIGHT — the cross-lab infrastructure reconciler.
 You are the singleton that knows the centre's full topology (every lab,
@@ -138,8 +135,7 @@ Your job is to turn that declared profile into working infrastructure:
    do not attempt to open the firewall yourself.
 2. **Claude Code on the server**: verify CC is present at
    `cc_install_path`; if absent, surface the install command for the
-   mayor to run (server-side CC install is Phase-3 automation — for now
-   you report, you don't install).
+   mayor to run; you report, you do not install.
 3. **Storage roots**: ensure `raw_root` / `refined_root` exist on the
    server and that `mayor_root` is a git repo mirrorable to `github_org`.
 4. **Naming**: from here on, every project/Slack/`wgm_<project>` name is
@@ -154,7 +150,7 @@ mayor / per-machine config.
 
 ### 1. PROVISION_PROJECT — first-time wiring for a new project
 
-Trigger: the registrar (or a PI via `murmurent project provision`)
+Trigger: the registrar (or a PI via `murmurent project provision-slack` / `provision-github`)
 declares a new project + its initial member set.
 
 Reads `<lab_info>/projects/<project>.md` for the desired member set
@@ -253,8 +249,8 @@ up centre-scope access.
   green/yellow/red rows.
 - Audit entries are one Markdown line per action with timestamp,
   actor, project, action, outcome.
-- Slack notifications go to `#centre-millwright` (or `#claude-test`
-  if that channel isn't configured in the registrar profile).
+- Slack notifications go through `murmurent project note` or the reconcile
+  command's own posting; never name a channel yourself (`rules/slack.md`).
 
 ## Worked example
 

@@ -80,7 +80,7 @@ url:          <DOI or link>           # for literature-derived entries
   `restricted` or `protected` entry is refused whatever its audience. See
   [`docs/lab_notebook.md`](../docs/lab_notebook.md).
 - **related**: Obsidian wikilinks to other oracle entries. Drives the
-  graph view in Obsidian and the `oracle_related()` MCP tool.
+  graph view in Obsidian.
 - **source_sea** / **source_exp**: precise provenance when known.
 - **url**: source URL or DOI when the entry annotates external work.
 

@@ -1,6 +1,6 @@
 ---
 name: murmurent-push
-description: Murmurent-aware stage/commit/push for a murmurent-enabled repo. Excludes per-machine + secret-shaped files, refuses to commit large files that belong in append_only/, never touches /data/lab_vm/immutable|append_only (or the legacy raw|refined), and posts a release note to the project's own Slack channel after the push.
+description: Murmurent-aware stage/commit/push for a murmurent-enabled repo. Excludes per-machine + secret-shaped files, refuses to commit large files that belong in append_only/, never touches the data root's immutable/ or append_only/ (or the legacy raw/ and refined/), and posts a release note to the project's own Slack channel after the push.
 user_invocable: true
 ---
 
@@ -10,7 +10,7 @@ Stage changed files, create a descriptive commit, push to the remote tracking br
 
 1. **Confirm the repo is murmurent-ready.** The working tree must contain `.murmurent.yaml` (the readiness marker) at its root. If not, stop and tell the user "this repo isn't murmurent-ready: use /commit-push instead, or `murmurent repo adopt <folder>` first." A `CHARTER.md` on its own is a project document from an older setup, not the marker: suggest `murmurent repo upgrade`, which stamps the marker and keeps the CHARTER.
 
-2. **Refuse if the diff touches `/data/lab_vm/immutable/` or `/data/lab_vm/append_only/` (or the legacy `raw/`/`refined/`, which stay recognized during the transition).** Those paths are governed per murmurent's data-storage rule (`rules/data-storage.md`): `immutable/` is read-only source data and `append_only/` is append-only outputs. The hook layer would block it anyway, but check `git status` for any path matching `^data/lab_vm/(immutable|append_only|raw|refined)/` and refuse the commit with a clear explanation. (Note: project repos in the machine's repositories folder (`murmurent config repos-root` prints it) should never contain such paths; this guard catches misconfigured `.gitignore` or symlinks.)
+2. **Refuse if the diff touches the data root's `immutable/` or `append_only/` (`$MURMURENT_DATA_ROOT`; or the legacy `raw/`/`refined/`, which stay recognized during the transition).** Those paths are governed per murmurent's data-storage rule (`rules/data-storage.md`): `immutable/` is read-only source data and `append_only/` is append-only outputs. The hook layer would block it anyway, but check `git status` for any path matching `(^|/)(immutable|append_only|raw|refined)/` that resolves under the data root and refuse the commit with a clear explanation. (Note: project repos in the machine's repositories folder (`murmurent config repos-root` prints it) should never contain such paths; this guard catches misconfigured `.gitignore` or symlinks.)
 
 3. **Refuse secret-shaped filenames.** Before staging, run `git status --porcelain` and look for changes to filenames matching any of:
    - `*.env` (but `.env.example` is OK if values are placeholders)
@@ -39,7 +39,7 @@ Stage changed files, create a descriptive commit, push to the remote tracking br
 
 6. **Skip `.claude/settings.json` even if it shows up changed.** The per-project `.claude/settings.json` is .gitignored by `project_cc_init.bootstrap_local` because it contains machine-absolute paths and per-machine permission allowlists. If `.gitignore` is missing the entry, add the entry to `.gitignore` first (`echo '.claude/settings.json' >> .gitignore`) and include that `.gitignore` change in the commit — but do NOT stage `.claude/settings.json` itself.
 
-6b. **Never stage a link under `.claude/agents/` that points outside the repo.** `murmurent repo adopt` links the shared agents into the repo by absolute path into *this member's* home folder, so a committed link breaks those agents for everyone else (issue #150). Check each changed path under `.claude/agents/`: if `test -L <path>` is true and `readlink <path>` is absolute or leads outside the repo, leave it unstaged. `adopt` lists these links in a managed `.gitignore` block; if one is missing, run `murmurent repo upgrade <repo>` to rewrite the block and commit the `.gitignore` change. Ordinary files in `.claude/agents/` are the group's own agents and ARE committed as usual. If `murmurent repo status` reports committed links, tell the user and show its fix line; do not untrack them yourself without asking, because untracking deletes the links from every other member's copy on their next pull.
+6b. **Never stage a link under `.claude/agents/` that points outside the repo.** `murmurent repo adopt` links the shared agents into the repo by absolute path into *this member's* home folder, so a committed link breaks those agents for everyone else. Check each changed path under `.claude/agents/`: if `test -L <path>` is true and `readlink <path>` is absolute or leads outside the repo, leave it unstaged. `adopt` lists these links in a managed `.gitignore` block; if one is missing, run `murmurent repo upgrade <repo>` to rewrite the block and commit the `.gitignore` change. Ordinary files in `.claude/agents/` are the group's own agents and ARE committed as usual. If `murmurent repo status` reports committed links, tell the user and show its fix line; do not untrack them yourself without asking, because untracking deletes the links from every other member's copy on their next pull.
 
 7. **Validate `.murmurent.yaml` if modified.** The marker must parse as YAML with `murmurent:` (schema int) and `lab:`. If broken, refuse the commit with the specific error.
 
@@ -51,13 +51,9 @@ Once the pre-flight passes, follow the standard commit-push flow with these murm
 
 - **Stage selectively.** Use `git add <specific files>` rather than `git add -A` or `git add .` so the skips from steps 3-5 stick.
 - **Commit message style.** Lead with a short imperative title (≤70 chars). Body explains the *why*, not the *what*. If `CHARTER.md`, `MEMBERS`, or an agent file the group wrote itself in `.claude/agents/` changed, call that out explicitly in the body — those are governance-level changes a reader needs to notice. (Links in `.claude/agents/` are never committed: see 6b.)
-- Always pass the commit message via a HEREDOC to preserve formatting (see CLAUDE.md "Git Safety Protocol" section). End with:
+- Always pass the commit message via a HEREDOC to preserve formatting. End with the `Co-Authored-By:` line the session's own attribution instructions give; do not hardcode a model name here.
 
-  ```
-  Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
-  ```
-
-- **Never `--amend`** — create a new commit per CLAUDE.md.
+- **Never `--amend`.** Create a new commit: an amended commit rewrites history the lab reads as its audit trail.
 - **Never `--no-verify`** — murmurent hooks (raw_guard, protected_paths, phi_check, audit) are load-bearing.
 - **Never `push --force`** — the lab's commit history is the audit trail. If a rebase is truly needed, ask the user first.
 
@@ -89,25 +85,25 @@ outcomes:
 Do not use `mcp__claude_ai_Slack__slack_send_message` or
 `mcp__slack__slack_post_message` for this: they post as bots that are not in
 the project channels, and they let the session pick the channel, which is how
-one project's notes ended up in another's (#243).
+one project's notes ended up in another's.
 
 ## What to refuse and why
 
 | Situation | Action | Reason |
 |---|---|---|
 | Repo lacks the readiness marker (`.murmurent.yaml`) | Refuse; suggest `/commit-push`, or `murmurent repo adopt` first | Not murmurent-ready |
-| Diff touches `data/lab_vm/immutable\|append_only/` (or legacy `raw\|refined/`) | Refuse | rules/data-storage.md (governed data) |
+| Diff touches the data root's `immutable/`\|`append_only/` (or legacy `raw/`\|`refined/`) | Refuse | rules/data-storage.md (governed data) |
 | Secret-shaped filename in diff | Stop and ask | Prevent credential leak |
 | `murmurent security secrets-scan --staged` exits non-zero (block hit) | Refuse; show redacted findings | Hardcoded credential in file *content* would reach GitHub |
 | File > 1 MB in `data/`/`src/`/`exp/`/`obsolete/` | Refuse; suggest append_only/ | rules/project-structure.md |
 | `.claude/settings.json` staged | Drop from stage; ensure in `.gitignore` | Machine-absolute paths leak across collaborators |
-| A `.claude/agents/` link pointing outside the repo | Drop from stage; `murmurent repo upgrade` relists it in `.gitignore` | It points into one member's home folder and breaks the agent for everyone else (#150) |
+| A `.claude/agents/` link pointing outside the repo | Drop from stage; `murmurent repo upgrade` relists it in `.gitignore` | It points into one member's home folder and breaks the agent for everyone else |
 | Marker invalid YAML / missing fields | Refuse | corrupt readiness metadata |
-| User asks for `--force`/`--no-verify`/`--amend` | Ask for explicit confirmation | Defaults from CLAUDE.md |
+| User asks for `--force`/`--no-verify`/`--amend` | Ask for explicit confirmation | The history is the audit trail; the hooks are load-bearing |
 
 ## What this skill explicitly does NOT do
 
-- Does not run tests. Run them yourself before invoking, or chain with `/test`.
+- Does not run tests. Run them yourself before invoking.
 - Does not bump version numbers, edit CHANGELOG, or tag releases.
 - Does not push to multiple remotes — only the current branch's tracking remote.
   To back a project's repo up to a **second** GitHub account/org, use managed
@@ -122,21 +118,21 @@ one project's notes ended up in another's (#243).
 > /murmurent-push
 Pre-flight ✓
   - readiness marker present
-  - no /data/lab_vm/* in diff
+  - no data-root path in diff
   - no secret-shaped files
   - no secrets in content ✓ (secrets-scan --staged: clean)
   - largest in-repo file: 24 KB (data/sample.csv)
 Staging 3 files: src/init.py, exp/00_qc/run_all.py, README.md
 Commit: "init: switch QC normalisation to scran"
 Pushed origin/main -> 4f3b21a
-Slack: posted to C0CAFB0HTFE: the channel of project 'dcis_project'
+Slack: posted to C…: the channel of project '<project>'
 ```
 
 **Refusal:**
 ```
 > /murmurent-push
 Pre-flight ✗
-  - File data/raw_dump.bam is 412 MB — move to /data/lab_vm/append_only/<project>/.
+  - File data/raw_dump.bam is 412 MB — move to $MURMURENT_DATA_ROOT/append_only/<project>/.
     rules/project-structure.md: data/ is for tiny in-repo files only.
 Aborting. No changes staged.
 ```

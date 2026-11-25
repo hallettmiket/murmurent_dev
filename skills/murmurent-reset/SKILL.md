@@ -25,7 +25,7 @@ setting, so nothing extra is needed.
 | Level | Removes | Keeps |
 |---|---|---|
 | `centre` (default) | `~/.murmurent/lab_info/` only → centre-init is first-run again | everything else |
-| `install` | centre + reinstall the tool from `~/repos/murmurent` (`uv tool install --force --python 3.12 -e '.[dashboard,slack,mcp]'`) + `scripts/setup.sh` + `murmurent install --hooks` | credentials, installations, audit |
+| `install` | centre + reinstall the tool from the clone `MURMURENT_REPO` names, else `<repos-root>/murmurent` (`uv tool install --force --python 3.12 -e .`, as reset.sh step 4 runs it) + `scripts/setup.sh` + `murmurent install --hooks` | credentials, installations, audit |
 | `full` | install + machine-local **caches** (`workspaces/`, `*.log`, `dashboard.pid`, `security/agent_cache`, stale `RESUME.md`) | credentials, `installations/`, `decommissions/`, audit logs, `hosts.yaml`/`machine.yaml` |
 | `data` | **all data you entered** into `~/.murmurent` — `lab_info/`, `profile.yaml`, `hosts`/`machine` yaml, `inventory/`, `cores/`, `onboarding/`, `decommissions/`, `security/`, identity/cards/trust/revocation, logs — everything *except* key material (allowlist-based, so new files are caught) | `keys/`, `age/`, `installations/` (other projects), and `~/.config/murmurent`. **No reinstall.** |
 
@@ -38,14 +38,16 @@ Opt-in extras (only with the flag): `--nuke-installations` (also wipes
 `--nuke-credentials` (also wipes `~/.config/murmurent/` — the **slack-tokens +
 keys**), `--nuke-keys` (with `--level data`, **also** removes `~/.murmurent/keys/`
 + `age/` for a fully fresh identity; default keeps them), `--nuke-labs` (also
-removes this machine's **lab-management repos** `~/repos/murmurent_lab_mgmt_* (legacy: ~/repos/wigamig_*)` — they hold
+removes this machine's **lab-management repos** `<repos-root>/murmurent_lab_mgmt_*` — they hold
 the roster; see below), `--uninstall` (first **completely removes** the existing
 murmurent install — the uv-tool one *and* stray conda/pipx copies that shadow it —
 before any reinstall).
 
-### Lab repos (`~/repos/murmurent_lab_mgmt_* (legacy: ~/repos/wigamig_*)`) — the roster
+### Lab repos (`<repos-root>/murmurent_lab_mgmt_*`) — the roster
 
-A PI's lab-management repo (`~/repos/murmurent_lab_mgmt_<group>` (legacy `~/repos/wigamig_<group>`), created by `pi-init` /
+The script also recognises the pre-rename `wigamig_*` folders.
+
+A PI's lab-management repo (`<repos-root>/murmurent_lab_mgmt_<group>`, created by `pi-init` /
 `murmurent init`) holds `members/*.md` — the **roster**, which is the source of
 truth for member identity (card fingerprints included). It lives under
 `~/repos`, which reset **never** touches by default, so **every** reset just
@@ -68,7 +70,9 @@ When the user asks to "completely remove" / "uninstall" murmurent:
   up with no `murmurent` on PATH.
 - **Remove the old one and put back a clean one** (the usual "fresh copy from
   the repo" intent): `--level install --uninstall` — uninstalls first, then
-  reinstalls editable from `~/repos/murmurent`.
+  reinstalls editable from the clone `MURMURENT_REPO` names, else
+  `<repos-root>/murmurent`. On a development machine set `MURMURENT_REPO` to
+  the checkout you actually run.
 
 `--uninstall` is what handles the stray-duplicate-install problem (e.g. an old
 `pip install -e` copy in a conda env shadowing the uv-tool one). It scans conda
@@ -104,14 +108,13 @@ base/envs + pipx and removes any murmurent it finds. Working clones under
   isn't one.
 - **Never** touches `~/repos/*` working clones, `~/.claude/CLAUDE.md`,
   `~/.claude/memory/`, or `~/.claude/projects/` — with **one** opt-in exception:
-  `--nuke-labs` removes `~/repos/murmurent_lab_mgmt_* (legacy: ~/repos/wigamig_*)` lab-management repos (backed up first,
+  `--nuke-labs` removes the `murmurent_lab_mgmt_*` lab-management repos (backed up first,
   and only when they have no uncommitted/unpushed work). Nothing else under
   `~/repos` is ever touched.
-- **Credentials and other-project installs are preserved by default.** On this
-  machine `~/.config/murmurent/` slack-tokens + `keys/` are real, and
-  `~/.murmurent/installations/` holds manifests for the user's *other* projects
-  (manuscript, mp3/mp4, …). Removing either needs the explicit `--nuke-*` flag
-  AND a clear go-ahead from the user.
+- **Credentials and other-project installs are preserved by default.**
+  `~/.config/murmurent/` holds live tokens and keys, and
+  `~/.murmurent/installations/` holds other projects' manifests. Removing either
+  needs the explicit `--nuke-*` flag AND a clear go-ahead from the user.
 - If the user says "wipe everything / pristine machine", read that back as
   "this includes your slack-token, keys, and every other project's install —
   confirm?" before adding both `--nuke` flags.

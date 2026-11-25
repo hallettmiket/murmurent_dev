@@ -1,7 +1,6 @@
 # Talk videos on mikehallett.science: how they get there
 
-**Not part of the public release.** Recorded 2026-10-24, after two sessions in a
-row spent most of an hour rediscovering this.
+**Not part of the public release.**
 
 ## Where things live
 
@@ -45,6 +44,7 @@ passphrase.
    (the system has none; the binary is under that environment's
    `lib/python3.12/site-packages/imageio_ffmpeg/binaries/`):
    ```bash
+   FF=/data/lab_vm/cottage/mhallet/envs/ffmpeg_web/lib/python3.12/site-packages/imageio_ffmpeg/binaries/<binary>   # ls that folder for the exact file name
    nice -n 19 $FF -i movies/<file>.mp4 -c:v libx264 -preset slow -crf 24 \
      -maxrate 4M -bufsize 8M -pix_fmt yuv420p -threads 24 \
      -c:a aac -b:a 128k -movflags +faststart movies_web/<file>_web.mp4
