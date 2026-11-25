@@ -98,6 +98,21 @@ these operations **when they are attempted through a Claude Code tool call**:
   via [`protected_paths`](../src/murmurent/hooks/protected_paths.py). New
   files are allowed (it is append-only); the hook only blocks operations
   that mutate something that already exists there.
+- **The rest of the data root**, via
+  [`data_root_guard`](../src/murmurent/hooks/data_root_guard.py). Under
+  ``modifiable/`` anything goes. Under ``mothballed/`` nothing is written,
+  changed or deleted (rule 1 of the folder protocol). Everywhere else under
+  the root (``release/``, ``cottage/``, ``tools/``, ``db/``, a folder the
+  protocol does not name, a loose file at the top): a new file is written
+  without asking, an overwrite of an existing file is refused, and a delete
+  or a move out **asks the member first**, as a Claude Code permission
+  prompt that states the path and the reason.
+
+The three hooks together make the tree read as its names say: nothing in
+``immutable/``, additions only in ``append_only/``, anything in
+``modifiable/``, nothing in ``mothballed/``, and elsewhere new files freely,
+overwrites never, deletes only with a person's say-so. With no data root set
+in the environment the third hook guards nothing rather than guessing.
 
 ### What the hooks do and do not do
 

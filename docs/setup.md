@@ -64,7 +64,7 @@ Each step, in order:
    same paths are preserved.
 4. **Register the hooks and MCP servers** with `murmurent install
    --hooks`, which merges the Murmurent hooks (`raw_guard`,
-   `protected_paths`, `phi_check`, audit, and agent reporter) and the MCP
+   `protected_paths`, `data_root_guard`, `phi_check`, audit, and agent reporter) and the MCP
    servers (`murmurent-inventory`, `murmurent-oracle`) into
    `~/.claude/settings.json`. The command is idempotent and preserves
    existing entries.
