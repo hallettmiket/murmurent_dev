@@ -85,6 +85,21 @@ grep murmurent-oracle ~/.claude/settings.json   # MCP server registered
 murmurent --version
 ```
 
+### Choosing the model and the advisor
+
+Two settings decide which model does the work, both per machine, both saved
+in `~/.claude/settings.json` by Claude Code itself:
+
+- `/model` picks the model the session runs on. Most agents say `model:
+  inherit` and follow it; the lookup agents are pinned to `sonnet`. Which is
+  which, and why: [the agents page](agents.md#which-model-each-agent-runs-on).
+- `/advisor` picks a stronger model the session consults at decision points,
+  which every agent inherits. The recommended setup is Opus for the session
+  and the strongest model the picker offers as the advisor (Mythos 5.2 where
+  the centre has it). The transcript shows an `Advising` line when it is
+  consulted; if none ever appears, the pairing was refused and the session is
+  running without it.
+
 ### The dashboard icon
 
 The install also creates a **Murmurent Dashboard** icon: on a Mac, in your

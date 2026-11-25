@@ -127,6 +127,23 @@ so a heavy audit belongs in a session on the model you want it audited by.
 A lab that wants a different split edits the line, or forks the agent (see
 below) and sets its own.
 
+**The advisor.** Claude Code can pair a session with an **advisor**: a
+stronger model it consults on its own at decision points (before committing
+to an approach, when an error comes back, before declaring a task done), with
+the session itself running on a cheaper model the rest of the time. `/advisor`
+sets it once per machine; it is a session setting, not an agent one, and every
+agent inherits it when the agent's own model ranks at or below the advisor,
+which it always does for the split above. The recommended daily setup is a
+session on Opus with the strongest model the picker offers as the advisor
+(Mythos 5.2 where the centre has it). The agents that give a verdict (the
+adversary, conscience, detective, judge and lawyer) are told in their files to
+consult it before they commit to one, and the blacksmith when an error recurs
+or a result looks too good; the others leave it to the model's own judgement.
+Advisor calls bill at the advisor's rate, only when they happen, which is why
+this costs less than running the strong model throughout. No agent file names
+an effort level: an agent runs at the effort the session set for its model,
+and `/effort` raises it for one session when an audit warrants it.
+
 Which agent has been shown to work on which system (Claude Code, Antigravity,
 the institution's own model server), and the rule that no agent depends on a
 plugin, skill or connector from outside the commons, are in
