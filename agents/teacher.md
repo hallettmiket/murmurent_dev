@@ -25,6 +25,8 @@ required_tools:
 - WebFetch
 denied_tools:
 - Edit
+disallowedTools:
+- Edit
 defaults:
   language: en
   prose_style: plain

@@ -24,6 +24,9 @@ required_tools:
 denied_tools:
 - WebFetch
 - WebSearch
+disallowedTools:
+- WebFetch
+- WebSearch
 defaults:
   language: en
   prose_style: institutional

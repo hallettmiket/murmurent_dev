@@ -101,6 +101,54 @@ def test_security_guard_is_frozen() -> None:
     assert "WebFetch" in registry["security_guard"].denied_tools
 
 
+# --- Tool denials must reach Claude Code (lookout, 2026-11-27) -------------
+#
+# Claude Code reads ``tools`` and ``disallowedTools`` and silently ignores any
+# other frontmatter field, so murmurent's ``denied_tools`` on its own denies
+# nothing. Every agent therefore carries both lines with the same list, and the
+# registry refuses a file where they differ.
+
+
+def test_denied_tools_mirrored_as_disallowed_tools() -> None:
+    for path in sorted(REPO_AGENTS_DIR.glob("*.md")):
+        fm, _ = _front_matter_and_body(path)
+        denied = list(fm.get("denied_tools") or [])
+        disallowed = list(fm.get("disallowedTools") or [])
+        assert denied == disallowed, (
+            f"{path.stem}: denied_tools {denied} != disallowedTools {disallowed}; "
+            "only disallowedTools is honoured by Claude Code, keep the two equal")
+        if denied:
+            assert "disallowedTools" in fm, f"{path.stem}: add a disallowedTools line"
+
+
+def test_tools_line_when_present_matches_required_tools() -> None:
+    """``tools`` is a ceiling in Claude Code (everything else, MCP connectors
+    and the Agent tool included, is withheld), so it is not written by default.
+    An agent that does set it must list exactly its ``required_tools``."""
+    for path in sorted(REPO_AGENTS_DIR.glob("*.md")):
+        fm, _ = _front_matter_and_body(path)
+        if "tools" in fm:
+            assert list(fm["tools"]) == list(fm.get("required_tools") or []), path.stem
+
+
+def test_load_agent_reads_disallowed_tools_alone(tmp_path: Path) -> None:
+    f = tmp_path / "cc_style.md"
+    f.write_text(
+        "---\nname: cc_style\nfreeze: personal\ndescription: x\n"
+        "disallowedTools: [Edit, Write]\n---\n\nbody\n", encoding="utf-8")
+    assert load_agent(f).denied_tools == ("Edit", "Write")
+
+
+def test_load_agent_refuses_drift_between_denied_and_disallowed(tmp_path: Path) -> None:
+    f = tmp_path / "drift.md"
+    f.write_text(
+        "---\nname: drift\nfreeze: personal\ndescription: x\n"
+        "denied_tools: [Edit]\ndisallowedTools: [Write]\n---\n\nbody\n",
+        encoding="utf-8")
+    with pytest.raises(FrontmatterError, match="disallowedTools"):
+        load_agent(f)
+
+
 def test_load_agent_rejects_invalid_freeze(tmp_path: Path) -> None:
     bad = tmp_path / "bad.md"
     bad.write_text(

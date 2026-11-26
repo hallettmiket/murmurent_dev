@@ -68,6 +68,29 @@ def _coerce_tools(value: Any) -> tuple[str, ...]:
     )
 
 
+def _denied_tools(name: Any, meta: dict[str, Any]) -> tuple[str, ...]:
+    """The tools an agent may not use, from ``denied_tools`` (murmurent's
+    field, read by the registry and the personal audit) and
+    ``disallowedTools`` (Claude Code's field, the one that actually withholds
+    the tool from the subagent; Claude Code silently ignores any field it does
+    not know, so ``denied_tools`` alone denies nothing).
+
+    Either field alone is accepted. When both are present they must list the
+    same tools, or the file is refused: a denial the registry shows and Claude
+    Code does not honour is worse than none.
+    """
+    denied = _coerce_tools(meta.get("denied_tools"))
+    disallowed = _coerce_tools(meta.get("disallowedTools"))
+    if "denied_tools" in meta and "disallowedTools" in meta and \
+            sorted(denied) != sorted(disallowed):
+        raise FrontmatterError(
+            f"Agent {name!r}: 'denied_tools' {list(denied)} and 'disallowedTools' "
+            f"{list(disallowed)} differ; they must list the same tools "
+            "(only disallowedTools is honoured by Claude Code)."
+        )
+    return denied or disallowed
+
+
 def load_agent(path: str | Path) -> AgentRecord:
     """Parse a single agent markdown file."""
     doc = parse_file(path)
@@ -98,7 +121,7 @@ def load_agent(path: str | Path) -> AgentRecord:
         freeze=str(freeze),
         description=str(meta.get("description", "")).strip(),
         required_tools=_coerce_tools(meta.get("required_tools")),
-        denied_tools=_coerce_tools(meta.get("denied_tools")),
+        denied_tools=_denied_tools(name, meta),
         defaults=dict(defaults),
         path=Path(path),
         category=str(category),

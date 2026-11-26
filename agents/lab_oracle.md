@@ -24,6 +24,10 @@ denied_tools:
 - Write
 - WebFetch
 - WebSearch
+disallowedTools:
+- Write
+- WebFetch
+- WebSearch
 defaults:
   language: en
   prose_style: academic
