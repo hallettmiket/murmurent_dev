@@ -25,6 +25,10 @@ denied_tools:
 - Edit
 - WebFetch
 - WebSearch
+disallowedTools:
+- Edit
+- WebFetch
+- WebSearch
 defaults:
   language: en
   spelling: canadian-ize

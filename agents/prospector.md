@@ -25,6 +25,8 @@ required_tools:
 - WebSearch
 denied_tools:
 - Edit
+disallowedTools:
+- Edit
 defaults:
   language: en
   spelling: canadian-ize

@@ -25,6 +25,9 @@ required_tools:
 denied_tools:
 - Write
 - Edit
+disallowedTools:
+- Write
+- Edit
 defaults:
   language: en
   spelling: canadian-ize

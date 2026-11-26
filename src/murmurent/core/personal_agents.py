@@ -137,7 +137,9 @@ def build_agent_md(
     if req:
         meta["required_tools"] = req
     if den:
+        # murmurent's field (registry, audit) and Claude Code's (enforced).
         meta["denied_tools"] = den
+        meta["disallowedTools"] = list(den)
 
     # --- body: labelled sections, verdict block first -------------------------
     b: list[str] = [f"# {name}", ""]

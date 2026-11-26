@@ -60,6 +60,8 @@ def test_create_wizard_fields_persist(env):
     assert rec.freeze == "personal" and rec.category == "member"
     assert rec.required_tools == ("Read", "Bash")
     assert rec.denied_tools == ("WebFetch",)
+    # Claude Code only honours its own field, so the builder writes both.
+    assert parse_file(p).meta.get("disallowedTools") == ["WebFetch"]
     assert rec.description == "Prepares docking inputs."
     text = p.read_text(encoding="utf-8")
     for marker in ("MANDATORY OUTPUT RULE", "Prepared / Skipped / Failed",

@@ -928,9 +928,12 @@ def _tool_set(value) -> set[str]:
 
 def _agent_tools(meta: dict) -> tuple[set[str], set[str]]:
     """Return ``(allowed, denied)`` tool sets. ``allowed`` merges the murmurent
-    ``required_tools`` and the Claude-Code ``tools`` frontmatter fields."""
+    ``required_tools`` and the Claude-Code ``tools`` frontmatter fields;
+    ``denied`` merges murmurent's ``denied_tools`` and Claude Code's
+    ``disallowedTools`` (the one Claude Code enforces), so a fork that drops
+    either line is seen as weakening the guardrail."""
     allowed = _tool_set(meta.get("required_tools")) | _tool_set(meta.get("tools"))
-    denied = _tool_set(meta.get("denied_tools"))
+    denied = _tool_set(meta.get("denied_tools")) | _tool_set(meta.get("disallowedTools"))
     return allowed, denied
 
 
