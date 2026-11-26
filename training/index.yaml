@@ -570,15 +570,15 @@ movies:
   tagline: "Reads where new agentic-AI techniques appear and reports the few worth a look"
   version: 2026.11.2
   date: 2026-11-26
-  agent_sha256: 86016d8b119a058f9222e9025ee295140a4c36ea030a58e57a5ebd76e2dc903e
+  agent_sha256: a767ef738153b2b65a5abecff273d62013ea0bbc8357afeed3db801a908b5327
   file: training/agents/lookout/lookout_narrated.mp4
   make: python3 training/agents/lookout/make.py
-  seconds: 151
+  seconds: 154
   chapters:
     - ["0:00", "Crow's nest"]
     - ["0:35", "Welcome"]
     - ["0:48", "What it does"]
     - ["1:20", "Its scope"]
     - ["1:43", "A real example"]
-    - ["1:57", "How to direct it"]
-    - ["2:15", "How to use it"]
+    - ["2:00", "How to direct it"]
+    - ["2:18", "How to use it"]

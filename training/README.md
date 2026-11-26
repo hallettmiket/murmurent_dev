@@ -98,7 +98,7 @@ counted in the lengths and chapter times below.
 | [`docent`](../agents/docent.md) | [The docent](https://mikehallett.science/assets/videos/murmurent_agent_docent.html) | 2:06 | yes | 0:00 Opening, 0:06 Welcome, 0:17 What it does, 0:40 Its scope, 1:09 A real example, 1:39 How to use it |
 | [`prospector`](../agents/prospector.md) | [The prospector](https://mikehallett.science/assets/videos/murmurent_agent_prospector.html) | 3:06 | yes | 0:00 Opening, 0:06 Welcome, 0:22 What it does, 1:02 Its scope, 1:40 A real example, 2:16 How to direct it, 2:30 How to use it |
 | [`detective`](../agents/detective.md) | [The detective](https://mikehallett.science/assets/videos/murmurent_agent_detective.html) | 2:58 | yes | 0:00 The report you are about to read, 0:38 Welcome, 0:52 What it does, 1:25 Its scope, 1:55 A real example, 2:19 How to direct it, 2:38 How to use it |
-| [`lookout`](../agents/lookout.md) | [The lookout](https://mikehallett.science/assets/videos/murmurent_agent_lookout.html) | 2:31 | yes | 0:00 Crow's nest, 0:35 Welcome, 0:48 What it does, 1:20 Its scope, 1:43 A real example, 1:57 How to direct it, 2:15 How to use it |
+| [`lookout`](../agents/lookout.md) | [The lookout](https://mikehallett.science/assets/videos/murmurent_agent_lookout.html) | 2:34 | yes | 0:00 Crow's nest, 0:35 Welcome, 0:48 What it does, 1:20 Its scope, 1:43 A real example, 2:00 How to direct it, 2:18 How to use it |
 
 
 ## Working through Claude Code, and the skills

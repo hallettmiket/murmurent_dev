@@ -11,11 +11,25 @@ murmurent better at its one job.
 
 **What it does.** It reads murmurent's own files first, then its own earlier
 reports, then every page on the [watch list](watch.md), then a fixed set of
-searches, and reports at most ten items, best first. Each item carries the
-link, the date read, what it is in one sentence, the murmurent file or agent
-it would touch, why, a size, and one of three labels: `ADOPT` (a clear gain,
-the PI decides, the blacksmith builds), `CONSIDER` (needs a trial or a
-scope decision first) or `WATCH` (worth knowing, not ready). An empty run
+searches, and reports at most ten items, best first. Each item leads with
+**why it is suggested, in plain words** a researcher can follow, then one of
+three labels: `ADOPT` (a clear gain, the PI decides, the blacksmith builds),
+`CONSIDER` (needs a trial or a scope decision first) or `WATCH` (worth
+knowing, not ready), then the **effort to build it** (`small`, `medium` or
+`large`: the blacksmith's work, not the item's importance). The technical
+part follows: what the thing is, the murmurent file or agent it would touch,
+the link and the date read. A **Source** column, in two or three words, says
+where each item was found, so a reader sees at a glance which sources earn
+their place.
+
+**Video.** People who publish near-daily videos on Claude Code techniques
+are on the watch list as named channels. The lookout reads what each one
+uploaded since the last report from the channel's own feed and reads the
+relevant uploads by their transcripts, with `scripts/lookout_videos.py`;
+never the title alone, never as watched. Each report says, per channel, how
+many uploads were read and what came of them, and the bookworm keeps that
+as the channel's yield, so which channels are worth following is learned
+over the months rather than guessed now. An empty run
 still lists what it read, so silence is never ambiguous.
 
 **What it does not do.** It installs nothing, enables nothing and edits
