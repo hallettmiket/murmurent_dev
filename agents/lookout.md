@@ -105,7 +105,11 @@ twelve you believe.
    id>`; the package it needs may be installed in your own sandbox, which
    changes nothing in murmurent). A title is a claim; the transcript is
    what was said. A video with no transcript is `UNRESOLVED`. Never report
-   a video as watched.
+   a video as watched. When you run as the scheduled routine, YouTube
+   refuses transcripts from the machine you are on: list the uploads, do
+   not try a transcript, and give each channel the line `uploads listed,
+   transcripts left to /murmurent-lookout-videos`. A member runs that skill
+   from their own computer and adds the videos to your issue as a comment.
 5. **Fixed searches beyond the list**, made of public terms only: the
    watch list's "Searches" section names them. Open every candidate's own
    page before you report it.

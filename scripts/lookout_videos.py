@@ -13,12 +13,20 @@ Input: docs/watch.md (the channel ids), the network. Transcripts need the youtub
 Output: `list`: one line per upload since the date: date, video id, channel, title.
         `transcript <video id>...`: the transcript text of each video, or UNRESOLVED with why.
 Usage: python3 scripts/lookout_videos.py list [--since YYYY-MM-DD] [--watch docs/watch.md]
-       python3 scripts/lookout_videos.py transcript <video id> [<video id>...]
+       python3 scripts/lookout_videos.py transcript <video id> [<video id>...] [--out DIR]
+       A computer YouTube refuses can fetch through another: --via <ssh host>, or set
+       MURMURENT_LOOKOUT_VIA; the script is sent over ssh and the host needs only uv.
+       Transcripts are refused from cloud machines; /murmurent-lookout-videos runs this on a
+       member's own computer instead (docs/lookout.md, "Video from your own computer").
 """
 from __future__ import annotations
 
 import argparse
+import json
+import os
 import re
+import shlex
+import subprocess
 import sys
 import urllib.request
 from datetime import date, timedelta
@@ -26,6 +34,9 @@ from pathlib import Path
 
 FEED = "https://www.youtube.com/feeds/videos.xml?channel_id={}"
 UA = "Mozilla/5.0 (compatible; murmurent lookout)"
+# A YouTube video id. Ids come from strangers' feeds and may reach a shell on another machine,
+# so anything else is refused before it is fetched or sent.
+VIDEO_ID = re.compile(r"^[A-Za-z0-9_-]{11}$")
 
 
 def channels(watch: Path) -> list[tuple[str, str]]:
@@ -83,21 +94,78 @@ def cmd_list(args: argparse.Namespace) -> int:
     return 0
 
 
-def cmd_transcript(args: argparse.Namespace) -> int:
+def fetch_here(vids: list[str]) -> dict[str, tuple[bool, str]]:
+    """{video id: (ok, transcript text or the reason it failed)}, fetched from this computer."""
     try:
         from youtube_transcript_api import YouTubeTranscriptApi  # type: ignore
     except ImportError:
-        sys.exit("UNRESOLVED: the youtube-transcript-api package is not installed "
-                 "(pip install youtube-transcript-api); the listing still works without it")
+        why = ("the youtube-transcript-api package is not installed "
+               "(pip install youtube-transcript-api); the listing still works without it")
+        return {v: (False, why) for v in vids}
     api = YouTubeTranscriptApi()
-    for vid in args.video_id:
-        print(f"==== {vid}  https://www.youtube.com/watch?v={vid}")
+    got = {}
+    for vid in vids:
         try:
             text = " ".join(s.text for s in api.fetch(vid))
-            print(re.sub(r"\s+", " ", text).strip())
-        except Exception as e:  # noqa: BLE001
-            print(f"UNRESOLVED: no transcript ({type(e).__name__}: {str(e)[:120]})")
-        print()
+            got[vid] = (True, re.sub(r"\s+", " ", text).strip())
+        except Exception as e:  # noqa: BLE001 - one video down must not stop the rest
+            got[vid] = (False, f"{type(e).__name__}: {str(e).strip()[:120]}")
+    return got
+
+
+def fetch_via(host: str, vids: list[str]) -> dict[str, tuple[bool, str]]:
+    """The same fetch, run on another machine over ssh. This script is sent on stdin and the
+    machine needs only uv, so nothing is installed there and nothing of murmurent is read."""
+    remote = ("PATH=$HOME/.local/bin:$PATH uv run -q --no-project --with youtube-transcript-api "
+              "python3 - transcript --jsonl " + " ".join(shlex.quote(v) for v in vids))
+    try:
+        r = subprocess.run(["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=15", host, remote],
+                           input=Path(__file__).read_text(), capture_output=True, text=True,
+                           timeout=60 + 20 * len(vids))
+    except Exception as e:  # noqa: BLE001
+        return {v: (False, f"ssh {host} failed: {type(e).__name__}") for v in vids}
+    got = {}
+    for line in r.stdout.splitlines():
+        if line.startswith("{"):
+            d = json.loads(line)
+            got[d["id"]] = (d["ok"], d["text"])
+    why = (r.stderr.strip().splitlines() or ["no answer"])[-1][:120]
+    return {v: got.get(v, (False, f"ssh {host}: {why}")) for v in vids}
+
+
+def cmd_transcript(args: argparse.Namespace) -> int:
+    bad = [v for v in args.video_id if not VIDEO_ID.match(v)]
+    for v in bad:
+        print(f"REFUSED  {v!r}: not a YouTube video id (11 letters, digits, - or _)")
+    vids = [v for v in dict.fromkeys(args.video_id) if VIDEO_ID.match(v)]
+    if not vids:
+        return 1 if bad else 0
+    got = fetch_here(vids)
+    if args.jsonl:  # the form fetch_via reads back from the other machine
+        for v in vids:
+            print(json.dumps({"id": v, "ok": got[v][0], "text": got[v][1]}))
+        return 0
+    where = {v: "this computer" for v in vids if got[v][0]}
+    refused = [v for v in vids if not got[v][0]]
+    if refused and args.via:
+        for v, res in fetch_via(args.via, refused).items():
+            if res[0]:
+                got[v], where[v] = res, args.via
+            else:
+                got[v] = (False, f"here: {got[v][1][:60]}; {args.via}: {res[1]}")
+    out = Path(args.out) if args.out else None
+    if out:
+        out.mkdir(parents=True, exist_ok=True)
+    for v in vids:
+        ok, text = got[v]
+        url = f"https://www.youtube.com/watch?v={v}"
+        if not ok:
+            print(f"UNRESOLVED  {v}: no transcript ({text})")
+        elif out:
+            (out / f"{v}.txt").write_text(f"{url}\n\n{text}\n")
+            print(f"read  {v}  {len(text.split())} words, from {where[v]}  {out / (v + '.txt')}")
+        else:
+            print(f"==== {v}  {url}  (from {where[v]})\n{text}\n")
     return 0
 
 
@@ -110,6 +178,11 @@ def main(argv: list[str] | None = None) -> int:
     p.set_defaults(fn=cmd_list)
     p = sub.add_parser("transcript", help="the transcript of each video")
     p.add_argument("video_id", nargs="+")
+    p.add_argument("--out", help="write each transcript to <dir>/<video id>.txt and print one line per video")
+    p.add_argument("--via", default=os.environ.get("MURMURENT_LOOKOUT_VIA"),
+                   help="ssh host to fetch through when this computer is refused "
+                        "(default: $MURMURENT_LOOKOUT_VIA)")
+    p.add_argument("--jsonl", action="store_true", help=argparse.SUPPRESS)
     p.set_defaults(fn=cmd_transcript)
     args = ap.parse_args(argv)
     return args.fn(args)
