@@ -47,23 +47,31 @@ issues on the lab management repo, and `murmurent reconcile --apply` applies
 them to the roster. See
 [How a member's profile edit reaches the roster](lab_mgmt.md#how-a-members-profile-edit-reaches-the-roster-34-187).
 
-## Daily schedule via CC `/routine`
+## Daily schedule as a scheduled task
 
-Set up once:
+The check reads this machine's `~/.murmurent/` and the lab records, and it
+runs the `murmurent` command, so it has to run **on the machine that holds
+them**, not as a cloud scheduled task (a cloud task runs in a fresh clone on
+Anthropic's machines, with none of this). In the Claude desktop app, on that
+machine, `/schedule` creates a scheduled task that runs there; choose the
+daily cadence, 09:07 America/Toronto, and give it this prompt:
 
 ```
-/routine create murmurent-reconcile
-  prompt: |
-    Run `murmurent reconcile --slack-body` in the shell and capture the
-    output. If exit code is 1 (actionable drift was found in dry-run
-    mode), post the slack-body block with
-    `murmurent project note "<the block>"` run from the murmurent
-    repository, and STOP — do not --apply automatically. If exit code
-    is 0 and the report shows info-only findings (unadopted clones),
-    post a short summary the same way and stop. Never run --apply
-    without my confirmation.
-  schedule: daily at 09:00 America/Toronto
+Run `murmurent reconcile --slack-body` in the shell and capture the
+output. If the exit code is 1 (actionable drift was found in dry-run
+mode), post the slack-body block with
+`murmurent project note "<the block>"` run from the murmurent
+repository, and STOP: do not run --apply. If the exit code is 0 and the
+report shows info-only findings (unadopted clones), post a short summary
+the same way and stop. Never run --apply without my confirmation.
 ```
+
+`/schedule list` shows the task. Claude Code 2.1.329 (19 November 2026)
+changed how saved scheduled tasks are stored and most saved by earlier
+versions need scheduling again, so when the daily note stops arriving,
+check the list and create the task again. (Until November 2026 this page
+showed a `/routine create` block with a prompt and a schedule field; that
+form was never a Claude Code command.)
 
 Why dry-run on the cron and `--apply` is manual: a false positive
 that auto-archives an active installation manifest is disruptive and

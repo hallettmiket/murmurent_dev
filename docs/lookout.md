@@ -43,36 +43,50 @@ gh label create lookout --color 1D76DB --description "The lookout's reports: new
 
 ## The schedule
 
-The routine runs twice a week as a Claude Code **cloud scheduled task**,
-the mechanism the [reconcile routine](reconcile.md) uses. Claude Code called
-these routines until November 2026 and `/routines` still works; `/schedule`
-is the current name. Set it up once:
+The routine is a Claude Code **cloud scheduled task** (Claude Code called
+these routines until November 2026; `/routines` still works and `/schedule`
+is the current name). It runs on Anthropic's machines, in a fresh clone of
+the repository's default branch, on a schedule kept on your claude.ai
+account, not in any file. Two consequences shape the prompt below: the
+clone has none of your machine's files, so the agent is read from the
+repository rather than from `~/.claude/agents/`; and the `murmurent` command
+is not installed there, so the report is the GitHub issue alone and no
+Slack note is posted (GitHub's own notifications carry it).
 
-```
-/routine create murmurent-lookout
-  prompt: |
-    Dispatch the lookout agent for its scheduled run. It reads murmurent's
-    own files, its earlier issues labelled lookout, every page on
-    docs/watch.md and the fixed searches, and files one GitHub issue
-    labelled lookout with at most ten items, then posts a one-line note
-    with `murmurent project note "<repo> · lookout: <issue title and
-    link>"` from the murmurent repository. It installs nothing and edits
-    nothing. If it could read nothing, it files no issue and posts the
-    verdict instead.
-  schedule: Monday and Thursday at 07:00 America/Toronto
-```
+Set it up once, from any Claude Code session:
+
+1. Type `/schedule the lookout, twice a week` and answer the questions it
+   asks. Repository: this one. Cadence: Monday and Thursday, a few minutes
+   past seven, Toronto time, which as a cron line is
+   `CRON_TZ=America/Toronto 7 7 * * 1,4` (a run exactly on the hour can start
+   late, so the docs suggest a minute past).
+2. Give it this prompt:
+
+   ```
+   You are the lookout. Read agents/lookout.md in this repository and follow
+   it exactly as your instructions: read CLAUDE.md, docs/agents.md,
+   docs/harnesses.md and the Unreleased section of CHANGELOG.md first, then
+   the earlier issues labelled lookout, then every page on docs/watch.md,
+   then its fixed searches. File one GitHub issue in this repository,
+   labelled lookout, titled "Lookout: <date>: <the verdict's one line>", with
+   at most ten items in the report table and the two closing sections. Install
+   nothing, enable nothing, edit nothing, commit nothing. If you could read
+   nothing, file no issue.
+   ```
+
+3. Run it once by hand with `/schedule run` and read the issue it files.
+   `/schedule list` shows it; claude.ai/code/routines pauses or deletes it.
 
 Twice a week is enough: a changelog gains a handful of entries in three
 days, and a report that arrives more often is a report nobody reads. A
 centre that wants another cadence changes the schedule line.
 
-**Check it is still scheduled.** Claude Code 2.1.330 (20 November 2026)
+**Check it is still scheduled.** Claude Code 2.1.329 (19 November 2026)
 changed how saved scheduled tasks are stored: most saved by earlier versions
-need scheduling again, and a recurring task made before that release still
-ends after seven days where a new one runs thirty. The lookout's first run
-found this, which is why it is written here. When a report has not arrived
-for a week, `/tasks` shows whether the task exists; if not, create it again.
-The same applies to the reconcile routine.
+need scheduling again. The lookout's first run found this, which is why it
+is written here. When a report has not arrived for a week, `/schedule list`
+or claude.ai/code/routines shows whether the task still exists; if not,
+create it again. The same applies to the reconcile routine.
 
 ## By hand
 
@@ -101,4 +115,4 @@ the next report, and the next PI, can read why.
   harness adds its changelog; one with a field the searches miss adds a
   query. The bookworm edits; the lookout proposes.
 - **The cap**: ten items, in the agent file's `items_max`. Fewer is better.
-- **The cadence**: the schedule line of the routine.
+- **The cadence**: edit the task with `/schedule update` or on claude.ai/code/routines.
