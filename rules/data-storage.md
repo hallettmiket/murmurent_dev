@@ -145,6 +145,19 @@ protected:
 3. **It is inert outside a session.** A plain shell, a cron job, a batch
    script, an editor: none of them go through the hook. It only sees tool
    calls made inside Claude Code.
+4. **A guard that breaks refuses the call.** ``murmurent install --hooks``
+   writes the three guards with ``"onFailure": "block"``, a Claude Code
+   setting (version 2.1.295 or later) that decides what happens when a hook
+   cannot run at all: the Python is missing, the hook crashes, it times out,
+   or it prints something Claude Code cannot read. With the setting, the
+   tool call is refused, as if the guard had said no, and the session shows
+   the error; without it Claude Code would let the call through. So a
+   broken guard stops writes near the data root until the guard is fixed
+   (re-run ``murmurent install --hooks`` or ``murmurent doctor``), and never
+   silently stops guarding. Only the three guards are written this way. The
+   logging, context and verdict hooks keep the default, so a failure in one
+   of them never blocks a member's work. An older Claude Code ignores the
+   field and behaves as before.
 
 So the honest description is a **discipline that murmurent enforces on its
 agents**, and one that a member can uphold or bypass at will. Treat it as
