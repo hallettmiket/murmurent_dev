@@ -27,7 +27,15 @@ screening, and the `Legal` plugin for agreements and compliance) and the
 [bookworm](https://github.com/hallettmiket/murmurent/blob/main/agents/bookworm.md)
 (the PubMed and Bio Research connectors, Research Desk, and the
 `deep-research` skill for a review of a whole field). Each falls back to the
-hand-run route its file already describes.
+hand-run route its file already describes. The
+[teacher](https://github.com/hallettmiket/murmurent/blob/main/agents/teacher.md)
+and the
+[conscience](https://github.com/hallettmiket/murmurent/blob/main/agents/conscience.md)
+name a third: Claude Code's Artifact tool, which publishes an explainer page as
+a private page on claude.ai when the page's sensitivity is `standard`. The
+local HTML page is the fallback and is always written; how such a page is
+catalogued in the lab Oracle is in
+[the Oracle workflow](oracle-workflow.md#cataloguing-an-explainer).
 
 ## The matrix
 

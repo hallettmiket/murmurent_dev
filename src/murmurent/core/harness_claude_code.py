@@ -55,11 +55,18 @@ HOOK_REGISTRATIONS: list[dict[str, Any]] = [
         "env": {},
         "label": "murmurent-agent-report-start",
     },
+    # The three data-root guards fail closed: ``on_failure: "block"`` becomes
+    # ``"onFailure": "block"`` on the written entry, so a guard that cannot
+    # start, crashes or times out refuses the tool call instead of letting
+    # it through (Claude Code 2.1.295 or later; lookout issue #354, item 2).
+    # The logging, context and verdict hooks stay on the default, so a
+    # failure in one of them never stops a member's work.
     {
         "event": "PreToolUse",
         "matcher": "Write|Edit|Bash|NotebookEdit",
         "module": "murmurent.hooks.raw_guard",
         "env": {},
+        "on_failure": "block",
         "label": "murmurent-raw-guard",
     },
     {
@@ -70,6 +77,7 @@ HOOK_REGISTRATIONS: list[dict[str, Any]] = [
         "matcher": "Write|Edit|Bash|NotebookEdit",
         "module": "murmurent.hooks.protected_paths",
         "env": {},
+        "on_failure": "block",
         "label": "murmurent-protected-paths",
     },
     {
@@ -80,6 +88,7 @@ HOOK_REGISTRATIONS: list[dict[str, Any]] = [
         "matcher": "Write|Edit|Bash|NotebookEdit",
         "module": "murmurent.hooks.data_root_guard",
         "env": {},
+        "on_failure": "block",
         "label": "murmurent-data-root-guard",
     },
     {
@@ -296,15 +305,18 @@ def _ensure_hook(settings: dict[str, Any], reg: dict[str, Any]) -> bool:
     """
     hooks = settings.setdefault("hooks", {})
     bucket = hooks.setdefault(reg["event"], [])
-    new_entry: dict[str, Any] = {
-        "hooks": [
-            {
-                "type": "command",
-                "command": _resolve_command(reg),
-                "name": reg["label"],
-            }
-        ],
+    hook: dict[str, Any] = {
+        "type": "command",
+        "command": _resolve_command(reg),
+        "name": reg["label"],
     }
+    # ``on_failure`` is written as Claude Code's ``onFailure`` field, which
+    # sits on the hook itself (beside ``command``), not on the matcher group.
+    # ``"block"`` makes a failed hook refuse the action; an entry without the
+    # field lets the action go ahead, which is Claude Code's default.
+    if reg.get("on_failure"):
+        hook["onFailure"] = reg["on_failure"]
+    new_entry: dict[str, Any] = {"hooks": [hook]}
     matcher = reg.get("matcher")
     if matcher is not None:
         new_entry["matcher"] = matcher

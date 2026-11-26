@@ -66,6 +66,86 @@ existing lab entry. See [obsidian-usage.md §2.4](obsidian-usage.md)
 for the full mechanics (identity checks, and what happens to the draft
 afterward).
 
+## Cataloguing an explainer
+
+The [`teacher`](https://github.com/hallettmiket/murmurent/blob/main/agents/teacher.md)
+(EXPLAIN mode) and the
+[`conscience`](https://github.com/hallettmiket/murmurent/blob/main/agents/conscience.md)
+(its explain path) each write, on request, a self-contained HTML page that
+explains one thing. In Claude Code, and only there, such a page may also be
+published as a Claude artifact: a private page on claude.ai with a link its
+owner may share and a comment thread. Antigravity and the institution's own
+model server have no such tool, so the local page is always written and is the
+whole deliverable where the tool is absent
+([which agent works where](harnesses.md)).
+
+**The sensitivity gate.** An artifact is hosted outside the institution, so
+only a page whose Oracle entry would say `sensitivity: standard` may become
+one: a public method, a paper, a public codebase, a concept in its own right.
+A page that explains an unpublished result, a candidate molecule, or a project's
+own figures is `restricted`; anything touching patient-derived data is
+`protected`. Both stay local HTML, reviewed in `lavish-axi`. A debrief, which
+reads a session transcript, is never published at all. The published page
+says at the top that it is hosted on claude.ai, and the agent reports the link
+beside the local file, never instead of it.
+
+**The catalogue.** The lab Oracle is where the lab finds the explainers it
+already has. The agent that published the page writes a draft entry in your
+personal vault, under `oracle/drafts/`, and stops. It never publishes to the
+lab itself: you run `murmurent oracle publish <slug>` when you want the lab to
+have it, exactly as for any other entry, and the same command refuses
+`restricted` and `protected`, which is the gate a second time. The entry
+carries:
+
+- `url:` set to the artifact's link;
+- `tags:` including `explainer` (the conscience adds `edid`), plus the subject;
+- `sensitivity: standard`, since nothing else may have been published;
+- a body holding the takeaway in a few lines and the local path of the page,
+  so the entry is searchable where the HTML is not.
+
+### Worked example
+
+You asked for `teacher explain how leave-one-site-out validation works
+--page` in a Claude Code session. The teacher wrote
+`./outputs/teacher/explainer_2026-11-26_1.html`, judged the subject a public
+method (`standard`), published it, reported both the file and the link, and
+left this draft at `<vault>/oracle/drafts/2026-11-26_explainer_leave_one_site_out.md`:
+
+```markdown
+---
+title: Explainer, leave-one-site-out validation (claude.ai artifact)
+date: 2026-11-26
+project: general
+sensitivity: standard
+tags: [explainer, validation, cross-validation, methods]
+sources: ['@allie']
+url: https://claude.ai/artifact/<id>
+---
+
+# Leave-one-site-out validation, explained
+
+A page for colleagues from an adjacent field, with a drawn figure and a
+five-question quiz. Hosted on claude.ai (private until shared); the local
+copy is `outputs/teacher/explainer_2026-11-26_1.html` in the project
+repository.
+
+Takeaway: hold out one whole hospital at a time, so the score says whether
+the model survives a site it never saw, rather than whether it survives a
+random split that leaves every site partly in the training set.
+```
+
+To let the lab find it:
+
+```bash
+murmurent oracle vault-drafts
+murmurent oracle publish 2026-11-26_explainer_leave_one_site_out --push
+```
+
+After that, "Lab Oracle, do we have an explainer on site-wise validation?"
+returns the entry with its link, and a page whose entry would have said
+`restricted` never reaches this step, because it was never published and the
+publish command would refuse the draft anyway.
+
 ## Search (MCP)
 
 The `murmurent-oracle` MCP server (registered by `murmurent install

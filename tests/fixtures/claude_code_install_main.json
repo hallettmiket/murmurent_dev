@@ -1,4 +1,40 @@
 {
+  "claude.json": {
+    "mcpServers": {
+      "murmurent-core-data": {
+        "args": [
+          "-m",
+          "murmurent.mcp.core_data_server"
+        ],
+        "command": "/Users/mth/repos/murmurent_dev/.venv/bin/python",
+        "env": {}
+      },
+      "murmurent-data": {
+        "args": [
+          "-m",
+          "murmurent.mcp.data_server"
+        ],
+        "command": "/Users/mth/repos/murmurent_dev/.venv/bin/python",
+        "env": {}
+      },
+      "murmurent-inventory": {
+        "args": [
+          "-m",
+          "murmurent.mcp.inventory_server"
+        ],
+        "command": "/Users/mth/repos/murmurent_dev/.venv/bin/python",
+        "env": {}
+      },
+      "murmurent-oracle": {
+        "args": [
+          "-m",
+          "murmurent.mcp.oracle_server"
+        ],
+        "command": "/Users/mth/repos/murmurent_dev/.venv/bin/python",
+        "env": {}
+      }
+    }
+  },
   "settings.json": {
     "env": {
       "CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY": "1"
@@ -72,6 +108,7 @@
             {
               "command": "/opt/venv/bin/python -m murmurent.hooks.raw_guard",
               "name": "murmurent-raw-guard",
+              "onFailure": "block",
               "type": "command"
             }
           ],
@@ -82,6 +119,7 @@
             {
               "command": "/opt/venv/bin/python -m murmurent.hooks.protected_paths",
               "name": "murmurent-protected-paths",
+              "onFailure": "block",
               "type": "command"
             }
           ],
@@ -92,6 +130,7 @@
             {
               "command": "/opt/venv/bin/python -m murmurent.hooks.data_root_guard",
               "name": "murmurent-data-root-guard",
+              "onFailure": "block",
               "type": "command"
             }
           ],
@@ -175,42 +214,6 @@
         }
       ]
     },
-    "mcpServers": {
-      "murmurent-core-data": {
-        "args": [
-          "-m",
-          "murmurent.mcp.core_data_server"
-        ],
-        "command": "/Users/mth/repos/murmurent_dev/.venv/bin/python",
-        "env": {}
-      },
-      "murmurent-data": {
-        "args": [
-          "-m",
-          "murmurent.mcp.data_server"
-        ],
-        "command": "/Users/mth/repos/murmurent_dev/.venv/bin/python",
-        "env": {}
-      },
-      "murmurent-inventory": {
-        "args": [
-          "-m",
-          "murmurent.mcp.inventory_server"
-        ],
-        "command": "/Users/mth/repos/murmurent_dev/.venv/bin/python",
-        "env": {}
-      },
-      "murmurent-oracle": {
-        "args": [
-          "-m",
-          "murmurent.mcp.oracle_server"
-        ],
-        "command": "/Users/mth/repos/murmurent_dev/.venv/bin/python",
-        "env": {}
-      }
-    }
-  },
-  "claude.json": {
     "mcpServers": {
       "murmurent-core-data": {
         "args": [

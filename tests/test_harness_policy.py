@@ -78,7 +78,7 @@ def test_install_paths_and_headless(home):
 def test_install_writes_exactly_what_main_wrote(home):
     """The acceptance test of phase 0: with the machine-specific values pinned,
     `murmurent install --hooks` writes the two files main wrote, byte for byte.
-    The fixture was captured from main at 308ac90 on 2026-11-25."""
+    The fixture was captured from main at 3cf887a on 2026-11-26."""
     expected = json.loads(FIXTURE.read_text(encoding="utf-8"))
     with patch.object(sys, "executable", "/opt/venv/bin/python"), \
          patch.object(_commons, "commons_root", lambda: Path("/opt/murmurent")):
