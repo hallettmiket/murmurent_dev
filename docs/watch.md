@@ -107,6 +107,16 @@ transcript, through the `youtube-transcript-api` package, which the lookout
 may install in its own sandbox (that changes nothing in murmurent). A video
 with no transcript is `UNRESOLVED`.
 
+**YouTube refuses transcripts to the scheduled run**, which works on
+Anthropic's machines, and often to a home connection too. So the scheduled
+run only lists the uploads, and a member's own computer reads them with
+`/murmurent-lookout-videos`, by hand or on a timer, adding its findings to
+the run's issue as a comment. When YouTube refuses that computer as well,
+`lookout_videos.py transcript --via <ssh host>` (or `MURMURENT_LOOKOUT_VIA`)
+fetches through a server of the member's that YouTube answers; the script
+is sent over ssh and the server needs only `uv`. See
+[Video from your own computer](lookout.md#video-from-your-own-computer).
+
 **Which channels are worth it is learned, not assumed.** Every report's
 "Read and set aside" names each channel, how many uploads were read, and
 what came of them. The bookworm moves that into the **Yield** column, so a

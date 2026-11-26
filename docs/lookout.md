@@ -139,8 +139,9 @@ each.
 
 After changing the setting, run the task once by hand and read the issue it
 files: its `UNRESOLVED` line names whatever is still out of reach. YouTube
-may refuse transcript requests from cloud machines even when the site
-itself is allowed; if so, the channel lines will say it.
+refuses transcript requests from cloud machines even when the site itself
+is allowed, so the video channels are read from your own computer instead
+(next section).
 
 Twice a week is enough: a changelog gains a handful of entries in three
 days, and a report that arrives more often is a report nobody reads. A
@@ -152,6 +153,45 @@ need scheduling again. The lookout's first run found this, which is why it
 is written here. When a report has not arrived for a week, `/schedule list`
 or claude.ai/code/routines shows whether the task still exists; if not,
 create it again. The same applies to the reconcile routine.
+
+## Video from your own computer
+
+YouTube answers the scheduled run's request for a channel's list of uploads
+but refuses its request for a transcript (seen on 2026-11-26: every one was
+sent to a bot check). The scheduled run therefore lists the uploads and
+leaves the transcripts to `/murmurent-lookout-videos`, a skill you run on
+your own computer. It finds the newest lookout issue, lists what each
+channel uploaded since that issue, reads the relevant uploads by their
+transcripts, has the lookout judge them here, and adds what it found to the
+issue as a comment. `/murmurent-lookout-videos dry-run` shows the comment
+without posting it.
+
+**When YouTube refuses your computer too.** A home connection is often
+refused as well. Name a server of yours that YouTube does answer, once, in
+the `env` block of `~/.claude/settings.json`:
+
+```json
+"MURMURENT_LOOKOUT_VIA": "<ssh host>"
+```
+
+The video script then sends itself over ssh to that server for the
+transcripts this computer could not get, and the server sends back the text.
+The server needs only `uv`; nothing is installed there and nothing of
+murmurent is read. Only an 11-character video id is ever sent. The judging
+stays on your computer, which is why this is safe for a server that holds
+lab data, where letting the cloud run log in to it would not be.
+
+**On a timer.** In the Claude desktop app, a local scheduled task runs the
+skill for you, on this computer, while it is awake and the app is open:
+
+1. Open **Scheduled** in the sidebar and choose **New task** (or ask a
+   session to create one).
+2. Folder: your murmurent repository. Prompt: `/murmurent-lookout-videos`.
+3. Schedule: Monday and Thursday mornings, an hour or two after the
+   scheduled lookout, so its issue exists. If it does not yet, the comment
+   goes on the newest lookout issue and says which.
+4. Run it once by hand and read the comment it adds. Nobody is there to
+   approve a prompt on a timed run, so check it ran through.
 
 ## By hand
 

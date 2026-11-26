@@ -57,3 +57,32 @@ def test_feed_entries_keep_their_own_dates(monkeypatch):
         ("2026-11-26", "bbb", "New one"),
         ("2024-10-18", "aaa", "Old one"),
     ]
+
+
+def test_a_string_that_is_not_a_video_id_is_never_fetched_or_sent(monkeypatch, capsys):
+    """Ids come from strangers' feeds and may reach a shell on another machine."""
+    m = _mod()
+    seen = []
+    monkeypatch.setattr(m, "fetch_here", lambda vids: seen.extend(vids) or {v: (False, "x") for v in vids})
+    monkeypatch.setattr(m, "fetch_via", lambda host, vids: seen.extend(vids) or {v: (False, "x") for v in vids})
+    m.main(["transcript", "abc;rm -rf ~", "$(id)xxxxxx", "reRtVTuXbNc", "--via", "server"])
+    assert seen == ["reRtVTuXbNc", "reRtVTuXbNc"]
+    out = capsys.readouterr().out
+    assert out.count("REFUSED") == 2
+
+
+def test_a_refused_video_is_fetched_through_the_other_machine(monkeypatch, tmp_path, capsys):
+    m = _mod()
+    monkeypatch.setattr(m, "fetch_here", lambda vids: {v: (False, "IpBlocked") for v in vids})
+    monkeypatch.setattr(m, "fetch_via", lambda host, vids: {v: (True, "what was said") for v in vids})
+    m.main(["transcript", "reRtVTuXbNc", "--via", "server", "--out", str(tmp_path)])
+    assert (tmp_path / "reRtVTuXbNc.txt").read_text().endswith("what was said\n")
+    assert "from server" in capsys.readouterr().out
+
+
+def test_without_a_via_host_a_refusal_is_unresolved(monkeypatch, capsys):
+    m = _mod()
+    monkeypatch.delenv("MURMURENT_LOOKOUT_VIA", raising=False)
+    monkeypatch.setattr(m, "fetch_here", lambda vids: {v: (False, "IpBlocked") for v in vids})
+    m.main(["transcript", "reRtVTuXbNc"])
+    assert "UNRESOLVED  reRtVTuXbNc" in capsys.readouterr().out
