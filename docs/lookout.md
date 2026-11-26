@@ -11,11 +11,14 @@ murmurent better at its one job.
 
 **What it does.** It reads murmurent's own files first, then its own earlier
 reports, then every page on the [watch list](watch.md), then a fixed set of
-searches, and reports at most ten items, best first. Each item carries the
-link, the date read, what it is in one sentence, the murmurent file or agent
-it would touch, why, a size, and one of three labels: `ADOPT` (a clear gain,
-the PI decides, the blacksmith builds), `CONSIDER` (needs a trial or a
-scope decision first) or `WATCH` (worth knowing, not ready). An empty run
+searches, and reports at most ten items, best first. Each item leads with
+**why it is suggested, in plain words** a researcher can follow, then one of
+three labels: `ADOPT` (a clear gain, the PI decides, the blacksmith builds),
+`CONSIDER` (needs a trial or a scope decision first) or `WATCH` (worth
+knowing, not ready), then the **effort to build it** (`small`, `medium` or
+`large`: the blacksmith's work, not the item's importance). The technical
+part follows: what the thing is, the murmurent file or agent it would touch,
+the link and the date read. An empty run
 still lists what it read, so silence is never ambiguous.
 
 **What it does not do.** It installs nothing, enables nothing and edits

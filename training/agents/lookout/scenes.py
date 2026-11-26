@@ -15,7 +15,7 @@ SPEC = AgentSpec(
     does=[
         Quote("Reads murmurent's own files first, then every page on the watch list, then fixed searches.", "own files first"),
         Quote("Judges each item by one question: which agent gains, and how.", "which agent gains"),
-        Quote("Reports at most ten: the link, the date read, the file it would touch, why, a size, a label.", "at most ten"),
+        Quote("Reports at most ten: why in plain words first, a label, the effort to build, then the detail.", "at most ten"),
         Quote("Adopt, consider or watch. One GitHub issue per run; the earlier issues are its memory.", "memory"),
     ],
     does_narration=[
@@ -23,7 +23,7 @@ SPEC = AgentSpec(
         "list: the Claude Code changelog, Anthropic's engineering notes, the other harnesses, arXiv, "
         "video by its transcript.",
         "I judge each item by one question: which agent gains, and how. I report at most ten, each with the "
-        "link, the date read, the file it would touch, why, a size, and adopt, consider or watch. One issue "
+        "reason in plain words first, then adopt, consider or watch, the effort to build it, and the detail. One issue "
         "per run; the earlier issues are my memory."],
     refuses=[
         Quote("Nothing it did not read today on its own page. A search snippet is not evidence.", "snippet"),
@@ -39,7 +39,7 @@ SPEC = AgentSpec(
     examples=[
         Exchange("1", ["A real run, by hand, on the day I was written: what is new since the first of November.",
                        "The verdict names the best item and what it would touch. Each row has the page, the "
-                       "file, why, a size and a label."],
+                       "reason first, then the label, the effort to build it, and the detail."],
                  [("murmurent's files", True), ("watch list", True), ("searches", True), ("installed", False)]),
     ],
     prompt="lookout, anything new on agent memory since October?",

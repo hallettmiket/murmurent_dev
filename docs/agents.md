@@ -109,7 +109,7 @@ and with which it must open its reply.
 | Centre Millwright | Centre-wide reconciler: cross-group permissions, membership drift and shared-infrastructure differences | centre | Reconciled / Drift / BLOCKED |
 | Registrar | Registry of groups, cores and collaborations; the centre-level administrative view | centre | Recorded / Conflict / Skipped |
 | Clerk | Ask it anything about the institution: it reads the answer off the institution's own pages, names the page and the date, and remembers it in the institution pack; checks documents, computes working-day dates, walks procedures | `Correct / Fix / Unknown` |
-| Lookout | Reads the places where new agentic-AI techniques appear, on a schedule, and reports the few that would make murmurent better: the link, the date read, what it is, the file or agent it would touch, why, a size, `ADOPT` / `CONSIDER` / `WATCH`; installs nothing | centre | `Found N worth a look / Nothing new / Unknown` |
+| Lookout | Reads the places where new agentic-AI techniques appear, on a schedule, and reports the few that would make murmurent better: why in plain words first, then `ADOPT` / `CONSIDER` / `WATCH`; installs nothing | centre | `Found N worth a look / Nothing new / Unknown` |
 | Prospector | Finds the funding opportunities a person may apply for, internal and external, reading each off the funder's own page: who may apply, what it pays, the deadlines, what the pre-application asks for, the link, the date read | member | `Found N open / None open / Unknown` |
 
 ### Which model each agent runs on
@@ -887,9 +887,10 @@ the Antigravity and Codex changelogs, the MCP specification, arXiv by fixed
 queries, the community lists, and video by its description and transcript.
 It judges each item by one question, which agent gains and how, with
 life-science-specific items first and general ones only when it can name
-the agent, rule or hook that would gain, and reports at most ten: the link,
-the date read, what it is in plain words, the murmurent file it would touch,
-why, a size, and `ADOPT`, `CONSIDER` or `WATCH`. An empty run lists what it
+the agent, rule or hook that would gain, and reports at most ten, each
+leading with why it is suggested, in plain words, then `ADOPT`, `CONSIDER` or
+`WATCH` and the effort to build it, and only then what it is, the murmurent
+file it would touch, the link and the date read. An empty run lists what it
 read, so silence is never ambiguous.
 
 As the routine, each report is a GitHub issue labelled `lookout`, which is
