@@ -140,6 +140,8 @@ nav:
       - "Reporting checklists (TRIPOD+AI, PROBAST+AI, REMARK)": reporting_guidelines.md
       - "The institution pack (the Clerk)": institution_pack.md
       - "The funder registry (the Prospector)": funders.md
+      - "The lookout: keeping murmurent current": lookout.md
+      - "The watch list (the Lookout)": watch.md
       - "The prospect command (the Prospector)": prospect.md
       - "The journal registry (the Detective)": journals.md
       - "The integrity command (the Detective)": integrity.md

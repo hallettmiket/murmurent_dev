@@ -38,6 +38,7 @@ EXPECTED_AGENTS = {
     "lab_oracle",
     "oracle",
     "prospector",
+    "lookout",
     "registrar",
     "lawyer",
     "scribe",
@@ -50,6 +51,7 @@ EXPECTED_CATEGORY = {
     "registrar": "administrative",
     "centre_millwright": "administrative",
     "clerk": "administrative",
+    "lookout": "administrative",
     "judge": "choreography-support",
 }
 

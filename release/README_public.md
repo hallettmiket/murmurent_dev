@@ -140,6 +140,7 @@ use it through Claude Code.
 | [`docent`](https://github.com/hallettmiket/murmurent/blob/main/agents/docent.md) | [The docent](https://mikehallett.science/assets/videos/murmurent_agent_docent.html) | 2:06 |
 | [`prospector`](https://github.com/hallettmiket/murmurent/blob/main/agents/prospector.md) | [The prospector](https://mikehallett.science/assets/videos/murmurent_agent_prospector.html) | 3:06 |
 | [`detective`](https://github.com/hallettmiket/murmurent/blob/main/agents/detective.md) | [The detective](https://mikehallett.science/assets/videos/murmurent_agent_detective.html) | 2:58 |
+| [`lookout`](https://github.com/hallettmiket/murmurent/blob/main/agents/lookout.md) | [The lookout](https://mikehallett.science/assets/videos/murmurent_agent_lookout.html) | 2:31 |
 
 **News**, newest first (releases and new capabilities; the full record is the
 [changelog](https://github.com/hallettmiket/murmurent/blob/main/CHANGELOG.md)):
