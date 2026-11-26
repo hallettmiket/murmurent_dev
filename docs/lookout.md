@@ -91,6 +91,57 @@ Set it up once, from any Claude Code session:
 3. Run it once by hand with `/schedule run` and read the issue it files.
    `/schedule list` shows it; claude.ai/code/routines pauses or deletes it.
 
+### The network setting
+
+The scheduled run reaches only the sites its **cloud environment** allows
+(a cloud environment is the sandbox the run works in, with its own list of
+permitted sites). The default, called **Limited**, allows package
+registries, GitHub and a few cloud services, which leaves out about half
+the watch list: the video channels, arXiv, and the Antigravity, MCP and
+Codex pages. The first scheduled run found this (issue 360). The setting
+lives on your claude.ai account, so it is changed in the browser, once:
+
+1. Go to claude.ai/code/routines, click the lookout's task, open the menu
+   beside its name and choose **Edit**.
+2. Find the **Cloud environment** row, below **Trigger** or under
+   **Advanced settings > General**. Hover over the environment in the list
+   and click the settings icon on its right.
+3. Under **Network access**, keep **Limited** and leave **Allow package
+   managers** ticked: the run needs it to install the transcript package.
+4. Enter these in **Allowed domains**, one per line (a leading `*.` covers
+   every subdomain):
+
+   ```
+   youtube.com
+   *.youtube.com
+   arxiv.org
+   *.arxiv.org
+   antigravity.google
+   modelcontextprotocol.io
+   developers.openai.com
+   ```
+
+5. Click **Save changes**. The next run uses the new setting.
+
+**Full** access would also work and allows every site. **Limited** with
+this list is the safer choice: the lookout reads pages written by
+strangers, and a short list limits where a run could send anything. An
+environment that opens read-only is shared by your organization; an Owner
+changes it under **Cloud environments** in the admin settings.
+
+**GitHub is the exception.** A cloud run reaches `github.com` through a
+gateway that serves only the repositories attached to the task, so no
+entry in the list opens another repository's releases page or commits
+feed. The lookout reads those sources from their files on
+`raw.githubusercontent.com`, which the default list already allows; the
+[watch list](watch.md#reading-from-the-scheduled-run) names the file for
+each.
+
+After changing the setting, run the task once by hand and read the issue it
+files: its `UNRESOLVED` line names whatever is still out of reach. YouTube
+may refuse transcript requests from cloud machines even when the site
+itself is allowed; if so, the channel lines will say it.
+
 Twice a week is enough: a changelog gains a handful of entries in three
 days, and a report that arrives more often is a report nobody reads. A
 centre that wants another cadence changes the schedule line.
