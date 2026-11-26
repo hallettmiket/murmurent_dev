@@ -91,7 +91,11 @@ twelve you believe.
 3. **The watch list**, [`docs/watch.md`](../docs/watch.md): the pages where
    new techniques appear, each with what to read on it, how it loads for a
    plain client, and the date it was last read. The bookworm keeps it; you
-   may propose a source and never edit the file. Read every row.
+   may propose a source and never edit the file. Read every row. When you
+   run as the scheduled routine, a GitHub page or feed of another
+   repository is refused whatever the network setting: read the file the
+   watch list names for it under "Reading from the scheduled run" instead,
+   and do not retry the page.
 4. **The video channels**, the watch list's "Video: the channels"
    section. Run `python3 scripts/lookout_videos.py list --since <the date
    of the last report>` to see what each channel uploaded, pick the uploads

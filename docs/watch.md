@@ -21,7 +21,43 @@ file.
 JavaScript, so a plain fetch gets a shell and the lookout must read it
 through `WebFetch`, which renders; `feed` names an Atom or RSS feed beside
 the page, which a plain client can read whole. Every page below answered a
-plain client on 2026-11-26.
+plain client on 2026-11-26, from a member's own machine. The scheduled run
+reaches fewer of them: see the next section.
+
+## Reading from the scheduled run
+
+The scheduled run works on Anthropic's machines, in a sandbox that reaches
+only the sites its **cloud environment** allows
+([how to set that](lookout.md#the-network-setting)). Two things follow.
+
+**The sites that must be on the allowed list**, because the default list
+does not hold them: `youtube.com`, `arxiv.org`, `antigravity.google`,
+`modelcontextprotocol.io` and `developers.openai.com`, each with its
+subdomains.
+
+**GitHub pages of other repositories cannot be allowed at all.** A cloud
+run reaches `github.com` through a gateway that serves only the
+repositories attached to the task, so a releases page, a commits feed or
+the GitHub API for any other repository is refused (seen on 2026-11-26,
+issue 360). The files of a public repository still load from
+`raw.githubusercontent.com`, which is on the default list. So from the
+scheduled run, each GitHub source below is read from the file named here,
+not from its page or its feed:
+
+| Source | Read this file from the scheduled run | What it gives | Read |
+|---|---|---|---|
+| Claude Code changelog | <https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md> | every version, newest first; the whole of what the releases feed carries | 2026-11-26 |
+| Claude Agent SDK for Python | <https://raw.githubusercontent.com/anthropics/claude-agent-sdk-python/main/CHANGELOG.md> | each version's notes; lags the releases by about two weeks | 2026-11-26 |
+| Anthropic skills | <https://raw.githubusercontent.com/anthropics/skills/main/.claude-plugin/marketplace.json> | the list of published skills; one that no earlier report and no murmurent file names is new. A skill's own file is at `.../main/skills/<name>/SKILL.md` | 2026-11-26 |
+| Claude cookbooks | <https://raw.githubusercontent.com/anthropics/claude-cookbooks/main/registry.yaml> | every worked example with its title, description, path and date; read the entries dated since the last report | 2026-11-26 |
+| OpenAI Codex | none of use: the repository's `CHANGELOG.md` only points at the releases page | read <https://developers.openai.com/codex/changelog> once that site is allowed | 2026-11-26 |
+| Model Context Protocol | <https://raw.githubusercontent.com/modelcontextprotocol/modelcontextprotocol/main/docs/specification/draft/changelog.mdx> | the changes in the draft of the next version; the published changelog is on `modelcontextprotocol.io` once that site is allowed | 2026-11-26 |
+| Awesome Claude Code | <https://raw.githubusercontent.com/hesreallyhim/awesome-claude-code/main/README.md> | the whole list as it stands today, a large file; there is no record of what was added when, so an entry counts as new only when no earlier report names it | 2026-11-26 |
+
+A file shows what the repository holds today, not what changed since the
+last run. Where the table says so, the lookout's earlier reports are what
+tells new from old. A source that could be read neither way is
+`UNRESOLVED` with the reason, as always.
 
 ## Anthropic: the harness murmurent runs on first
 
