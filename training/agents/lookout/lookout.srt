@@ -1,63 +1,63 @@
 1
-00:00:00,400 --> 00:00:06,004
+00:00:00,400 --> 00:00:06,562
 Crow's nest. Dawn watch. Horizon clear, bow to stern. Nothing new. Wait.
 
 2
-00:00:06,004 --> 00:00:12,770
+00:00:06,562 --> 00:00:13,327
 Sighting, two points off the bow. A changelog. A hook that can refuse a push. Three bells: adopt.
 
 3
-00:00:12,770 --> 00:00:18,793
+00:00:13,327 --> 00:00:19,118
 Sighting, dead ahead. A paper on agent memory. Read in full. Two bells: consider.
 
 4
-00:00:18,793 --> 00:00:28,531
+00:00:19,118 --> 00:00:27,695
 Sighting, astern. A video. It will change everything, it says. From the transcript; I did not watch it. One bell: watch.
 
 5
-00:00:28,531 --> 00:00:35,800
+00:00:27,695 --> 00:00:35,196
 Ten sightings at most, each with where it goes. I ring the bell. I do not steer the ship.
 
 6
-00:00:36,199 --> 00:00:48,349
+00:00:35,600 --> 00:00:48,167
 I am the lookout. New tools for agentic AI appear every week, and nobody has the hours to read them all. I do the reading, on a schedule, and bring back the few that would make murmurent better.
 
 7
-00:00:48,749 --> 00:01:02,714
+00:00:48,550 --> 00:01:02,653
 I read murmurent's own files first, so I know what it already has. Then every page on the watch list: the Claude Code changelog, Anthropic's engineering notes, the other harnesses, arXiv, video by its transcript.
 
 8
-00:01:02,714 --> 00:01:20,553
-I judge each item by one question: which agent gains, and how. I report at most ten, each with the link, the date read, the file it would touch, why, a size, and adopt, consider or watch. One issue per run; the earlier issues are my memory.
+00:01:02,653 --> 00:01:20,957
+I judge each item by one question: which agent gains, and how. I report at most ten, each with the reason in plain words first, then adopt, consider or watch, the effort to build it, and the detail. One issue per run; the earlier issues are my memory.
 
 9
-00:01:20,950 --> 00:01:31,616
+00:01:21,350 --> 00:01:31,598
 I report nothing I did not read today on its own page. A search snippet is not evidence. A video I report from its description and transcript, never as watched.
 
 10
-00:01:31,616 --> 00:01:43,140
+00:01:31,598 --> 00:01:43,540
 I install nothing and edit nothing. The PI decides, the blacksmith builds. A query carries public terms only, never the centre's name or a file path.
 
 11
-00:01:43,550 --> 00:01:49,201
+00:01:43,950 --> 00:01:49,601
 A real run, by hand, on the day I was written: what is new since the first of November.
 
 12
-00:01:49,201 --> 00:01:57,863
-The verdict names the best item and what it would touch. Each row has the page, the file, why, a size and a label.
+00:01:49,601 --> 00:02:00,307
+The verdict names the best item and what it would touch. Each row has the page, the reason first, then the label, the effort to build it, and the detail.
 
 13
-00:01:58,250 --> 00:02:05,573
+00:02:00,700 --> 00:02:07,790
 Three ways to direct me. Ask for the report by hand: ten items at most, each against a murmurent file.
 
 14
-00:02:05,573 --> 00:02:15,810
+00:02:07,790 --> 00:02:18,075
 Ask one question about one harness, answered from today's page. Or whether a tool exists for a database, and which agent would use it.
 
 15
-00:02:16,200 --> 00:02:21,433
+00:02:18,500 --> 00:02:23,733
 Name the lookout in Claude Code, or set the schedule once; it runs twice a week.
 
 16
-00:02:21,433 --> 00:02:31,163
+00:02:23,733 --> 00:02:33,742
 The first line is my verdict: found N worth a look, nothing new, or unknown. Then the items, with where each would go.

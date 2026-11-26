@@ -10,7 +10,7 @@ shortened to fit a frame. The whole report is issue #354. Nothing was installed 
 Member: lookout, what is new since 1 November 2026 that murmurent should look at?
 Found 10 worth a look — Claude Code's November scheduled-task changes may have silently ended both murmurent routines; re-create them (docs/lookout.md, docs/reconcile.md).
 
-1. Claude Code 2.1.329 to 2.1.332: saved scheduled tasks need scheduling again. docs/lookout.md, docs/reconcile.md. small. ADOPT.
-2. New hook events: onFailure: block now covers MCP hooks; SubagentStop waits for the last reply. The three data-root hooks. small. ADOPT, security guard first.
-3. "The components of agent memory" (Anthropic, 6 Nov): four layers and an offline consolidation pass. agents/oracle.md, docs/memory.md. medium. CONSIDER.
+1. Both of murmurent's timed jobs may have stopped without anyone noticing, so they need setting up again. ADOPT, small. Claude Code 2.1.329 to 2.1.332: saved scheduled tasks need scheduling again. docs/lookout.md, docs/reconcile.md.
+2. A guard that crashes should refuse the write instead of letting it through; Claude Code can now do that. ADOPT, small, security guard first. New hook events. The three data-root hooks.
+3. Agents could keep a tidier memory by checking their notes against what was actually said. CONSIDER, medium. "The components of agent memory" (Anthropic, 6 Nov). agents/oracle.md, docs/memory.md.
 Read and set aside: Platform release notes, the skills and cookbooks, Codex 0.172.0, the MCP specification. UNRESOLVED: YouTube results pages load empty for a fetch.

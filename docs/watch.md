@@ -55,7 +55,40 @@ plain client on 2026-11-26.
 | Source | Page | What to read | Loads | Feed | Read |
 |---|---|---|---|---|---|
 | Awesome Claude Code | <https://github.com/hesreallyhim/awesome-claude-code> | a curated list of skills, hooks, commands and workflows; read the recent commits for additions | plain | commits feed: add `/commits/main.atom` | 2026-11-26 |
-| YouTube, by search | `WebSearch` with the query terms and the word `youtube` | the results page itself loads as an empty script shell for a plain client and for `WebFetch` (2026-11-26), so a video is found through web search, then its own page is opened for the description and transcript; reported from those, never as watched | search only | none | 2026-11-26 |
+| YouTube, by search | `WebSearch` with the query terms and the word `youtube` | a fallback for a video outside the channels below: the results page loads as an empty script shell for a plain client (2026-11-26), so a video is found through web search and read by its transcript with `scripts/lookout_videos.py transcript <id>`; never as watched | search only | none | 2026-11-26 |
+
+## Video: the channels
+
+People who publish near-daily videos on Claude Code techniques are a source
+the pages above do not replace: a feature often reaches a channel as a
+worked example days before it reaches a written guide. The lookout reads
+them the only way that is honest: by the **transcript**, never the title and
+never as watched. `scripts/lookout_videos.py list --since <date>` reads each
+channel's own feed (`https://www.youtube.com/feeds/videos.xml?channel_id=<id>`,
+plain XML, the last fifteen uploads) and prints what was uploaded since the
+last run; `scripts/lookout_videos.py transcript <video id>` prints the
+transcript, through the `youtube-transcript-api` package, which the lookout
+may install in its own sandbox (that changes nothing in murmurent). A video
+with no transcript is `UNRESOLVED`.
+
+**Which channels are worth it is learned, not assumed.** Every report's
+"Read and set aside" names each channel, how many uploads were read, and
+what came of them. The bookworm moves that into the **Yield** column, so a
+channel that has given nothing in a month is dropped and one the lookout
+keeps proposing is added. The list below is the starting point, from one
+afternoon's search on 2026-11-26, not a ranking.
+
+| Channel | Address | What it covers | Yield | Read |
+|---|---|---|---|---|
+| Chase AI | <https://www.youtube.com/feeds/videos.xml?channel_id=UCoy6cTJ7Tg0dqS-DI-_REsA> | Claude Code for non-programmers, tool roundups, new releases the day they land; near-daily | none yet | 2026-11-26 |
+| IndyDevDan | <https://www.youtube.com/feeds/videos.xml?channel_id=UC_x36zCEGilGpB1m-V4gmjg> | agentic engineering: CLAUDE.md, hooks, skills, multi-agent orchestration; weekly | none yet | 2026-11-26 |
+| Cole Medin | <https://www.youtube.com/feeds/videos.xml?channel_id=UCMwVTLZIRRUyyVrkjDpn4pA> | agents, MCP, memory ("second brain"), Claude Code workflows; weekly | none yet | 2026-11-26 |
+| Simon Scrapes | <https://www.youtube.com/feeds/videos.xml?channel_id=UCdCR4-uYOg5ju-IUuDnfnQA> | new Claude Code features within days of release, explained for non-specialists | none yet | 2026-11-26 |
+| Nick Saraev | <https://www.youtube.com/feeds/videos.xml?channel_id=UCbo-KbSjJDG6JWQ_MTZ_rNA> | long-form, technical Claude Code courses and workflows | none yet | 2026-11-26 |
+| Nate Herk | <https://www.youtube.com/feeds/videos.xml?channel_id=UC2ojq-nuP8ceeHqiroeKhBA> | Claude Code and automation for beginners | none yet | 2026-11-26 |
+| AI Jason | <https://www.youtube.com/feeds/videos.xml?channel_id=UCrXSVX9a1mj8l0CMLwKgMVw> | Claude Code workflows and agent patterns | none yet | 2026-11-26 |
+| Matthew Berman | <https://www.youtube.com/feeds/videos.xml?channel_id=UCawZsQWqfGSbCI5yjkdVkTA> | model and tool comparisons, news; broad, so read only the Claude Code uploads | none yet | 2026-11-26 |
+| Anthropic | <https://www.youtube.com/feeds/videos.xml?channel_id=UCrDwWp7EBBv4NwvScIpBDOA> | the company's own channel: feature walkthroughs, model launches; occasional | none yet | 2026-11-26 |
 
 ## Searches
 
