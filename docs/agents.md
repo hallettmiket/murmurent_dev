@@ -151,6 +151,57 @@ plugin, skill or connector from outside the commons, are in
 [Which agent works where](harnesses.md).
 
 
+### Which tools each agent may use
+
+Each agent's front matter lists the tools it needs under `required_tools:` and
+the tools it must not use under `denied_tools:`. Those two are murmurent's own
+fields: the registry (`murmurent agent list`) and the integrity audit read
+them, and a fork that drops a denial is flagged as a weakened guardrail.
+
+Claude Code does not read them. It reads only its own two fields, `tools:`
+(the full list the subagent gets, everything else withheld) and
+`disallowedTools:` (removed from whatever the subagent would otherwise
+inherit), spelt exactly so, and it ignores any field it does not recognise
+without saying so. Until November 2026 every denial in the commons was therefore
+on paper only: the detective, documented as unable to edit, could edit
+(found by the lookout reading the subagent reference, 2026-11-27).
+
+So every agent that denies a tool carries the denial twice, and the two lists
+must be the same:
+
+```yaml
+denied_tools:
+- Edit
+disallowedTools:
+- Edit
+```
+
+`tests/test_agents.py` refuses a commons agent where they differ, the registry
+refuses any agent file where they differ, and the dashboard writes both when a
+member builds or modifies an agent. An agent whose `denied_tools` is empty
+needs no `disallowedTools` line.
+
+`required_tools` is deliberately not mirrored as `tools`. In Claude Code
+`tools` is a ceiling: an agent given `tools: [Read, Bash]` loses every MCP
+connector (the Oracle, PubMed, the lab's data store), the Agent tool it uses
+to refer work to another agent, and whatever a harness adds. `required_tools`
+means the opposite, the least an agent needs, and so stays a murmurent-only
+field. The conscience is the one agent that sets `tools:` as well; where an
+agent does, the test requires it to equal its `required_tools`.
+
+To check that a machine's installed agents carry every denial, from the
+murmurent repository:
+
+```bash
+grep -L disallowedTools $(grep -l '^denied_tools:$' agents/*.md)
+```
+
+prints the files that deny something without telling Claude Code; it should
+print nothing. `claude --debug` then lists, in
+`~/.claude/debug/<session-id>.txt`, any front matter field Claude Code did not
+recognise; `required_tools` and `denied_tools` appear there by design and are
+harmless, `disallowedTools` must not.
+
 ## Who hands work to whom
 
 Every agent is started by the member's Claude Code session, and each one
