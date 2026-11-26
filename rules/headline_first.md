@@ -46,6 +46,7 @@ vocabulary:
 | `clerk` | `Correct / Fix / Unknown — <one-line: what the pack confirms, what to change, or what it does not hold>` |
 | `prospector` | `Found N open / None open / Unknown — <one-line: what was found and for whom, what was searched, or what could not be read>` |
 | `teacher` | `Explained / Gap — <one-line on what was/wasn't understood>` |
+| `lookout` | `Found N worth a look / Nothing new / Unknown — <one-line: the best item and what it would touch, what was read and since when, or what could not be read>` |
 | `detective` | `Clean / Suspected / Proven — <one-line: what was checked and held, the strongest unsettled finding and what would settle it, or the finding and the registry that proves it>` |
 
 Then a blank line. Then the detail. Example:

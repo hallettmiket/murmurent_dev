@@ -109,6 +109,7 @@ and with which it must open its reply.
 | Centre Millwright | Centre-wide reconciler: cross-group permissions, membership drift and shared-infrastructure differences | centre | Reconciled / Drift / BLOCKED |
 | Registrar | Registry of groups, cores and collaborations; the centre-level administrative view | centre | Recorded / Conflict / Skipped |
 | Clerk | Ask it anything about the institution: it reads the answer off the institution's own pages, names the page and the date, and remembers it in the institution pack; checks documents, computes working-day dates, walks procedures | `Correct / Fix / Unknown` |
+| Lookout | Reads the places where new agentic-AI techniques appear, on a schedule, and reports the few that would make murmurent better: the link, the date read, what it is, the file or agent it would touch, why, a size, `ADOPT` / `CONSIDER` / `WATCH`; installs nothing | centre | `Found N worth a look / Nothing new / Unknown` |
 | Prospector | Finds the funding opportunities a person may apply for, internal and external, reading each off the funder's own page: who may apply, what it pays, the deadlines, what the pre-application asks for, the link, the date read | member | `Found N open / None open / Unknown` |
 
 ### Which model each agent runs on
@@ -116,7 +117,7 @@ and with which it must open its reply.
 Each agent's file names its model in the `model:` line of its front matter,
 and that line wins over whatever the session is running on. The agents that
 judge, write or investigate (the adversary, blacksmith, clerk, conscience,
-detective, docent, judge, lawyer, oracle, prospector, scribe and teacher) say
+detective, docent, judge, lawyer, lookout, oracle, prospector, scribe and teacher) say
 `inherit`: they run on the model you chose for the session, so a session on
 the strongest model gives them the strongest model, and a session you run on
 a cheaper one to save cost gives them that. The agents whose work is mostly
@@ -824,6 +825,29 @@ under `./outputs/prospector/`.
 It stops at the gate. The scribe writes the application; the clerk walks the
 institution's paperwork. A query carries the profile's public terms and never
 a sentence of a document or a person's name.
+
+## Lookout
+
+The Lookout keeps murmurent current. Twice a week, as a routine, or whenever
+you ask it a question, it reads murmurent's own files first, then its own
+earlier reports, then every page on the **watch list** ([`docs/watch.md`](watch.md)):
+the Claude Code changelog and the Agent SDK, Anthropic's engineering notes,
+the Antigravity and Codex changelogs, the MCP specification, arXiv by fixed
+queries, the community lists, and video by its description and transcript.
+It judges each item by one question, which agent gains and how, with
+life-science-specific items first and general ones only when it can name
+the agent, rule or hook that would gain, and reports at most ten: the link,
+the date read, what it is in plain words, the murmurent file it would touch,
+why, a size, and `ADOPT`, `CONSIDER` or `WATCH`. An empty run lists what it
+read, so silence is never ambiguous.
+
+As the routine, each report is a GitHub issue labelled `lookout`, which is
+also its memory: nothing is reported twice. It installs nothing and edits
+nothing; the PI decides, the blacksmith builds, the bookworm keeps the watch
+list, and an `ADOPT` that touches hooks, secrets or patient data names the
+security guard as its first reviewer. A query carries public terms and never
+the centre's name or a file path. The routine, the issue format and the
+by-hand questions: [`docs/lookout.md`](lookout.md).
 
 ## Detective
 

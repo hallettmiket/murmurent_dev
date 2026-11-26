@@ -85,6 +85,7 @@ digraph agent_handoffs {
     registrar         [label="registrar\n(centre registry)"];
     clerk             [label="clerk\n(the institution's rules)"];
     prospector        [label="prospector\n(funding opportunities)"];
+    lookout           [label="lookout\n(what is new outside)"];
   }
 
   // Research and production
@@ -107,6 +108,8 @@ digraph agent_handoffs {
   docent     -> clerk      [label="paperwork,\ndates, offices"];
   prospector -> clerk      [label="a sponsor deadline,\nfor the internal one"];
   prospector -> bookworm   [label="a funder the\nregistry should hold"];
+  lookout    -> bookworm   [label="a source the\nwatch list should hold"];
+  lookout    -> security_guard [label="first reviewer of an ADOPT\nthat touches hooks or secrets", style=dashed];
 
   // Review and adjudication
   adversary      -> lawyer         [label="IP-bearing work\n(dispatched automatically)", penwidth=1.8, color="#4F2683", fontcolor="#4F2683"];
