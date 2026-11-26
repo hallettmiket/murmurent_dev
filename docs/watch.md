@@ -30,7 +30,7 @@ plain client on 2026-11-26.
 | Claude Code changelog | <https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md> | every version since the last run: new tools, settings, hooks, subagent and skill features, deprecations; the raw file is at <https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md> | plain | <https://github.com/anthropics/claude-code/releases.atom> | 2026-11-26 |
 | Claude Code docs: changelog | <https://code.claude.com/docs/en/changelog> | the documented form of the same releases, with the pages that explain each feature | script | none | 2026-11-26 |
 | Claude Platform release notes | <https://platform.claude.com/docs/en/release-notes/overview> | new models, API features, tools and deprecations; the Agent SDK's notes are linked from here | plain | none | 2026-11-26 |
-| Claude Agent SDK for Python | <https://github.com/anthropics/claude-agent-sdk-python/releases> | each release's notes: what a program that drives Claude Code can now do | plain | add `.atom` to the address | 2026-11-26 |
+| Claude Agent SDK for Python | <https://github.com/anthropics/claude-agent-sdk-python/releases> | each release's notes: what a program that drives Claude Code can now do. The releases page carried no notes on 2026-11-26; read the raw `CHANGELOG.md` at <https://raw.githubusercontent.com/anthropics/claude-agent-sdk-python/main/CHANGELOG.md>, which lags the releases by about two weeks, and the commits feed beside it | plain | commits feed: add `/commits/main.atom` to the repository address | 2026-11-26 |
 | Anthropic engineering | <https://www.anthropic.com/engineering> | the long notes on how to build agents, write tools, manage context and evaluate; the posts murmurent's own rules most often cite | plain | none found on 2026-11-26 (`/rss.xml` answers 404) | 2026-11-26 |
 | Anthropic news | <https://www.anthropic.com/news> | announcements; read only the titles, open an item only when it names a tool or method | plain | none | 2026-11-26 |
 | Anthropic skills | <https://github.com/anthropics/skills> | the published skills and the skill-writing guidance; a new skill here is a candidate for a murmurent agent's "Optional helpers" | plain | commits feed: add `/commits/main.atom` | 2026-11-26 |
@@ -48,14 +48,14 @@ plain client on 2026-11-26.
 
 | Source | Page | What to read | Loads | Feed | Read |
 |---|---|---|---|---|---|
-| arXiv, by query | `http://export.arxiv.org/api/query?search_query=<terms>&sortBy=submittedDate&max_results=25` | the API returns Atom; one query per term in the Searches section below, newest first; open a paper's abstract page before reporting it | plain | the query is the feed | 2026-11-26 |
+| arXiv, by query | `https://export.arxiv.org/api/query?search_query=<terms>&sortBy=submittedDate&max_results=25` | the API returns Atom; one query per term in the Searches section below, newest first; open a paper's abstract page before reporting it. `https`, not `http`: the API answers `http` with a redirect and a plain client that does not follow it gets an empty body | plain | the query is the feed | 2026-11-26 |
 
 ## The community
 
 | Source | Page | What to read | Loads | Feed | Read |
 |---|---|---|---|---|---|
 | Awesome Claude Code | <https://github.com/hesreallyhim/awesome-claude-code> | a curated list of skills, hooks, commands and workflows; read the recent commits for additions | plain | commits feed: add `/commits/main.atom` | 2026-11-26 |
-| YouTube, by query | `https://www.youtube.com/results?search_query=<terms>` | titles and channels only from the results page; a video is reported from its description and transcript, never as watched | script | none | 2026-11-26 |
+| YouTube, by search | `WebSearch` with the query terms and the word `youtube` | the results page itself loads as an empty script shell for a plain client and for `WebFetch` (2026-11-26), so a video is found through web search, then its own page is opened for the description and transcript; reported from those, never as watched | search only | none | 2026-11-26 |
 
 ## Searches
 

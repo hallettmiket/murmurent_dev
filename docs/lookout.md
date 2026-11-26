@@ -43,8 +43,10 @@ gh label create lookout --color 1D76DB --description "The lookout's reports: new
 
 ## The schedule
 
-The routine runs twice a week through Claude Code's `/routine`, the
-mechanism the [reconcile routine](reconcile.md) uses. Set it up once:
+The routine runs twice a week as a Claude Code **cloud scheduled task**,
+the mechanism the [reconcile routine](reconcile.md) uses. Claude Code called
+these routines until November 2026 and `/routines` still works; `/schedule`
+is the current name. Set it up once:
 
 ```
 /routine create murmurent-lookout
@@ -63,6 +65,14 @@ mechanism the [reconcile routine](reconcile.md) uses. Set it up once:
 Twice a week is enough: a changelog gains a handful of entries in three
 days, and a report that arrives more often is a report nobody reads. A
 centre that wants another cadence changes the schedule line.
+
+**Check it is still scheduled.** Claude Code 2.1.330 (20 November 2026)
+changed how saved scheduled tasks are stored: most saved by earlier versions
+need scheduling again, and a recurring task made before that release still
+ends after seven days where a new one runs thirty. The lookout's first run
+found this, which is why it is written here. When a report has not arrived
+for a week, `/tasks` shows whether the task exists; if not, create it again.
+The same applies to the reconcile routine.
 
 ## By hand
 

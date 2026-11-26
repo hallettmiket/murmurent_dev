@@ -11,12 +11,12 @@ by hand (a test checks it).
 1. [Getting started with Murmurent](#getting-started-with-murmurent-video-7-min-10-s), a 7-minute video
 2. [Using ElevenLabs from Claude Code](#using-elevenlabs-from-claude-code), from signing up to making audio, including the free student offer
 3. [A thesis an examiner can question](thesis_package/README.md), a 6-minute animated walkthrough of paper packages, thesis packages and the docent, rendered from a script in that folder
-4. [One short movie per agent](#one-short-movie-per-agent), nineteen movies of about two minutes each: what the agent does, what it will not do, one real run, and how to use it through Claude Code
+4. [One short movie per agent](#one-short-movie-per-agent), twenty movies of about two minutes each: what the agent does, what it will not do, one real run, and how to use it through Claude Code
 5. [Working through Claude Code, and the skills](#working-through-claude-code-and-the-skills), seven movies of two to three minutes: the one every other movie assumes, the two push skills, the status update, a course across sessions, the mayor's tools, the lab notebook, and the data root
 
 ## One short movie per agent
 
-One movie for each of the nineteen commons agents (issue #288), each about two
+One movie for each of the twenty commons agents (issue #288), each about two
 minutes, in the same style as the thesis-package video: drawn from a script,
 every chat scene a real run of the agent on `examples/` or on synthetic data,
 captions burned in, narration with ElevenLabs. Each agent speaks for itself,
@@ -28,8 +28,8 @@ refuses, so a change to the agent is a change to the movie, and a hook reminds
 a session to re-render when the agent file is edited. How they are made and
 updated: [`agents/README.md`](agents/README.md).
 
-**Checked against** Murmurent 2026.11.1, 9 November 2026. All nineteen are
-narrated; the prospector's was added 12 November 2026 and the detective's 21 November 2026, both against 2026.11.2. Each scene is timed from the measured length of its voice clip, so
+**Checked against** Murmurent 2026.11.1, 9 November 2026. All twenty are
+narrated; the prospector's was added 12 November 2026, the detective's 21 November 2026 and the lookout's 26 November 2026, all against 2026.11.2. Each scene is timed from the measured length of its voice clip, so
 re-voicing a changed sentence re-times the picture with it.
 
 **Every movie opens with a cold open** in the agent's own character, taken from its
@@ -58,6 +58,10 @@ The scribe's is a clean, well-lighted sentence: it writes the way Ernest Hemingw
 a forty-one-word sentence apart on a typewriter page, the passive voice mounted on the wall like a marlin,
 the glass untouched until the figure legend is done, and the house style, which says do not go choppy,
 winning in the end.
+The lookout's is the crow's nest at dawn: a spyglass sweeps an empty horizon, then three sightings come
+over it and each is rung on the ship's bell by how much it matters (a changelog, three bells, adopt; a memory
+paper, two bells, consider; a video that will change everything, one bell, watch, from the transcript, not
+watched), and the true part is the last line, that it rings the bell and does not steer the ship (Laura).
 The last seven, added 21 November 2026, each six seconds on the shared engine: the oracle answers
 before the question is typed, the notes lighting up one by one through the vault (MMP11, run 17, and you
 wrote "never again"); the lab oracle is a museum case of reviewed scrolls, frost on the glass, and a sticky
@@ -94,6 +98,7 @@ counted in the lengths and chapter times below.
 | [`docent`](../agents/docent.md) | [The docent](https://mikehallett.science/assets/videos/murmurent_agent_docent.html) | 2:06 | yes | 0:00 Opening, 0:06 Welcome, 0:17 What it does, 0:40 Its scope, 1:09 A real example, 1:39 How to use it |
 | [`prospector`](../agents/prospector.md) | [The prospector](https://mikehallett.science/assets/videos/murmurent_agent_prospector.html) | 3:06 | yes | 0:00 Opening, 0:06 Welcome, 0:22 What it does, 1:02 Its scope, 1:40 A real example, 2:16 How to direct it, 2:30 How to use it |
 | [`detective`](../agents/detective.md) | [The detective](https://mikehallett.science/assets/videos/murmurent_agent_detective.html) | 2:58 | yes | 0:00 The report you are about to read, 0:38 Welcome, 0:52 What it does, 1:25 Its scope, 1:55 A real example, 2:19 How to direct it, 2:38 How to use it |
+| [`lookout`](../agents/lookout.md) | [The lookout](https://mikehallett.science/assets/videos/murmurent_agent_lookout.html) | 2:31 | yes | 0:00 Crow's nest, 0:35 Welcome, 0:48 What it does, 1:20 Its scope, 1:43 A real example, 1:57 How to direct it, 2:15 How to use it |
 
 
 ## Working through Claude Code, and the skills
