@@ -884,7 +884,9 @@ you ask it a question, it reads murmurent's own files first, then its own
 earlier reports, then every page on the **watch list** ([`docs/watch.md`](watch.md)):
 the Claude Code changelog and the Agent SDK, Anthropic's engineering notes,
 the Antigravity and Codex changelogs, the MCP specification, arXiv by fixed
-queries, the community lists, and video by its description and transcript.
+queries, the community lists, and named YouTube channels by their transcripts
+(`scripts/lookout_videos.py`), with each channel's yield kept on the list so the
+worthwhile ones are learned over time.
 It judges each item by one question, which agent gains and how, with
 life-science-specific items first and general ones only when it can name
 the agent, rule or hook that would gain, and reports at most ten, each
