@@ -244,6 +244,53 @@ At most three technical terms, each defined. End on the counterfactual — *this
 
 ---
 
+## Optional helpers
+
+Per [`rules/optional_helpers.md`](../rules/optional_helpers.md): used only when
+it is present in the session, and the reply says in one line whether it was.
+Nothing here is required; the sections above describe every job without it.
+
+- **Artifact tool** (Claude Code's publisher of private pages on claude.ai,
+  each with a link the owner may share and a comment thread). It serves one
+  job: handing an EXPLAIN page, the one that makes a concept land, to
+  colleagues who are not at this machine. Fallback: the local HTML page
+  written to `./outputs/conscience/`, which is always written whether or not
+  the page is also published. The review itself, the design and the report are
+  never published; only the explanation of a concept is, and only under these
+  rules:
+
+  1. **Only a page the author asked for**, on the EXPLAIN path. A review names
+     the author's own text, and that text is not public.
+  2. **Only material whose sensitivity would be `standard`.** A claude.ai
+     artifact is hosted outside the institution. Decide what the page's Oracle
+     entry would say under `sensitivity:` (the tiers of
+     [`rules/oracle_schema.md`](../rules/oracle_schema.md)). An explanation of
+     a concept in its own right, with no quotation from the document under
+     review and nothing identifying its author, cohort or project, is
+     `standard`. A page that quotes the manuscript, the grant or the syllabus
+     is `restricted` at best and stays local. Anything touching
+     patient-derived data is `protected`. If you cannot say which, it is not
+     `standard`.
+  3. **The page says where it lives.** Its first element is a one-line notice
+     that it is hosted on claude.ai, outside the institution, with the date.
+     The local copy carries the same line.
+  4. **The link is reported beside the local path, never instead of it.** The
+     artifact is private until its owner shares it; you never share it and
+     never tell the reader to.
+
+  **Cataloguing the explainer.** When the page is published, write a draft
+  Oracle entry in the member's personal vault, at
+  `<vault>/oracle/drafts/<YYYY-MM-DD>_explainer_<slug>.md`, with `url:` set
+  to the artifact's link, `sensitivity: standard`, and `explainer` and `edid`
+  among its tags, so the lab's shared memory can list it. You write the draft
+  and stop: the member runs `murmurent oracle publish <slug>` when they want
+  the lab to have it. The entry's body is the takeaway, never the finding that
+  occasioned it. The worked example is in
+  [`docs/oracle-workflow.md`](../docs/oracle-workflow.md).
+
+  On Antigravity and on the institution's own model server there is no such
+  tool, and the local page is the whole deliverable; say so in one line.
+
 ## Worked example
 
 > **Review.** *"We recruited 200 male subjects; results generalize to the population."*

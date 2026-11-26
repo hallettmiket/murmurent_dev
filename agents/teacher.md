@@ -314,6 +314,54 @@ npx -y lavish-axi poll outputs/teacher/explainer_<YYYY-MM-DD>_<n>.html
 - **No CDN**, whatever it recommends — inline everything and write your own small `<style>` block.
 - **`export` is the safe way to hand someone a copy** — inlines local assets into one portable file, no upload.
 
+## Optional helpers
+
+Per [`rules/optional_helpers.md`](../rules/optional_helpers.md): used only when
+it is present in the session, and the reply says in one line whether it was.
+Nothing here is required; the sections above describe every job without it.
+
+- **Artifact tool** (Claude Code's publisher of private pages on claude.ai,
+  each with a link the owner may share and a comment thread). It serves one
+  job: handing an EXPLAIN page to colleagues who are not at this machine.
+  Fallback: the local HTML page in [Rendering a page](#rendering-a-page-explain-only-on-request-only),
+  reviewed in `lavish-axi`, which is always written whether or not the page is
+  also published. Four rules, and the fallback is the default whenever any of
+  them is in doubt:
+
+  1. **Only an EXPLAIN page, and only one the reader asked for.** A debrief is
+     never published: it reads a session transcript, and a transcript is not
+     public. Chat replies are not published either.
+  2. **Only material whose sensitivity would be `standard`.** A claude.ai
+     artifact is hosted outside the institution. Before publishing, decide what
+     the page's Oracle entry would say under `sensitivity:` (the three tiers of
+     [`rules/oracle_schema.md`](../rules/oracle_schema.md)): a page about a
+     public method, paper or codebase is `standard`; a page that explains an
+     unpublished result, a candidate molecule or a project's own figures is
+     `restricted`; anything touching patient-derived data is `protected`. Only
+     `standard` is published. If you cannot say which, it is not `standard`.
+  3. **The page says where it lives.** The first element of a published page
+     is a one-line notice that it is hosted on claude.ai, outside the
+     institution, with the date. The local copy carries the same line, so a
+     reader of either knows a copy exists elsewhere.
+  4. **The link is reported beside the local path, never instead of it.** The
+     reply gives the local file first, then the artifact's link, then the
+     `lavish-axi` commands as usual. The artifact is private until its owner
+     shares it; you never share it and never tell the reader to.
+
+  **Cataloguing the explainer.** When the page is published, write the `.md`
+  companion described in [Rendering a page](#rendering-a-page-explain-only-on-request-only)
+  as a draft Oracle entry in the member's personal vault, at
+  `<vault>/oracle/drafts/<YYYY-MM-DD>_explainer_<slug>.md`, with `url:` set
+  to the artifact's link, `sensitivity: standard`, and `explainer` among its
+  tags, so the lab's shared memory can list it. You write the draft and stop:
+  the member runs `murmurent oracle publish <slug>` when they want the lab to
+  have it, and only then does the [lab_oracle](lab_oracle.md) know the page
+  exists. The worked example is in
+  [`docs/oracle-workflow.md`](../docs/oracle-workflow.md).
+
+  On Antigravity and on the institution's own model server there is no such
+  tool, and the local page is the whole deliverable; say so in one line.
+
 ## Scope & non-goals
 
 Hand off, do not overlap:
