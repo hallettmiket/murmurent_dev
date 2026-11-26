@@ -121,6 +121,7 @@ HARNESS_STATUSES = {"verified", "degraded", "untested"}
 OUTSIDE_HELPERS = (
     "deep-research", "ip-legal", "`Legal` plugin", "Research Desk", "Bio Research",
     "`pubmed` plugin", "PubMed connector", "claude-security",
+    "Artifact tool", "claude.ai artifact",
 )
 
 
