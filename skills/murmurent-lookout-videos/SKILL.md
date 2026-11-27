@@ -45,7 +45,9 @@ first line. No `lookout` issue at all: say so and stop.
 
 Then read it with its comments: `gh issue view <number> --comments`. An earlier comment
 from this skill ends in a line `Videos read: <ids>`; those videos are done. **Since** is the
-date the issue was created (`YYYY-MM-DD`).
+date the report's own video lines start from ("uploads since `YYYY-MM-DD`"), which is the
+date of the lookout issue before it; not the report's own date, which would miss the
+uploads of the day before it was filed.
 
 ### 2. List the uploads
 
@@ -81,16 +83,22 @@ its headline, then the comment body below and nothing else after it:
 ```
 **Video channels, read <today> from a member's computer** (the scheduled run cannot read YouTube). For the report above, <the report's date>.
 
-| # | Item | Source | Why | Label | Effort to build | What it is | Where in murmurent | Read |
-|---|---|---|---|---|---|---|---|---|
-| V1 | ... | YouTube: <channel> | ... | ... | ... | ... | ... | <date>, from the description and transcript |
+| # | Item | Label | Effort | Source |
+|---|---|---|---|---|
+| V1 | <short name> | ... | ... | YouTube: <channel> |
+
+### V1. <short name>
+**Why:** <plain words, the reason first>
+**What it is:** ...
+**Where in murmurent:** <file or agent>
+**Link:** <url> · read <today>, from the description and transcript
 
 **Read and set aside.** One line per channel: uploads since <since>, transcripts read, what came of them (V1, or nothing).
 
 Videos read: <every id fetched or tried, comma separated>
 ```
 
-No items is a fine answer: the table is then left out and the channel lines say what was
+No items is a fine answer: the index and blocks are then left out and the channel lines say what was
 read. Never more than ten items.
 
 ### 5. Post it

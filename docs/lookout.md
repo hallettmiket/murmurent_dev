@@ -43,7 +43,9 @@ person's, a project's, a server's or a file path.
 
 When run as the routine, each report is one GitHub issue in the murmurent
 repository, labelled `lookout` and titled `Lookout: <date>: <one line>`,
-with the table and the two closing sections as its body, and a one-line
+with a short index table (item, label, effort, source), one block per item
+giving the why, what it is, where in murmurent and the link, and the two
+closing sections as its body, and a one-line
 Slack note through `murmurent project note` naming it. The issues are the
 lookout's memory: it reads the last few before it searches, so nothing is
 reported twice. Close an issue when its items are decided; the lookout reads
