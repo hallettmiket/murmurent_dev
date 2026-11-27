@@ -165,6 +165,26 @@ At most ten items, best first. For each, in this order:
 The order is the reader's: the PI reads the why and the label and decides;
 the rest is for whoever builds it.
 
+**Laid out as an index, then one block per item**, never as one wide table:
+a table with all eight fields squeezes the Why column to a word or two per
+line on GitHub, which is the one column the PI must read. The index holds
+only the short fields; the long ones go in the item's own block:
+
+```
+| # | Item | Label | Effort | Source |
+|---|---|---|---|---|
+| 1 | <short name> | ADOPT | small | Claude Code changelog |
+
+### 1. <short name>
+**Why:** <plain words, the reason first>
+**What it is:** <one sentence>
+**Where in murmurent:** <file or agent>
+**Link:** <url> · read <date>
+```
+
+Video items are numbered `V1`, `V2`, ... so they never collide with the
+report's own numbers.
+
 Then a short section, **Read and set aside**: the sources you read that
 held nothing for murmurent this time, so an empty report still says what
 was covered. For each video channel, one line: how many uploads since the
@@ -175,7 +195,7 @@ should hold, with the page and why.
 
 **When run as the routine**, the report is one GitHub issue in the
 murmurent repository, labelled `lookout`, titled `Lookout: <date>: <the
-verdict's one line>`, with the table and the two sections as its body, and
+verdict's one line>`, with the index, the item blocks and the two sections as its body, and
 a one-line note through `murmurent project note` naming the issue. When
 run by hand, the report is your reply, and the issue only if asked.
 
