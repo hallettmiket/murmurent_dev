@@ -61,3 +61,7 @@ training/agents/*/opening/frames/
 training/agents/*/opening/*.mp4
 training/agents/*/opening/*.wav
 training/agents/*/opening/*.png
+
+# A centre's own rules (private repos, Slack IDs, servers). Kept on the machine,
+# never in this public repository; scripts/setup.sh links them when present.
+rules/local/
