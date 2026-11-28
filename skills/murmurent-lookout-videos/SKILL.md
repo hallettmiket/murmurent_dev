@@ -1,7 +1,6 @@
 ---
 name: murmurent-lookout-videos
 description: The lookout's video step, run from your own computer because YouTube refuses transcript requests from the cloud machines the scheduled lookout runs on. Lists what the watch list's channels uploaded since the last lookout report, reads the relevant ones by their transcripts (through a server of yours when YouTube refuses this computer too), has the lookout judge them, and adds what it found as a comment on that report. Use when a member types /murmurent-lookout-videos, or from the desktop app's scheduled task that runs it after the twice-weekly lookout.
-disable-model-invocation: true
 argument-hint: "[dry-run]"
 allowed-tools: Bash(gh repo view*), Bash(gh issue list*), Bash(gh issue view*), Bash(gh issue comment*), Bash(mktemp -d*), Bash(uv run -q --no-project --with youtube-transcript-api python3 *), Write
 ---
