@@ -20,6 +20,7 @@
 # Side effects:
 #   - ~/.claude/agents/<agent>.md       → <repo>/agents/<agent>.md
 #   - ~/.claude/CLAUDE.md               → <repo>/CLAUDE.md          (if absent)
+#   - ~/.agents/skills/<skill>          → <repo>/skills/<skill>     (Antigravity only)
 #   - ~/.claude/settings.json           ← murmurent hooks + MCP merged in
 
 set -euo pipefail
@@ -219,6 +220,30 @@ else
   warn "no skills/ dir in murmurent — skipping"
 fi
 
+# Antigravity (2.36.0 and later) also finds skills in ~/.agents/skills. Linking
+# murmurent's there lets a member on Antigravity use the same commands, such as
+# /murmurent-push, instead of the system's own. Only when Antigravity is on this
+# machine (its settings live in ~/.gemini) or the shared folder already exists.
+# Same rules: re-point our links, never touch a member's own skill directory.
+AGENTS_SKILLS="$HOME/.agents/skills"
+if [[ -d "$SKILLS_SRC" && ( -d "$HOME/.gemini" || -d "$AGENTS_SKILLS" ) ]]; then
+  echo
+  echo "Wiring ~/.agents/skills/ → $SKILLS_SRC/ (for Antigravity)"
+  mkdir -p "$AGENTS_SKILLS"
+  for src_dir in "$SKILLS_SRC"/*/; do
+    [[ -d "$src_dir" ]] || continue
+    src_dir="${src_dir%/}"
+    name="$(basename "$src_dir")"
+    dest="$AGENTS_SKILLS/$name"
+    if [[ -L "$dest" || ! -e "$dest" ]]; then
+      ln -sfn "$src_dir" "$dest"
+      ok "linked ~/.agents/skills/$name → murmurent"
+    else
+      warn "preserved your own ~/.agents/skills/$name (not a symlink)"
+    fi
+  done
+fi
+
 echo
 echo "Wiring ~/.claude/output-styles/ → $STYLES_SRC/"
 # Output styles change how Claude Code WRITES, as distinct from what it knows.
@@ -260,9 +285,10 @@ fi
 echo
 echo "Dangling commons links:"
 pruned=0
-for sub in agents rules skills output-styles; do
-  [[ -d "$CC_DIR/$sub" ]] || continue
-  for dest in "$CC_DIR/$sub"/*; do
+for dir in "$CC_DIR/agents" "$CC_DIR/rules" "$CC_DIR/skills" "$CC_DIR/output-styles" "$HOME/.agents/skills"; do
+  [[ -d "$dir" ]] || continue
+  sub="${dir#$HOME/}"
+  for dest in "$dir"/*; do
     [[ -L "$dest" && ! -e "$dest" ]] || continue
     target="$(readlink "$dest")"
     case "$target" in

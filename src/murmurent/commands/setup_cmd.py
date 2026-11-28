@@ -38,6 +38,47 @@ def _cc_dir() -> Path:
     return Path(override).expanduser() if override else Path.home() / ".claude"
 
 
+def _agents_dir() -> Path | None:
+    """The shared ``~/.agents`` folder Antigravity also reads skills from.
+
+    ``MURMURENT_AGENTS_DIR`` overrides it. When only ``MURMURENT_CC_DIR`` is set
+    (a test, or an install redirected elsewhere), the real home folder is left
+    alone and None is returned.
+    """
+    import os
+
+    override = os.environ.get("MURMURENT_AGENTS_DIR")
+    if override:
+        return Path(override).expanduser()
+    if os.environ.get("MURMURENT_CC_DIR"):
+        return None
+    return Path.home() / ".agents"
+
+
+def _antigravity_present(agents: Path) -> bool:
+    """Antigravity keeps its own settings in ``~/.gemini``; a member who already
+    has ``~/.agents/skills`` uses the shared folder anyway."""
+    return (agents.parent / ".gemini").is_dir() or (agents / "skills").is_dir()
+
+
+def _link_skills(skills_src: Path, dest_dir: Path, label: str, totals: list[int]) -> None:
+    """Link each skill directory under ``skills_src`` into ``dest_dir``."""
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    for src in sorted(d for d in skills_src.iterdir() if d.is_dir()):
+        dest = dest_dir / src.name
+        if dest.is_symlink():
+            dest.unlink()
+            dest.symlink_to(src)
+            totals[1] += 1
+        elif dest.exists():
+            click.echo(f"  ! preserved your own {label}/{src.name} (not a symlink)")
+            totals[2] += 1
+        else:
+            dest.symlink_to(src)
+            click.echo(f"  + {label}/{src.name}")
+            totals[0] += 1
+
+
 def _link_dir(src_dir: Path, dest_dir: Path, pattern: str, kind: str) -> tuple[int, int, int]:
     """Link every ``pattern`` under ``src_dir`` into ``dest_dir``.
 
@@ -164,21 +205,15 @@ def cmd_setup(*, force: bool = False, show_next_step: bool = True) -> int:
 
     # Skills are directories, not files.
     skills_src = root / "skills"
+    agents_home = _agents_dir()
     if skills_src.is_dir():
-        (cc / "skills").mkdir(parents=True, exist_ok=True)
-        for src in sorted(d for d in skills_src.iterdir() if d.is_dir()):
-            dest = cc / "skills" / src.name
-            if dest.is_symlink():
-                dest.unlink()
-                dest.symlink_to(src)
-                totals[1] += 1
-            elif dest.exists():
-                click.echo(f"  ! preserved your own skills/{src.name} (not a symlink)")
-                totals[2] += 1
-            else:
-                dest.symlink_to(src)
-                click.echo(f"  + skills/{src.name}")
-                totals[0] += 1
+        _link_skills(skills_src, cc / "skills", "skills", totals)
+        # Antigravity (2.36.0 and later) also finds skills in ~/.agents/skills.
+        # Linking them there lets a member on Antigravity use the same commands,
+        # such as /murmurent-push, instead of the system's own. Only when
+        # Antigravity is on this machine; see docs/harnesses.md.
+        if agents_home is not None and _antigravity_present(agents_home):
+            _link_skills(skills_src, agents_home / "skills", "~/.agents/skills", totals)
 
     # CLAUDE.md sits beside the commons in a clone, and one level up from the
     # packaged commons dir; ship it from wherever it actually is.
@@ -198,6 +233,8 @@ def cmd_setup(*, force: bool = False, show_next_step: bool = True) -> int:
         _prune_dangling(cc / sub, root, sub)
         for sub in ("agents", "rules", "skills", "output-styles")
     )
+    if agents_home is not None:
+        pruned += _prune_dangling(agents_home / "skills", root, "~/.agents/skills")
 
     created, repointed, preserved = totals
     click.echo(

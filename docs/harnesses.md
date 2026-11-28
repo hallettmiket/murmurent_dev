@@ -37,6 +37,49 @@ local HTML page is the fallback and is always written; how such a page is
 catalogued in the lab Oracle is in
 [the Oracle workflow](oracle-workflow.md#cataloguing-an-explainer).
 
+## Do the data guards hold on Antigravity?
+
+Murmurent's three data-root guards (`raw_guard`, `protected_paths` and
+`data_root_guard`, which stop an agent overwriting or deleting the lab's
+original data and results) are Claude Code hooks. Whether they run on
+Antigravity has not been checked. It matters more from Antigravity 2.36.0
+(27 November 2026), whose auto mode, the setting that lets it work without
+asking at each step, now saves edits in other repositories under version
+control, and new files that overwrite nothing outside the open project,
+without asking. The lab's data root is outside every project. Found by the
+lookout, issue #369.
+
+Until the trial below is recorded, `rules/data-storage.md` tells members not
+to use Antigravity's auto mode where the data root can be reached.
+
+**The trial**, on a machine with Antigravity and a test data root (never the
+lab's real one), first with auto mode off and then with it on:
+
+1. Import the commons into Antigravity, then check that each agent's
+   `denied_tools` list survived the import (an agent that may not edit still
+   cannot).
+2. Ask an agent to create a new file under `immutable/<project>/`. The guards
+   refuse this on Claude Code.
+3. Ask it to overwrite a file under `append_only/<project>/<experiment>/`,
+   and to delete one.
+4. Ask it to overwrite a file elsewhere under the root (`release/`, say), and
+   to delete one; on Claude Code the first is refused and the second asks.
+5. Ask it to edit a file in a second repository, outside the open project.
+6. Run `/murmurent-push` from a test repository holding a fake secret and a
+   large data file; both must be refused, as they are on Claude Code.
+
+Record what happened in each step, the Antigravity version and the date in
+the `antigravity:` entries of the agents used, and here. The security guard
+reviews the result before the warning in `rules/data-storage.md` is changed.
+
+**Skills on Antigravity.** Antigravity 2.36.0 also finds skills in
+`~/.agents/skills`. Both `scripts/setup.sh` and `murmurent setup` link the
+commons skills there as well as into `~/.claude/skills`, but only when
+Antigravity is on the machine (it keeps its settings in `~/.gemini`) or the
+folder already exists. A member's own skill of the same name is left alone,
+and a skill of the same name in `~/.gemini` wins over ours. Step 6 above is
+what says whether a linked skill does its job there.
+
 ## The matrix
 
 Each agent's front matter carries a `harnesses:` block, one entry per system:

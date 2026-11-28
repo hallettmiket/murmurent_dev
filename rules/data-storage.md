@@ -158,6 +158,14 @@ protected:
    logging, context and verdict hooks keep the default, so a failure in one
    of them never blocks a member's work. An older Claude Code ignores the
    field and behaves as before.
+5. **They are checked on Claude Code only.** The guards are Claude Code
+   hooks. On Antigravity, the second system murmurent runs on, no one has yet
+   recorded whether they run at all, and from version 2.36.0 Antigravity's
+   auto mode saves edits in other repositories, and new files outside the
+   open project, without asking. Until the trial in
+   [Which agent works where](../docs/harnesses.md#do-the-data-guards-hold-on-antigravity)
+   is recorded, do not use Antigravity's auto mode where the data root can
+   be reached.
 
 So the honest description is a **discipline that murmurent enforces on its
 agents**, and one that a member can uphold or bypass at will. Treat it as
